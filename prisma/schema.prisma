@@ -1,0 +1,233 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Restaurant {
+  id         Int      @id @default(autoincrement())
+  name       String
+  logo       String
+  email      String
+  phone      String
+  adminEmail String
+  branches   Branch[]
+  user       User[]
+  userId     String?
+}
+
+model Branch {
+  id              String     @id @default(cuid())
+  name            String
+  ppt_image       String
+  email           String
+  phone           String?
+  wifi            String?
+  wifipwd         String?
+  instagram       String?
+  facebook        String?
+  twitter         String?
+  city            String
+  address         String
+  extraAddress    String
+  rating          Float?
+  rating_quantity Int?
+  cuisine         String
+  restaurantId    Int
+  timezone        String?
+  open            Int?
+  close           Int
+  restaurant      Restaurant @relation(fields: [restaurantId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  menus           Menu[]
+  table           Table[]
+  orders          Order[]
+  users           User[]
+  feedbacks       Feedback[]
+}
+
+model Table {
+  id                String     @id @default(cuid())
+  table_number      Int
+  order_in_progress Boolean
+  branch            Branch     @relation(fields: [branchId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  branchId          String
+  order             Order?
+  users             User[]
+  employees         Employee[]
+  feedbacks         Feedback[]
+}
+
+model Menu {
+  id              String         @id @default(cuid())
+  name            String?
+  type            String?
+  currency        String?
+  fromHour        Decimal?
+  toHour          Decimal?
+  allday          Boolean?
+  branchId        String
+  branch          Branch         @relation(fields: [branchId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  menuCategories  MenuCategory[]
+  personalizeMenu Boolean?       @default(false)
+  image           String?
+  // ShowingHours    ShowingHours?  @relation(fields: [showingHoursId], references: [id])
+  // showingHoursId  String?
+}
+
+// model ShowingHours {
+//   id         String  @id @default(cuid())
+//   fromHour   Int?
+//   fromMinute Int?
+//   toHour     Int?
+//   toMinute   Int?
+//   allDay     Boolean
+//   menus      Menu[]
+// }
+
+model MenuCategory {
+  id        String     @id @default(cuid())
+  name      String
+  menuId    String
+  menu      Menu       @relation(fields: [menuId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  menuItems MenuItem[]
+}
+
+model MenuItem {
+  id             String          @id @default(cuid())
+  image          String
+  name           String
+  description    String
+  price          Decimal
+  available      Boolean
+  menuCategoryId String?
+  menuCategory   MenuCategory?   @relation(fields: [menuCategoryId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  modifierGroups ModifierGroup[]
+  // orderItems     OrderItem[]
+  cartItems      CartItem[]
+}
+
+model Order {
+  id           String     @id @default(cuid())
+  tip          Decimal?
+  paid         Boolean?
+  total        Decimal?
+  creationDate DateTime
+  orderedDate  DateTime
+  active       Boolean?
+  table        Table?     @relation(fields: [tableId], references: [id])
+  tableId      String?    @unique
+  // orderItems   OrderItem[]
+  users        User[]
+  branch       Branch?    @relation(fields: [branchId], references: [id])
+  branchId     String?
+  cartItems    CartItem[]
+}
+
+model CartItem {
+  id            String      @id @default(cuid())
+  name          String?
+  price         Float
+  creationDate  String?
+  quantity      Int
+  orderId       String?
+  menuItemId    String?
+  menuItem      MenuItem?   @relation(fields: [menuItemId], references: [id])
+  order         Order?      @relation(fields: [orderId], references: [id])
+  comments      String?
+  paid          Boolean?
+  stock         Int?
+  modifier      Modifiers[]
+  // orderItemExtra OrderItemExtra[]
+  feedback      Feedback?   @relation(fields: [feedbackId], references: [id])
+  feedbackId    String?
+  user          User?       @relation(fields: [userId], references: [id])
+  userId        String?
+  // OrderItem      OrderItem?       @relation(fields: [orderItemId], references: [id])
+  // orderItemId    String?
+  activeOnOrder Boolean?
+  rating        String?
+}
+
+model Modifiers {
+  id                      String         @id @default(cuid())
+  type                    String?
+  mandatorySelected       Boolean?
+  onlyOne                 Boolean?
+  multiSelect             Boolean?
+  mandatoryOneMultiSelect Boolean?
+  extraPrice              Decimal?
+  modifierGroups          ModifierGroup? @relation(fields: [modifierGroupId], references: [id])
+  modifierGroupId         String?
+  cartItems               CartItem[]
+  cartItemId              String?
+}
+
+model ModifierGroup {
+  id                  String      @id @default(cuid())
+  name                String?
+  minSelectionAllowed Int?
+  maxSelectionAllowed Int?
+  isMandatory         Boolean?
+  modifiers           Modifiers[]
+  menuItems           MenuItem[]
+  // OrderItem           OrderItem[]
+  cartItemId          String?
+}
+
+model User {
+  id           String       @id @default(cuid())
+  name         String?
+  email        String?      @unique
+  creationDate DateTime     @default(now())
+  password     Password?
+  color        String?
+  tip          Decimal?
+  paid         Decimal?
+  total        Decimal?
+  orderId      String?
+  orders       Order?       @relation(fields: [orderId], references: [id])
+  isAdmin      Boolean?     @default(false)
+  isWaitress   Boolean?     @default(false)
+  branch       Branch?      @relation(fields: [branchId], references: [id])
+  branchId     String?
+  restaurant   Restaurant[]
+  restaurantId String?
+
+  cartItems CartItem[]
+  tables    Table?     @relation(fields: [tableId], references: [id])
+  tableId   String?
+}
+
+model Password {
+  hash   String
+  user   User   @relation(fields: [userId], references: [id])
+  userId String @unique
+}
+
+model Employee {
+  id        String     @id @default(cuid())
+  rol       String
+  name      String
+  image     String?
+  email     String
+  tables    Table[]
+  feedbacks Feedback[]
+}
+
+model Feedback {
+  id           String     @id @default(cuid())
+  type         String
+  report       String
+  creationDate String?
+  orderedDate  DateTime?
+  branch       Branch?    @relation(fields: [branchId], references: [id])
+  employees    Employee[]
+  table        Table?     @relation(fields: [tableId], references: [id])
+  tableId      String?
+  branchId     String?
+  // orderItems   OrderItem[]
+  cartItems    CartItem[]
+}
