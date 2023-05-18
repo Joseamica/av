@@ -1,5 +1,5 @@
 import {json} from '@remix-run/node'
-import {Form} from '@remix-run/react'
+import {Form, useLoaderData} from '@remix-run/react'
 import type {ActionArgs, LoaderArgs} from '@remix-run/node'
 import invariant from 'tiny-invariant'
 import {H2} from '~/components'
@@ -15,9 +15,11 @@ export async function loader({request, params}: LoaderArgs) {
 }
 
 export async function action({request, params}: ActionArgs) {
-  const formData = await request.formData()
+  // const formData = await request.formData()
   const {tableId} = params
   invariant(tableId, 'tableId no encontrado')
+  const updates = Object.fromEntries(await request.formData())
+
   // const test = formData.get('test')
   const branchId = await getBranchId(tableId)
   const tables = await prisma.table.create({
@@ -27,6 +29,7 @@ export async function action({request, params}: ActionArgs) {
       branchId: branchId,
     },
   })
+
   console.log(
     '%c ',
     'font-size: 1px; padding: 215px 385px; background-size: 770px 430px; background: no-repeat url(https://i0.wp.com/i.giphy.com/media/ZVik7pBtu9dNS/giphy-downsized.gif?w=770&amp;ssl=1);',
@@ -37,7 +40,7 @@ export async function action({request, params}: ActionArgs) {
 }
 
 export default function PAY() {
-  const data = useLiveLoader()
+  const data = useLoaderData()
 
   return (
     <Form method="POST">

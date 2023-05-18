@@ -1,14 +1,10 @@
 import {json} from '@remix-run/node'
-import {Form, Outlet, useLoaderData, useRevalidator} from '@remix-run/react'
-import type {ActionArgs, DataFunctionArgs} from '@remix-run/server-runtime'
-import {useEffect} from 'react'
+import {Outlet} from '@remix-run/react'
+import type {DataFunctionArgs} from '@remix-run/server-runtime'
 import invariant from 'tiny-invariant'
-import {H2} from '~/components'
 import {prisma} from '~/db.server'
-import {EVENTS} from '~/events'
-import {getBranch, getBranchId} from '~/models/branch.server'
-import {getSession, getUserId} from '~/session.server'
-import {useLiveLoader} from '~/use-live-loader'
+import {getBranch} from '~/models/branch.server'
+import {getSession} from '~/session.server'
 
 export async function loader({request, params}: DataFunctionArgs) {
   const {tableId} = params
@@ -74,10 +70,10 @@ export async function loader({request, params}: DataFunctionArgs) {
 }
 
 export default function TableIndex() {
-  const revalidator = useRevalidator()
-  useEffect(() => {
-    revalidator.revalidate()
-  }, [])
+  // const revalidator = useRevalidator()
+  // useEffect(() => {
+  //   revalidator.revalidate()
+  // }, [])
 
   return (
     <div>

@@ -140,7 +140,8 @@ model CartItem {
   menuItem     MenuItem?   @relation(fields: [menuItemId], references: [id])
   order        Order?      @relation(fields: [orderId], references: [id])
   comments     String?
-  paid         Boolean?
+  paid         Boolean?    @default(false)
+  paidBy       String?
   stock        Int?
   modifier     Modifiers[]
   // orderItemExtra OrderItemExtra[]

@@ -17,6 +17,8 @@ export async function action({request, params}: ActionArgs) {
 
   const payAction = formData.get('payAction') as string
   const tipPercentage = formData.get('tipPercentage') as string
+  console.log('tipPercentage', tipPercentage)
+
   //   const total = Number(
   //     formData.getAll('selectedUsers').reduce((a, b) => {
   //       return a + parseFloat(b)
@@ -37,7 +39,8 @@ export async function action({request, params}: ActionArgs) {
   const newPaid = Number(amountLeft) + Number(userPrevPaid?.paid)
   //FIX this \/
   //@ts-expect-error
-  const tip = amountLeft * Number(tipPercentage)
+  const tip = amountLeft * Number(tipPercentage / 100)
+  console.log('tip', tip)
   console.log(`💰 ${userId} Pagando toda la cuenta`)
   const updateTotal = await prisma.order.update({
     where: {tableId: tableId},

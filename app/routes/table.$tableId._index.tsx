@@ -1,6 +1,13 @@
 import {ChevronDoubleUpIcon} from '@heroicons/react/outline'
 import {ActionArgs, DataFunctionArgs, json, redirect} from '@remix-run/node'
-import {Form, Link, useLoaderData, useRevalidator} from '@remix-run/react'
+import {
+  Form,
+  Link,
+  useLoaderData,
+  useNavigate,
+  useRevalidator,
+  useSearchParams,
+} from '@remix-run/react'
 import {useState} from 'react'
 import invariant from 'tiny-invariant'
 import {Button, LinkButton} from '~/components/buttons/button'
@@ -88,8 +95,6 @@ export async function action({request, params}: ActionArgs) {
   invariant(tableId, 'Mesa no encontrada!')
   const formData = await request.formData()
   const _action = formData.get('_action') as string
-  const userId = await getUserId(request)
-  console.log('_action', _action)
 
   switch (_action) {
     case 'endOrder':
@@ -265,8 +270,10 @@ function PayButtons() {
             <div className="flex flex-col p-2 space-y-2">
               <LinkButton to="pay/perDish">Pagar por platillo</LinkButton>
               <LinkButton to="pay/perPerson">Pagar por usuario</LinkButton>
-              <LinkButton to="">Pagar en partes iguales</LinkButton>
-              <LinkButton to="">Pagar monto personalizado</LinkButton>
+              <LinkButton to="pay/equalParts">
+                Pagar en partes iguales
+              </LinkButton>
+              <LinkButton to="pay/custom">Pagar monto personalizado</LinkButton>
             </div>
           </Modal>
         )}

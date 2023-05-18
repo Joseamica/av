@@ -178,39 +178,43 @@ export default function Menu() {
         const dishes = categories.menuItems
         return (
           <div key={categories.id}>
-            <h1>{categories.name}</h1>
-            {dishes.map((dish: MenuItem) => {
-              return (
-                <div key={dish.id}>
-                  <h2>{dish.name}</h2>
-                  <p>{dish.description}</p>
-                  <p>{dish.price?.toString()}</p>
-                  <div>
-                    <p>share?</p>
-                    {data.usersOnTable.map((user: User) => {
-                      return (
-                        <div key={user.id}>
-                          <input
-                            type="checkbox"
-                            name="shareDish"
-                            value={user.id}
-                          />
-                          <label htmlFor="share">{user.name}</label>
-                        </div>
-                      )
-                    })}
+            <h1 className="bg-night-300">{categories.name}</h1>
+
+            <div className="space-y-3 divide-y-2 rounded-xl bg-night-200">
+              {dishes.map((dish: MenuItem) => {
+                return (
+                  <div key={dish.id} className="p-2 ">
+                    <h2>{dish.name}</h2>
+                    <p>{dish.description}</p>
+                    <p>{dish.price?.toString()}</p>
+                    <div>
+                      <p>share?</p>
+                      {data.usersOnTable.map((user: User) => {
+                        return (
+                          <div key={user.id}>
+                            <input
+                              type="checkbox"
+                              name="shareDish"
+                              value={user.id}
+                              className="h-7 w-7"
+                            />
+                            <label htmlFor="share">{user.name}</label>
+                          </div>
+                        )
+                      })}
+                    </div>
+                    {/* FIX */}
+                    <button
+                      className="px-4 py-2 font-bold text-white bg-blue-500 rounded hover:bg-blue-700"
+                      name="submittedItemId"
+                      value={dish.id}
+                    >
+                      Agregar {dish.name}
+                    </button>
                   </div>
-                  {/* FIX */}
-                  <button
-                    className="rounded bg-blue-500 px-4 py-2 font-bold text-white hover:bg-blue-700"
-                    name="submittedItemId"
-                    value={dish.id}
-                  >
-                    Agregar {dish.name}
-                  </button>
-                </div>
-              )
-            })}
+                )
+              })}
+            </div>
           </div>
         )
       })}
@@ -233,7 +237,7 @@ export default function Menu() {
         </p>
 
         <button
-          className="rounded bg-blue-500 px-4 py-2 font-bold text-white hover:bg-blue-700"
+          className="px-4 py-2 font-bold text-white bg-blue-500 rounded hover:bg-blue-700"
           name="submitCart"
           value="submitCart"
           type="submit"

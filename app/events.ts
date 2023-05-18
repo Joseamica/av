@@ -13,8 +13,4 @@ export const EVENTS = {
     tableEvents.emit('/')
     tableEvents.emit(`/table/${tableId}`)
   },
-  END_ORDER: (tableId: string) => {
-    tableEvents.emit('/')
-    tableEvents.emit(`/table/${tableId}`)
-  },
 }

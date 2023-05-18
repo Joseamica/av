@@ -1,5 +1,5 @@
 import type {CartItem} from '@prisma/client'
-import {ActionArgs, LoaderArgs, json} from '@remix-run/node'
+import {ActionArgs, LoaderArgs, json, redirect} from '@remix-run/node'
 import {
   Form,
   useActionData,
@@ -17,7 +17,6 @@ import {getUserId} from '~/session.server'
 export async function loader({request, params}: LoaderArgs) {
   const {tableId} = params
   invariant(tableId, 'No se encontró mesa')
-  const userId = await getUserId(request)
 
   const usersInTable = await prisma.table.findFirst({
     where: {id: tableId},
@@ -81,8 +80,8 @@ export async function action({request, params}: ActionArgs) {
   const {tableId} = params
   invariant(tableId, 'No se encontró mesa')
 
-  const redirectTo = validateRedirect(request.redirect, `/table/${tableId}`)
   const selectedUsers = formData.getAll('selectedUsers')
+
   const total = Number(
     selectedUsers.reduce((acc, item: any) => {
       return acc + parseFloat(item)
@@ -92,37 +91,31 @@ export async function action({request, params}: ActionArgs) {
   if (total <= 0) {
     return json({error: 'No se puede pagar $0'})
   }
+  const proceed = formData.get('_action') === 'proceed'
+  const tipPercentage = formData.get('tipPercentage') as string
 
-  // const userId = await getUserId(request)
-  // const tipPercentage = formData.get('tipPercentage') as string
-  // const _action = formData.get('_action')
+  const redirectTo = validateRedirect(request.redirect, `/table/${tableId}`)
+  const userId = await getUserId(request)
+  const tip = total * (Number(tipPercentage) / 100)
 
-  // const tip = total * (Number(tipPercentage) / 100)
-  // const newPaid = total - tip
+  if (proceed) {
+    const userPrevPaidData = await prisma.user.findFirst({
+      where: {id: userId},
+      select: {paid: true, tip: true, total: true},
+    })
+    const updateUser = await prisma.user.update({
+      where: {id: userId},
+      data: {
+        paid: Number(userPrevPaidData?.paid) + total,
+        tip: Number(userPrevPaidData?.tip) + tip,
+        total: Number(userPrevPaidData?.total) + total + tip,
+      },
+    })
 
-  // if (_action === 'proceed') {
-  //   const updateTotal = await prisma.order.update({
-  //     where: {tableId: tableId},
-  //     data: {
-  //       paid: true,
-  //       users: {
-  //         update: {
-  //           where: {id: userId},
-  //           data: {
-  //             paid: newPaid,
-  //             tip: tip,
-  //             total: tip + newPaid,
-  //           },
-  //         },
-  //       },
-  //     },
-  //   })
-  //   return redirect(redirectTo)
-  // }
+    return redirect(redirectTo)
+  }
 
-  //sumar los totales de los usuarios seleccionados
-
-  return json({total})
+  return json({total, tip})
 }
 
 interface User {
@@ -188,11 +181,9 @@ export default function PerPerson() {
           )
         })}
         <H5>{actionData?.error}</H5>
-        <Button name="_action" value="proceed">
-          Submit
-        </Button>
+
+        <Payment total={actionData?.total || 0} tip={actionData?.tip} />
       </Form>
-      <Payment total={actionData?.total || 0} />
     </Modal>
   )
 }

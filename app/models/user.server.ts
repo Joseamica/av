@@ -88,7 +88,8 @@ export function getPaidUsers(orderId: Order['id']) {
       // },
       paid: {
         not: null,
-        gt: -1,
+        //BEFORE gt: -1
+        gt: 0,
       },
     },
     select: {
