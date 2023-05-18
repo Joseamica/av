@@ -1,4 +1,4 @@
-import {Order} from '@prisma/client'
+import {Order, Table} from '@prisma/client'
 import {Decimal} from '@prisma/client/runtime'
 import {useMatches} from '@remix-run/react'
 import {useMemo} from 'react'
@@ -93,18 +93,25 @@ export function getCurrency(currency: string | null | undefined) {
   }
 }
 
-export async function getAmountLeftToPay(orderId: Order[`id`]) {
-  const getTotalPaidUsers = await prisma.user.aggregate({
-    _sum: {paid: true},
-    where: {orderId: orderId},
-  })
-  const totalPaidUsers = Number(getTotalPaidUsers._sum.paid)
-  const getTotalBill = await prisma.order.aggregate({
-    _sum: {total: true},
-    where: {id: orderId},
-  })
-  const totalBill = Number(getTotalBill._sum.total)
-  return Number(totalBill - totalPaidUsers)
+export async function getAmountLeftToPay(
+  tableId: Table['id'],
+  // orderId?: Order[`id`],
+) {
+  const order = await prisma.order.findFirst({where: {tableId, active: true}})
+  if (order) {
+    const getTotalPaidUsers = await prisma.user.aggregate({
+      _sum: {paid: true},
+      where: {orderId: order.id},
+    })
+    const totalPaidUsers = Number(getTotalPaidUsers._sum.paid)
+    const getTotalBill = await prisma.order.aggregate({
+      _sum: {total: true},
+      where: {id: order.id},
+    })
+    const totalBill = Number(getTotalBill._sum.total)
+    return Number(totalBill - totalPaidUsers)
+  }
+  return null
 }
 
 // export function setModal(state, setState, changeState){

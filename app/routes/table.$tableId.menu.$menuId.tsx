@@ -1,7 +1,8 @@
 import type {CartItem, MenuItem, Order, User} from '@prisma/client'
 import {json, redirect} from '@remix-run/node'
-import {Form, useLoaderData} from '@remix-run/react'
+import {Form, useLoaderData, useSubmit} from '@remix-run/react'
 import type {ActionArgs, LoaderArgs} from '@remix-run/server-runtime'
+import {useState} from 'react'
 import invariant from 'tiny-invariant'
 import {prisma} from '~/db.server'
 import {getBranch, getBranchId} from '~/models/branch.server'
@@ -34,28 +35,36 @@ export async function loader({request, params}: LoaderArgs) {
       menuItems: true,
     },
   })
+  //Find users on table that are not the current user,
+  //this is to show users to share dishes with and you don't appear
+  const usersOnTable = await prisma.user.findMany({
+    where: {tableId, id: {not: session.get('userId')}},
+  })
 
   const cart = JSON.parse(session.get('cart') || '[]') as CartItem[]
 
   const cartItems = await getCartItems(cart)
 
-  return json({categories, cartItems})
+  return json({categories, cartItems, usersOnTable})
 }
 
 export async function action({request, params}: ActionArgs) {
-  const {tableId, menuId} = params
+  const {tableId} = params
   invariant(tableId, 'No se encontró la mesa')
 
   const branchId = await getBranchId(tableId)
   invariant(branchId, 'No se encontró la sucursal')
+
   const formData = await request.formData()
-  const variantId = formData.get('dishId') as string
-  const _action = formData.get('_action') as string
+  const submittedItemId = formData.get('submittedItemId') as string
+  const submitCart = formData.get('submitCart') as string
+  const shareDish = formData.getAll('shareDish')
 
   const redirectTo = validateRedirect(request.redirect, `/table/${tableId}`)
 
   const session = await getSession(request)
   let cart = JSON.parse(session.get('cart') || '[]')
+
   const userId = session.get('userId')
 
   const cartItems = await getCartItems(cart)
@@ -63,40 +72,59 @@ export async function action({request, params}: ActionArgs) {
     cartItems.reduce((acc, item) => {
       return acc + Number(item.price) * item.quantity
     }, 0) || 0
-  // console.log('cartItemsTotal', cartItemsTotal)
 
-  switch (_action) {
-    case 'submitItem':
-      addToCart(cart, variantId, 1)
-      session.set('cart', JSON.stringify(cart))
-      break
-    case 'submitCart':
-      // const order = await findOrCreateOrder(branchId, tableId, userId)
-      let order:
-        | (Order & {
-            users?: User[]
-          })
-        | null = await prisma.order.findFirst({
-        where: {
+  if (submittedItemId) {
+    addToCart(cart, submittedItemId, 1)
+    session.set('cart', JSON.stringify(cart))
+  }
+
+  if (submitCart) {
+    let order:
+      | (Order & {
+          users?: User[]
+        })
+      | null = await prisma.order.findFirst({
+      where: {
+        branchId: branchId,
+        tableId: tableId,
+      },
+      include: {
+        users: {
+          where: {id: userId},
+        },
+      },
+    })
+    if (!order) {
+      order = await prisma.order.create({
+        data: {
           branchId: branchId,
           tableId: tableId,
-        },
-        include: {
+          creationDate: new Date(),
+          orderedDate: new Date(),
+          active: true,
+          paid: false,
+          total: cartItemsTotal,
           users: {
-            where: {id: userId},
+            connect: {
+              id: userId,
+            },
           },
         },
       })
-      if (!order) {
-        order = await prisma.order.create({
+      cartItemsTotal = 0
+    } else {
+      const orderTotal = (await getOrderTotal(order.id)) || {total: 0}
+      await prisma.order.update({
+        where: {id: order.id},
+        data: {
+          total: Number(orderTotal.total) + Number(cartItemsTotal),
+        },
+      })
+      // Connect user if not connected
+      if (!order.users?.some((user: User) => user.id === userId)) {
+        await prisma.order.update({
+          where: {id: order.id},
           data: {
-            branchId: branchId,
-            tableId: tableId,
-            creationDate: new Date(),
-            orderedDate: new Date(),
-            active: true,
-            paid: false,
-            total: cartItemsTotal,
             users: {
               connect: {
                 id: userId,
@@ -104,61 +132,36 @@ export async function action({request, params}: ActionArgs) {
             },
           },
         })
-        cartItemsTotal = 0
-      } else {
-        const orderTotal = (await getOrderTotal(order.id)) || {total: 0}
-        await prisma.order.update({
-          where: {id: order.id},
-          data: {
-            total: Number(orderTotal.total) + Number(cartItemsTotal),
-          },
-        })
-        // Connect user if not connected
-        if (!order.users?.some((user: User) => user.id === userId)) {
-          await prisma.order.update({
-            where: {id: order.id},
-            data: {
-              users: {
-                connect: {
-                  id: userId,
-                },
-              },
-            },
-          })
-        }
       }
+    }
 
-      // if (order) {
-      //   const orderTotal = (await getOrderTotal(order.id)) || {total: 0}
-      //   console.log('orderTotal', orderTotal.total, cartItemsTotal)
-      //   await prisma.order.update({
-      //     where: {id: order.id},
-      //     data: {
-      //       total: Number(orderTotal.total) + Number(cartItemsTotal),
-      //     },
-      //   })
-      // }
-      const createCartItems = await Promise.all(
-        cartItems.map(item =>
-          prisma.cartItem.create({
-            data: {
-              quantity: Number(item.quantity),
-              price: Number(item.price),
-              name: item.name,
-              menuItemId: item.id,
-              userId,
-              activeOnOrder: true,
-              orderId: order?.id,
-              // make sure to include other necessary fields here
-            },
-          }),
-        ),
-      )
+    const createCartItems = await Promise.all(
+      cartItems.map(item =>
+        prisma.cartItem.create({
+          data: {
+            quantity: Number(item.quantity),
+            price: Number(item.price),
+            name: item.name,
+            menuItemId: item.id,
+            //if shareDish is not empty, connect the users to the cartItem
+            user: {
+              connect:
+                shareDish.length > 0
+                  ? [{id: userId}, ...shareDish.map(id => ({id: id}))]
+                  : {id: userId},
+            } as any,
+            activeOnOrder: true,
+            orderId: order?.id,
+            // make sure to include other necessary fields here
+          },
+        }),
+      ),
+    )
 
-      session.unset('cart')
-      return redirect(redirectTo, {
-        headers: {'Set-Cookie': await sessionStorage.commitSession(session)},
-      })
+    session.unset('cart')
+    return redirect(redirectTo, {
+      headers: {'Set-Cookie': await sessionStorage.commitSession(session)},
+    })
   }
 
   return redirect('', {
@@ -168,8 +171,9 @@ export async function action({request, params}: ActionArgs) {
 
 export default function Menu() {
   const data = useLoaderData()
+
   return (
-    <div className="space-y-2 bg-blue-200">
+    <Form className="space-y-2 bg-blue-200" method="POST" preventScrollReset>
       {data.categories.map((categories: MenuCategory) => {
         const dishes = categories.menuItems
         return (
@@ -177,19 +181,34 @@ export default function Menu() {
             <h1>{categories.name}</h1>
             {dishes.map((dish: MenuItem) => {
               return (
-                <Form method="POST" key={dish.id} preventScrollReset>
-                  <input type="hidden" name="dishId" value={dish.id} />
+                <div key={dish.id}>
                   <h2>{dish.name}</h2>
                   <p>{dish.description}</p>
                   <p>{dish.price?.toString()}</p>
+                  <div>
+                    <p>share?</p>
+                    {data.usersOnTable.map((user: User) => {
+                      return (
+                        <div key={user.id}>
+                          <input
+                            type="checkbox"
+                            name="shareDish"
+                            value={user.id}
+                          />
+                          <label htmlFor="share">{user.name}</label>
+                        </div>
+                      )
+                    })}
+                  </div>
+                  {/* FIX */}
                   <button
                     className="rounded bg-blue-500 px-4 py-2 font-bold text-white hover:bg-blue-700"
-                    name="_action"
-                    value="submitItem"
+                    name="submittedItemId"
+                    value={dish.id}
                   >
-                    Agregar
+                    Agregar {dish.name}
                   </button>
-                </Form>
+                </div>
               )
             })}
           </div>
@@ -212,16 +231,23 @@ export default function Menu() {
           TODO: hacer que cuando pones agregar platillos si cuente la quantity,
           y ahi lo agregue a la base de datos
         </p>
-        <Form method="POST" preventScrollReset>
-          <button
-            className="rounded bg-blue-500 px-4 py-2 font-bold text-white hover:bg-blue-700"
-            name="_action"
-            value="submitCart"
-          >
-            Agregar platillos
-          </button>
-        </Form>
+
+        <button
+          className="rounded bg-blue-500 px-4 py-2 font-bold text-white hover:bg-blue-700"
+          name="submitCart"
+          value="submitCart"
+          type="submit"
+        >
+          Agregar platillos
+          {data.cartItems
+            ?.map((items: CartItem) => {
+              return items.quantity
+            })
+            .reduce((acc: number, item: number) => {
+              return acc + item
+            }, 0)}
+        </button>
       </div>
-    </div>
+    </Form>
   )
 }

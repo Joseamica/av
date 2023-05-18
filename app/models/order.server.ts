@@ -1,6 +1,18 @@
 import type {Branch, Order, Table, User} from '@prisma/client'
 import {prisma} from '~/db.server'
 
+/**
+ *
+ * @param tableId
+ *
+ * @returns order that has the flag "Active" = true
+ */
+export function getOrder(tableId: Table['id']) {
+  return prisma.order.findFirst({
+    where: {tableId, active: true},
+  })
+}
+
 export async function findOrCreateOrder(
   branchId: Branch['id'],
   tableId: Table['id'],

@@ -141,11 +141,9 @@ export function BillAmount({
       </FlexRow>
       {amountLeft < total ? (
         <div className="flex flex-col">
-          {' '}
           <FlexRow className="justify-between">
             <H2>Por Pagar</H2>
             <div className="flex flex-col">
-              {' '}
               <H2> {asignCurrency(currency, Number(amountLeft))}</H2>
               <svg
                 viewBox="0 0 72 6"

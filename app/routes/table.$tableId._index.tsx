@@ -1,24 +1,29 @@
 import {ChevronDoubleUpIcon} from '@heroicons/react/outline'
-import type {DataFunctionArgs} from '@remix-run/node'
-import {json} from '@remix-run/node'
-import {Link, useLoaderData} from '@remix-run/react'
+import {ActionArgs, DataFunctionArgs, json, redirect} from '@remix-run/node'
+import {Form, Link, useLoaderData, useRevalidator} from '@remix-run/react'
+import {useState} from 'react'
 import invariant from 'tiny-invariant'
-import {BillAmount} from '~/components/billAmount'
-import {UserButton} from '~/components/buttons/UserButton'
-import {Help} from '~/components/help'
-import {RestaurantInfoCard} from '~/components/restInfo'
-import {FlexRow} from '~/components/util/flexrow'
-import {Spacer} from '~/components/util/spacer'
-import {H4, H5} from '~/components/util/typography'
+import {Button, LinkButton} from '~/components/buttons/button'
+import {
+  BillAmount,
+  FlexRow,
+  H4,
+  H5,
+  Help,
+  Modal,
+  RestaurantInfoCard,
+  Spacer,
+  UserButton,
+} from '~/components/index'
+import {prisma} from '~/db.server'
 import {getBranch} from '~/models/branch.server'
 import {getMenu} from '~/models/menu.server'
-
-import {useState} from 'react'
-import {Button, LinkButton} from '~/components/buttons/button'
-import {prisma} from '~/db.server'
+import {getOrder} from '~/models/order.server'
 import {getTable} from '~/models/table.server'
 import type {User} from '~/models/user.server'
-import {getUsersPaid} from '~/models/user.server'
+import {getPaidUsers} from '~/models/user.server'
+import {getUserId} from '~/session.server'
+import {useLiveLoader} from '~/use-live-loader'
 import {getAmountLeftToPay, getCurrency} from '~/utils'
 //
 export async function loader({request, params}: DataFunctionArgs) {
@@ -29,6 +34,8 @@ export async function loader({request, params}: DataFunctionArgs) {
   const branch = await getBranch(tableId)
   invariant(branch, 'No se encontró la sucursal')
 
+  const userId = getUserId(request)
+
   const table = await getTable(tableId)
 
   const usersInTable = await prisma.user.findMany({
@@ -37,15 +44,16 @@ export async function loader({request, params}: DataFunctionArgs) {
     },
   })
 
-  //Todo Cuando cree la ruta de cart, y submit pedido, ahi es cuando se creara la orden
+  const order = await getOrder(tableId)
 
-  // const order = await findOrCreateOrder(branch.id, tableId)
-  const order = await prisma.order.findFirst({
-    where: {tableId: tableId, active: true},
-  })
   // console.log('order', order)
+  let paidUsers = null
+  let amountLeft = null
 
-  const paidUsers = await getUsersPaid(order?.id)
+  if (order) {
+    paidUsers = await getPaidUsers(order.id)
+    amountLeft = await getAmountLeftToPay(tableId)
+  }
 
   const total = Number(order?.total)
 
@@ -53,7 +61,8 @@ export async function loader({request, params}: DataFunctionArgs) {
 
   const currency = getCurrency(menu?.currency)
 
-  const amountLeft = await getAmountLeftToPay(order?.id)
+  //FIX If user doesn't have order then put values to 0. "esto es porque si no ponen click en terminar orden, se quedara registrado el pago anterior"
+  //SOLUCIÓN puede ser eliminar a los usuarios que empiecen con GUEST
 
   const errors = !menu
     ? `${branch?.name} no cuenta con un menu abierto en este horario.`
@@ -73,14 +82,78 @@ export async function loader({request, params}: DataFunctionArgs) {
   })
 }
 
+//payment ACTION
+export async function action({request, params}: ActionArgs) {
+  const {tableId} = params
+  invariant(tableId, 'Mesa no encontrada!')
+  const formData = await request.formData()
+  const _action = formData.get('_action') as string
+  const userId = await getUserId(request)
+  console.log('_action', _action)
+
+  switch (_action) {
+    case 'endOrder':
+      console.log('ending order')
+      const order = await prisma.order.findFirst({
+        where: {
+          tableId,
+          active: true,
+        },
+        include: {
+          users: true,
+        },
+      })
+      invariant(order, 'Orden no existe')
+      // Update each user to set `paid` to 0
+      for (let user of order.users) {
+        await prisma.user.update({
+          where: {
+            id: user.id,
+          },
+          data: {
+            tip: 0,
+            paid: 0,
+            total: 0,
+            cartItems: {set: []},
+            // tableId: null,
+            // tables: {disconnect: true},
+          },
+        })
+      }
+      await prisma.table.update({
+        where: {
+          id: tableId,
+        },
+        data: {
+          users: {set: []},
+        },
+      })
+      await prisma.order.update({
+        where: {
+          id: order.id,
+        },
+        data: {
+          active: false,
+          table: {disconnect: true},
+          users: {set: []},
+        },
+      })
+
+      return redirect('/thankyou')
+  }
+
+  return json({success: true})
+}
+
 export default function Table() {
   const data = useLoaderData()
-
-  const [showModal, setShowModal] = useState({split: false, pay: false})
+  // const data = useLiveLoader()
+  // console.log('dataLive', dataLive)
+  // console.log('data', data)
 
   if (data.total > 0) {
     return (
-      <div className="dark:text-mainTextDark bg-green-400">
+      <div className="bg-green-400 dark:text-mainTextDark">
         <RestaurantInfoCard
           branch={data.branch}
           // tableId={data.table.id}
@@ -88,12 +161,12 @@ export default function Table() {
           errors={data.errors}
         />
         <Spacer spaceY="2">
-          <h3 className="text-secondaryTextDark flex shrink-0 justify-center text-sm">
+          <h3 className="flex justify-center text-sm text-secondaryTextDark shrink-0">
             {`Mesa ${data.table.table_number}`}
           </h3>
         </Spacer>
         <Help />
-        <div className="bg-blue-200 p-1">
+        <div className="p-1 bg-blue-200">
           <BillAmount
             total={data.total}
             currency={data.currency}
@@ -103,14 +176,10 @@ export default function Table() {
             // isPaying={isPaying}
           />
         </div>
-        <Button
-          onClick={() => setShowModal({...showModal, split: true})}
-          variant="primary"
-          size="large"
-        >
-          Dividir Cuenta
-        </Button>
-        <LinkButton to="pay">Pagar la cuenta completa</LinkButton>
+        {/* {data.amountLeft > 0 ? (
+        ): } */}
+
+        <PayButtons />
       </div>
     )
   } else {
@@ -122,23 +191,23 @@ export default function Table() {
           menuId={data.menu?.id}
           errors={data.errors}
         />
-        <div className="dark:bg-secondaryDark flex h-10 w-10 items-center justify-center rounded-full bg-white shadow-sm ">
-          <ChevronDoubleUpIcon className="h-5 w-5 motion-safe:animate-bounce" />
+        <div className="flex items-center justify-center w-10 h-10 bg-white rounded-full shadow-sm dark:bg-secondaryDark ">
+          <ChevronDoubleUpIcon className="w-5 h-5 motion-safe:animate-bounce" />
         </div>
         <H5>Aún no existe una orden con platillos.</H5>
         <Spacer spaceY="3">
-          <h3 className="text-secondaryTextDark flex shrink-0 justify-center pr-2 text-sm">
+          <h3 className="flex justify-center pr-2 text-sm text-secondaryTextDark shrink-0">
             {`Mesa ${data.table.table_number}`}
           </h3>
         </Spacer>
-        <div className="dark:bg-DARK_1 flex flex-col justify-start rounded-lg bg-white p-2 drop-shadow-md dark:drop-shadow-none">
+        <div className="flex flex-col justify-start p-2 bg-white rounded-lg dark:bg-DARK_1 drop-shadow-md dark:drop-shadow-none">
           <p className="text-DARK_3">Usuarios en la mesa</p>
           <Spacer spaceY="2">
             <hr className="dark:border-DARK_OUTLINE border-LIGHT_DIVIDER" />
           </Spacer>
           {data.usersInTable?.map((user: User, index: number) => (
             <FlexRow
-              className="w-full items-center justify-between space-x-2 space-y-2"
+              className="items-center justify-between w-full space-x-2 space-y-2"
               key={user.id}
             >
               <FlexRow className="items-center space-x-2">
@@ -148,7 +217,7 @@ export default function Table() {
               <div>
                 <Link
                   to={`user/${user?.id}`}
-                  className="dark:bg-buttonBgDark bg-componentBg flex flex-row items-center justify-center rounded-full px-2 py-1 "
+                  className="flex flex-row items-center justify-center px-2 py-1 rounded-full dark:bg-buttonBgDark bg-componentBg "
                 >
                   Detalles
                 </Link>
@@ -168,24 +237,48 @@ export default function Table() {
         </div>
       </div>
     )
-    // } else {
-    //   return <div>a</div>
-    // }
   }
 }
-// function Modal({children, onClose}) {
-//   return (
-//     <div
-//       className="fixed inset-0 h-screen w-full bg-black bg-opacity-40"
-//       onClick={onClose}
-//     >
-//       <dialog
-//         className="fixed top-20 bg-white"
-//         open
-//         onClick={event => event.stopPropagation()}
-//       >
-//         {children}
-//       </dialog>
-//     </div>
-//   )
-// }
+
+function PayButtons() {
+  const data = useLoaderData()
+  const [showSplit, setShowSplit] = useState(false)
+  const revalidator = useRevalidator()
+
+  const handleValidate = () => {
+    revalidator.revalidate()
+  }
+
+  if (data.amountLeft > 0) {
+    return (
+      <div className="flex flex-col space-y-2">
+        <Button
+          onClick={() => setShowSplit(true)}
+          variant="primary"
+          size="large"
+        >
+          Dividir Cuenta
+        </Button>
+        <LinkButton to="pay/fullpay">Pagar la cuenta completa</LinkButton>
+        {showSplit && (
+          <Modal onClose={() => setShowSplit(false)} title="Dividir cuenta">
+            <div className="flex flex-col p-2 space-y-2">
+              <LinkButton to="pay/perDish">Pagar por platillo</LinkButton>
+              <LinkButton to="pay/perPerson">Pagar por usuario</LinkButton>
+              <LinkButton to="">Pagar en partes iguales</LinkButton>
+              <LinkButton to="">Pagar monto personalizado</LinkButton>
+            </div>
+          </Modal>
+        )}
+      </div>
+    )
+  } else {
+    return (
+      <Form method="POST">
+        <Button name="_action" value="endOrder" onClick={handleValidate}>
+          Terminar orden
+        </Button>
+      </Form>
+    )
+  }
+}

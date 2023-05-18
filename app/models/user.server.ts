@@ -78,14 +78,14 @@ export async function findOrCreateUser(userId: User['id'], username: string) {
   return user
 }
 
-export function getUsersPaid(orderId: Order['id']) {
+export function getPaidUsers(orderId: Order['id']) {
   return prisma.user.findMany({
     where: {
       orderId,
-      tip: {
-        not: null,
-        gt: -1,
-      },
+      // tip: {
+      //   not: null,
+      //   gt: -1,
+      // },
       paid: {
         not: null,
         gt: -1,

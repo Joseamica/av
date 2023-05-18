@@ -1,6 +1,11 @@
 import {cssBundleHref} from '@remix-run/css-bundle'
-import type {ActionArgs, LinksFunction, LoaderArgs} from '@remix-run/node'
-import {json, redirect} from '@remix-run/node'
+import {
+  ActionArgs,
+  LinksFunction,
+  LoaderArgs,
+  json,
+  redirect,
+} from '@remix-run/node'
 import {
   Form,
   Link,
@@ -10,8 +15,9 @@ import {
   Outlet,
   Scripts,
   ScrollRestoration,
+  useFetcher,
   useLoaderData,
-  useMatches,
+  useRevalidator,
 } from '@remix-run/react'
 
 import type {Table} from '@prisma/client'
@@ -25,6 +31,7 @@ import tailwindStylesheetUrl from '~/styles/tailwind.css'
 import {prisma} from './db.server'
 import {findOrCreateUser} from './models/user.server'
 import {validateRedirect} from './redirect.server'
+import {EVENTS} from './events'
 
 export const links: LinksFunction = () => [
   {rel: 'stylesheet', href: tailwindStylesheetUrl},
@@ -39,7 +46,7 @@ export const loader = async ({request}: LoaderArgs) => {
 
   const username = await getUsername(request)
 
-  //Verifiy if user is on the database or create
+  //Verify if user is on the database or create
   const user = await findOrCreateUser(userId, username)
 
   const tables = await prisma.table.findMany({})
@@ -53,7 +60,7 @@ export const loader = async ({request}: LoaderArgs) => {
   )
 }
 
-export const action = async ({request}: ActionArgs) => {
+export const action = async ({request, params}: ActionArgs) => {
   let [body, session] = await Promise.all([request.text(), getSession(request)])
   let formData = new URLSearchParams(body)
 
@@ -72,7 +79,7 @@ export const action = async ({request}: ActionArgs) => {
         name: name,
       },
     })
-    session.set('username', name)
+
     return redirect(redirectTo, {
       headers: {'Set-Cookie': await sessionStorage.commitSession(session)},
     })
@@ -83,14 +90,19 @@ export const action = async ({request}: ActionArgs) => {
 
 export default function App() {
   const data = useLoaderData()
-
+  const fetcher = useFetcher()
+  const revalidator = useRevalidator()
+  const handleValidate = () => {
+    // revalidator.revalidate()
+  }
+  //TODO MAKE FETCHERS FOR EACH ACTION
   if (!data.username) {
     return (
       <Form method="post">
         <h1>Tu Nombre por favor</h1>
         <input type="text" name="name" />
         <input type="hidden" name="url" value={data.pathname} />
-        <button>submit</button>
+        <button onClick={handleValidate}>submit</button>
       </Form>
     )
   }
@@ -102,13 +114,13 @@ export default function App() {
         <Meta />
         <Links />
       </head>
-      <body className="h-full">
-        <p className="text-3xl">Bienvenido {data.username}</p>
+      <body className="h-full dark:bg-blue-950">
+        <p className="text-3xl text-white">Bienvenido {data.username}</p>
         {data.tables.map((table: Table) => (
           <Link
             key={table.id}
             to={`/table/${table.id}`}
-            className="bg-blue-200 p-2"
+            className="p-2 bg-blue-200"
           >
             {table.table_number}
           </Link>
@@ -121,3 +133,13 @@ export default function App() {
     </html>
   )
 }
+
+// function useRealtimeIssuesRevalidation() {
+//   const eventName = useLocation().pathname
+
+//   const data = useEventSource(`/events${eventName}`)
+//   const {revalidate} = useRevalidator()
+//   useEffect(() => {
+//     console.dir('useRealtimeIssuesRevalidation -> data')
+//     revalidate()
+//   }, [data, revalidate])}
