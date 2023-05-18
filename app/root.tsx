@@ -1,11 +1,6 @@
 import {cssBundleHref} from '@remix-run/css-bundle'
-import {
-  ActionArgs,
-  LinksFunction,
-  LoaderArgs,
-  json,
-  redirect,
-} from '@remix-run/node'
+import {ActionArgs, LinksFunction, LoaderArgs, isSession} from '@remix-run/node'
+import {json, redirect} from '@remix-run/node'
 import {
   Form,
   Link,
@@ -17,7 +12,9 @@ import {
   ScrollRestoration,
   useFetcher,
   useLoaderData,
+  useMatches,
   useRevalidator,
+  useLocation,
 } from '@remix-run/react'
 
 import type {Table} from '@prisma/client'
@@ -32,6 +29,9 @@ import {prisma} from './db.server'
 import {findOrCreateUser} from './models/user.server'
 import {validateRedirect} from './redirect.server'
 import {EVENTS} from './events'
+import invariant from 'tiny-invariant'
+import {useEventSource} from 'remix-utils'
+import {useEffect} from 'react'
 
 export const links: LinksFunction = () => [
   {rel: 'stylesheet', href: tailwindStylesheetUrl},
@@ -79,6 +79,8 @@ export const action = async ({request, params}: ActionArgs) => {
         name: name,
       },
     })
+    session.set('username', name)
+    console.log('url', url)
 
     return redirect(redirectTo, {
       headers: {'Set-Cookie': await sessionStorage.commitSession(session)},
