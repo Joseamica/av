@@ -17,7 +17,7 @@ interface LinkProps {
 
 function getClassName({className}: {className?: string}) {
   return clsx(
-    'group relative inline-flex text-lg font-medium focus:outline-none opacity-100 disabled:opacity-50 transition bg-purple-200',
+    'group relative inline-flex text-lg font-medium focus:outline-none opacity-100 disabled:opacity-50 transition bg-purple-700',
     className,
   )
 }

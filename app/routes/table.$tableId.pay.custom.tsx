@@ -27,13 +27,14 @@ export async function action({request, params}: ActionArgs) {
   const tipPercentage = formData.get('tipPercentage') as string
 
   if (!proceed && tipPercentage && total <= 0) {
-    return json({error: 'Antes de asignar propina, ingresa un monto por pagar'})
+    return json(
+      {error: 'Antes de asignar propina, ingresa un monto por pagar'},
+      {status: 400},
+    )
   }
 
   if (proceed && total <= 0) {
-    return json({
-      error: 'El monto a pagar debe ser mayor a 0 ',
-    })
+    return json({error: 'El monto a pagar debe ser mayor a 0 '}, {status: 400})
   }
 
   const order = await prisma.order.findFirst({

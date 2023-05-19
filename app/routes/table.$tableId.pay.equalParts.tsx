@@ -39,7 +39,7 @@ export async function action({request, params}: ActionArgs) {
     .then(res => res._sum.total)
 
   if (!total) {
-    return json({error: 'No se ha seleccionado ningún platillo'})
+    return json({error: 'No se ha seleccionado ningún platillo'}, {status: 400})
   }
 
   const payingTotal = Number(formData.get('payingTotal')) as number

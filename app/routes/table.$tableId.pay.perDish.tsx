@@ -45,7 +45,7 @@ export async function action({request, params}: ActionArgs) {
     return acc + parseFloat(item.price)
   }, 0)
   if (!total) {
-    return json({error: 'No se ha seleccionado ningún platillo'})
+    return json({error: 'No se ha seleccionado ningún platillo'}, {status: 400})
   }
   const tip = total * (Number(tipPercentage) / 100)
 

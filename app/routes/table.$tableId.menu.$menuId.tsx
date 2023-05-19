@@ -139,6 +139,7 @@ export async function action({request, params}: ActionArgs) {
       cartItems.map(item =>
         prisma.cartItem.create({
           data: {
+            image: item.image,
             quantity: Number(item.quantity),
             price: Number(item.price),
             name: item.name,

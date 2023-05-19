@@ -2,12 +2,13 @@ import {ClipboardCopyIcon} from '@heroicons/react/outline'
 import {Spacer} from './util/spacer'
 import {FlexRow} from './util/flexrow'
 import {H5} from './util/typography'
+import {LinkButton} from './buttons/button'
 
 const REPORT_TYPES = {
   waitress: {
     name: 'waitress',
     icon: (
-      <ClipboardCopyIcon className="dark:text-DARK_4 text-principal h-4 w-4" />
+      <ClipboardCopyIcon className="w-4 h-4 dark:text-DARK_4 text-principal" />
     ),
     es: 'Mesero',
   },
@@ -15,7 +16,7 @@ const REPORT_TYPES = {
     name: 'manager',
     icon: (
       <ClipboardCopyIcon
-        className="dark:text-DARK_4 text-principal h-4 w-4"
+        className="w-4 h-4 dark:text-DARK_4 text-principal"
         fontSize="small"
       />
     ),
@@ -26,7 +27,7 @@ const REPORT_TYPES = {
     icon: (
       <ClipboardCopyIcon
         fontSize="small"
-        className="dark:text-warning text-warning h-4 w-4"
+        className="w-4 h-4 dark:text-warning text-warning"
       />
     ),
     es: 'Ayuda',
@@ -36,7 +37,7 @@ const REPORT_TYPES = {
     icon: (
       <ClipboardCopyIcon
         fontSize="small"
-        className="dark:text-DARK_4 text-principal h-4 w-4"
+        className="w-4 h-4 dark:text-DARK_4 text-principal"
       />
     ),
     es: 'Coche',
@@ -46,7 +47,7 @@ const REPORT_TYPES = {
     icon: (
       <ClipboardCopyIcon
         fontSize="small"
-        className="dark:text-DARK_4 text-principal h-4 w-4"
+        className="w-4 h-4 dark:text-DARK_4 text-principal"
       />
     ),
     es: 'Wifi',
@@ -56,16 +57,17 @@ const REPORT_TYPES = {
 export function Help() {
   return (
     <Spacer spaceY="2">
-      <FlexRow className="w-full justify-around ">
+      <FlexRow className="justify-around w-full ">
         {Object.values(REPORT_TYPES).map((type, index) => {
           return (
             <div className="flex flex-col items-center space-y-1" key={index}>
-              <button
-                className="dark:bg-DARK_1 flex h-9 w-9 items-center justify-center rounded-full bg-white "
+              <LinkButton
+                to={`help/${type?.name}`}
+                className="flex items-center justify-center bg-white rounded-full dark:bg-DARK_1 h-9 w-9 "
                 //   onClick={() => setShowModal(type?.name)}
               >
                 {type.icon}
-              </button>
+              </LinkButton>
               <H5 variant="secondary">{type?.es}</H5>
             </div>
           )

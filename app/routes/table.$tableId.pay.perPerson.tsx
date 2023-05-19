@@ -1,5 +1,6 @@
 import type {CartItem} from '@prisma/client'
-import {ActionArgs, LoaderArgs, json, redirect} from '@remix-run/node'
+import type {ActionArgs, LoaderArgs} from '@remix-run/node'
+import {json, redirect} from '@remix-run/node'
 import {
   Form,
   useActionData,
@@ -89,7 +90,7 @@ export async function action({request, params}: ActionArgs) {
   )
 
   if (total <= 0) {
-    return json({error: 'No se puede pagar $0'})
+    return json({error: 'No se puede pagar $0'}, {status: 400})
   }
   const proceed = formData.get('_action') === 'proceed'
   const tipPercentage = formData.get('tipPercentage') as string

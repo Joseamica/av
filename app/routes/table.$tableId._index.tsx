@@ -1,13 +1,8 @@
 import {ChevronDoubleUpIcon} from '@heroicons/react/outline'
-import {ActionArgs, DataFunctionArgs, json, redirect} from '@remix-run/node'
-import {
-  Form,
-  Link,
-  useLoaderData,
-  useNavigate,
-  useRevalidator,
-  useSearchParams,
-} from '@remix-run/react'
+import type {CartItem} from '@prisma/client'
+import type {ActionArgs, DataFunctionArgs} from '@remix-run/node'
+import {json, redirect} from '@remix-run/node'
+import {Form, Link, useLoaderData, useRevalidator} from '@remix-run/react'
 import {useState} from 'react'
 import invariant from 'tiny-invariant'
 import {Button, LinkButton} from '~/components/buttons/button'
@@ -25,12 +20,9 @@ import {
 import {prisma} from '~/db.server'
 import {getBranch} from '~/models/branch.server'
 import {getMenu} from '~/models/menu.server'
-import {getOrder} from '~/models/order.server'
 import {getTable} from '~/models/table.server'
 import type {User} from '~/models/user.server'
 import {getPaidUsers} from '~/models/user.server'
-import {getUserId} from '~/session.server'
-import {useLiveLoader} from '~/use-live-loader'
 import {getAmountLeftToPay, getCurrency} from '~/utils'
 //
 export async function loader({request, params}: DataFunctionArgs) {
@@ -41,7 +33,16 @@ export async function loader({request, params}: DataFunctionArgs) {
   const branch = await getBranch(tableId)
   invariant(branch, 'No se encontró la sucursal')
 
-  const userId = getUserId(request)
+  // const userId =await  getUserId(request)
+  // const username =await  getUsername(request)
+
+  // if (userId && username) {
+  //   const userValidations = await validateUserIntegration(
+  //     userId,
+  //     tableId,
+  //     username,
+  //   )
+  // }
 
   const table = await getTable(tableId)
 
@@ -51,7 +52,10 @@ export async function loader({request, params}: DataFunctionArgs) {
     },
   })
 
-  const order = await getOrder(tableId)
+  const order = await prisma.order.findFirst({
+    where: {tableId, active: true},
+    include: {cartItems: true, users: true},
+  })
 
   // console.log('order', order)
   let paidUsers = null
@@ -79,7 +83,7 @@ export async function loader({request, params}: DataFunctionArgs) {
     table,
     branch,
     menu,
-    // order,
+    order,
     total,
     currency,
     amountLeft,
@@ -183,7 +187,34 @@ export default function Table() {
         </div>
         {/* {data.amountLeft > 0 ? (
         ): } */}
-
+        <Spacer spaceY="2" />
+        <div className="space-y-2">
+          {data.order.cartItems.map((cartItem: CartItem) => {
+            return (
+              <Link
+                to={`cartItem/${cartItem.id}`}
+                key={cartItem.id}
+                className="flex flex-row justify-between"
+              >
+                <FlexRow>
+                  <H5 className="flex items-center justify-center text-center h-7 w-7 bg-night-200">
+                    {cartItem.quantity}
+                  </H5>
+                  <img
+                    alt=""
+                    loading="lazy"
+                    src={cartItem?.image}
+                    className="w-10 h-10 rounded-lg dark:bg-secondaryDark"
+                  />
+                </FlexRow>
+                <FlexRow>
+                  <H5>{cartItem.name}</H5>
+                </FlexRow>
+                <H5 className="right-0">{cartItem.price}</H5>
+              </Link>
+            )
+          })}
+        </div>
         <PayButtons />
       </div>
     )
