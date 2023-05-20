@@ -2,7 +2,14 @@ import {ChevronDoubleUpIcon} from '@heroicons/react/outline'
 import type {CartItem} from '@prisma/client'
 import type {ActionArgs, DataFunctionArgs} from '@remix-run/node'
 import {json, redirect} from '@remix-run/node'
-import {Form, Link, useLoaderData, useRevalidator} from '@remix-run/react'
+import {
+  Form,
+  Link,
+  NavLink,
+  useLoaderData,
+  useRevalidator,
+  useSearchParams,
+} from '@remix-run/react'
 import {useState} from 'react'
 import invariant from 'tiny-invariant'
 import {Button, LinkButton} from '~/components/buttons/button'
@@ -54,7 +61,7 @@ export async function loader({request, params}: DataFunctionArgs) {
 
   const order = await prisma.order.findFirst({
     where: {tableId, active: true},
-    include: {cartItems: true, users: true},
+    include: {cartItems: true, users: {include: {cartItems: true}}},
   })
 
   // console.log('order', order)
@@ -75,9 +82,8 @@ export async function loader({request, params}: DataFunctionArgs) {
   //FIX If user doesn't have order then put values to 0. "esto es porque si no ponen click en terminar orden, se quedara registrado el pago anterior"
   //SOLUCIÓN puede ser eliminar a los usuarios que empiecen con GUEST
 
-  const errors = !menu
-    ? `${branch?.name} no cuenta con un menu abierto en este horario.`
-    : ''
+  const errors =
+    !menu && `${branch?.name} no cuenta con un menu abierto en este horario.`
 
   return json({
     table,
@@ -154,8 +160,13 @@ export async function action({request, params}: ActionArgs) {
   return json({success: true})
 }
 
+interface UserWithCart extends User {
+  cartItems: CartItem[]
+}
+
 export default function Table() {
   const data = useLoaderData()
+  const [searchParams] = useSearchParams()
   // const data = useLiveLoader()
   // console.log('dataLive', dataLive)
   // console.log('data', data)
@@ -185,36 +196,100 @@ export default function Table() {
             // isPaying={isPaying}
           />
         </div>
-        {/* {data.amountLeft > 0 ? (
-        ): } */}
         <Spacer spaceY="2" />
-        <div className="space-y-2">
-          {data.order.cartItems.map((cartItem: CartItem) => {
-            return (
-              <Link
-                to={`cartItem/${cartItem.id}`}
-                key={cartItem.id}
-                className="flex flex-row justify-between"
-              >
-                <FlexRow>
-                  <H5 className="flex items-center justify-center text-center h-7 w-7 bg-night-200">
-                    {cartItem.quantity}
-                  </H5>
-                  <img
-                    alt=""
-                    loading="lazy"
-                    src={cartItem?.image}
-                    className="w-10 h-10 rounded-lg dark:bg-secondaryDark"
-                  />
-                </FlexRow>
-                <FlexRow>
-                  <H5>{cartItem.name}</H5>
-                </FlexRow>
-                <H5 className="right-0">{cartItem.price}</H5>
-              </Link>
-            )
-          })}
-        </div>
+        <FlexRow justify="center" className="bg-red-200">
+          <NavLink
+            to="."
+            className="p-2 text-sm bg-blue-500 rounded-full"
+            preventScrollReset
+          >
+            Ver orden por platillos
+          </NavLink>
+          <NavLink
+            to="?filter=perUser"
+            className="p-2 text-sm bg-blue-500 rounded-full"
+            preventScrollReset
+          >
+            Ver orden por usuarios
+          </NavLink>
+        </FlexRow>
+        <Spacer spaceY="2" />
+        {searchParams.get('filter') === 'perUser' ? (
+          <div className="space-y-2">
+            {data.order.users.map((user: UserWithCart) => {
+              return (
+                <div key={user.id}>
+                  <FlexRow
+                    justify="between"
+                    className="p-2 bg-purple-400 rounded-xl"
+                  >
+                    <h1>{user.name}</h1>
+                    <NavLink
+                      preventScrollReset
+                      to={`?filter=${searchParams.get('filter')}&userId=${
+                        user.id
+                      }`}
+                    >
+                      Detalles
+                    </NavLink>
+                  </FlexRow>
+                  {searchParams.get('userId') === user.id && (
+                    <div>
+                      {user.cartItems.length > 0 ? (
+                        <div>
+                          {user.cartItems.map((cartItem: CartItem) => {
+                            return (
+                              <Link
+                                to={`cartItem/${cartItem.id}`}
+                                key={cartItem.id}
+                                className="flex flex-row justify-between"
+                              >
+                                {cartItem.name}
+                              </Link>
+                            )
+                          })}
+                        </div>
+                      ) : (
+                        <H5 variant="secondary">
+                          Usuario no cuenta con platillos ordenados
+                        </H5>
+                      )}
+                    </div>
+                  )}
+                </div>
+              )
+            })}
+          </div>
+        ) : (
+          <div className="space-y-2">
+            {data.order.cartItems.map((cartItem: CartItem) => {
+              return (
+                <Link
+                  to={`cartItem/${cartItem.id}`}
+                  key={cartItem.id}
+                  className="flex flex-row justify-between"
+                >
+                  <FlexRow>
+                    <H5 className="flex items-center justify-center text-center h-7 w-7 bg-night-200">
+                      {cartItem.quantity}
+                    </H5>
+                    <img
+                      alt=""
+                      loading="lazy"
+                      src={cartItem?.image}
+                      className="w-10 h-10 rounded-lg dark:bg-secondaryDark"
+                    />
+                  </FlexRow>
+                  <FlexRow>
+                    <H5>{cartItem.name}</H5>
+                  </FlexRow>
+                  <H5 className="right-0">{cartItem.price}</H5>
+                </Link>
+              )
+            })}
+          </div>
+        )}
+
         <PayButtons />
       </div>
     )

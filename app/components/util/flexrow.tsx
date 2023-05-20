@@ -2,7 +2,7 @@ import {motion} from 'framer-motion'
 
 const justifyContent = {
   between: 'justify-between',
-  center: 'text-principal dark:text-secondaryTextDark ',
+  center: 'justify-center ',
   start: 'justify-start',
 }
 

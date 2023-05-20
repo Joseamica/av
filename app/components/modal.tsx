@@ -48,7 +48,7 @@ export function Modal({
 }) {
   return (
     <motion.main
-      className="fixed inset-0 h-screen w-full bg-black bg-opacity-40"
+      className="fixed inset-0 w-full h-screen bg-black bg-opacity-40"
       onClick={onClose}
       initial={{opacity: 0}}
       animate={{opacity: 1}}
@@ -56,7 +56,7 @@ export function Modal({
     >
       <motion.dialog
         className={clsx(
-          'fixed inset-x-0 bottom-0  w-full rounded-t-lg bg-white dark:bg-night-500 dark:text-white',
+          'fixed inset-x-0 bottom-0  max-h-full w-full  rounded-t-lg bg-white dark:bg-night-500 dark:text-white',
           fullScreen && 'top-0 h-full',
         )}
         open
@@ -70,14 +70,13 @@ export function Modal({
         exit="exit"
         onClick={event => event.stopPropagation()}
       >
-        <div className="mb-4 flex w-full flex-row justify-between ">
+        <div className="sticky top-0 flex flex-row justify-between w-full mb-4 bg-night-500">
           <div /> {title}
           <XIcon
-            className="h-7 w-7 rounded-full p-1 dark:bg-night-100 dark:text-night-700"
+            className="p-1 rounded-full h-7 w-7 dark:bg-night-100 dark:text-night-700"
             onClick={onClose}
           />
         </div>
-
         {children}
       </motion.dialog>
     </motion.main>

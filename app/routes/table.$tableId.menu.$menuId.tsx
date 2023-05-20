@@ -219,12 +219,12 @@ export default function Menu() {
           </div>
         )
       })}
-      <div>
+      <div className="sticky bottom-0 grid grid-cols-4 mb-4 bg-teal-500 place-content-center">
         {data.cartItems?.map((items: CartItem, index: number) => {
           return (
             <div
               key={index}
-              className="flex flex-row items-center space-x-2 bg-purple-400"
+              className="flex flex-row items-center space-x-2 bg-purple-400 "
             >
               <p>{items.quantity}</p>
               <p>{items.name}</p>
@@ -232,13 +232,13 @@ export default function Menu() {
             </div>
           )
         })}
-        <p className="bg-yellow-600">
+        {/* <p className="bg-yellow-600">
           TODO: hacer que cuando pones agregar platillos si cuente la quantity,
           y ahi lo agregue a la base de datos
-        </p>
+        </p> */}
 
         <button
-          className="px-4 py-2 font-bold text-white bg-blue-500 rounded hover:bg-blue-700"
+          className="col-span-4 px-4 py-2 font-bold text-white bg-blue-500 rounded hover:bg-blue-700"
           name="submitCart"
           value="submitCart"
           type="submit"
