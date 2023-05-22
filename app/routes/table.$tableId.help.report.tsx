@@ -47,10 +47,22 @@ export async function loader({request, params}: LoaderArgs) {
   return json({managers})
 }
 
+const FOOD_REPORT_SUBJECTS = {
+  1: 'Sabor',
+  2: 'Presentación',
+  3: 'Demora',
+}
+
 const WAITRESS_REPORT_SUBJECTS = {
   1: 'Servicio',
   2: 'Actitud',
   3: 'Demora',
+}
+
+const PLACE_REPORT_SUBJECTS = {
+  1: 'Limpieza',
+  2: 'Atención',
+  3: 'Ruído',
 }
 
 export default function Report() {
@@ -84,7 +96,11 @@ export default function Report() {
           Otro
         </LinkButton>
       </FlexRow>
-      <Form method="POST" onChange={handleChange}>
+      <Form
+        method="POST"
+        onChange={handleChange}
+        className="flex flex-col w-full"
+      >
         {by === 'waitress' ? (
           <div>
             <H1>Describe cual fue el problema</H1>
@@ -103,15 +119,47 @@ export default function Report() {
             ))}
           </div>
         ) : by === 'dish' ? (
-          <div>dish</div>
+          <div>
+            <H1>Describe cual fue el problema</H1>
+            {Object.entries(FOOD_REPORT_SUBJECTS).map(([key, value]) => (
+              <Button
+                key={key}
+                type="submit"
+                name="subject"
+                value={value}
+                variant={
+                  actionData?.subject === value ? 'primary' : 'secondary'
+                }
+              >
+                {value}
+              </Button>
+            ))}
+          </div>
         ) : by === 'place' ? (
-          <div>lugar</div>
+          <div>
+            <H1>Describe cual fue el problema</H1>
+            {Object.entries(PLACE_REPORT_SUBJECTS).map(([key, value]) => (
+              <Button
+                key={key}
+                size="small"
+                type="submit"
+                name="subject"
+                value={value}
+                variant={
+                  actionData?.subject === value ? 'primary' : 'secondary'
+                }
+              >
+                {value}
+              </Button>
+            ))}
+          </div>
         ) : by === 'other' ? (
           <div>otro</div>
         ) : (
           <div>Seleccione una opción para reportar algún suceso en la mesa</div>
         )}
         <SendComments />
+        <Button>Enviar</Button>
       </Form>
     </Modal>
   )

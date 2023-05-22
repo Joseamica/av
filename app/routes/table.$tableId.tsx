@@ -1,5 +1,6 @@
+import {Table} from '@prisma/client'
 import {json} from '@remix-run/node'
-import {Outlet, useLoaderData} from '@remix-run/react'
+import {Link, Outlet, useLoaderData} from '@remix-run/react'
 import type {DataFunctionArgs} from '@remix-run/server-runtime'
 import invariant from 'tiny-invariant'
 import {Header} from '~/components'
@@ -18,6 +19,9 @@ export async function loader({request, params}: DataFunctionArgs) {
   const userId = session.get('userId')
   const username = session.get('username')
   const user = await prisma.user.findUnique({where: {id: userId}})
+  const tables = await prisma.table.findMany({
+    where: {branchId: branch.id},
+  })
 
   if (userId && username) {
     const userValidations = await validateUserIntegration(
@@ -25,7 +29,7 @@ export async function loader({request, params}: DataFunctionArgs) {
       tableId,
       username,
     )
-    return json({user}) // return json({success: true})
+    return json({user, tables}) // return json({success: true})
   } else {
     return json({success: false})
   }
@@ -41,7 +45,15 @@ export default function TableIndex() {
   return (
     <div>
       <Header user={data.user} />
-
+      {data.tables.map((table: Table) => (
+        <Link
+          key={table.id}
+          to={`/table/${table.id}`}
+          className="p-2 bg-blue-200"
+        >
+          {table.table_number}
+        </Link>
+      ))}
       <Outlet />
     </div>
   )

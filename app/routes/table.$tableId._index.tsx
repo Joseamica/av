@@ -15,6 +15,7 @@ import invariant from 'tiny-invariant'
 import {Button, LinkButton} from '~/components/buttons/button'
 import {
   BillAmount,
+  CartItemDetails,
   FlexRow,
   H3,
   H4,
@@ -31,6 +32,7 @@ import {getMenu} from '~/models/menu.server'
 import {getTable} from '~/models/table.server'
 import type {User} from '~/models/user.server'
 import {getPaidUsers} from '~/models/user.server'
+import {getSession, sessionStorage} from '~/session.server'
 import {getAmountLeftToPay, getCurrency} from '~/utils'
 //
 export async function loader({request, params}: DataFunctionArgs) {
@@ -106,6 +108,7 @@ export async function action({request, params}: ActionArgs) {
   invariant(tableId, 'Mesa no encontrada!')
   const formData = await request.formData()
   const _action = formData.get('_action') as string
+  const session = await getSession(request)
 
   switch (_action) {
     case 'endOrder':
@@ -154,8 +157,10 @@ export async function action({request, params}: ActionArgs) {
           users: {set: []},
         },
       })
-
-      return redirect('/thankyou')
+      session.unset('cart')
+      return redirect('/thankyou', {
+        headers: {'Set-Cookie': await sessionStorage.commitSession(session)},
+      })
   }
 
   return json({success: true})
@@ -247,13 +252,10 @@ export default function Table() {
                         <div>
                           {user.cartItems.map((cartItem: CartItem) => {
                             return (
-                              <Link
-                                to={`cartItem/${cartItem.id}`}
+                              <CartItemDetails
+                                cartItem={cartItem}
                                 key={cartItem.id}
-                                className="flex flex-row justify-between"
-                              >
-                                {cartItem.name}
-                              </Link>
+                              />
                             )
                           })}
                         </div>
@@ -271,29 +273,7 @@ export default function Table() {
         ) : (
           <div className="space-y-2">
             {data.order.cartItems.map((cartItem: CartItem) => {
-              return (
-                <Link
-                  to={`cartItem/${cartItem.id}`}
-                  key={cartItem.id}
-                  className="flex flex-row items-center justify-between"
-                >
-                  <FlexRow>
-                    <H5 className="flex items-center justify-center text-center h-7 w-7 bg-night-200">
-                      {cartItem.quantity}
-                    </H5>
-                    <img
-                      alt=""
-                      loading="lazy"
-                      src={cartItem?.image}
-                      className="w-10 h-10 rounded-lg dark:bg-secondaryDark"
-                    />
-                  </FlexRow>
-                  <FlexRow>
-                    <H5>{cartItem.name}</H5>
-                  </FlexRow>
-                  <H5 className="right-0">${cartItem.price}</H5>
-                </Link>
-              )
+              return <CartItemDetails cartItem={cartItem} key={cartItem.id} />
             })}
           </div>
         )}

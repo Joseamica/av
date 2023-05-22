@@ -1,9 +1,10 @@
 import type {CartItem, MenuItem, Order, User} from '@prisma/client'
 import {json, redirect} from '@remix-run/node'
-import {Form, useLoaderData, useSubmit} from '@remix-run/react'
+import {Form, useFetcher, useLoaderData, useSubmit} from '@remix-run/react'
 import type {ActionArgs, LoaderArgs} from '@remix-run/server-runtime'
 import {useState} from 'react'
 import invariant from 'tiny-invariant'
+import {Button} from '~/components'
 import {prisma} from '~/db.server'
 import {getBranch, getBranchId} from '~/models/branch.server'
 import {getCartItems} from '~/models/cart.server'
@@ -172,9 +173,17 @@ export async function action({request, params}: ActionArgs) {
 
 export default function Menu() {
   const data = useLoaderData()
+  const fetcher = useFetcher()
+
+  let isSubmitting =
+    fetcher.state === 'submitting' || fetcher.state === 'loading'
 
   return (
-    <Form className="space-y-2 bg-blue-200" method="POST" preventScrollReset>
+    <fetcher.Form
+      className="space-y-2 bg-blue-200"
+      method="POST"
+      preventScrollReset
+    >
       {data.categories.map((categories: MenuCategory) => {
         const dishes = categories.menuItems
         return (
@@ -205,13 +214,13 @@ export default function Menu() {
                       })}
                     </div>
                     {/* FIX */}
-                    <button
-                      className="px-4 py-2 font-bold text-white bg-blue-500 rounded hover:bg-blue-700"
+                    <Button
+                      // className="px-4 py-2 font-bold text-white bg-blue-500 rounded hover:bg-blue-700"
                       name="submittedItemId"
                       value={dish.id}
                     >
                       Agregar {dish.name}
-                    </button>
+                    </Button>
                   </div>
                 )
               })}
@@ -219,7 +228,7 @@ export default function Menu() {
           </div>
         )
       })}
-      <div className="sticky bottom-0 grid grid-cols-4 mb-4 bg-teal-500 place-content-center">
+      <div className="sticky bottom-0 mb-4 bg-teal-500 place-content-center">
         {data.cartItems?.map((items: CartItem, index: number) => {
           return (
             <div
@@ -237,13 +246,14 @@ export default function Menu() {
           y ahi lo agregue a la base de datos
         </p> */}
 
-        <button
-          className="col-span-4 px-4 py-2 font-bold text-white bg-blue-500 rounded hover:bg-blue-700"
+        <Button
+          // className="col-span-4 px-4 py-2 font-bold text-white bg-blue-500 rounded hover:bg-blue-700"
           name="submitCart"
           value="submitCart"
           type="submit"
+          disabled={isSubmitting}
         >
-          Agregar platillos
+          {isSubmitting ? 'Agregando platillos...' : 'Completar orden'}
           {data.cartItems
             ?.map((items: CartItem) => {
               return items.quantity
@@ -251,8 +261,8 @@ export default function Menu() {
             .reduce((acc: number, item: number) => {
               return acc + item
             }, 0)}
-        </button>
+        </Button>
       </div>
-    </Form>
+    </fetcher.Form>
   )
 }

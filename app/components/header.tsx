@@ -11,8 +11,17 @@ export function Header({user}: HeaderProps) {
   const params = useParams()
 
   return (
-    <FlexRow justify="between" className="p-2 text-white">
-      {params.menuId ? <Link to={''}>{'<'}</Link> : <H1>Avoqado</H1>}
+    <FlexRow
+      justify="between"
+      className="z-100 sticky top-0 z-[9999] bg-day-500 p-2 text-white"
+    >
+      {params.menuId ? (
+        <Link to={''}>{'<'}</Link>
+      ) : (
+        <Link to=".">
+          <H1>Avoqado</H1>
+        </Link>
+      )}
       <LinkButton to={`user/${user.id}`} size="small">
         {user.name}
       </LinkButton>

@@ -50,13 +50,11 @@ export const loader = async ({request}: LoaderArgs) => {
   //Verify if user is on the database or create
   const user = await findOrCreateUser(userId, username)
 
-  const tables = await prisma.table.findMany({})
-
   const url = new URL(request.url)
   const pathname = url.pathname
 
   return json(
-    {username, tables, pathname, user},
+    {username, pathname, user},
     {headers: {'Set-Cookie': await sessionStorage.commitSession(session)}},
   )
 }
@@ -118,15 +116,6 @@ export default function App() {
         <Links />
       </head>
       <body className="h-full dark:bg-blue-950">
-        {/* {data.tables.map((table: Table) => (
-          <Link
-            key={table.id}
-            to={`/table/${table.id}`}
-            className="p-2 bg-blue-200"
-          >
-            {table.table_number}
-          </Link>
-        ))} */}
         <Outlet />
         <ScrollRestoration />
         <Scripts />
