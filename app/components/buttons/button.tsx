@@ -4,21 +4,21 @@ import {H3} from '../util/typography'
 
 interface ButtonProps {
   variant?: 'primary' | 'secondary' | 'danger'
-  size?: 'small' | 'medium' | 'large'
+  size?: 'small' | 'medium' | 'large' | 'icon'
   children: React.ReactNode | React.ReactNode[]
   to?: string
 }
 
 interface LinkProps {
   variant?: 'primary' | 'secondary' | 'danger'
-  size?: 'small' | 'medium' | 'large'
+  size?: 'small' | 'medium' | 'large' | 'icon'
   children: React.ReactNode | React.ReactNode[]
   to: string
 }
 
 function getClassName({className}: {className?: string}) {
   return clsx(
-    'group relative inline-flex text-lg font-medium focus:outline-none opacity-100 disabled:opacity-50 transition bg-purple-700',
+    'group relative inline-flex text-lg font-medium focus:outline-none opacity-100 disabled:opacity-50 transition ',
     className,
   )
 }
@@ -32,12 +32,12 @@ function ButtonInner({
     <>
       <div
         className={clsx(
-          'focus-ring absolute inset-0 transform rounded-full opacity-100 transition disabled:opacity-50',
+          'focus-ring absolute inset-0 transform rounded-full border-2  opacity-100 transition disabled:opacity-50',
           {
-            'border-secondary bg-primary border-2 group-hover:border-transparent group-focus:border-transparent':
+            'border-secondary border-2 bg-transparent group-hover:border-transparent group-focus:border-transparent':
               variant === 'secondary' || variant === 'danger',
             danger: variant === 'danger',
-            'bg-inverse': variant === 'primary',
+            'bg-day-700': variant === 'primary',
           },
         )}
       />
@@ -51,7 +51,8 @@ function ButtonInner({
             'text-red-500': variant === 'danger',
             'space-x-5 px-11 py-6 ': size === 'large',
             'space-x-3 px-8 py-4': size === 'medium',
-            'space-x-1 px-5 py-2 text-sm': size === 'small',
+            'space-x-1 px-5 py-2 text-sm ': size === 'small',
+            'p-3 text-sm': size === 'icon',
           },
         )}
       >

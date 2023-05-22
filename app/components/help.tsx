@@ -30,22 +30,22 @@ const REPORT_TYPES = {
     ),
     es: 'Reportar',
   },
-  car: {
-    name: 'car',
-    icon: (
-      <ClipboardCopyIcon
-        fontSize="small"
-        className="w-4 h-4 dark:text-DARK_4 text-principal"
-      />
-    ),
-    es: 'Coche',
-  },
+  // car: {
+  //   name: 'car',
+  //   icon: (
+  //     <ClipboardCopyIcon
+  //       fontSize="small"
+  //       className="w-4 h-4 dark:text-DARK_4 text-principal"
+  //     />
+  //   ),
+  //   es: 'Coche',
+  // },
   wifi: {
     name: 'wifi',
     icon: (
       <ClipboardCopyIcon
         fontSize="small"
-        className="w-4 h-4 dark:text-DARK_4 text-principal"
+        className="w-4 h-4 text-principal dark:text-white"
       />
     ),
     es: 'Wifi',
@@ -61,7 +61,8 @@ export function Help() {
             <div className="flex flex-col items-center space-y-1" key={index}>
               <LinkButton
                 to={`help/${type?.name}`}
-                className="flex items-center justify-center bg-white rounded-full dark:bg-DARK_1 h-9 w-9 "
+                size="small"
+                // className="flex items-center justify-center bg-white rounded-full dark:bg-DARK_1 h-9 w-9 "
                 //   onClick={() => setShowModal(type?.name)}
               >
                 {type.icon}

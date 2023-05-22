@@ -32,6 +32,7 @@ import {EVENTS} from './events'
 import invariant from 'tiny-invariant'
 import {useEventSource} from 'remix-utils'
 import {useEffect} from 'react'
+import {Header} from './components'
 
 export const links: LinksFunction = () => [
   {rel: 'stylesheet', href: tailwindStylesheetUrl},
@@ -55,7 +56,7 @@ export const loader = async ({request}: LoaderArgs) => {
   const pathname = url.pathname
 
   return json(
-    {username, tables, pathname},
+    {username, tables, pathname, user},
     {headers: {'Set-Cookie': await sessionStorage.commitSession(session)}},
   )
 }
@@ -117,8 +118,7 @@ export default function App() {
         <Links />
       </head>
       <body className="h-full dark:bg-blue-950">
-        <p className="text-3xl text-white">Bienvenido {data.username}</p>
-        {data.tables.map((table: Table) => (
+        {/* {data.tables.map((table: Table) => (
           <Link
             key={table.id}
             to={`/table/${table.id}`}
@@ -126,7 +126,7 @@ export default function App() {
           >
             {table.table_number}
           </Link>
-        ))}
+        ))} */}
         <Outlet />
         <ScrollRestoration />
         <Scripts />

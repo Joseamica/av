@@ -25,7 +25,7 @@ model Branch {
   ppt_image           String
   email               String
   phone               String?
-  wifi                String?
+  wifiName            String?
   wifipwd             String?
   instagram           String?
   facebook            String?

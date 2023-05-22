@@ -174,7 +174,7 @@ export default function Table() {
 
   if (data.total > 0) {
     return (
-      <div className="bg-green-400 dark:text-mainTextDark">
+      <div className="dark:text-mainTextDark dark:bg-night-100 ">
         <RestaurantInfoCard
           branch={data.branch}
           // tableId={data.table.id}

@@ -1,4 +1,5 @@
 export {Modal} from './modal'
+export {Header} from './header'
 export {Payment} from './payment'
 export {RestaurantInfoCard} from './RestInfo'
 export {UserButton} from './buttons/UserButton'

@@ -56,7 +56,7 @@ export function Modal({
     >
       <motion.dialog
         className={clsx(
-          'fixed inset-x-0 bottom-0  max-h-full  min-h-max w-full rounded-t-lg bg-white dark:bg-night-500 dark:text-white',
+          'fixed inset-x-0 bottom-0  max-h-full  min-h-max w-full overflow-auto rounded-t-lg bg-white dark:bg-night-500 dark:text-white',
           fullScreen && 'top-0 h-full',
         )}
         open

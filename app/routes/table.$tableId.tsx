@@ -1,7 +1,8 @@
 import {json} from '@remix-run/node'
-import {Outlet} from '@remix-run/react'
+import {Outlet, useLoaderData} from '@remix-run/react'
 import type {DataFunctionArgs} from '@remix-run/server-runtime'
 import invariant from 'tiny-invariant'
+import {Header} from '~/components'
 import {prisma} from '~/db.server'
 import {getBranch} from '~/models/branch.server'
 import {validateUserIntegration} from '~/models/validations.server'
@@ -16,6 +17,7 @@ export async function loader({request, params}: DataFunctionArgs) {
   const session = await getSession(request)
   const userId = session.get('userId')
   const username = session.get('username')
+  const user = await prisma.user.findUnique({where: {id: userId}})
 
   if (userId && username) {
     const userValidations = await validateUserIntegration(
@@ -23,7 +25,7 @@ export async function loader({request, params}: DataFunctionArgs) {
       tableId,
       username,
     )
-    return json({success: true}) // return json({success: true})
+    return json({user}) // return json({success: true})
   } else {
     return json({success: false})
   }
@@ -34,9 +36,12 @@ export default function TableIndex() {
   // useEffect(() => {
   //   revalidator.revalidate()
   // }, [])
+  const data = useLoaderData()
 
   return (
     <div>
+      <Header user={data.user} />
+
       <Outlet />
     </div>
   )
