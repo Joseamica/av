@@ -16,6 +16,7 @@ import {Button, LinkButton} from '~/components/buttons/button'
 import {
   BillAmount,
   FlexRow,
+  H3,
   H4,
   H5,
   Help,
@@ -223,7 +224,14 @@ export default function Table() {
                     justify="between"
                     className="p-2 bg-purple-400 rounded-xl"
                   >
-                    <h1>{user.name}</h1>
+                    <div>
+                      <h1>{user.name}</h1>
+                      <H5>
+                        {Number(user.paid) > 0
+                          ? Number(user.paid)
+                          : 'No ha pagado'}
+                      </H5>
+                    </div>
                     <NavLink
                       preventScrollReset
                       to={`?filter=${searchParams.get('filter')}&userId=${
@@ -267,7 +275,7 @@ export default function Table() {
                 <Link
                   to={`cartItem/${cartItem.id}`}
                   key={cartItem.id}
-                  className="flex flex-row justify-between"
+                  className="flex flex-row items-center justify-between"
                 >
                   <FlexRow>
                     <H5 className="flex items-center justify-center text-center h-7 w-7 bg-night-200">
@@ -283,7 +291,7 @@ export default function Table() {
                   <FlexRow>
                     <H5>{cartItem.name}</H5>
                   </FlexRow>
-                  <H5 className="right-0">{cartItem.price}</H5>
+                  <H5 className="right-0">${cartItem.price}</H5>
                 </Link>
               )
             })}
@@ -373,7 +381,7 @@ function PayButtons() {
         <LinkButton to="pay/fullpay">Pagar la cuenta completa</LinkButton>
         {showSplit && (
           <Modal onClose={() => setShowSplit(false)} title="Dividir cuenta">
-            <div className="flex flex-col p-2 space-y-2">
+            <div className="flex flex-col space-y-2">
               <LinkButton to="pay/perDish">Pagar por platillo</LinkButton>
               <LinkButton to="pay/perPerson">Pagar por usuario</LinkButton>
               <LinkButton to="pay/equalParts">

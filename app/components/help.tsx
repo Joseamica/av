@@ -7,9 +7,7 @@ import {LinkButton} from './buttons/button'
 const REPORT_TYPES = {
   waitress: {
     name: 'waitress',
-    icon: (
-      <ClipboardCopyIcon className="w-4 h-4 dark:text-DARK_4 text-principal" />
-    ),
+    icon: <ClipboardCopyIcon className="w-4 h-4 text-black dark:text-black" />,
     es: 'Mesero',
   },
   manager: {
@@ -30,7 +28,7 @@ const REPORT_TYPES = {
         className="w-4 h-4 dark:text-warning text-warning"
       />
     ),
-    es: 'Ayuda',
+    es: 'Reportar',
   },
   car: {
     name: 'car',

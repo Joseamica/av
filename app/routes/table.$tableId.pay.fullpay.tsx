@@ -11,26 +11,41 @@ import invariant from 'tiny-invariant'
 import {BillAmount, Payment} from '~/components'
 import {Modal} from '~/components/modal'
 import {prisma} from '~/db.server'
-import {getBranchId} from '~/models/branch.server'
+import {
+  getBranchId,
+  getPaymentMethods,
+  getTipsPercentages,
+} from '~/models/branch.server'
 import {getMenu} from '~/models/menu.server'
 import {getOrder} from '~/models/order.server'
 import {getPaidUsers} from '~/models/user.server'
 import {validateRedirect} from '~/redirect.server'
 import {getUserId} from '~/session.server'
 import {getAmountLeftToPay, getCurrency} from '~/utils'
+import type {Order, User} from '@prisma/client'
+
+type LoaderData = {
+  amountLeft: number
+  total: number
+  tableId: string
+  paidUsers: any
+  currency: string
+  tipsPercentages: number[]
+  paymentMethods: string[]
+  userId: string
+}
 
 export async function loader({request, params}: LoaderArgs) {
   const {tableId} = params
   invariant(tableId, 'No se encontró mesa')
   const amountLeft = await getAmountLeftToPay(tableId)
-  const tipPercentages = await prisma.branch.findFirst({
-    where: {table: {some: {id: tableId}}},
-    select: {firstTip: true, secondTip: true, thirdTip: true},
-  })
   const order = await getOrder(tableId)
   const total = order?.total
+  const userId = await getUserId(request)
 
   const branchId = await getBranchId(tableId)
+  const tipsPercentages = await getTipsPercentages(tableId)
+  const paymentMethods = await getPaymentMethods(tableId)
 
   // console.log('order', order)
   let paidUsers = null
@@ -49,7 +64,16 @@ export async function loader({request, params}: LoaderArgs) {
 
   // const currency = getCurrency(menu?.currency)
 
-  const data = {amountLeft, tipPercentages, total, tableId, paidUsers, currency}
+  const data = {
+    amountLeft,
+    total,
+    tableId,
+    paidUsers,
+    currency,
+    tipsPercentages,
+    paymentMethods,
+    userId,
+  }
 
   return json(data)
 }
@@ -106,10 +130,9 @@ export async function action({request, params}: ActionArgs) {
 }
 
 export default function FullPay() {
-  const data = useLoaderData()
+  const data = useLoaderData<LoaderData>()
   const actionData = useActionData()
   const navigate = useNavigate()
-
   const submit = useSubmit()
   function handleChange(event: React.FormEvent<HTMLFormElement>) {
     submit(event.currentTarget, {replace: true})
@@ -130,7 +153,12 @@ export default function FullPay() {
         // isPaying={isPaying}
       />
       <Form method="POST" preventScrollReset onChange={handleChange}>
-        <Payment total={data.amountLeft} tip={actionData?.tip} />
+        <Payment
+          total={actionData?.total}
+          tip={actionData?.tip}
+          tipsPercentages={data.tipsPercentages}
+          paymentMethods={data.paymentMethods}
+        />
       </Form>
     </Modal>
   )

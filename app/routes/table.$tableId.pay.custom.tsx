@@ -1,4 +1,4 @@
-import type {ActionArgs} from '@remix-run/node'
+import type {ActionArgs, LoaderArgs} from '@remix-run/node'
 import {json, redirect} from '@remix-run/node'
 import {
   Form,
@@ -7,11 +7,17 @@ import {
   useNavigate,
   useSubmit,
 } from '@remix-run/react'
+import {get} from 'http'
 import React from 'react'
 import invariant from 'tiny-invariant'
 import {Payment} from '~/components'
 import {Modal} from '~/components/modal'
 import {prisma} from '~/db.server'
+import {
+  getBranchId,
+  getPaymentMethods,
+  getTipsPercentages,
+} from '~/models/branch.server'
 import {validateRedirect} from '~/redirect.server'
 import {getUserId} from '~/session.server'
 
@@ -50,7 +56,6 @@ export async function action({request, params}: ActionArgs) {
     .then(res => res._sum.total)
 
   const tip = Number(total) * (Number(tipPercentage) / 100)
-  console.log('tip, total', tip, total)
 
   if (proceed) {
     //WHEN SUBMIT
@@ -71,6 +76,15 @@ export async function action({request, params}: ActionArgs) {
   }
 
   return json({total, tip})
+}
+
+export async function loader({request, params}: LoaderArgs) {
+  const {tableId} = params
+  invariant(tableId, 'No se encontró mesa')
+  const tipsPercentages = await getTipsPercentages(tableId)
+  const paymentMethods = await getPaymentMethods(tableId)
+
+  return json({paymentMethods, tipsPercentages})
 }
 
 // export async function loader({request, params}: LoaderArgs) {
@@ -129,7 +143,12 @@ export default function EqualParts() {
           />
         </div>
         {actionData?.error}
-        <Payment total={actionData?.total} tip={actionData?.tip} />
+        <Payment
+          total={actionData?.total}
+          tip={actionData?.tip}
+          tipsPercentages={data.tipsPercentages}
+          paymentMethods={data.paymentMethods}
+        />
       </Form>
     </Modal>
   )

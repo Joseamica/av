@@ -25,7 +25,7 @@ export function BillAmount({
   // amountLeftToPay: number
   currency: string
   amountLeft: number
-  usersPaid: Array<User>
+  usersPaid: User[]
   userId: string
   isPaying?: any
 }) {
@@ -78,7 +78,7 @@ export function BillAmount({
           <AnimatePresence initial={false}>
             {showDetails &&
               usersPaid &&
-              usersPaid.map((user: any, index) => {
+              usersPaid.map((user: User, index) => {
                 return (
                   <motion.div
                     initial={{height: 0}}
@@ -100,7 +100,7 @@ export function BillAmount({
                         <H4>Ha pagado </H4>
                       )}
                     </Link>
-                    <H4> {asignCurrency(currency, user?.paid)}</H4>
+                    <H4> {asignCurrency(currency, Number(user?.paid))}</H4>
                   </motion.div>
                 )
               })}

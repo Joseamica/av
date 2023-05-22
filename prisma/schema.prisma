@@ -20,35 +20,39 @@ model Restaurant {
 }
 
 model Branch {
-  id              String     @id @default(cuid())
-  name            String
-  ppt_image       String
-  email           String
-  phone           String?
-  wifi            String?
-  wifipwd         String?
-  instagram       String?
-  facebook        String?
-  twitter         String?
-  city            String
-  address         String
-  extraAddress    String
-  rating          Float?
-  rating_quantity Int?
-  cuisine         String
-  restaurantId    Int
-  timezone        String?
-  open            Int?
-  close           Int
-  firstTip        Decimal?
-  secondTip       Decimal?
-  thirdTip        Decimal?
-  restaurant      Restaurant @relation(fields: [restaurantId], references: [id], onDelete: Cascade, onUpdate: Cascade)
-  menus           Menu[]
-  table           Table[]
-  orders          Order[]
-  users           User[]
-  feedbacks       Feedback[]
+  id                  String     @id @default(cuid())
+  name                String
+  ppt_image           String
+  email               String
+  phone               String?
+  wifi                String?
+  wifipwd             String?
+  instagram           String?
+  facebook            String?
+  twitter             String?
+  city                String
+  address             String
+  extraAddress        String
+  rating              Float?
+  rating_quantity     Int?
+  cuisine             String
+  restaurantId        Int
+  timezone            String?
+  open                Int?
+  close               Int
+  firstTip            Decimal?   @default(10)
+  secondTip           Decimal?   @default(12)
+  thirdTip            Decimal?   @default(15)
+  firstPaymentMethod  String?    @default("cash")
+  secondPaymentMethod String?    @default("card")
+  thirdPaymentMethod  String?    @default("paypal")
+  fourthPaymentMethod String?    @default("apple pay")
+  restaurant          Restaurant @relation(fields: [restaurantId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  menus               Menu[]
+  table               Table[]
+  orders              Order[]
+  users               User[]
+  feedbacks           Feedback[]
 }
 
 model Table {

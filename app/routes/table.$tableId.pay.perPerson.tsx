@@ -9,16 +9,18 @@ import {
   useSubmit,
 } from '@remix-run/react'
 import invariant from 'tiny-invariant'
-import {Button, FlexRow, H2, H5, Payment} from '~/components'
+import {FlexRow, H2, H5, Payment} from '~/components'
 import {Modal} from '~/components/modal'
 import {prisma} from '~/db.server'
+import {getPaymentMethods, getTipsPercentages} from '~/models/branch.server'
 import {validateRedirect} from '~/redirect.server'
 import {getUserId} from '~/session.server'
 
 export async function loader({request, params}: LoaderArgs) {
   const {tableId} = params
   invariant(tableId, 'No se encontró mesa')
-
+  const tipsPercentages = await getTipsPercentages(tableId)
+  const paymentMethods = await getPaymentMethods(tableId)
   const usersInTable = await prisma.table.findFirst({
     where: {id: tableId},
     select: {users: {include: {cartItems: true}}},
@@ -73,7 +75,7 @@ export async function loader({request, params}: LoaderArgs) {
     })
   })
 
-  return json({userTotals, tableId})
+  return json({userTotals, tableId, tipsPercentages, paymentMethods})
 }
 
 export async function action({request, params}: ActionArgs) {
@@ -157,7 +159,7 @@ export default function PerPerson() {
               <FlexRow className="justify-between px-4 py-2 rounded-full bg-night-400">
                 <label htmlFor="selectedUsers">{user.user.name}</label>
                 <FlexRow>
-                  <H2>${user.total}</H2>
+                  <H2>${user.total?.toFixed(2)}</H2>
                   <input
                     type="checkbox"
                     name="selectedUsers"
@@ -173,7 +175,8 @@ export default function PerPerson() {
                     <FlexRow key={item.id}>
                       <li>{item.name}</li>
                       <li>${item.price}</li>
-                      <li>Precio compartido: {item.itemTotal}</li>
+                      {/* @ts-expect-error */}
+                      <li>Precio compartido: {item.itemTotal?.toFixed(2)}</li>
                     </FlexRow>
                   )
                 })}
@@ -183,7 +186,12 @@ export default function PerPerson() {
         })}
         <H5>{actionData?.error}</H5>
 
-        <Payment total={actionData?.total || 0} tip={actionData?.tip} />
+        <Payment
+          total={actionData?.total}
+          tip={actionData?.tip}
+          tipsPercentages={data.tipsPercentages}
+          paymentMethods={data.paymentMethods}
+        />
       </Form>
     </Modal>
   )

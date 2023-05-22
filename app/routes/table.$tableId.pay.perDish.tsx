@@ -1,4 +1,6 @@
-import React from 'react'
+import type {CartItem} from '@prisma/client'
+import type {ActionArgs, LoaderArgs} from '@remix-run/node'
+import {json, redirect} from '@remix-run/node'
 import {
   Form,
   useActionData,
@@ -6,17 +8,26 @@ import {
   useNavigate,
   useSubmit,
 } from '@remix-run/react'
-import {Modal} from '~/components/modal'
+import React from 'react'
 import invariant from 'tiny-invariant'
-import {redirect} from '@remix-run/node'
-import type {ActionArgs, LoaderArgs} from '@remix-run/node'
-import {json} from '@remix-run/node'
+import {FlexRow, H1, H2, H5, H6, Payment} from '~/components'
+import {Modal} from '~/components/modal'
 import {prisma} from '~/db.server'
-import {FlexRow, H1, H2, H3, H5, H6, Payment} from '~/components'
-import type {CartItem} from '@prisma/client'
+import {
+  getBranchId,
+  getPaymentMethods,
+  getTipsPercentages,
+} from '~/models/branch.server'
 import {validateRedirect} from '~/redirect.server'
-import {getUserId} from '~/session.server'
-import {getUsername} from '~/session.server'
+import {getUserId, getUsername} from '~/session.server'
+
+type LoaderData = {
+  cartItems: CartItem[]
+  paidCartItems: CartItem[]
+  unpaidCartItems: CartItem[]
+  tipsPercentages: number[]
+  paymentMethods: string[]
+}
 
 export async function action({request, params}: ActionArgs) {
   const {tableId} = params
@@ -86,10 +97,13 @@ export async function action({request, params}: ActionArgs) {
 export async function loader({request, params}: LoaderArgs) {
   const {tableId} = params
   invariant(tableId, 'No se encontró mesa')
-
+  const branchId = await getBranchId(tableId)
+  const tipsPercentages = await getTipsPercentages(tableId)
+  const paymentMethods = await getPaymentMethods(tableId)
   const order = await prisma.order.findFirst({
     where: {tableId},
   })
+
   invariant(order, 'No se encontró la orden, o aun no ha sido creada.')
 
   const cartItems = await prisma.cartItem.findMany({
@@ -101,12 +115,18 @@ export async function loader({request, params}: LoaderArgs) {
   const paidCartItems = cartItems.filter(item => item.paid === true) || []
   const unpaidCartItems = cartItems.filter(item => item.paid === false) || []
 
-  return json({cartItems, paidCartItems, unpaidCartItems})
+  return json({
+    cartItems,
+    paidCartItems,
+    unpaidCartItems,
+    tipsPercentages,
+    paymentMethods,
+  })
 }
 
 export default function PerDish() {
   const navigate = useNavigate()
-  const data = useLoaderData()
+  const data = useLoaderData<LoaderData>()
   const actionData = useActionData()
   const submit = useSubmit()
   function handleChange(event: React.FormEvent<HTMLFormElement>) {
@@ -146,19 +166,17 @@ export default function PerDish() {
                     value={item.price}
                   />
                 </FlexRow>
-                {/* <label htmlFor={`user-${item.id}`}>Usuario</label>
-                  <select id={`user-${item.id}`} name={`user-${item.id}`}>
-                    <option value="1">Usuario 1</option>
-                    <option value="2">Usuario 2</option>
-                    <option value="3">Usuario 3</option>
-                    <option value="4">Usuario 4</option>
-                  </select> */}
               </FlexRow>
             )
           })}
         </div>
-        {actionData?.error}
-        <Payment total={actionData?.total} tip={actionData?.tip} />
+        <div>{actionData?.error}</div>
+        <Payment
+          total={actionData?.total}
+          tip={actionData?.tip}
+          tipsPercentages={data.tipsPercentages}
+          paymentMethods={data.paymentMethods}
+        />
       </Form>
     </Modal>
   )

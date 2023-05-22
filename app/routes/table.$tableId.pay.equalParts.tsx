@@ -13,6 +13,11 @@ import invariant from 'tiny-invariant'
 import {H5, Payment, QuantityManagerButton} from '~/components'
 import {Modal} from '~/components/modal'
 import {prisma} from '~/db.server'
+import {
+  getBranchId,
+  getPaymentMethods,
+  getTipsPercentages,
+} from '~/models/branch.server'
 import {validateRedirect} from '~/redirect.server'
 import {getUserId} from '~/session.server'
 
@@ -74,7 +79,8 @@ export async function loader({request, params}: LoaderArgs) {
     where: {tableId},
   })
   invariant(order, 'No se encontró la orden, o aun no ha sido creada.')
-
+  const tipsPercentages = await getTipsPercentages(tableId)
+  const paymentMethods = await getPaymentMethods(tableId)
   const cartItems = await prisma.cartItem.findMany({
     // FIX
     where: {orderId: order.id, activeOnOrder: true},
@@ -87,7 +93,7 @@ export async function loader({request, params}: LoaderArgs) {
     })
     .then(res => res._sum.total)
 
-  return json({cartItems, total})
+  return json({cartItems, total, tipsPercentages, paymentMethods})
 }
 
 export default function EqualParts() {
@@ -207,8 +213,10 @@ export default function EqualParts() {
         {actionData?.error}
 
         <Payment
-          total={perPerson}
-          tip={perPerson * Number(actionData?.tipPercentage / 100 || 15 / 100)}
+          total={actionData?.total}
+          tip={actionData?.tip}
+          tipsPercentages={data.tipsPercentages}
+          paymentMethods={data.paymentMethods}
         />
         <input type="hidden" name="payingTotal" value={perPerson} />
       </Form>
