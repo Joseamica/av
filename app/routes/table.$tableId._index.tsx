@@ -187,12 +187,12 @@ export default function Table() {
           errors={data.errors}
         />
         <Spacer spaceY="2">
-          <h3 className="flex justify-center text-sm text-secondaryTextDark shrink-0">
+          <h3 className="text-secondaryTextDark flex shrink-0 justify-center text-sm">
             {`Mesa ${data.table.table_number}`}
           </h3>
         </Spacer>
         <Help />
-        <div className="p-1 bg-blue-200">
+        <div className="bg-blue-200 p-1">
           <BillAmount
             total={data.total}
             currency={data.currency}
@@ -206,14 +206,14 @@ export default function Table() {
         <FlexRow justify="center" className="bg-red-200">
           <NavLink
             to="."
-            className="p-2 text-sm bg-blue-500 rounded-full"
+            className="rounded-full bg-blue-500 p-2 text-sm"
             preventScrollReset
           >
             Ver orden por platillos
           </NavLink>
           <NavLink
             to="?filter=perUser"
-            className="p-2 text-sm bg-blue-500 rounded-full"
+            className="rounded-full bg-blue-500 p-2 text-sm"
             preventScrollReset
           >
             Ver orden por usuarios
@@ -227,7 +227,7 @@ export default function Table() {
                 <div key={user.id}>
                   <FlexRow
                     justify="between"
-                    className="p-2 bg-purple-400 rounded-xl"
+                    className="rounded-xl bg-purple-400 p-2"
                   >
                     <div>
                       <h1>{user.name}</h1>
@@ -290,23 +290,23 @@ export default function Table() {
           menuId={data.menu?.id}
           errors={data.errors}
         />
-        <div className="flex items-center justify-center w-10 h-10 bg-white rounded-full shadow-sm dark:bg-secondaryDark ">
-          <ChevronDoubleUpIcon className="w-5 h-5 motion-safe:animate-bounce" />
+        <div className="dark:bg-secondaryDark flex h-10 w-10 items-center justify-center rounded-full bg-white shadow-sm ">
+          <ChevronDoubleUpIcon className="h-5 w-5 motion-safe:animate-bounce" />
         </div>
         <H5>Aún no existe una orden con platillos.</H5>
         <Spacer spaceY="3">
-          <h3 className="flex justify-center pr-2 text-sm text-secondaryTextDark shrink-0">
+          <h3 className="text-secondaryTextDark flex shrink-0 justify-center pr-2 text-sm">
             {`Mesa ${data.table.table_number}`}
           </h3>
         </Spacer>
-        <div className="flex flex-col justify-start p-2 bg-white rounded-lg dark:bg-DARK_1 drop-shadow-md dark:drop-shadow-none">
+        <div className="dark:bg-DARK_1 flex flex-col justify-start rounded-lg bg-white p-2 drop-shadow-md dark:drop-shadow-none">
           <p className="text-DARK_3">Usuarios en la mesa</p>
           <Spacer spaceY="2">
             <hr className="dark:border-DARK_OUTLINE border-LIGHT_DIVIDER" />
           </Spacer>
           {data.usersInTable?.map((user: User, index: number) => (
             <FlexRow
-              className="items-center justify-between w-full space-x-2 space-y-2"
+              className="w-full items-center justify-between space-x-2 space-y-2"
               key={user.id}
             >
               <FlexRow className="items-center space-x-2">
@@ -316,7 +316,7 @@ export default function Table() {
               <div>
                 <Link
                   to={`user/${user?.id}`}
-                  className="flex flex-row items-center justify-center px-2 py-1 rounded-full dark:bg-buttonBgDark bg-componentBg "
+                  className="dark:bg-buttonBgDark bg-componentBg flex flex-row items-center justify-center rounded-full px-2 py-1 "
                 >
                   Detalles
                 </Link>

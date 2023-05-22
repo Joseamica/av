@@ -54,7 +54,14 @@ export function Paragraph({
 }
 
 type TitleProps = {
-  variant?: 'primary' | 'secondary' | 'bold' | 'button' | 'bolder' | 'semibold'
+  variant?:
+    | 'primary'
+    | 'secondary'
+    | 'bold'
+    | 'button'
+    | 'bolder'
+    | 'semibold'
+    | 'error'
   boldVariant?:
     | 'extralight'
     | 'light'
@@ -93,6 +100,7 @@ const titleColors = {
   bold: 'font-bold ',
   bolder: 'font-extrabold',
   button: 'text-white dark:text-mainTextDark font-medium',
+  error: 'text-warning',
 }
 
 const bolding = {

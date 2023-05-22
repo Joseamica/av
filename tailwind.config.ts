@@ -23,6 +23,7 @@ export default {
           600: '#9999CC',
           700: '#6A44FF',
         },
+        warning: '#FF8080',
         accent: {
           purple: '#6A44FF',
           pink: '#F183FF',

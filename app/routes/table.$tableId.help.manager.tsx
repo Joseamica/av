@@ -12,12 +12,10 @@ export async function action({request, params}: ActionArgs) {
   invariant(tableId, 'tableId is required')
   const formData = await request.formData()
   const table = await getTable(tableId)
-  const managers = await prisma.employee.findMany({
-    where: {rol: 'manager', tables: {some: {id: tableId}}},
-  })
-  console.dir(
-    `CALL ~> Llaman al mesero ${managers} de la mesa ${table?.table_number}`,
-  )
+  // const managers = await prisma.employee.findMany({
+  //   where: {rol: 'manager', tables: {some: {id: tableId}}},
+  // })
+  console.dir(`CALL ~> Llaman al gerente de la mesa ${table?.table_number}`)
 
   return json({success: true})
 }
@@ -41,7 +39,7 @@ export default function Help() {
   }
 
   return (
-    <Modal title="Llama al mesero" onClose={onClose}>
+    <Modal title="Llama al gerente" onClose={onClose}>
       <Form method="POST">
         {data.managers?.map((manager: Employee) => (
           <FlexRow key={manager.id}>
@@ -49,7 +47,7 @@ export default function Help() {
             <H3>{manager.rol}</H3>
           </FlexRow>
         ))}
-        <Button>Llamar al mesero</Button>
+        <Button>Llamar al gerente</Button>
       </Form>
     </Modal>
   )

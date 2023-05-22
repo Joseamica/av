@@ -2,6 +2,9 @@ import {XIcon} from '@heroicons/react/outline'
 import clsx from 'clsx'
 import {motion} from 'framer-motion'
 import type {ReactNode} from 'react'
+import {Button, LinkButton} from './buttons/button'
+import {Link, useNavigate} from '@remix-run/react'
+import {IoMdArrowBack} from 'react-icons/io'
 
 const effect = {
   hidden: {
@@ -39,16 +42,23 @@ export function Modal({
   fullScreen = false,
   title = 'Titulo',
   ariaLabel,
+  goBack = false,
 }: {
   children: ReactNode
   onClose: () => void
   fullScreen?: boolean
   title: string
   ariaLabel?: string
+  goBack?: boolean
 }) {
+  const navigate = useNavigate()
+
+  const NavigateBack = () => {
+    navigate('')
+  }
   return (
     <motion.main
-      className="fixed inset-0 w-full h-screen bg-black bg-opacity-40"
+      className="fixed inset-0 h-screen w-full bg-black bg-opacity-40"
       onClick={onClose}
       initial={{opacity: 0}}
       animate={{opacity: 1}}
@@ -70,10 +80,17 @@ export function Modal({
         exit="exit"
         onClick={event => event.stopPropagation()}
       >
-        <div className="sticky top-0 flex flex-row justify-between w-full mb-4 bg-night-500">
-          <div /> {title}
+        <div className="sticky top-0 mb-4 flex w-full flex-row justify-between bg-night-500">
+          {goBack ? (
+            <Button onClick={NavigateBack} size="small">
+              <IoMdArrowBack />
+            </Button>
+          ) : (
+            <div />
+          )}
+          {title}
           <XIcon
-            className="p-1 rounded-full h-7 w-7 dark:bg-night-100 dark:text-night-700"
+            className="h-7 w-7 rounded-full p-1 dark:bg-night-100 dark:text-night-700"
             onClick={onClose}
           />
         </div>

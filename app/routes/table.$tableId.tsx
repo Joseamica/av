@@ -18,7 +18,7 @@ export async function loader({request, params}: DataFunctionArgs) {
   const session = await getSession(request)
   const userId = session.get('userId')
   const username = session.get('username')
-  const user = await prisma.user.findUnique({where: {id: userId}})
+  const user = await prisma.user.findFirst({where: {id: userId}})
   const tables = await prisma.table.findMany({
     where: {branchId: branch.id},
   })
@@ -49,7 +49,7 @@ export default function TableIndex() {
         <Link
           key={table.id}
           to={`/table/${table.id}`}
-          className="p-2 bg-blue-200"
+          className="bg-blue-200 p-2"
         >
           {table.table_number}
         </Link>

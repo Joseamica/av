@@ -7,14 +7,14 @@ import {LinkButton} from './buttons/button'
 const REPORT_TYPES = {
   waitress: {
     name: 'waitress',
-    icon: <ClipboardCopyIcon className="w-4 h-4 text-black dark:text-black" />,
+    icon: <ClipboardCopyIcon className="h-4 w-4 text-black dark:text-black" />,
     es: 'Mesero',
   },
   manager: {
     name: 'manager',
     icon: (
       <ClipboardCopyIcon
-        className="w-4 h-4 dark:text-DARK_4 text-principal"
+        className="dark:text-DARK_4 text-principal h-4 w-4"
         fontSize="small"
       />
     ),
@@ -25,7 +25,7 @@ const REPORT_TYPES = {
     icon: (
       <ClipboardCopyIcon
         fontSize="small"
-        className="w-4 h-4 dark:text-warning text-warning"
+        className="dark:text-warning text-warning h-4 w-4"
       />
     ),
     es: 'Reportar',
@@ -45,7 +45,7 @@ const REPORT_TYPES = {
     icon: (
       <ClipboardCopyIcon
         fontSize="small"
-        className="w-4 h-4 text-principal dark:text-white"
+        className="text-principal h-4 w-4 dark:text-white"
       />
     ),
     es: 'Wifi',
@@ -55,13 +55,14 @@ const REPORT_TYPES = {
 export function Help() {
   return (
     <Spacer spaceY="2">
-      <FlexRow className="justify-around w-full ">
+      <FlexRow className="w-full justify-around ">
         {Object.values(REPORT_TYPES).map((type, index) => {
           return (
             <div className="flex flex-col items-center space-y-1" key={index}>
               <LinkButton
                 to={`help/${type?.name}`}
                 size="small"
+
                 // className="flex items-center justify-center bg-white rounded-full dark:bg-DARK_1 h-9 w-9 "
                 //   onClick={() => setShowModal(type?.name)}
               >

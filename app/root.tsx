@@ -54,7 +54,7 @@ export const loader = async ({request}: LoaderArgs) => {
   const pathname = url.pathname
 
   return json(
-    {username, pathname, user},
+    {username, pathname},
     {headers: {'Set-Cookie': await sessionStorage.commitSession(session)}},
   )
 }

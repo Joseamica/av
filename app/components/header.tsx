@@ -13,7 +13,7 @@ export function Header({user}: HeaderProps) {
   return (
     <FlexRow
       justify="between"
-      className="z-100 sticky top-0 z-[9999] bg-day-500 p-2 text-white"
+      className="z-100 sticky top-0  bg-day-500 p-2 text-white"
     >
       {params.menuId ? (
         <Link to={''}>{'<'}</Link>
