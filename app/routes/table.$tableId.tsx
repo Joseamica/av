@@ -1,4 +1,4 @@
-import {Table} from '@prisma/client'
+import type {Table} from '@prisma/client'
 import {json} from '@remix-run/node'
 import {Link, Outlet, useLoaderData} from '@remix-run/react'
 import type {DataFunctionArgs} from '@remix-run/server-runtime'
@@ -49,7 +49,7 @@ export default function TableIndex() {
         <Link
           key={table.id}
           to={`/table/${table.id}`}
-          className="bg-blue-200 p-2"
+          className="p-2 bg-blue-200"
         >
           {table.table_number}
         </Link>

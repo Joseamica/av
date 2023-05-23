@@ -32,12 +32,12 @@ function ButtonInner({
     <>
       <div
         className={clsx(
-          'focus-ring  absolute inset-0 transform rounded-full  border-2 opacity-100 transition disabled:opacity-50',
+          'focus-ring  absolute inset-0 transform rounded-full  border-4 opacity-100 transition disabled:opacity-50',
           {
             'border-secondary border-2 bg-transparent group-hover:border-transparent group-focus:border-transparent':
               variant === 'secondary' || variant === 'danger',
             danger: variant === 'danger',
-            'bg-day-principal': variant === 'primary',
+            'border-button-outline bg-button-primary': variant === 'primary',
           },
         )}
       />

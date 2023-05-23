@@ -1,36 +1,28 @@
-import type {CartItem, MenuItem, Order, User} from '@prisma/client'
+import type {CartItem, Order, User} from '@prisma/client'
 import {json, redirect} from '@remix-run/node'
 import {
-  Link,
   useFetcher,
   useLoaderData,
   useNavigate,
   useParams,
-  useSearchParams,
 } from '@remix-run/react'
 import type {ActionArgs, LoaderArgs} from '@remix-run/server-runtime'
 import React from 'react'
 import invariant from 'tiny-invariant'
-import {Button, FlexRow, H1, H2, LinkButton, Modal} from '~/components'
+import {Button, FlexRow, Modal} from '~/components'
 import {prisma} from '~/db.server'
 import {getBranch, getBranchId} from '~/models/branch.server'
 import {getCartItems} from '~/models/cart.server'
 import {getOrderTotal} from '~/models/order.server'
 import {validateRedirect} from '~/redirect.server'
-import {
-  addToCart,
-  getSession,
-  removeCartItem,
-  sessionStorage,
-  updateCartItem,
-} from '~/session.server'
+import {getSession, sessionStorage, updateCartItem} from '~/session.server'
 
-type MenuCategory = {
-  id: string
-  name: string
-  menuId: string
-  menuItems: MenuItem[]
-}
+// type MenuCategory = {
+//   id: string
+//   name: string
+//   menuId: string
+//   menuItems: MenuItem[]
+// }
 
 export async function loader({request, params}: LoaderArgs) {
   const {tableId, menuId} = params
@@ -77,7 +69,6 @@ export async function action({request, params}: ActionArgs) {
   invariant(branchId, 'No se encontró la sucursal')
 
   const formData = await request.formData()
-  const submitCart = formData.get('submitCart') as string
   const shareDish = formData.getAll('shareDish')
   const variantId = formData.get('variantId') as string
   const _action = formData.get('_action') as string
@@ -86,7 +77,9 @@ export async function action({request, params}: ActionArgs) {
 
   const session = await getSession(request)
   let cart = JSON.parse(session.get('cart') || '[]')
-  const quantityStr = cart.find(item => item.variantId === variantId)?.quantity
+  const quantityStr = cart.find(
+    (item: {variantId: string}) => item.variantId === variantId,
+  )?.quantity
 
   const userId = session.get('userId')
 
@@ -168,7 +161,8 @@ export async function action({request, params}: ActionArgs) {
         }
       }
 
-      const createCartItems = await Promise.all(
+      // const createCartItems =
+      await Promise.all(
         cartItems.map(item =>
           prisma.cartItem.create({
             data: {

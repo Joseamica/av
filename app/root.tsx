@@ -1,9 +1,13 @@
 import {cssBundleHref} from '@remix-run/css-bundle'
-import {ActionArgs, LinksFunction, LoaderArgs, isSession} from '@remix-run/node'
-import {json, redirect} from '@remix-run/node'
+import {
+  ActionArgs,
+  LinksFunction,
+  LoaderArgs,
+  json,
+  redirect,
+} from '@remix-run/node'
 import {
   Form,
-  Link,
   Links,
   LiveReload,
   Meta,
@@ -12,12 +16,9 @@ import {
   ScrollRestoration,
   useFetcher,
   useLoaderData,
-  useMatches,
   useRevalidator,
-  useLocation,
 } from '@remix-run/react'
 
-import type {Table} from '@prisma/client'
 import {
   getSession,
   getUserId,
@@ -28,14 +29,11 @@ import tailwindStylesheetUrl from '~/styles/tailwind.css'
 import {prisma} from './db.server'
 import {findOrCreateUser} from './models/user.server'
 import {validateRedirect} from './redirect.server'
-import {EVENTS} from './events'
-import invariant from 'tiny-invariant'
-import {useEventSource} from 'remix-utils'
-import {useEffect} from 'react'
-import {Header} from './components'
+import appStylesheetUrl from './styles/app.css'
 
 export const links: LinksFunction = () => [
   {rel: 'stylesheet', href: tailwindStylesheetUrl},
+  {rel: 'stylesheet', href: appStylesheetUrl},
   ...(cssBundleHref ? [{rel: 'stylesheet', href: cssBundleHref}] : []),
 ]
 
@@ -108,14 +106,14 @@ export default function App() {
     )
   }
   return (
-    <html lang="en" className="h-full">
+    <html lang="en" className="mx-auto h-screen max-w-lg px-2 ">
       <head>
         <meta charSet="utf-8" />
         <meta name="viewport" content="width=device-width,initial-scale=1" />
         <Meta />
         <Links />
       </head>
-      <body className="h-full dark:bg-blue-950">
+      <body className="hide-scrollbar  h-full ">
         <Outlet />
         <ScrollRestoration />
         <Scripts />

@@ -11,6 +11,7 @@ import {useState} from 'react'
 import {asignCurrency} from '~/utils'
 import {FlexRow} from './util/flexrow'
 import {H2, H4, H5} from './util/typography'
+import {SectionContainer} from '~/components'
 
 export function BillAmount({
   total,
@@ -31,7 +32,7 @@ export function BillAmount({
 }) {
   const [showDetails, setShowDetails] = useState(false)
   return (
-    <main className="flex flex-col w-full p-2 space-y-2 ring-2">
+    <SectionContainer>
       <FlexRow className="justify-between">
         <H2>Cuenta Total</H2>
         <H2
@@ -69,9 +70,9 @@ export function BillAmount({
           >
             <H5>{showDetails ? 'Ocultar detalles' : 'Ver detalles'}</H5>
             {showDetails ? (
-              <ChevronUpIcon className="w-6 h-6" />
+              <ChevronUpIcon className="h-6 w-6" />
             ) : (
-              <ChevronDownIcon className="w-6 h-6" />
+              <ChevronDownIcon className="h-6 w-6" />
             )}
           </button>
           <AnimatePresence initial={false}>
@@ -85,13 +86,13 @@ export function BillAmount({
                     exit={{opacity: 0, height: 0}}
                     transition={{duration: 0.8, ease: [0.04, 0.62, 0.23, 0.98]}}
                     key={index}
-                    className="flex flex-row justify-between w-full space-x-1"
+                    className="flex w-full flex-row justify-between space-x-1"
                   >
                     <Link
                       className="flex flex-row items-center space-x-1"
                       to={`./user/${user.id}`}
                     >
-                      <UserCircleIcon fill={user?.color} className="w-5 h-5" />
+                      <UserCircleIcon fill={user?.color} className="h-5 w-5" />
                       <H4>{user?.name}</H4>
                       {userId === user.id ? (
                         <H4>Has pagado</H4>
@@ -111,6 +112,6 @@ export function BillAmount({
           </AnimatePresence>
         </div>
       ) : null}
-    </main>
+    </SectionContainer>
   )
 }
