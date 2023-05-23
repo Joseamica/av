@@ -22,6 +22,7 @@ export default {
           500: '#9696E0',
           600: '#9999CC',
           700: '#6A44FF',
+          principal: '#1E1E20',
         },
         warning: '#FF8080',
         accent: {

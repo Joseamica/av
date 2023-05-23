@@ -3,6 +3,7 @@ import {Link, useParams} from '@remix-run/react'
 import {LinkButton} from './buttons/button'
 import {FlexRow} from './util/flexrow'
 import {H1} from './util/typography'
+import {IoChevronBack} from 'react-icons/io5'
 interface HeaderProps {
   user: User
 }
@@ -13,10 +14,12 @@ export function Header({user}: HeaderProps) {
   return (
     <FlexRow
       justify="between"
-      className="z-100 sticky top-0  bg-day-500 p-2 text-white"
+      className="sticky top-0 p-2 text-white z-100 bg-day-500"
     >
       {params.menuId ? (
-        <Link to={''}>{'<'}</Link>
+        <Link to={''}>
+          <IoChevronBack />
+        </Link>
       ) : (
         <Link to=".">
           <H1>Avoqado</H1>

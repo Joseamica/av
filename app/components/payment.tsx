@@ -8,7 +8,7 @@ import {RadioInputButton} from './buttons/input'
 
 export function Payment({
   total = 0,
-  tip = total * (15 / 100),
+  tip,
   tipsPercentages,
   paymentMethods,
 }: {
@@ -70,7 +70,9 @@ export function Payment({
       {/* Total, propina, total */}
       <div>
         <H1>Total: ${Number(total).toFixed(1)}</H1>
-        <H1>Propina: ${Number(tip).toFixed(1)}</H1>
+        <H1>
+          Propina: ${tip ? tip.toFixed(1) : (Number(total) * 0.12).toFixed(1)}
+        </H1>
       </div>
       <Button name="_action" value="proceed">
         Submit

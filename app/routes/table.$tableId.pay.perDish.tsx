@@ -20,6 +20,7 @@ import {
 } from '~/models/branch.server'
 import {validateRedirect} from '~/redirect.server'
 import {getUserId, getUsername} from '~/session.server'
+import {getAmountLeftToPay} from '~/utils'
 
 type LoaderData = {
   cartItems: CartItem[]
@@ -58,9 +59,24 @@ export async function action({request, params}: ActionArgs) {
   if (!total) {
     return json({error: 'No se ha seleccionado ningún platillo'}, {status: 400})
   }
+
   const tip = total * (Number(tipPercentage) / 100)
+  console.log('tip', tipPercentage)
+
+  const amountLeft = (await getAmountLeftToPay(tableId)) || 0
+  let error = ''
+  if (amountLeft < total) {
+    error = 'Estas pagando de mas...'
+  }
 
   if (proceed) {
+    if (amountLeft < total) {
+      return redirect(
+        `/table/${tableId}/pay/confirmExtra?total=${total}&tip=${
+          tip <= 0 ? total * 0.12 : tip
+        }`,
+      )
+    }
     const userId = await getUserId(request)
     const userName = await getUsername(request)
     //loop through items and update price and paid
@@ -90,8 +106,7 @@ export async function action({request, params}: ActionArgs) {
     })
     return redirect(redirectTo)
   }
-
-  return json({total, tip})
+  return json({total, tip, error})
 }
 
 export async function loader({request, params}: LoaderArgs) {
@@ -170,7 +185,7 @@ export default function PerDish() {
             )
           })}
         </div>
-        <div>{actionData?.error}</div>
+        <H5 variant="error">{actionData?.error}</H5>
         <Payment
           total={actionData?.total}
           tip={actionData?.tip}

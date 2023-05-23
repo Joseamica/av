@@ -15,6 +15,7 @@ import {
   Button,
   FlexRow,
   H1,
+  H2,
   H5,
   Modal,
   SendComments,
@@ -154,7 +155,6 @@ export default function Report() {
   const actionData = useActionData()
   const navigate = useNavigate()
   const fetcher = useFetcher()
-  const [select, setSelect] = useState({})
 
   let isSubmitting =
     fetcher.state === 'submitting' || fetcher.state === 'loading'
@@ -183,7 +183,7 @@ export default function Report() {
       <Form
         method="POST"
         onChange={handleChange}
-        className="flex w-full flex-col space-y-2"
+        className="flex flex-col w-full space-y-2"
       >
         {by === 'waitress' ? (
           <div className="space-y-2">
@@ -270,6 +270,7 @@ export default function Report() {
           </div>
         ) : (
           <div>
+            <H2>Seleccione una opción para reportar algún suceso en la mesa</H2>
             <div className="flex flex-col space-y-2">
               <LinkButton to="?by=waitress" size="medium">
                 Mesero
@@ -284,7 +285,6 @@ export default function Report() {
                 Otro
               </LinkButton>
             </div>
-            Seleccione una opción para reportar algún suceso en la mesa
           </div>
         )}
         <H5 variant="error">{actionData?.error}</H5>

@@ -154,7 +154,7 @@ export default function FullPay() {
       />
       <Form method="POST" preventScrollReset onChange={handleChange}>
         <Payment
-          total={actionData?.total}
+          total={data.amountLeft}
           tip={actionData?.tip}
           tipsPercentages={data.tipsPercentages}
           paymentMethods={data.paymentMethods}

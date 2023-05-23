@@ -32,12 +32,12 @@ function ButtonInner({
     <>
       <div
         className={clsx(
-          'focus-ring absolute inset-0 transform rounded-full border-2  opacity-100 transition disabled:opacity-50',
+          'focus-ring  absolute inset-0 transform rounded-full  border-2 opacity-100 transition disabled:opacity-50',
           {
             'border-secondary border-2 bg-transparent group-hover:border-transparent group-focus:border-transparent':
               variant === 'secondary' || variant === 'danger',
             danger: variant === 'danger',
-            'bg-day-700': variant === 'primary',
+            'bg-day-principal': variant === 'primary',
           },
         )}
       />
@@ -47,7 +47,7 @@ function ButtonInner({
           'relative flex h-full w-full items-center justify-center whitespace-nowrap',
           {
             'text-primary': variant === 'secondary',
-            'text-inverse': variant === 'primary',
+            'text-white': variant === 'primary',
             'text-red-500': variant === 'danger',
             'space-x-5 px-11 py-6 ': size === 'large',
             'space-x-3 px-8 py-4': size === 'medium',

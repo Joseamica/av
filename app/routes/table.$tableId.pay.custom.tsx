@@ -10,7 +10,7 @@ import {
 import {get} from 'http'
 import React from 'react'
 import invariant from 'tiny-invariant'
-import {Payment} from '~/components'
+import {H5, Payment} from '~/components'
 import {Modal} from '~/components/modal'
 import {prisma} from '~/db.server'
 import {
@@ -20,6 +20,7 @@ import {
 } from '~/models/branch.server'
 import {validateRedirect} from '~/redirect.server'
 import {getUserId} from '~/session.server'
+import {getAmountLeftToPay} from '~/utils'
 
 export async function action({request, params}: ActionArgs) {
   const {tableId} = params
@@ -48,17 +49,28 @@ export async function action({request, params}: ActionArgs) {
   })
   invariant(order, 'No se encontró la orden, o aun no ha sido creada.')
 
-  const orderTotal = await prisma.order
-    .aggregate({
-      where: {id: order.id},
-      _sum: {total: true},
-    })
-    .then(res => res._sum.total)
+  // const orderTotal = await prisma.order
+  //   .aggregate({
+  //     where: {id: order.id},
+  //     _sum: {total: true},
+  //   })
+  //   .then(res => res._sum.total)
 
   const tip = Number(total) * (Number(tipPercentage) / 100)
-
+  const amountLeft = (await getAmountLeftToPay(tableId)) || 0
+  let error = ''
+  if (amountLeft < Number(total)) {
+    error = 'Estas pagando de mas...'
+  }
   if (proceed) {
     //WHEN SUBMIT
+    if (amountLeft < total) {
+      return redirect(
+        `/table/${tableId}/pay/confirmExtra?total=${total}&tip=${
+          tip <= 0 ? total * 0.12 : tip
+        }`,
+      )
+    }
     const userId = await getUserId(request)
     const userPrevPaidData = await prisma.user.findFirst({
       where: {id: userId},
@@ -75,7 +87,7 @@ export async function action({request, params}: ActionArgs) {
     return redirect(redirectTo)
   }
 
-  return json({total, tip})
+  return json({total, tip, error})
 }
 
 export async function loader({request, params}: LoaderArgs) {
@@ -86,25 +98,6 @@ export async function loader({request, params}: LoaderArgs) {
 
   return json({paymentMethods, tipsPercentages})
 }
-
-// export async function loader({request, params}: LoaderArgs) {
-//   const {tableId} = params
-//   invariant(tableId, 'No se encontró mesa')
-
-//   const order = await prisma.order.findFirst({
-//     where: {tableId},
-//   })
-//   invariant(order, 'No se encontró la orden, o aun no ha sido creada.')
-
-//   const total = await prisma.order
-//     .aggregate({
-//       where: {id: order.id},
-//       _sum: {total: true},
-//     })
-//     .then(res => res._sum.total)
-
-//   return json({total})
-// }
 
 export default function EqualParts() {
   const navigate = useNavigate()
@@ -142,7 +135,7 @@ export default function EqualParts() {
             placeholder="0.00"
           />
         </div>
-        {actionData?.error}
+        <H5 variant="error">{actionData?.error}</H5>
         <Payment
           total={actionData?.total}
           tip={actionData?.tip}

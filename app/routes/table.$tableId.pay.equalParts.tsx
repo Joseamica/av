@@ -13,13 +13,10 @@ import invariant from 'tiny-invariant'
 import {H5, Payment, QuantityManagerButton} from '~/components'
 import {Modal} from '~/components/modal'
 import {prisma} from '~/db.server'
-import {
-  getBranchId,
-  getPaymentMethods,
-  getTipsPercentages,
-} from '~/models/branch.server'
+import {getPaymentMethods, getTipsPercentages} from '~/models/branch.server'
 import {validateRedirect} from '~/redirect.server'
 import {getUserId} from '~/session.server'
+import {getAmountLeftToPay} from '~/utils'
 
 export async function action({request, params}: ActionArgs) {
   const {tableId} = params
@@ -30,6 +27,7 @@ export async function action({request, params}: ActionArgs) {
 
   const proceed = formData.get('_action') === 'proceed'
   const tipPercentage = formData.get('tipPercentage') as string
+  console.log('tipPercentage', tipPercentage)
 
   const order = await prisma.order.findFirst({
     where: {tableId},
@@ -49,9 +47,21 @@ export async function action({request, params}: ActionArgs) {
 
   const payingTotal = Number(formData.get('payingTotal')) as number
   const tip = Number(payingTotal) * (Number(tipPercentage) / 100)
-
+  console.log('tip', tip)
+  const amountLeft = (await getAmountLeftToPay(tableId)) || 0
+  let error = ''
+  if (amountLeft < Number(total)) {
+    error = 'Estas pagando de mas...'
+  }
+  //WHEN SUBMIT
   if (proceed) {
-    //WHEN SUBMIT
+    if (amountLeft < Number(total)) {
+      return redirect(
+        `/table/${tableId}/pay/confirmExtra?total=${total}&tip=${
+          tip <= 0 ? Number(total) * 0.12 : tip
+        }`,
+      )
+    }
     const userId = await getUserId(request)
     const userPrevPaidData = await prisma.user.findFirst({
       where: {id: userId},
@@ -68,7 +78,7 @@ export async function action({request, params}: ActionArgs) {
     return redirect(redirectTo)
   }
 
-  return json({total, tipPercentage})
+  return json({total, tipPercentage, error, tip})
 }
 
 export async function loader({request, params}: LoaderArgs) {
@@ -209,9 +219,7 @@ export default function EqualParts() {
             />
           </div>
         </div>
-
-        {actionData?.error}
-
+        <H5 variant="error">{actionData?.error}</H5>
         <Payment
           total={actionData?.total}
           tip={actionData?.tip}

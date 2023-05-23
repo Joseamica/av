@@ -30,7 +30,6 @@ export function BillAmount({
   isPaying?: any
 }) {
   const [showDetails, setShowDetails] = useState(false)
-
   return (
     <main className="flex flex-col w-full p-2 space-y-2 ring-2">
       <FlexRow className="justify-between">

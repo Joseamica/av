@@ -15,6 +15,7 @@ import {prisma} from '~/db.server'
 import {getPaymentMethods, getTipsPercentages} from '~/models/branch.server'
 import {validateRedirect} from '~/redirect.server'
 import {getUserId} from '~/session.server'
+import {getAmountLeftToPay} from '~/utils'
 
 export async function loader({request, params}: LoaderArgs) {
   const {tableId} = params
@@ -101,7 +102,19 @@ export async function action({request, params}: ActionArgs) {
   const userId = await getUserId(request)
   const tip = total * (Number(tipPercentage) / 100)
 
+  const amountLeft = (await getAmountLeftToPay(tableId)) || 0
+  let error = ''
+  if (amountLeft < total) {
+    error = 'Estas pagando de mas...'
+  }
   if (proceed) {
+    if (amountLeft < total) {
+      return redirect(
+        `/table/${tableId}/pay/confirmExtra?total=${total}&tip=${
+          tip <= 0 ? total * 0.12 : tip
+        }`,
+      )
+    }
     const userPrevPaidData = await prisma.user.findFirst({
       where: {id: userId},
       select: {paid: true, tip: true, total: true},
@@ -118,7 +131,7 @@ export async function action({request, params}: ActionArgs) {
     return redirect(redirectTo)
   }
 
-  return json({total, tip})
+  return json({total, tip, error})
 }
 
 interface User {
@@ -184,7 +197,7 @@ export default function PerPerson() {
             </div>
           )
         })}
-        <H5>{actionData?.error}</H5>
+        <H5 variant="error">{actionData?.error}</H5>
 
         <Payment
           total={actionData?.total}

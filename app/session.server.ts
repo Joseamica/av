@@ -157,3 +157,30 @@ export function addToCart(
   }
   return cart
 }
+
+export function removeCartItem(cart: CartItem[], variantId: string) {
+  return cart.filter(item => item.variantId !== variantId)
+}
+
+export function updateCartItem(
+  cart: CartItem[],
+  variantId: string,
+  quantity: number,
+) {
+  let updated = false
+  for (let item of cart) {
+    if (item.variantId === variantId) {
+      console.log('item.quantity', item.quantity)
+      if (quantity === 0) {
+        return removeCartItem(cart, variantId)
+      }
+      item.quantity = quantity
+      updated = true
+      break
+    }
+  }
+  if (!updated) {
+    cart.push({variantId, quantity})
+  }
+  return cart
+}
