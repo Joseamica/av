@@ -1,5 +1,5 @@
 import clsx from 'clsx'
-import {H3} from '../util/typography'
+import {H3, H4} from '../util/typography'
 
 interface RadioInputButtonProps {
   // variant?: 'primary' | 'secondary' | 'danger'
@@ -20,12 +20,15 @@ function RadioInputButton({
   return (
     <label
       htmlFor={inputProps.id}
-      className={clsx('flex flex-row space-x-2 px-4 py-2', {
-        'bg-day-400  ring-2 ring-day-500 dark:bg-night-400 dark:ring-night-700':
-          state === inputProps.value,
-      })}
+      className={clsx(
+        'flex flex-row space-x-2 rounded-full px-4 py-2 outline-button-outline  ring-2',
+        {
+          'text-2 rounded-full bg-button-primary px-2 py-2  text-white  ring-4   ring-button-outline':
+            state === inputProps.value,
+        },
+      )}
     >
-      <H3 className="capitalize">{title}</H3>
+      <H4 className="capitalize">{title}</H4>
       <input {...inputProps} className="sr-only" onChange={handlerFunction} />
     </label>
   )

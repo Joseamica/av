@@ -1,12 +1,10 @@
-import type {Employee, User} from '@prisma/client'
-import type {ActionArgs, LoaderArgs} from '@remix-run/node'
+import type {LoaderArgs} from '@remix-run/node'
 import {json} from '@remix-run/node'
-import {Form, useLoaderData, useNavigate} from '@remix-run/react'
+import {useLoaderData, useNavigate} from '@remix-run/react'
 import invariant from 'tiny-invariant'
-import {Button, FlexRow, H2, H3, H6, Modal} from '~/components'
+import {FlexRow, H2, H6, Modal} from '~/components'
 import {prisma} from '~/db.server'
 import {getBranchId} from '~/models/branch.server'
-import {getTable} from '~/models/table.server'
 
 export async function loader({request, params}: LoaderArgs) {
   const {tableId} = params
@@ -30,7 +28,7 @@ export default function Help() {
 
   return (
     <Modal title="Wifi" onClose={onClose}>
-      <div className="flex flex-col p-5 space-y-4 text-xl text js-copy-to-clip">
+      <div className="text js-copy-to-clip flex flex-col space-y-4 p-5 text-xl">
         <div className="flex flex-col items-center justify-between space-y-1">
           <H6>Nombre de red:</H6>
           <H2>{data.wifiDetails.wifiName}</H2>
@@ -43,7 +41,7 @@ export default function Help() {
               onClick={() =>
                 navigator.clipboard.writeText(data.wifiDetails.wifipwd)
               }
-              className="flex flex-row items-center px-2 py-1 space-x-2 text-sm text-white rounded-full dark:bg-DARK_PRIMARY_1 bg-principal"
+              className="dark:bg-DARK_PRIMARY_1 bg-principal flex flex-row items-center space-x-2 rounded-full px-2 py-1 text-sm text-white"
             >
               Copiar
             </button>

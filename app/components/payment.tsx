@@ -5,18 +5,24 @@ import {Spacer} from './util/spacer'
 import {H1, H2, H3} from './util/typography'
 import React from 'react'
 import {RadioInputButton} from './buttons/input'
+import {formatCurrency} from '~/utils'
+import {useActionData, useLoaderData} from '@remix-run/react'
 
 export function Payment({
   total = 0,
   tip,
   tipsPercentages,
   paymentMethods,
+  currency,
 }: {
   total: number
   tip: number
   tipsPercentages: number[]
   paymentMethods: string[]
+  currency: string
 }) {
+  const data = useLoaderData()
+  console.log('data', data)
   const [activeRadioPaymentMethod, setActiveRadioPaymentMethod] =
     React.useState<string>('cash')
   const handleChangePaymentMethod = (
@@ -31,9 +37,11 @@ export function Payment({
   }
 
   return (
-    <div>
+    <div className="sticky inset-x-0 bottom-0 h-full bg-red-200">
       {/* Radio Tip buttons */}
-      <H1>Método de pago</H1>
+      <Spacer spaceY="2" />
+      <H2>Método de pago</H2>
+      <Spacer spaceY="2" />
       <FlexRow>
         {Object.values(paymentMethods).map(paymentMethod => (
           <RadioInputButton
@@ -51,7 +59,8 @@ export function Payment({
       </FlexRow>
       <Spacer spaceY="2" />
       <H2>Deseas dejar propina</H2>
-      <FlexRow>
+      <Spacer spaceY="2" />
+      <FlexRow className="space-x-4">
         {Object.values(tipsPercentages).map(tipPercentage => (
           <RadioInputButton
             key={tipPercentage}
@@ -69,9 +78,9 @@ export function Payment({
       <Spacer spaceY="2" />
       {/* Total, propina, total */}
       <div>
-        <H1>Total: ${Number(total).toFixed(1)}</H1>
+        <H1>Total: {formatCurrency(currency, total)}</H1>
         <H1>
-          Propina: ${tip ? tip.toFixed(1) : (Number(total) * 0.12).toFixed(1)}
+          Propina: {formatCurrency(currency, tip ? tip : Number(total) * 0.12)}
         </H1>
       </div>
       <Button name="_action" value="proceed">

@@ -54,13 +54,7 @@ export async function loader({request, params}: LoaderArgs) {
     paidUsers = await getPaidUsers(order.id)
   }
 
-  const currency = await getMenu(branchId)
-    .then(menu => {
-      if (menu) {
-        return menu.currency
-      }
-    })
-    .then(getCurrency)
+  const currency = await getCurrency(tableId)
 
   // const currency = getCurrency(menu?.currency)
 
@@ -145,12 +139,8 @@ export default function FullPay() {
       title="Pagar cuenta completa"
     >
       <BillAmount
-        total={data.total}
-        currency={data.currency}
-        amountLeft={data.amountLeft}
-        usersPaid={data.paidUsers}
-        userId={data.userId}
-        // isPaying={isPaying}
+
+      // isPaying={isPaying}
       />
       <Form method="POST" preventScrollReset onChange={handleChange}>
         <Payment
@@ -158,6 +148,7 @@ export default function FullPay() {
           tip={actionData?.tip}
           tipsPercentages={data.tipsPercentages}
           paymentMethods={data.paymentMethods}
+          currency={data.currency}
         />
       </Form>
     </Modal>

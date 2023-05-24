@@ -18,9 +18,10 @@ import {
   getPaymentMethods,
   getTipsPercentages,
 } from '~/models/branch.server'
+import {getMenu} from '~/models/menu.server'
 import {validateRedirect} from '~/redirect.server'
 import {getUserId} from '~/session.server'
-import {getAmountLeftToPay} from '~/utils'
+import {formatCurrency, getAmountLeftToPay, getCurrency} from '~/utils'
 
 export async function action({request, params}: ActionArgs) {
   const {tableId} = params
@@ -95,8 +96,9 @@ export async function loader({request, params}: LoaderArgs) {
   invariant(tableId, 'No se encontró mesa')
   const tipsPercentages = await getTipsPercentages(tableId)
   const paymentMethods = await getPaymentMethods(tableId)
+  const currency = await getCurrency(tableId)
 
-  return json({paymentMethods, tipsPercentages})
+  return json({paymentMethods, tipsPercentages, currency})
 }
 
 export default function EqualParts() {
@@ -116,12 +118,12 @@ export default function EqualParts() {
       title="Dividir en partes iguales"
     >
       <Form method="POST" preventScrollReset onChange={handleChange}>
-        <div className="flex flex-row items-center w-full px-4 py-2 bg-componentBg dark:bg-DARK_0 ">
+        <div className="bg-componentBg dark:bg-DARK_0 flex w-full flex-row items-center px-4 py-2 ">
           <label
             htmlFor="custom"
             className="bg-componentBg dark:bg-DARK_0 dark:text-mainTextDark text-6xl text-[#9CA3AF]"
           >
-            {'$'}
+            {data.currency}
           </label>
           <input
             type="number"
@@ -130,7 +132,7 @@ export default function EqualParts() {
             id="custom"
             inputMode="decimal"
             // onChange={e => setAmount(Number(e.target.value))}
-            className="flex w-full h-20 text-6xl bg-transparent dark:bg-DARK-0 placeholder:p-2 placeholder:text-6xl focus:outline-none focus:ring-0 "
+            className="dark:bg-DARK-0 flex h-20 w-full bg-transparent text-6xl placeholder:p-2 placeholder:text-6xl focus:outline-none focus:ring-0 "
             // defaultValue={userTotal ? userTotal : ''}
             placeholder="0.00"
           />
@@ -141,6 +143,7 @@ export default function EqualParts() {
           tip={actionData?.tip}
           tipsPercentages={data.tipsPercentages}
           paymentMethods={data.paymentMethods}
+          currency={data.currency}
         />
       </Form>
     </Modal>

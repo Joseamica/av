@@ -1,10 +1,13 @@
-import {Order, Table} from '@prisma/client'
+import {Branch, Order, Table} from '@prisma/client'
 import {Decimal} from '@prisma/client/runtime'
 import {useMatches} from '@remix-run/react'
 import {useMemo} from 'react'
 
 import type {User} from '~/models/user.server'
 import {prisma} from './db.server'
+import {getMenu} from './models/menu.server'
+import {getBranchId} from './models/branch.server'
+import invariant from 'tiny-invariant'
 
 const DEFAULT_REDIRECT = '/'
 
@@ -69,6 +72,10 @@ export function useUser(): User {
   return maybeUser
 }
 
+export async function getFundamentals() {
+  return null
+}
+
 export function validateEmail(email: unknown): email is string {
   return typeof email === 'string' && email.length > 3 && email.includes('@')
 }
@@ -77,20 +84,46 @@ export function getTotal(order: Order) {
   return null
 }
 
-export function asignCurrency(currency: string, number: number) {
-  if (currency === '$') {
-    return `$ ${Number(number).toFixed(2)}`
-  } else if (currency === '€') {
-    return `${Number(number).toFixed(2)} €`
+export function formatCurrency(currency: string, amount: number | Decimal) {
+  switch (currency) {
+    case '$':
+      return `$ ${Number(amount).toFixed(2)}`
+    case '€':
+      return `${Number(amount).toFixed(2)} €`
+    default:
+      return `${Number(amount).toFixed(2)}`
   }
 }
 
-export function getCurrency(currency: string | null | undefined) {
-  if (currency === 'mxn' || currency === 'usd') {
-    return '$'
-  } else if (currency === 'euro') {
-    return '€'
+export async function getCurrency(tableId: Table['id']) {
+  let branchId = null
+
+  if (!branchId) {
+    branchId = await getBranchId(tableId)
   }
+  invariant(branchId, 'branchId should be defined')
+
+  const currency = await getMenu(branchId).then(menu => menu?.currency || 'mxn')
+
+  switch (currency) {
+    case 'mxn':
+      return '$'
+    case 'usd':
+      return '$'
+    case 'euro':
+      return '€'
+    default:
+      return '$'
+  }
+}
+
+export function getDateTime() {
+  const now = new Date()
+  const hours = now.getHours()
+  const minutes = now.getMinutes()
+
+  const timeNow = Number(`${hours}.${String(minutes).padStart(2, '0')}`)
+  return timeNow
 }
 
 export async function getAmountLeftToPay(

@@ -2,24 +2,14 @@ import type {ActionArgs, LoaderArgs} from '@remix-run/node'
 import {json, redirect} from '@remix-run/node'
 import {
   Form,
-  useActionData,
   useLoaderData,
   useNavigate,
   useSearchParams,
   useSubmit,
 } from '@remix-run/react'
-import {AnimatePresence, motion} from 'framer-motion'
 import React from 'react'
 import invariant from 'tiny-invariant'
-import {
-  BillAmount,
-  Button,
-  H1,
-  H5,
-  Payment,
-  QuantityManagerButton,
-  Spacer,
-} from '~/components'
+import {BillAmount, Button, H1, Spacer} from '~/components'
 import {Modal} from '~/components/modal'
 import {prisma} from '~/db.server'
 import {
@@ -31,7 +21,7 @@ import {getMenu} from '~/models/menu.server'
 import {getPaidUsers} from '~/models/user.server'
 import {validateRedirect} from '~/redirect.server'
 import {getUserId} from '~/session.server'
-import {getAmountLeftToPay, getCurrency} from '~/utils'
+import {formatCurrency, getAmountLeftToPay, getCurrency} from '~/utils'
 
 export async function action({request, params}: ActionArgs) {
   const {tableId} = params
@@ -90,14 +80,7 @@ export async function loader({request, params}: LoaderArgs) {
   })
   const userId = await getUserId(request)
   const amountLeft = await getAmountLeftToPay(tableId)
-  const branchId = await getBranchId(tableId)
-  const currency = await getMenu(branchId)
-    .then(menu => {
-      if (menu) {
-        return menu.currency
-      }
-    })
-    .then(getCurrency)
+  const currency = await getCurrency(tableId)
 
   let paidUsers = null
   if (order) {
@@ -143,19 +126,15 @@ export default function EqualParts() {
     >
       <Form method="POST" preventScrollReset onChange={handleChange}>
         <BillAmount
-          total={data.total}
-          currency={data.currency}
-          amountLeft={data.amountLeft}
-          usersPaid={data.paidUsers}
-          userId={data.userId}
-          // isPaying={isPaying}
+
+        // isPaying={isPaying}
         />
-        <H1>Quieres pagar {total}</H1>
+        <H1>Quieres pagar {formatCurrency(data.currency, total)}</H1>
         <Spacer spaceY="2" />
 
         <div>
-          <H1>Total: ${Number(data.amountLeft).toFixed(1)}</H1>
-          <H1>Propina: ${tip.toFixed(1)}</H1>
+          <H1>Total: {formatCurrency(data.currency, data.amountLeft)}</H1>
+          <H1>Propina: {formatCurrency(data.currency, tip)}</H1>
         </div>
         <Button name="_action" value="proceed">
           Submit

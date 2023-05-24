@@ -1,4 +1,4 @@
-import type {Order, Password, User} from '@prisma/client'
+import type {Order, Password, Table, User} from '@prisma/client'
 import bcrypt from 'bcryptjs'
 
 import {prisma} from '~/db.server'
@@ -99,6 +99,14 @@ export function getPaidUsers(orderId: Order['id']) {
       paid: true,
       tip: true,
       total: true,
+    },
+  })
+}
+
+export function getUsersOnTable(tableId: Table['id']) {
+  return prisma.user.findMany({
+    where: {
+      tableId: tableId,
     },
   })
 }

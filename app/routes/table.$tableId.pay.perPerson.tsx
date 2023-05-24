@@ -15,11 +15,12 @@ import {prisma} from '~/db.server'
 import {getPaymentMethods, getTipsPercentages} from '~/models/branch.server'
 import {validateRedirect} from '~/redirect.server'
 import {getUserId} from '~/session.server'
-import {getAmountLeftToPay} from '~/utils'
+import {formatCurrency, getAmountLeftToPay, getCurrency} from '~/utils'
 
 export async function loader({request, params}: LoaderArgs) {
   const {tableId} = params
   invariant(tableId, 'No se encontró mesa')
+  const currency = await getCurrency(tableId)
   const tipsPercentages = await getTipsPercentages(tableId)
   const paymentMethods = await getPaymentMethods(tableId)
   const usersInTable = await prisma.table.findFirst({
@@ -76,7 +77,7 @@ export async function loader({request, params}: LoaderArgs) {
     })
   })
 
-  return json({userTotals, tableId, tipsPercentages, paymentMethods})
+  return json({userTotals, tableId, tipsPercentages, paymentMethods, currency})
 }
 
 export async function action({request, params}: ActionArgs) {
@@ -119,7 +120,8 @@ export async function action({request, params}: ActionArgs) {
       where: {id: userId},
       select: {paid: true, tip: true, total: true},
     })
-    const updateUser = await prisma.user.update({
+    // const updateUser =
+    await prisma.user.update({
       where: {id: userId},
       data: {
         paid: Number(userPrevPaidData?.paid) + total,
@@ -169,15 +171,15 @@ export default function PerPerson() {
 
           return (
             <div key={userId}>
-              <FlexRow className="justify-between px-4 py-2 rounded-full bg-night-400">
+              <FlexRow className="justify-between rounded-full bg-night-400 px-4 py-2">
                 <label htmlFor="selectedUsers">{user.user.name}</label>
                 <FlexRow>
-                  <H2>${user.total?.toFixed(2)}</H2>
+                  <H2>{formatCurrency(data.currency, user.total)}</H2>
                   <input
                     type="checkbox"
                     name="selectedUsers"
                     value={user.total}
-                    className="text-blue-600 bg-gray-100 border-gray-300 rounded h-7 w-7 focus:ring-2 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:ring-offset-gray-800 dark:focus:ring-blue-600"
+                    className="h-7 w-7 rounded border-gray-300 bg-gray-100 text-blue-600 focus:ring-2 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:ring-offset-gray-800 dark:focus:ring-blue-600"
                   />
                 </FlexRow>
               </FlexRow>
@@ -187,9 +189,13 @@ export default function PerPerson() {
                   return (
                     <FlexRow key={item.id}>
                       <li>{item.name}</li>
-                      <li>${item.price}</li>
-                      {/* @ts-expect-error */}
-                      <li>Precio compartido: {item.itemTotal?.toFixed(2)}</li>
+                      <li>{formatCurrency(data.currency, item.price)}</li>
+
+                      <li>
+                        Precio compartido:
+                        {/* @ts-expect-error */}
+                        {formatCurrency(data.currency, item.itemTotal)}
+                      </li>
                     </FlexRow>
                   )
                 })}
@@ -204,6 +210,7 @@ export default function PerPerson() {
           tip={actionData?.tip}
           tipsPercentages={data.tipsPercentages}
           paymentMethods={data.paymentMethods}
+          currency={data.currency}
         />
       </Form>
     </Modal>

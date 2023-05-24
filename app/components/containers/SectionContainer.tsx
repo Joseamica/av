@@ -1,5 +1,18 @@
+import {ChevronDownIcon, ChevronUpIcon} from '@heroicons/react/solid'
 import clsx from 'clsx'
-import React from 'react'
+import {motion} from 'framer-motion'
+import React, {useState} from 'react'
+import {FlexRow} from '../util/flexrow'
+import {H2, H3, H5, H6} from '../util/typography'
+
+interface SectionContainerProps {
+  children: React.ReactNode | React.ReactNode[]
+  className?: string
+  divider?: boolean
+  collapse?: boolean
+  handleCollapse?: any | (() => void)
+  showCollapse?: boolean
+}
 
 function getClassName({className}: {className?: string}) {
   return clsx(
@@ -11,18 +24,44 @@ function getClassName({className}: {className?: string}) {
 export function SectionContainer({
   children,
   className,
-}: {
-  children: React.ReactNode
-  className?: string
-}) {
+  divider = false,
+  collapse,
+  handleCollapse,
+  showCollapse,
+  ...rest
+}: SectionContainerProps) {
   return (
-    <main
+    <motion.main
+      initial={{opacity: 0, width: '0'}}
+      animate={{opacity: 1, width: '100%'}}
+      exit={{opacity: 0, width: '0'}}
+      transition={{
+        duration: 0.9,
+        ease: [0.04, 0.62, 0.23, 0.98],
+      }}
+      {...rest}
       className={clsx(
-        `no-scrollbar container space-y-4 rounded-lg bg-white p-2  font-sans drop-shadow-md`,
+        `no-scrollbar container  rounded-lg  bg-white p-2 font-sans shadow-lg outline outline-1 outline-offset-2 outline-day-200`,
+        // {' divide-y': divider},
         className,
       )}
     >
-      {children}
-    </main>
+      {showCollapse && (
+        <div
+          onClick={handleCollapse}
+          className={clsx('flex cursor-pointer justify-center ', {
+            'justify-center': collapse,
+            // 'justify-center': !collapse,
+          })}
+        >
+          {collapse ? (
+            <ChevronUpIcon className="h-7 w-7 rounded-full p-1 shadow-md" />
+          ) : (
+            <ChevronDownIcon className="h-7 w-7 rounded-full p-1 shadow-md" />
+          )}
+        </div>
+      )}
+      <div className={clsx({'divide-y': divider})}>{children}</div>
+    </motion.main>
   )
 }

@@ -16,6 +16,7 @@ import {getCartItems} from '~/models/cart.server'
 import {getOrderTotal} from '~/models/order.server'
 import {validateRedirect} from '~/redirect.server'
 import {getSession, sessionStorage, updateCartItem} from '~/session.server'
+import {formatCurrency, getCurrency} from '~/utils'
 
 // type MenuCategory = {
 //   id: string
@@ -57,8 +58,9 @@ export async function loader({request, params}: LoaderArgs) {
   const cart = JSON.parse(session.get('cart') || '[]') as CartItem[]
 
   const cartItems = await getCartItems(cart)
+  const currency = await getCurrency(tableId)
 
-  return json({categories, cartItems, usersOnTable, dish})
+  return json({categories, cartItems, usersOnTable, dish, currency})
 }
 
 export async function action({request, params}: ActionArgs) {
@@ -230,7 +232,7 @@ export default function Menu() {
               <input type="hidden" name="variantId" value={item} />
               <FlexRow>
                 <p>{items.name}</p>
-                <p>${items.price}</p>
+                <p>{formatCurrency(data.currency, items.price)}</p>
               </FlexRow>
               <FlexRow>
                 <Button

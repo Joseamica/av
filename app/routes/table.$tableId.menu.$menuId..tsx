@@ -1,4 +1,4 @@
-import type {CartItem, MenuItem, Order, User} from '@prisma/client'
+import type {CartItem, MenuItem, User} from '@prisma/client'
 import {json, redirect} from '@remix-run/node'
 import {
   Link,
@@ -9,13 +9,13 @@ import {
 } from '@remix-run/react'
 import type {ActionArgs, LoaderArgs} from '@remix-run/server-runtime'
 import invariant from 'tiny-invariant'
-import {Button, H1, H2, LinkButton, Modal} from '~/components'
+import {Button, H1, LinkButton, Modal, SectionContainer} from '~/components'
 import {prisma} from '~/db.server'
 import {getBranch, getBranchId} from '~/models/branch.server'
 import {getCartItems} from '~/models/cart.server'
-import {getOrderTotal} from '~/models/order.server'
 import {validateRedirect} from '~/redirect.server'
 import {addToCart, getSession, sessionStorage} from '~/session.server'
+import {formatCurrency, getCurrency} from '~/utils'
 
 type MenuCategory = {
   id: string
@@ -58,7 +58,9 @@ export async function loader({request, params}: LoaderArgs) {
 
   const cartItems = await getCartItems(cart)
 
-  return json({categories, cartItems, usersOnTable, dish})
+  const currency = await getCurrency(tableId)
+
+  return json({categories, cartItems, usersOnTable, dish, currency})
 }
 
 export async function action({request, params}: ActionArgs) {
@@ -81,7 +83,7 @@ export async function action({request, params}: ActionArgs) {
     session.set('cart', JSON.stringify(cart))
   }
 
-  return redirect('', {
+  return redirect(redirectTo, {
     headers: {'Set-Cookie': await sessionStorage.commitSession(session)},
   })
 }
@@ -107,8 +109,8 @@ export default function Menu() {
         {data.categories.map((categories: MenuCategory) => {
           const dishes = categories.menuItems
           return (
-            <div key={categories.id} className=" rounded-xl bg-night-200">
-              <H1 className="bg-night-300">{categories.name}</H1>
+            <SectionContainer key={categories.id} className=" rounded-xl">
+              <H1>{categories.name}</H1>
               <div className="flex flex-col divide-y-2 ">
                 {dishes.map((dish: MenuItem) => {
                   return (
@@ -120,13 +122,13 @@ export default function Menu() {
                     >
                       <h2>{dish.name}</h2>
                       <p>{dish.description}</p>
-                      <p>{dish.price?.toString()}</p>
+                      <p>{formatCurrency(data.currency, dish.price)}</p>
                       {/* FIX */}
                     </Link>
                   )
                 })}
               </div>
-            </div>
+            </SectionContainer>
           )
         })}
       </div>
@@ -156,7 +158,7 @@ export default function Menu() {
             <div key={data.dish.id} className="p-2 ">
               <h2>{data.dish.name}</h2>
               <p>{data.dish.description}</p>
-              <p>{data.dish.price?.toString()}</p>
+              <p>{formatCurrency(data.currency, data.dish?.price)}</p>
               <div>
                 <p>share?</p>
                 {data.usersOnTable.map((user: User) => {

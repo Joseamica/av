@@ -1,29 +1,56 @@
 import type {CartItem} from '@prisma/client'
-import {Link} from '@remix-run/react'
+import {Link, useLoaderData} from '@remix-run/react'
 import {FlexRow} from './util/flexrow'
-import {H4, H5} from './util/typography'
+import {H4, H5, H6} from './util/typography'
+import {formatCurrency} from '~/utils'
+import {AnimatePresence, motion} from 'framer-motion'
+
+const MotionLink = motion(Link)
 
 export function CartItemDetails({cartItem}: {cartItem: CartItem}) {
+  const data = useLoaderData()
+  let cartTotalPrice = cartItem.price * cartItem.quantity
   return (
-    <Link
+    <MotionLink
       to={`cartItem/${cartItem.id}`}
       key={cartItem.id}
-      className="flex flex-row items-center justify-between"
+      className="flex flex-row items-center justify-between py-2"
+      id="userDetails"
+      // initial={{height: 0, opacity: 0}}
+      // animate={{height: 'auto', opacity: 1}}
+      // exit={{height: 0, opacity: 0}}
+      // transition={{
+      //   height: {duration: 0.8, ease: [0.04, 0.62, 0.23, 0.98]},
+      //   opacity: {duration: 0.2, ease: [0.04, 0.62, 0.23, 0.98]},
+      // }}
     >
       <FlexRow>
-        <H5 className="flex h-6 w-6 items-center justify-center rounded-lg bg-night-200 text-center">
+        <H6 className="flex h-5 w-5 items-center justify-center rounded-lg bg-gray-300 text-center">
           {cartItem.quantity}
-        </H5>
+        </H6>
         <img
           alt=""
           loading="lazy"
           src={cartItem?.image || ''}
-          className="dark:bg-secondaryDark h-10 w-10 rounded-lg"
+          className="dark:bg-secondaryDark h-8 w-8 rounded-lg"
         />
-        <H4>{cartItem.name}</H4>
+        {cartItem.quantity > 1 ? (
+          <H5>{cartItem.name}</H5>
+        ) : (
+          <H4>{cartItem.name}</H4>
+        )}
       </FlexRow>
+      <FlexRow className="shrink-0">
+        {cartItem.quantity > 1 && (
+          <H6 variant="secondary" boldVariant="light">
+            {formatCurrency(data.currency, Number(cartItem?.price))}
+          </H6>
+        )}
 
-      <H5 className="right-0">${cartItem.price}</H5>
-    </Link>
+        <H4 boldVariant="medium">
+          {formatCurrency(data.currency, cartTotalPrice)}
+        </H4>
+      </FlexRow>
+    </MotionLink>
   )
 }

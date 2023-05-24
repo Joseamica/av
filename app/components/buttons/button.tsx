@@ -3,14 +3,14 @@ import clsx from 'clsx'
 import {H3} from '../util/typography'
 
 interface ButtonProps {
-  variant?: 'primary' | 'secondary' | 'danger'
+  variant?: 'primary' | 'secondary' | 'danger' | 'icon'
   size?: 'small' | 'medium' | 'large' | 'icon'
   children: React.ReactNode | React.ReactNode[]
   to?: string
 }
 
 interface LinkProps {
-  variant?: 'primary' | 'secondary' | 'danger'
+  variant?: 'primary' | 'secondary' | 'danger' | 'icon'
   size?: 'small' | 'medium' | 'large' | 'icon'
   children: React.ReactNode | React.ReactNode[]
   to: string
@@ -37,6 +37,7 @@ function ButtonInner({
             'border-secondary border-2 bg-transparent group-hover:border-transparent group-focus:border-transparent':
               variant === 'secondary' || variant === 'danger',
             danger: variant === 'danger',
+            'shadow-md': variant === 'icon',
             'border-button-outline bg-button-primary': variant === 'primary',
           },
         )}
@@ -52,7 +53,7 @@ function ButtonInner({
             'space-x-5 px-11 py-6 ': size === 'large',
             'space-x-3 px-8 py-4': size === 'medium',
             'space-x-1 px-5 py-2 text-sm ': size === 'small',
-            'p-3 text-sm': size === 'icon',
+            'space-x-1 p-3 px-5 text-sm ': size === 'icon',
           },
         )}
       >
@@ -88,7 +89,7 @@ function LinkButton({
   to = '/',
 }: LinkProps & JSX.IntrinsicElements['button']) {
   return (
-    <Link to={to} className={getClassName({className})}>
+    <Link to={to} preventScrollReset className={getClassName({className})}>
       <ButtonInner variant={variant} size={size}>
         {children}
       </ButtonInner>

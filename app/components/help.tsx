@@ -7,27 +7,17 @@ import {LinkButton} from './buttons/button'
 const REPORT_TYPES = {
   waitress: {
     name: 'waitress',
-    icon: <ClipboardCopyIcon className="h-4 w-4 text-black dark:text-black" />,
+    icon: <ClipboardCopyIcon className="h-4 w-4" />,
     es: 'Mesero',
   },
   manager: {
     name: 'manager',
-    icon: (
-      <ClipboardCopyIcon
-        className="dark:text-DARK_4 text-principal h-4 w-4"
-        fontSize="small"
-      />
-    ),
+    icon: <ClipboardCopyIcon className="h-4 w-4" fontSize="small" />,
     es: 'Gerente',
   },
   report: {
     name: 'report',
-    icon: (
-      <ClipboardCopyIcon
-        fontSize="small"
-        className="dark:text-warning text-warning h-4 w-4"
-      />
-    ),
+    icon: <ClipboardCopyIcon fontSize="small" className="h-4 w-4 " />,
     es: 'Reportar',
   },
   // car: {
@@ -42,12 +32,7 @@ const REPORT_TYPES = {
   // },
   wifi: {
     name: 'wifi',
-    icon: (
-      <ClipboardCopyIcon
-        fontSize="small"
-        className="text-principal h-4 w-4 dark:text-white"
-      />
-    ),
+    icon: <ClipboardCopyIcon fontSize="small" className=" h-4 w-4" />,
     es: 'Wifi',
   },
 }
@@ -61,7 +46,8 @@ export function Help() {
             <div className="flex flex-col items-center space-y-1" key={index}>
               <LinkButton
                 to={`help/${type?.name}`}
-                size="small"
+                size="icon"
+                variant="icon"
 
                 // className="flex items-center justify-center bg-white rounded-full dark:bg-DARK_1 h-9 w-9 "
                 //   onClick={() => setShowModal(type?.name)}

@@ -20,7 +20,8 @@ import {
 } from '~/models/branch.server'
 import {validateRedirect} from '~/redirect.server'
 import {getUserId, getUsername} from '~/session.server'
-import {getAmountLeftToPay} from '~/utils'
+import {formatCurrency} from '~/utils'
+import {getAmountLeftToPay, getCurrency} from '~/utils'
 
 type LoaderData = {
   cartItems: CartItem[]
@@ -28,6 +29,39 @@ type LoaderData = {
   unpaidCartItems: CartItem[]
   tipsPercentages: number[]
   paymentMethods: string[]
+  currency: string
+}
+
+export async function loader({request, params}: LoaderArgs) {
+  const {tableId} = params
+  invariant(tableId, 'No se encontró mesa')
+  const branchId = await getBranchId(tableId)
+  const tipsPercentages = await getTipsPercentages(tableId)
+  const paymentMethods = await getPaymentMethods(tableId)
+  const order = await prisma.order.findFirst({
+    where: {tableId},
+  })
+
+  invariant(order, 'No se encontró la orden, o aun no ha sido creada.')
+
+  const cartItems = await prisma.cartItem.findMany({
+    // FIX
+    where: {orderId: order.id, activeOnOrder: true},
+    include: {menuItem: true, user: true},
+  })
+
+  const paidCartItems = cartItems.filter(item => item.paid === true) || []
+  const unpaidCartItems = cartItems.filter(item => item.paid === false) || []
+  const currency = await getCurrency(tableId)
+
+  return json({
+    cartItems,
+    paidCartItems,
+    unpaidCartItems,
+    tipsPercentages,
+    paymentMethods,
+    currency,
+  })
 }
 
 export async function action({request, params}: ActionArgs) {
@@ -109,36 +143,6 @@ export async function action({request, params}: ActionArgs) {
   return json({total, tip, error})
 }
 
-export async function loader({request, params}: LoaderArgs) {
-  const {tableId} = params
-  invariant(tableId, 'No se encontró mesa')
-  const branchId = await getBranchId(tableId)
-  const tipsPercentages = await getTipsPercentages(tableId)
-  const paymentMethods = await getPaymentMethods(tableId)
-  const order = await prisma.order.findFirst({
-    where: {tableId},
-  })
-
-  invariant(order, 'No se encontró la orden, o aun no ha sido creada.')
-
-  const cartItems = await prisma.cartItem.findMany({
-    // FIX
-    where: {orderId: order.id, activeOnOrder: true},
-    include: {menuItem: true, user: true},
-  })
-
-  const paidCartItems = cartItems.filter(item => item.paid === true) || []
-  const unpaidCartItems = cartItems.filter(item => item.paid === false) || []
-
-  return json({
-    cartItems,
-    paidCartItems,
-    unpaidCartItems,
-    tipsPercentages,
-    paymentMethods,
-  })
-}
-
 export default function PerDish() {
   const navigate = useNavigate()
   const data = useLoaderData<LoaderData>()
@@ -161,7 +165,7 @@ export default function PerDish() {
               <FlexRow
                 key={item.id}
                 justify="between"
-                className="px-4 py-2 rounded-full bg-night-400"
+                className="rounded-full bg-night-400 px-4 py-2"
               >
                 <FlexRow>
                   <H5>{item.quantity}</H5>
@@ -169,9 +173,9 @@ export default function PerDish() {
                 </FlexRow>
 
                 <FlexRow>
-                  <H2>${item.price}</H2>
+                  <H2>{formatCurrency(data.currency, item.price)}</H2>
                   {item.paid ? (
-                    <H6 className="p-1 text-green-500 rounded-full bg-night-300">{`Pagado por ${item.paidBy}`}</H6>
+                    <H6 className="rounded-full bg-night-300 p-1 text-green-500">{`Pagado por ${item.paidBy}`}</H6>
                   ) : (
                     <input type="checkbox" name={`item-${item.id}`} />
                   )}
@@ -191,6 +195,7 @@ export default function PerDish() {
           tip={actionData?.tip}
           tipsPercentages={data.tipsPercentages}
           paymentMethods={data.paymentMethods}
+          currency={data.currency}
         />
       </Form>
     </Modal>

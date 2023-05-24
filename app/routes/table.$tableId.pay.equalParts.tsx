@@ -16,7 +16,7 @@ import {prisma} from '~/db.server'
 import {getPaymentMethods, getTipsPercentages} from '~/models/branch.server'
 import {validateRedirect} from '~/redirect.server'
 import {getUserId} from '~/session.server'
-import {getAmountLeftToPay} from '~/utils'
+import {getAmountLeftToPay, getCurrency} from '~/utils'
 
 export async function action({request, params}: ActionArgs) {
   const {tableId} = params
@@ -103,7 +103,9 @@ export async function loader({request, params}: LoaderArgs) {
     })
     .then(res => res._sum.total)
 
-  return json({cartItems, total, tipsPercentages, paymentMethods})
+  const currency = await getCurrency(tableId)
+
+  return json({cartItems, total, tipsPercentages, paymentMethods, currency})
 }
 
 export default function EqualParts() {
@@ -146,15 +148,15 @@ export default function EqualParts() {
       title="Dividir en partes iguales"
     >
       <Form method="POST" preventScrollReset onChange={handleChange}>
-        <H5 variant="secondary" className="mt-2 mr-2 xs:text-sm text-end">
+        <H5 variant="secondary" className="xs:text-sm mr-2 mt-2 text-end">
           Elige personas en mesa y cuántas pagarás.
         </H5>
-        <div className="p-4 xs:flex xs:flex-row xs:p-2 xs:items-center xs:h-1/4">
-          <div className="flex flex-row justify-center p-4 space-x-2 ">
+        <div className="xs:flex xs:flex-row xs:p-2 xs:items-center xs:h-1/4 p-4">
+          <div className="flex flex-row justify-center space-x-2 p-4 ">
             {/* Add more circles with decreasing radius and increasing stroke width */}
 
             <AnimatePresence>
-              <div className="relative xs:w-16 xs:h-16 h-52 w-52 md:h-32 md:w-32 ">
+              <div className="xs:w-16 xs:h-16 relative h-52 w-52 md:h-32 md:w-32 ">
                 <svg className="-rotate-90 fill-none" viewBox="0 0 36 36">
                   <motion.circle
                     initial={{strokeDashoffset: 0, opacity: 0}}
@@ -185,7 +187,7 @@ export default function EqualParts() {
                     stroke="#10b981"
                   />
                 </svg>
-                <div className="absolute inset-0 flex items-center justify-center p-8 text-center xs:hidden md:text-xs ">
+                <div className="xs:hidden absolute inset-0 flex items-center justify-center p-8 text-center md:text-xs ">
                   <p>
                     pagando por {payingFor}{' '}
                     {payingFor > 1 ? 'personas' : 'persona'}
@@ -196,8 +198,8 @@ export default function EqualParts() {
           </div>
         </div>
 
-        <div className="flex flex-col space-y-2 xs:space-y-1">
-          <div className="flex flex-row items-center justify-between space-y-2 xs:space-x-2 ">
+        <div className="xs:space-y-1 flex flex-col space-y-2">
+          <div className="xs:space-x-2 flex flex-row items-center justify-between space-y-2 ">
             <p className="text-md xs:text-xs shrink-0">Personas en la mesa</p>
             <QuantityManagerButton
               quantity={personQuantity}
@@ -225,6 +227,7 @@ export default function EqualParts() {
           tip={actionData?.tip}
           tipsPercentages={data.tipsPercentages}
           paymentMethods={data.paymentMethods}
+          currency={data.currency}
         />
         <input type="hidden" name="payingTotal" value={perPerson} />
       </Form>

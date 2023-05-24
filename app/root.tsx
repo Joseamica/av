@@ -106,14 +106,14 @@ export default function App() {
     )
   }
   return (
-    <html lang="en" className="mx-auto h-screen max-w-lg px-2 ">
+    <html lang="en" className="h-screen">
       <head>
         <meta charSet="utf-8" />
         <meta name="viewport" content="width=device-width,initial-scale=1" />
         <Meta />
         <Links />
       </head>
-      <body className="hide-scrollbar  h-full ">
+      <body className="hide-scrollbar relative mx-auto h-full max-w-md px-2 pt-16 ">
         <Outlet />
         <ScrollRestoration />
         <Scripts />
