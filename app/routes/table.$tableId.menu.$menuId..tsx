@@ -124,7 +124,7 @@ export default function Menu() {
   }
 
   const refReachTop = useRef<HTMLDivElement>(null)
-  const [currentCategory, setCurrentCategory] = React.useState({})
+  const [currentCategory, setCurrentCategory] = React.useState<string>('')
 
   const handleScroll = () => {
     const categoryIds = Object.keys(categoryRefs.current)

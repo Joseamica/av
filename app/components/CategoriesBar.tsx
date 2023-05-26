@@ -8,28 +8,39 @@ type Props = {
   categories: MenuCategory[]
   isSticky?: boolean
   [key: string]: any
+  categoryId?: string
 }
 
-export function CategoriesBar({categories, isSticky, categoryId}: Props) {
+export function CategoriesBar({
+  categories,
+  isSticky,
+  categoryId,
+}: Props): JSX.Element {
   const categoryRefs = React.useRef<Record<string, HTMLAnchorElement>>({})
+  const containerRef = React.useRef<HTMLDivElement>(null)
 
   React.useEffect(() => {
-    if (categoryId && categoryRefs.current[categoryId]) {
+    if (
+      categoryId &&
+      categoryRefs.current[categoryId] &&
+      containerRef.current
+    ) {
       const categoryElement = categoryRefs.current[categoryId]
-      const parentElement = categoryElement.parentElement
-      if (parentElement) {
-        const scrollPos =
-          categoryElement.offsetLeft -
-          parentElement.offsetWidth / 3 +
-          categoryElement.offsetWidth / 2
-        parentElement.scrollLeft = scrollPos
-      }
+      const scrollPos = categoryElement.offsetLeft // Scroll al inicio del elemento seleccionado
+
+      // Aquí es donde se realiza la animación de desplazamiento
+      containerRef.current.scrollTo({
+        left: scrollPos - 8,
+        behavior: 'smooth',
+      })
     }
   }, [categoryId])
+
   return (
     <motion.div
+      ref={containerRef}
       className={clsx(
-        'no-scrollbar my-2 flex  items-center space-x-2 overflow-x-scroll whitespace-nowrap rounded-xl px-5 py-4 shadow-lg',
+        'no-scrollbar my-2 flex items-center space-x-2 overflow-x-scroll whitespace-nowrap rounded-xl px-5 py-4 shadow-lg',
         {'sticky top-14 bg-white': isSticky},
       )}
     >
@@ -37,10 +48,11 @@ export function CategoriesBar({categories, isSticky, categoryId}: Props) {
         <Link
           ref={el => (categoryRefs.current[category.id] = el!)}
           to={`#${category.id}`}
-          preventScrollReset
+          {...{preventScrollReset: true}}
           key={category.id}
           className={clsx({
-            'text-lg font-bold': category.id === categoryId, // Aplica el estilo si la categoría es la actual
+            'rounded-full bg-button-primary px-3 text-lg font-medium text-white underline-offset-4':
+              category.id === categoryId, // Aplica el estilo si la categoría es la actual
           })}
         >
           {category.name}
