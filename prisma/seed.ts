@@ -28,7 +28,7 @@ async function seed() {
         'https://firebasestorage.googleapis.com/v0/b/avoqado-d0a24.appspot.com/o/bikina%2Fven-a-disfrutar-de-nuestra.jpeg?alt=media&token=12440861-bdd0-435f-8ad7-0c29c8103f1e',
       email: 'branch1@madrecafe.com',
       phone: '8885551212',
-      wifi: '1A2B3C4D5e%6789',
+      wifiName: '1A2B3C4D5e%6789',
 
       city: 'Cuernavaca',
       address:

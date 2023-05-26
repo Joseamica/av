@@ -126,7 +126,6 @@ export default function EqualParts() {
     >
       <Form method="POST" preventScrollReset onChange={handleChange}>
         <BillAmount
-
         // isPaying={isPaying}
         />
         <H1>Quieres pagar {formatCurrency(data.currency, total)}</H1>

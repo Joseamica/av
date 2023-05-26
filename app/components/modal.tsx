@@ -1,5 +1,5 @@
 import {XIcon} from '@heroicons/react/outline'
-import {useNavigate} from '@remix-run/react'
+import {Form, useNavigate, useSubmit} from '@remix-run/react'
 import clsx from 'clsx'
 import {AnimatePresence, motion} from 'framer-motion'
 import type {ReactNode} from 'react'
@@ -76,9 +76,14 @@ export function Modal({
   //   }
   // }, [isOpen])
 
+  // const submit = useSubmit()
+  // function handleChange(event: React.FormEvent<HTMLFormElement>) {
+  //   submit(event.currentTarget, {replace: true})
+  // }
+
   return (
     <motion.main
-      className="bg-backdrop fixed inset-0 z-50 flex max-h-screen flex-row items-center justify-center bg-black bg-opacity-90 backdrop-blur-sm backdrop-filter"
+      className="bg-backdrop fixed  inset-0 z-50 flex max-h-screen flex-row items-center justify-center bg-black bg-opacity-90 backdrop-blur-sm backdrop-filter"
       onClick={onClose}
       initial={{opacity: 0}}
       animate={{opacity: 1}}
@@ -87,8 +92,8 @@ export function Modal({
       <AnimatePresence>
         <motion.dialog
           className={clsx(
-            'no-scrollbar fixed inset-x-0  bottom-0  mx-auto max-h-full w-full overflow-auto rounded-t-lg bg-white ',
-            fullScreen && ' h-full',
+            'no-scrollbar  inset-x-0 bottom-0 m-0 mx-auto flex max-h-full w-full flex-col justify-between overflow-auto rounded-t-lg bg-white p-0',
+            fullScreen && ' top-0 h-full',
           )}
           open
           variants={effect}
@@ -101,7 +106,7 @@ export function Modal({
           exit="exit"
           onClick={event => event.stopPropagation()}
         >
-          <div className="sticky top-0 mb-4 flex w-full flex-row items-center justify-between bg-white">
+          <div className="sticky inset-x-0 top-0 mb-2 flex w-full flex-row items-center justify-between border-b-2 bg-white p-4">
             {goBack ? (
               <Button onClick={NavigateBack} size="small">
                 <IoMdArrowBack />

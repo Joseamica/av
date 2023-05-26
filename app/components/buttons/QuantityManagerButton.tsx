@@ -33,20 +33,20 @@ export const QuantityManagerButton = ({
     }
   }
   return (
-    <div className="flex items-center justify-center p-1 rounded-full bg-principal dark:bg-secondaryDark">
+    <div className="dark:bg-secondaryDark flex items-center justify-center rounded-full p-1">
       <button
-        className="w-10 h-10 bg-white rounded-full dark:bg-mainDark xs:w-7 xs:h-7 disabled:text-gray-300"
+        className="dark:bg-mainDark h-10 w-10 rounded-full bg-white shadow-lg disabled:text-gray-300 xs:h-7 xs:w-7"
         onClick={handler}
         disabled={quantity <= 1 || activate === false || disableSub}
       >
         -
       </button>
-      <span className="px-3 py-2 text-white xs:px-2 xs:py-1 xs:text-xs disabled:text-gray-200">
+      <span className="px-3 py-2  disabled:text-gray-200 xs:px-2 xs:py-1 xs:text-xs">
         {quantity}
       </span>
       <button
         onClick={() => setQuantity(quantity + 1)}
-        className="w-10 h-10 bg-white rounded-full dark:bg-mainDark xs:w-7 xs:h-7"
+        className="dark:bg-mainDark h-10 w-10 rounded-full bg-white shadow-lg xs:h-7 xs:w-7"
         disabled={disabledPlus}
       >
         +

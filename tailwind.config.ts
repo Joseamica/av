@@ -45,8 +45,11 @@ export default {
         button: {
           primary: '#3E7BFA',
           outline: '#3568D4',
+          successBg: '#DBFAE3',
         },
         warning: '#FF8080',
+        disabled: '#9898A1',
+        success: '#336B42',
         accent: {
           purple: '#6A44FF',
           pink: '#F183FF',

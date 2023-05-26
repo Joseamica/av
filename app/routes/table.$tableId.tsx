@@ -49,7 +49,7 @@ export default function TableIndex() {
         <Link
           key={table.id}
           to={`/table/${table.id}`}
-          className="p-2 bg-blue-200"
+          className="bg-blue-200 p-2"
         >
           {table.table_number}
         </Link>

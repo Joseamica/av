@@ -87,11 +87,11 @@ export function getTotal(order: Order) {
 export function formatCurrency(currency: string, amount: number | Decimal) {
   switch (currency) {
     case '$':
-      return `$ ${Number(amount).toFixed(2)}`
+      return `$ ${Number(amount).toFixed(1)}`
     case '€':
-      return `${Number(amount).toFixed(2)} €`
+      return `${Number(amount).toFixed(1)} €`
     default:
-      return `${Number(amount).toFixed(2)}`
+      return `${Number(amount).toFixed(1)}`
   }
 }
 

@@ -8,20 +8,26 @@ import {
   useNavigate,
   useSubmit,
 } from '@remix-run/react'
+import clsx from 'clsx'
 import React from 'react'
 import invariant from 'tiny-invariant'
-import {FlexRow, H1, H2, H5, H6, Payment} from '~/components'
+import {
+  FlexRow,
+  H1,
+  H2,
+  H4,
+  H5,
+  H6,
+  Payment,
+  SectionContainer,
+} from '~/components'
+import {ItemContainer} from '~/components/containers/ItemContainer'
 import {Modal} from '~/components/modal'
 import {prisma} from '~/db.server'
-import {
-  getBranchId,
-  getPaymentMethods,
-  getTipsPercentages,
-} from '~/models/branch.server'
+import {getPaymentMethods, getTipsPercentages} from '~/models/branch.server'
 import {validateRedirect} from '~/redirect.server'
 import {getUserId, getUsername} from '~/session.server'
-import {formatCurrency} from '~/utils'
-import {getAmountLeftToPay, getCurrency} from '~/utils'
+import {formatCurrency, getAmountLeftToPay, getCurrency} from '~/utils'
 
 type LoaderData = {
   cartItems: CartItem[]
@@ -35,7 +41,6 @@ type LoaderData = {
 export async function loader({request, params}: LoaderArgs) {
   const {tableId} = params
   invariant(tableId, 'No se encontró mesa')
-  const branchId = await getBranchId(tableId)
   const tipsPercentages = await getTipsPercentages(tableId)
   const paymentMethods = await getPaymentMethods(tableId)
   const order = await prisma.order.findFirst({
@@ -95,12 +100,16 @@ export async function action({request, params}: ActionArgs) {
   }
 
   const tip = total * (Number(tipPercentage) / 100)
-  console.log('tip', tipPercentage)
-
+  const currency = await getCurrency(tableId)
   const amountLeft = (await getAmountLeftToPay(tableId)) || 0
+
+  //ERROR HANDLING
   let error = ''
   if (amountLeft < total) {
-    error = 'Estas pagando de mas...'
+    error = `Estas pagando ${formatCurrency(
+      currency,
+      total - amountLeft,
+    )} de más....`
   }
 
   if (proceed) {
@@ -130,7 +139,8 @@ export async function action({request, params}: ActionArgs) {
       where: {id: userId},
       select: {paid: true, tip: true, total: true},
     })
-    const updateUser = await prisma.user.update({
+    // const updateUser =
+    await prisma.user.update({
       where: {id: userId},
       data: {
         paid: Number(userPrevPaidData?.paid) + total,
@@ -159,23 +169,25 @@ export default function PerDish() {
       title="Dividir por platillo"
     >
       <Form method="POST" preventScrollReset onChange={handleChange}>
-        <div className="space-y-2">
+        <div className="space-y-2 p-2">
           {data.cartItems?.map((item: CartItem) => {
             return (
-              <FlexRow
+              <ItemContainer
                 key={item.id}
-                justify="between"
-                className="rounded-full bg-night-400 px-4 py-2"
+                unActive={item.paid ? true : false}
+                // showCollapse={true}
               >
                 <FlexRow>
                   <H5>{item.quantity}</H5>
-                  <H1>{item.name}</H1>
+                  <H5>{item.name}</H5>
                 </FlexRow>
 
                 <FlexRow>
-                  <H2>{formatCurrency(data.currency, item.price)}</H2>
+                  <H4 className={clsx({' line-through ': item.paid})}>
+                    {formatCurrency(data.currency, item.price)}
+                  </H4>
                   {item.paid ? (
-                    <H6 className="rounded-full bg-night-300 p-1 text-green-500">{`Pagado por ${item.paidBy}`}</H6>
+                    <H6 className="rounded-full p-1 text-success">{`Pagado ${item.paidBy}`}</H6>
                   ) : (
                     <input type="checkbox" name={`item-${item.id}`} />
                   )}
@@ -185,17 +197,17 @@ export default function PerDish() {
                     value={item.price}
                   />
                 </FlexRow>
-              </FlexRow>
+              </ItemContainer>
             )
           })}
         </div>
-        <H5 variant="error">{actionData?.error}</H5>
         <Payment
           total={actionData?.total}
           tip={actionData?.tip}
           tipsPercentages={data.tipsPercentages}
           paymentMethods={data.paymentMethods}
           currency={data.currency}
+          error={actionData?.error}
         />
       </Form>
     </Modal>

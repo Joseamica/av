@@ -8,11 +8,21 @@ import {
   useSearchParams,
 } from '@remix-run/react'
 import type {ActionArgs, LoaderArgs} from '@remix-run/server-runtime'
+import React, {useRef} from 'react'
 import invariant from 'tiny-invariant'
-import {Button, H1, LinkButton, Modal, SectionContainer} from '~/components'
+import {
+  Button,
+  H1,
+  LinkButton,
+  MenuInfo,
+  Modal,
+  SectionContainer,
+} from '~/components'
+import {CategoriesBar} from '~/components/'
 import {prisma} from '~/db.server'
 import {getBranch, getBranchId} from '~/models/branch.server'
 import {getCartItems} from '~/models/cart.server'
+import {getMenu} from '~/models/menu.server'
 import {validateRedirect} from '~/redirect.server'
 import {addToCart, getSession, sessionStorage} from '~/session.server'
 import {formatCurrency, getCurrency} from '~/utils'
@@ -60,7 +70,17 @@ export async function loader({request, params}: LoaderArgs) {
 
   const currency = await getCurrency(tableId)
 
-  return json({categories, cartItems, usersOnTable, dish, currency})
+  const menu = await getMenu(branch.id)
+
+  return json({
+    categories,
+    cartItems,
+    usersOnTable,
+    dish,
+    currency,
+    menu,
+    branch,
+  })
 }
 
 export async function action({request, params}: ActionArgs) {
@@ -73,7 +93,7 @@ export async function action({request, params}: ActionArgs) {
   const formData = await request.formData()
   const submittedItemId = formData.get('submittedItemId') as string
 
-  const redirectTo = validateRedirect(request.redirect, `/table/${tableId}`)
+  const redirectTo = validateRedirect(request.redirect, ``)
 
   const session = await getSession(request)
   let cart = JSON.parse(session.get('cart') || '[]')
@@ -92,24 +112,63 @@ export default function Menu() {
   const data = useLoaderData()
   const fetcher = useFetcher()
   const [searchParams] = useSearchParams()
+  const [isSticky, setIsSticky] = React.useState(false)
+
   const dish = searchParams.get('dishId')
-  // const cart = searchParams.get('cart')
+  const categoryRefs = useRef<{[key: string]: any}>({})
+
   const navigate = useNavigate()
 
   const onClose = () => {
     navigate(``)
   }
 
+  const refReachTop = useRef<HTMLDivElement>(null)
+  const [currentCategory, setCurrentCategory] = React.useState({})
+
+  const handleScroll = () => {
+    const categoryIds = Object.keys(categoryRefs.current)
+    if (refReachTop.current) {
+      setIsSticky(refReachTop.current.getBoundingClientRect().top <= 0)
+    }
+    for (const id of categoryIds) {
+      const ref = categoryRefs.current[id]
+      if (ref) {
+        const rect = ref.getBoundingClientRect()
+        if (rect.top >= 0) {
+          setCurrentCategory(id)
+          break
+        }
+      }
+    }
+  }
+  React.useEffect(() => {
+    window.addEventListener('scroll', handleScroll)
+    return () => window.removeEventListener('scroll', handleScroll)
+  }, [])
+
   let isSubmitting =
     fetcher.state === 'submitting' || fetcher.state === 'loading'
 
   return (
-    <fetcher.Form method="POST" preventScrollReset>
-      <div className="space-y-2 ">
+    <fetcher.Form method="POST" preventScrollReset className="relative top-0">
+      <MenuInfo menu={data.menu} branch={data.branch} />
+      {/* CATEGORIES BAR */}
+      <CategoriesBar
+        categoryId={currentCategory}
+        categories={data.categories}
+        isSticky={isSticky}
+      />
+      <div className="space-y-2" ref={refReachTop}>
         {data.categories.map((categories: MenuCategory) => {
           const dishes = categories.menuItems
           return (
-            <SectionContainer key={categories.id} className=" rounded-xl">
+            <SectionContainer
+              key={categories.id}
+              className=" scroll-mt-[120px] rounded-xl"
+              id={categories.id}
+              ref={el => (categoryRefs.current[categories.id] = el)} // Aquí asignas la ref al objeto
+            >
               <H1>{categories.name}</H1>
               <div className="flex flex-col divide-y-2 ">
                 {dishes.map((dish: MenuItem) => {
@@ -148,9 +207,6 @@ export default function Menu() {
             }, 0)}
         </LinkButton>
       ) : null}
-
-      {/* <LinkButton to="?cart=true">Ir al carrito</LinkButton> */}
-
       {/* MODAL */}
       {dish && (
         <Modal onClose={onClose} title={data.dish.name}>

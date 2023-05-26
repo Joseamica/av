@@ -316,18 +316,18 @@ export default function Table() {
           ) : (
             <SectionContainer
               divider={true}
-              showCollapse={true}
+              showCollapse={data.order.cartItems.length > 4 ? true : false}
               collapse={collapse}
               handleCollapse={handleCollapse}
             >
               {!collapse ? (
-                <>
+                <AnimatePresence>
                   {data.order.cartItems.map((cartItem: CartItem) => {
                     return (
                       <CartItemDetails cartItem={cartItem} key={cartItem.id} />
                     )
                   })}
-                </>
+                </AnimatePresence>
               ) : (
                 <AnimatePresence>
                   {data.order.cartItems
@@ -362,7 +362,7 @@ export default function Table() {
             {`Mesa ${data.table.table_number}`}
           </h3>
         </Spacer>
-        <div className="dark:bg-DARK_1 flex flex-col justify-start rounded-lg bg-white p-2 drop-shadow-md dark:drop-shadow-none">
+        <SectionContainer className="dark:bg-DARK_1 flex flex-col justify-start rounded-lg bg-white p-2 drop-shadow-md dark:drop-shadow-none">
           <p className="text-DARK_3">Usuarios en la mesa</p>
           <Spacer spaceY="2">
             <hr className="dark:border-DARK_OUTLINE border-LIGHT_DIVIDER" />
@@ -386,7 +386,7 @@ export default function Table() {
               </div>
             </FlexRow>
           ))}
-        </div>
+        </SectionContainer>
         <div>
           TODO:
           <ol>

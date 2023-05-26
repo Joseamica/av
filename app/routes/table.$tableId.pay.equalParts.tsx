@@ -16,7 +16,7 @@ import {prisma} from '~/db.server'
 import {getPaymentMethods, getTipsPercentages} from '~/models/branch.server'
 import {validateRedirect} from '~/redirect.server'
 import {getUserId} from '~/session.server'
-import {getAmountLeftToPay, getCurrency} from '~/utils'
+import {formatCurrency, getAmountLeftToPay, getCurrency} from '~/utils'
 
 export async function action({request, params}: ActionArgs) {
   const {tableId} = params
@@ -27,7 +27,6 @@ export async function action({request, params}: ActionArgs) {
 
   const proceed = formData.get('_action') === 'proceed'
   const tipPercentage = formData.get('tipPercentage') as string
-  console.log('tipPercentage', tipPercentage)
 
   const order = await prisma.order.findFirst({
     where: {tableId},
@@ -47,8 +46,9 @@ export async function action({request, params}: ActionArgs) {
 
   const payingTotal = Number(formData.get('payingTotal')) as number
   const tip = Number(payingTotal) * (Number(tipPercentage) / 100)
-  console.log('tip', tip)
   const amountLeft = (await getAmountLeftToPay(tableId)) || 0
+
+  //ERROR HANDLING
   let error = ''
   if (amountLeft < Number(total)) {
     error = 'Estas pagando de mas...'
@@ -67,7 +67,8 @@ export async function action({request, params}: ActionArgs) {
       where: {id: userId},
       select: {paid: true, tip: true, total: true},
     })
-    const updateUser = await prisma.user.update({
+    // const updateUser =
+    await prisma.user.update({
       where: {id: userId},
       data: {
         paid: Number(userPrevPaidData?.paid) + payingTotal,
@@ -104,8 +105,16 @@ export async function loader({request, params}: LoaderArgs) {
     .then(res => res._sum.total)
 
   const currency = await getCurrency(tableId)
+  const amountLeft = await getAmountLeftToPay(tableId)
 
-  return json({cartItems, total, tipsPercentages, paymentMethods, currency})
+  return json({
+    cartItems,
+    total,
+    tipsPercentages,
+    paymentMethods,
+    currency,
+    amountLeft,
+  })
 }
 
 export default function EqualParts() {
@@ -147,16 +156,21 @@ export default function EqualParts() {
       fullScreen={true}
       title="Dividir en partes iguales"
     >
-      <Form method="POST" preventScrollReset onChange={handleChange}>
-        <H5 variant="secondary" className="xs:text-sm mr-2 mt-2 text-end">
+      <Form
+        method="POST"
+        preventScrollReset
+        onChange={handleChange}
+        className="p-2"
+      >
+        <H5 variant="secondary" className="mr-2 text-end xs:text-sm">
           Elige personas en mesa y cuántas pagarás.
         </H5>
-        <div className="xs:flex xs:flex-row xs:p-2 xs:items-center xs:h-1/4 p-4">
+        <div className="p-4 xs:flex xs:h-1/4 xs:flex-row xs:items-center xs:p-2">
           <div className="flex flex-row justify-center space-x-2 p-4 ">
             {/* Add more circles with decreasing radius and increasing stroke width */}
 
             <AnimatePresence>
-              <div className="xs:w-16 xs:h-16 relative h-52 w-52 md:h-32 md:w-32 ">
+              <div className="relative h-52 w-52 md:h-32 md:w-32 xs:h-16 xs:w-16 ">
                 <svg className="-rotate-90 fill-none" viewBox="0 0 36 36">
                   <motion.circle
                     initial={{strokeDashoffset: 0, opacity: 0}}
@@ -187,7 +201,7 @@ export default function EqualParts() {
                     stroke="#10b981"
                   />
                 </svg>
-                <div className="xs:hidden absolute inset-0 flex items-center justify-center p-8 text-center md:text-xs ">
+                <div className="absolute inset-0 flex items-center justify-center p-8 text-center md:text-xs xs:hidden ">
                   <p>
                     pagando por {payingFor}{' '}
                     {payingFor > 1 ? 'personas' : 'persona'}
@@ -198,9 +212,9 @@ export default function EqualParts() {
           </div>
         </div>
 
-        <div className="xs:space-y-1 flex flex-col space-y-2">
-          <div className="xs:space-x-2 flex flex-row items-center justify-between space-y-2 ">
-            <p className="text-md xs:text-xs shrink-0">Personas en la mesa</p>
+        <div className="flex flex-col space-y-2 xs:space-y-1">
+          <div className="flex flex-row items-center justify-between space-y-2 xs:space-x-2 ">
+            <p className="text-md shrink-0 xs:text-xs">Personas en la mesa</p>
             <QuantityManagerButton
               quantity={personQuantity}
               setQuantity={setPersonQuantity}
@@ -221,13 +235,21 @@ export default function EqualParts() {
             />
           </div>
         </div>
-        <H5 variant="error">{actionData?.error}</H5>
+
         <Payment
-          total={actionData?.total}
+          total={perPerson}
           tip={actionData?.tip}
           tipsPercentages={data.tipsPercentages}
           paymentMethods={data.paymentMethods}
           currency={data.currency}
+          error={
+            perPerson > data.amountLeft
+              ? `Estas pagando ${formatCurrency(
+                  data.currency,
+                  perPerson - data.amountLeft,
+                )} de mas`
+              : undefined
+          }
         />
         <input type="hidden" name="payingTotal" value={perPerson} />
       </Form>

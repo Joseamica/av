@@ -59,10 +59,16 @@ export async function action({request, params}: ActionArgs) {
 
   const tip = Number(total) * (Number(tipPercentage) / 100)
   const amountLeft = (await getAmountLeftToPay(tableId)) || 0
+  const currency = await getCurrency(tableId)
+
   let error = ''
   if (amountLeft < Number(total)) {
-    error = 'Estas pagando de mas...'
+    error = `Estas pagando ${formatCurrency(
+      currency,
+      total - amountLeft,
+    )} de más....`
   }
+
   if (proceed) {
     //WHEN SUBMIT
     if (amountLeft < total) {
@@ -144,6 +150,7 @@ export default function EqualParts() {
           tipsPercentages={data.tipsPercentages}
           paymentMethods={data.paymentMethods}
           currency={data.currency}
+          error={actionData?.error}
         />
       </Form>
     </Modal>

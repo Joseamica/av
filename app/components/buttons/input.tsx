@@ -21,9 +21,9 @@ function RadioInputButton({
     <label
       htmlFor={inputProps.id}
       className={clsx(
-        'flex flex-row space-x-2 rounded-full px-4 py-2 outline-button-outline  ring-2',
+        'flex flex-row space-x-2 rounded-full px-4 py-1 outline-button-outline  ring-2',
         {
-          'text-2 rounded-full bg-button-primary px-2 py-2  text-white  ring-4   ring-button-outline':
+          'text-2 rounded-full bg-button-primary px-2 py-1  text-white  ring-4   ring-button-outline':
             state === inputProps.value,
         },
       )}

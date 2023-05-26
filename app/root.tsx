@@ -113,7 +113,7 @@ export default function App() {
         <Meta />
         <Links />
       </head>
-      <body className="hide-scrollbar relative mx-auto h-full max-w-md px-2 pt-16 ">
+      <body className="hide-scrollbar no-scrollbar relative mx-auto h-full max-w-md px-2 pt-16">
         <Outlet />
         <ScrollRestoration />
         <Scripts />

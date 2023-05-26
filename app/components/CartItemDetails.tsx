@@ -1,9 +1,9 @@
 import type {CartItem} from '@prisma/client'
 import {Link, useLoaderData} from '@remix-run/react'
+import {motion} from 'framer-motion'
+import {formatCurrency} from '~/utils'
 import {FlexRow} from './util/flexrow'
 import {H4, H5, H6} from './util/typography'
-import {formatCurrency} from '~/utils'
-import {AnimatePresence, motion} from 'framer-motion'
 
 const MotionLink = motion(Link)
 
@@ -20,8 +20,10 @@ export function CartItemDetails({cartItem}: {cartItem: CartItem}) {
       // animate={{height: 'auto', opacity: 1}}
       // exit={{height: 0, opacity: 0}}
       // transition={{
-      //   height: {duration: 0.8, ease: [0.04, 0.62, 0.23, 0.98]},
+      //   height: {duration: 0.2, ease: [0.04, 0.62, 0.23, 0.98]},
       //   opacity: {duration: 0.2, ease: [0.04, 0.62, 0.23, 0.98]},
+      //   paddingTop: {duration: 0.2, ease: [0.04, 0.62, 0.23, 0.98]},
+      //   paddingBottom: {duration: 0.2, ease: [0.04, 0.62, 0.23, 0.98]},
       // }}
     >
       <FlexRow>

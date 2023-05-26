@@ -138,19 +138,21 @@ export default function FullPay() {
       fullScreen={true}
       title="Pagar cuenta completa"
     >
-      <BillAmount
+      <div>
+        <BillAmount
 
-      // isPaying={isPaying}
-      />
-      <Form method="POST" preventScrollReset onChange={handleChange}>
-        <Payment
-          total={data.amountLeft}
-          tip={actionData?.tip}
-          tipsPercentages={data.tipsPercentages}
-          paymentMethods={data.paymentMethods}
-          currency={data.currency}
+        // isPaying={isPaying}
         />
-      </Form>
+        <Form method="POST" preventScrollReset onChange={handleChange}>
+          <Payment
+            total={data.amountLeft}
+            tip={actionData?.tip}
+            tipsPercentages={data.tipsPercentages}
+            paymentMethods={data.paymentMethods}
+            currency={data.currency}
+          />
+        </Form>
+      </div>
     </Modal>
   )
 }

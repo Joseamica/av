@@ -8,8 +8,17 @@ import {
   useNavigate,
   useSubmit,
 } from '@remix-run/react'
+import {useState} from 'react'
 import invariant from 'tiny-invariant'
-import {FlexRow, H2, H5, Payment} from '~/components'
+import {
+  FlexRow,
+  H2,
+  H4,
+  H5,
+  ItemContainer,
+  Payment,
+  SectionContainer,
+} from '~/components'
 import {Modal} from '~/components/modal'
 import {prisma} from '~/db.server'
 import {getPaymentMethods, getTipsPercentages} from '~/models/branch.server'
@@ -104,10 +113,16 @@ export async function action({request, params}: ActionArgs) {
   const tip = total * (Number(tipPercentage) / 100)
 
   const amountLeft = (await getAmountLeftToPay(tableId)) || 0
+  const currency = await getCurrency(tableId)
+
   let error = ''
   if (amountLeft < total) {
-    error = 'Estas pagando de mas...'
+    error = `Estas pagando ${formatCurrency(
+      currency,
+      total - amountLeft,
+    )} de más....`
   }
+
   if (proceed) {
     if (amountLeft < total) {
       return redirect(
@@ -153,6 +168,12 @@ export default function PerPerson() {
     submit(event.currentTarget, {replace: true})
   }
 
+  const [collapse, setCollapse] = useState(false)
+  const handleCollapse = (e: any) => {
+    e.preventDefault()
+    setCollapse(!collapse)
+  }
+
   return (
     <Modal
       onClose={() => navigate('..')}
@@ -170,40 +191,45 @@ export default function PerPerson() {
           const user = data.userTotals[userId]
 
           return (
-            <div key={userId}>
-              <FlexRow className="justify-between rounded-full bg-night-400 px-4 py-2">
-                <label htmlFor="selectedUsers">{user.user.name}</label>
-                <FlexRow>
-                  <H2>{formatCurrency(data.currency, user.total)}</H2>
-                  <input
-                    type="checkbox"
-                    name="selectedUsers"
-                    value={user.total}
-                    className="h-7 w-7 rounded border-gray-300 bg-gray-100 text-blue-600 focus:ring-2 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:ring-offset-gray-800 dark:focus:ring-blue-600"
-                  />
-                </FlexRow>
+            <div className="space-y-2 p-2" key={userId}>
+              <FlexRow justify="between">
+                <ItemContainer
+                  showCollapse={true}
+                  handleCollapse={handleCollapse}
+                >
+                  {/* <label htmlFor="selectedUsers">{user.user.name}</label> */}
+                  <H4>{user.user.name}</H4>
+                  <FlexRow>
+                    <H2>{formatCurrency(data.currency, user.total)}</H2>
+                    <input
+                      type="checkbox"
+                      name="selectedUsers"
+                      value={user.total}
+                    />
+                  </FlexRow>
+                </ItemContainer>
+                {/* Detalles */}
               </FlexRow>
-
-              <ul className="divide-y-[1px] rounded-xl p-4 dark:bg-night-700">
+              <SectionContainer divider={true}>
                 {user.cartItems.map((item: CartItem) => {
                   return (
-                    <FlexRow key={item.id}>
-                      <li>{item.name}</li>
-                      <li>{formatCurrency(data.currency, item.price)}</li>
-
-                      <li>
-                        Precio compartido:
-                        {/* @ts-expect-error */}
-                        {formatCurrency(data.currency, item.itemTotal)}
-                      </li>
+                    <FlexRow key={item.id} className="p-2" justify="between">
+                      <H5>{item.name}</H5>
+                      <FlexRow>
+                        <H4>{formatCurrency(data.currency, item.price)}</H4>
+                        <H4>
+                          c/u:
+                          {/* @ts-expect-error */}
+                          {formatCurrency(data.currency, item.itemTotal)}
+                        </H4>
+                      </FlexRow>
                     </FlexRow>
                   )
                 })}
-              </ul>
+              </SectionContainer>
             </div>
           )
         })}
-        <H5 variant="error">{actionData?.error}</H5>
 
         <Payment
           total={actionData?.total}
@@ -211,6 +237,7 @@ export default function PerPerson() {
           tipsPercentages={data.tipsPercentages}
           paymentMethods={data.paymentMethods}
           currency={data.currency}
+          error={actionData?.error}
         />
       </Form>
     </Modal>
