@@ -2,11 +2,13 @@ import {ChevronDownIcon, ChevronUpIcon} from '@heroicons/react/solid'
 import clsx from 'clsx'
 import {motion} from 'framer-motion'
 import React from 'react'
+import {H1} from '../util/typography'
 
 interface SectionContainerProps {
   id?: string
   children: React.ReactNode | React.ReactNode[]
   className?: string
+  title?: string
   as?: React.ElementType
   divider?: boolean
   collapse?: boolean
@@ -27,6 +29,7 @@ const SectionContainer = React.forwardRef<HTMLElement, SectionContainerProps>(
       id,
       children,
       className,
+      title,
       as: Tag = 'main',
       divider = false,
       collapse,
@@ -67,6 +70,7 @@ const SectionContainer = React.forwardRef<HTMLElement, SectionContainerProps>(
             )}
           </div>
         )}
+        <H1 className="font-medium">{title}</H1>
         <div className={clsx({'divide-y': divider === true})}>{children}</div>
       </MotionTag>
     )

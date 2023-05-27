@@ -1,6 +1,7 @@
 import {Link} from '@remix-run/react'
 import clsx from 'clsx'
 import {H3} from '../util/typography'
+import {XIcon} from '@heroicons/react/outline'
 
 interface ButtonProps {
   variant?: 'primary' | 'secondary' | 'danger' | 'icon'

@@ -13,6 +13,7 @@ export async function validateUserIntegration(
   const isUserInTable = await prisma.user
     .findFirst({where: {id: userId, tableId}})
     .then(user => (user ? true : false))
+
   if (!isUserInTable) {
     console.log(`🔌 Connecting '${username}' to the table`)
 

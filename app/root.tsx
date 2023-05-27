@@ -1,11 +1,6 @@
 import {cssBundleHref} from '@remix-run/css-bundle'
-import {
-  ActionArgs,
-  LinksFunction,
-  LoaderArgs,
-  json,
-  redirect,
-} from '@remix-run/node'
+import type {ActionArgs, LinksFunction, LoaderArgs} from '@remix-run/node'
+import {json, redirect} from '@remix-run/node'
 import {
   Form,
   Links,
@@ -56,6 +51,7 @@ export const loader = async ({request}: LoaderArgs) => {
     {headers: {'Set-Cookie': await sessionStorage.commitSession(session)}},
   )
 }
+const SESSION_EXPIRATION_TIME = 1000 * 60 * 60 * 24 * 30
 
 export const action = async ({request, params}: ActionArgs) => {
   let [body, session] = await Promise.all([request.text(), getSession(request)])
@@ -69,15 +65,21 @@ export const action = async ({request, params}: ActionArgs) => {
   const userId = session.get('userId')
 
   if (name) {
-    console.log('✅ Creating user with name:', name)
-    await prisma.user.create({
+    console.log('✅ Creating session and user with name:', name)
+    const sessionId = await prisma.session.create({
       data: {
-        id: userId,
-        name: name,
+        expirationDate: new Date(Date.now() + SESSION_EXPIRATION_TIME),
+        user: {
+          create: {
+            id: userId,
+            name: name,
+          },
+        },
       },
+      // select: {id: !0, expirationDate: !0},
     })
+    session.set('sessionId', sessionId.id)
     session.set('username', name)
-    console.log('url', url)
 
     return redirect(redirectTo, {
       headers: {'Set-Cookie': await sessionStorage.commitSession(session)},

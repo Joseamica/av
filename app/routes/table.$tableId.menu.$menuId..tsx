@@ -10,13 +10,19 @@ import {
 import type {ActionArgs, LoaderArgs} from '@remix-run/server-runtime'
 import React, {useRef} from 'react'
 import invariant from 'tiny-invariant'
+import {s} from 'vitest/dist/types-e3c9754d'
 import {
   Button,
+  FlexRow,
   H1,
+  H2,
+  H3,
+  H4,
   LinkButton,
   MenuInfo,
   Modal,
   SectionContainer,
+  SendComments,
 } from '~/components'
 import {CategoriesBar} from '~/components/'
 import {prisma} from '~/db.server'
@@ -107,11 +113,10 @@ export async function action({request, params}: ActionArgs) {
     headers: {'Set-Cookie': await sessionStorage.commitSession(session)},
   })
 }
-
 export default function Menu() {
   const data = useLoaderData()
   const fetcher = useFetcher()
-  const [searchParams] = useSearchParams()
+  const [searchParams, setSearchParams] = useSearchParams()
   const [isSticky, setIsSticky] = React.useState(false)
 
   const dish = searchParams.get('dishId')
@@ -168,9 +173,9 @@ export default function Menu() {
               className=" scroll-mt-[120px] rounded-xl"
               id={categories.id}
               ref={el => (categoryRefs.current[categories.id] = el)} // Aquí asignas la ref al objeto
+              title={categories.name}
             >
-              <H1>{categories.name}</H1>
-              <div className="flex flex-col divide-y-2 ">
+              <div className="flex flex-col divide-y ">
                 {dishes.map((dish: MenuItem) => {
                   return (
                     <Link
@@ -209,35 +214,56 @@ export default function Menu() {
       ) : null}
       {/* MODAL */}
       {dish && (
-        <Modal onClose={onClose} title={data.dish.name}>
-          <div>
-            <div key={data.dish.id} className="p-2 ">
-              <h2>{data.dish.name}</h2>
-              <p>{data.dish.description}</p>
-              <p>{formatCurrency(data.currency, data.dish?.price)}</p>
-              <div>
-                <p>share?</p>
-                {data.usersOnTable.map((user: User) => {
-                  return (
-                    <div key={user.id}>
-                      <input
-                        type="checkbox"
-                        name="shareDish"
-                        value={user.id}
-                        className="h-7 w-7"
-                      />
-                      <label htmlFor="share">{user.name}</label>
-                    </div>
-                  )
-                })}
-              </div>
-            </div>
+        <Modal
+          onClose={onClose}
+          title={data.dish.name}
+          imgHeader={data.dish.image}
+        >
+          <div className="w-full space-y-2 p-4">
+            <H2 boldVariant="semibold">{data.dish.name}</H2>
+            <H3> {formatCurrency(data.currency, data.dish?.price)}</H3>
+            <H4 variant="secondary">{data.dish.description}</H4>
           </div>
-          <Button name="submittedItemId" value={data.dish.id}>
+          <SendComments />
+          {/* <div className=" flex  max-w-md flex-col rounded-lg ">
+            <div className="px-6 py-4">
+              <FlexRow justify="between" className="w-full">
+                <H1 boldVariant="bold">{data.dish.name}</H1>
+                <p className="mt-2 text-lg font-semibold">
+                  {formatCurrency(data.currency, data.dish?.price)}
+                </p>
+              </FlexRow>
+              <p className="text-base text-gray-700">{data.dish.description}</p>
+            </div>
+            <div className="px-6 pb-2 pt-4">
+              <p className="text-lg font-semibold">Share?</p>
+              {data.usersOnTable.map((user: User) => {
+                return (
+                  <div key={user.id} className="mt-2 flex items-center">
+                    <input
+                      type="checkbox"
+                      id={`shareDish-${user.id}`}
+                      name="shareDish"
+                      value={user.id}
+                      className="h-5 w-5 rounded text-blue-600"
+                    />
+                    <label
+                      htmlFor={`shareDish-${user.id}`}
+                      className="ml-2 text-sm text-gray-700"
+                    >
+                      {user.name}
+                    </label>
+                  </div>
+                )
+              })}
+            </div>
+          </div> */}
+          <Button name="submittedItemId" value={data.dish.id} className="m-2">
             Agregar {data.dish.name}
           </Button>
         </Modal>
       )}
+      {/* <input type="hidden" name="isSticky" value={isSticky ? 'isSticky' : ''} /> */}
     </fetcher.Form>
   )
 }

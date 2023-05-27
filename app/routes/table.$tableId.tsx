@@ -16,6 +16,10 @@ export async function loader({request, params}: DataFunctionArgs) {
   invariant(branch, 'No se encontró la sucursal')
 
   const session = await getSession(request)
+  const sessionId = session.get('sessionId')
+  if (!sessionId) {
+    throw new Error('No se encontró el ID de la sesión')
+  }
   const userId = session.get('userId')
   const username = session.get('username')
   const user = await prisma.user.findFirst({where: {id: userId}})
@@ -45,7 +49,7 @@ export default function TableIndex() {
   return (
     <div>
       <Header user={data.user} />
-      {data.tables.map((table: Table) => (
+      {/* {data.tables.map((table: Table) => (
         <Link
           key={table.id}
           to={`/table/${table.id}`}
@@ -53,7 +57,7 @@ export default function TableIndex() {
         >
           {table.table_number}
         </Link>
-      ))}
+      ))} */}
       <Outlet />
     </div>
   )

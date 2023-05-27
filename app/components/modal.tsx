@@ -6,6 +6,8 @@ import type {ReactNode} from 'react'
 import {IoMdArrowBack} from 'react-icons/io'
 import {Button} from './buttons/button'
 import React from 'react'
+import {H2} from './util/typography'
+import {FlexRow} from './util/flexrow'
 
 const effect = {
   hidden: {
@@ -39,18 +41,22 @@ const effect = {
  */
 export function Modal({
   children,
+  className,
   onClose,
   fullScreen = false,
   title = 'Titulo',
   ariaLabel,
   goBack = false,
+  imgHeader,
 }: {
   children: ReactNode
   onClose: () => void
+  className?: string
   fullScreen?: boolean
   title: string
   ariaLabel?: string
   goBack?: boolean
+  imgHeader?: string
 }) {
   const navigate = useNavigate()
 
@@ -59,7 +65,7 @@ export function Modal({
   }
 
   // const handleKeyDown = (event: any) => {
-  //   if (!isOpen || event.key !== 'Escape') return
+  //   if (event.key !== 'Escape') return
 
   //   onClose()
   // }
@@ -74,16 +80,13 @@ export function Modal({
   //     document.body.style.overflow = 'auto'
   //     document.removeEventListener('keydown', handleKeyDown)
   //   }
-  // }, [isOpen])
-
-  // const submit = useSubmit()
-  // function handleChange(event: React.FormEvent<HTMLFormElement>) {
-  //   submit(event.currentTarget, {replace: true})
-  // }
+  // }, [])
 
   return (
     <motion.main
-      className="bg-backdrop fixed  inset-0 z-50 flex max-h-screen flex-row items-center justify-center bg-black bg-opacity-90 backdrop-blur-sm backdrop-filter"
+      className={clsx(
+        'bg-backdrop fixed  inset-0 z-50 flex max-h-screen flex-row items-center justify-center bg-black bg-opacity-90 backdrop-blur-sm backdrop-filter',
+      )}
       onClick={onClose}
       initial={{opacity: 0}}
       animate={{opacity: 1}}
@@ -106,20 +109,38 @@ export function Modal({
           exit="exit"
           onClick={event => event.stopPropagation()}
         >
-          <div className="sticky inset-x-0 top-0 mb-2 flex w-full flex-row items-center justify-between border-b-2 bg-white p-4">
-            {goBack ? (
-              <Button onClick={NavigateBack} size="small">
-                <IoMdArrowBack />
-              </Button>
-            ) : (
-              <div />
-            )}
-            {title}
-            <XIcon
-              className="h-7 w-7 rounded-full p-1 shadow-lg dark:text-night-700"
-              onClick={onClose}
-            />
-          </div>
+          {imgHeader ? (
+            <div className="relative">
+              <button
+                onClick={onClose}
+                aria-label={`Close ${ariaLabel || 'dialog'}`}
+                className={`${' absolute right-5 top-5 flex h-10 w-10  items-center justify-center rounded-full bg-white shadow-md focus:border-0 focus:ring-0 dark:shadow-sm dark:shadow-black '}`}
+              >
+                <XIcon className="h-6 w-6" />
+              </button>
+              <img
+                alt=""
+                src={imgHeader}
+                className=" max-h-72 w-full rounded-t-lg bg-white object-cover object-bottom"
+                loading="lazy"
+              />
+            </div>
+          ) : (
+            <div className="sticky inset-x-0 top-0 mb-2 flex w-full flex-row items-center justify-between border-b-2 bg-white p-4">
+              {goBack ? (
+                <Button onClick={NavigateBack} size="small">
+                  <IoMdArrowBack />
+                </Button>
+              ) : (
+                <div />
+              )}
+              {title}
+              <XIcon
+                className="h-7 w-7 rounded-full p-1 shadow-lg dark:text-night-700"
+                onClick={onClose}
+              />
+            </div>
+          )}
           {children}
         </motion.dialog>
       </AnimatePresence>
