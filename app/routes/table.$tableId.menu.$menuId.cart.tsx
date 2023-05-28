@@ -82,10 +82,10 @@ export async function action({request, params}: ActionArgs) {
   const quantityStr = cart.find(
     (item: {variantId: string}) => item.variantId === variantId,
   )?.quantity
-
   const userId = session.get('userId')
 
   const cartItems = await getCartItems(cart)
+
   let cartItemsTotal =
     cartItems.reduce((acc, item) => {
       return acc + Number(item.price) * item.quantity
@@ -173,6 +173,10 @@ export async function action({request, params}: ActionArgs) {
               price: Number(item.price),
               name: item.name,
               menuItemId: item.id,
+              modifier: {
+                connect: item.modifiers.map(modifier => ({id: modifier.id})),
+              },
+
               //if shareDish is not empty, connect the users to the cartItem
               user: {
                 connect:

@@ -143,6 +143,7 @@ export function addToCart(
   cart: CartItem[],
   variantId: string,
   quantity: number,
+  modifiers: string[],
 ) {
   let added = false
   for (let item of cart) {
@@ -153,7 +154,7 @@ export function addToCart(
     }
   }
   if (!added) {
-    cart.push({variantId, quantity})
+    cart.push({variantId, quantity, modifiers})
   }
   return cart
 }

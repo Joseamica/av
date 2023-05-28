@@ -17,9 +17,9 @@ export async function loader({request, params}: DataFunctionArgs) {
 
   const session = await getSession(request)
   const sessionId = session.get('sessionId')
-  if (!sessionId) {
-    throw new Error('No se encontró el ID de la sesión')
-  }
+  // if (!sessionId) {
+  //   throw new Error('No se encontró el ID de la sesión')
+  // }
   const userId = session.get('userId')
   const username = session.get('username')
   const user = await prisma.user.findFirst({where: {id: userId}})

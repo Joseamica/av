@@ -1,20 +1,28 @@
-import type {CartItem, MenuItem, User} from '@prisma/client'
+import type {
+  CartItem,
+  MenuItem,
+  ModifierGroup,
+  Modifiers,
+  User,
+} from '@prisma/client'
 import {json, redirect} from '@remix-run/node'
 import {
   Link,
+  useActionData,
   useFetcher,
   useLoaderData,
   useNavigate,
   useSearchParams,
+  useSubmit,
 } from '@remix-run/react'
 import type {ActionArgs, LoaderArgs} from '@remix-run/server-runtime'
+import clsx from 'clsx'
 import React, {useRef} from 'react'
+import {AiOutlineCheck} from 'react-icons/ai'
 import invariant from 'tiny-invariant'
-import {s} from 'vitest/dist/types-e3c9754d'
 import {
   Button,
   FlexRow,
-  H1,
   H2,
   H3,
   H4,
@@ -23,6 +31,7 @@ import {
   Modal,
   SectionContainer,
   SendComments,
+  Spacer,
 } from '~/components'
 import {CategoriesBar} from '~/components/'
 import {prisma} from '~/db.server'
@@ -38,6 +47,10 @@ type MenuCategory = {
   name: string
   menuId: string
   menuItems: MenuItem[]
+}
+
+interface ModifierGroups extends ModifierGroup {
+  modifiers: Modifiers[]
 }
 
 export async function loader({request, params}: LoaderArgs) {
@@ -64,6 +77,11 @@ export async function loader({request, params}: LoaderArgs) {
       menuItems: true,
     },
   })
+
+  const modifierGroup = await prisma.modifierGroup.findMany({
+    where: {menuItems: {some: {id: dishId}}},
+    include: {modifiers: true},
+  })
   //Find users on table that are not the current user,
   //this is to show users to share dishes with and you don't appear
   const usersOnTable = await prisma.user.findMany({
@@ -80,6 +98,7 @@ export async function loader({request, params}: LoaderArgs) {
 
   return json({
     categories,
+    modifierGroup,
     cartItems,
     usersOnTable,
     dish,
@@ -98,6 +117,7 @@ export async function action({request, params}: ActionArgs) {
 
   const formData = await request.formData()
   const submittedItemId = formData.get('submittedItemId') as string
+  const modifiers = formData.getAll('modifier') as string[]
 
   const redirectTo = validateRedirect(request.redirect, ``)
 
@@ -105,8 +125,14 @@ export async function action({request, params}: ActionArgs) {
   let cart = JSON.parse(session.get('cart') || '[]')
 
   if (submittedItemId) {
-    addToCart(cart, submittedItemId, 1)
+    addToCart(cart, submittedItemId, 1, modifiers)
     session.set('cart', JSON.stringify(cart))
+    return redirect(redirectTo, {
+      headers: {'Set-Cookie': await sessionStorage.commitSession(session)},
+    })
+  }
+  if (modifiers.length > 0) {
+    return json({modifiers})
   }
 
   return redirect(redirectTo, {
@@ -115,8 +141,9 @@ export async function action({request, params}: ActionArgs) {
 }
 export default function Menu() {
   const data = useLoaderData()
+  const actionData = useActionData()
   const fetcher = useFetcher()
-  const [searchParams, setSearchParams] = useSearchParams()
+  const [searchParams] = useSearchParams()
   const [isSticky, setIsSticky] = React.useState(false)
 
   const dish = searchParams.get('dishId')
@@ -152,11 +179,21 @@ export default function Menu() {
     return () => window.removeEventListener('scroll', handleScroll)
   }, [])
 
+  const submit = useSubmit()
+  function handleChange(event: React.FormEvent<HTMLFormElement>) {
+    submit(event.currentTarget, {replace: true})
+  }
+
   let isSubmitting =
     fetcher.state === 'submitting' || fetcher.state === 'loading'
 
   return (
-    <fetcher.Form method="POST" preventScrollReset className="relative top-0">
+    <fetcher.Form
+      method="POST"
+      preventScrollReset
+      className="relative top-0"
+      onChange={handleChange}
+    >
       <MenuInfo menu={data.menu} branch={data.branch} />
       {/* CATEGORIES BAR */}
       <CategoriesBar
@@ -223,41 +260,88 @@ export default function Menu() {
             <H2 boldVariant="semibold">{data.dish.name}</H2>
             <H3> {formatCurrency(data.currency, data.dish?.price)}</H3>
             <H4 variant="secondary">{data.dish.description}</H4>
-          </div>
-          <SendComments />
-          {/* <div className=" flex  max-w-md flex-col rounded-lg ">
-            <div className="px-6 py-4">
-              <FlexRow justify="between" className="w-full">
-                <H1 boldVariant="bold">{data.dish.name}</H1>
-                <p className="mt-2 text-lg font-semibold">
-                  {formatCurrency(data.currency, data.dish?.price)}
-                </p>
-              </FlexRow>
-              <p className="text-base text-gray-700">{data.dish.description}</p>
-            </div>
-            <div className="px-6 pb-2 pt-4">
-              <p className="text-lg font-semibold">Share?</p>
-              {data.usersOnTable.map((user: User) => {
+            {data.usersOnTable.map((user: User) => {
+              return (
+                <div key={user.id} className="mt-2 flex items-center">
+                  <input
+                    type="checkbox"
+                    id={`shareDish-${user.id}`}
+                    name="shareDish"
+                    value={user.id}
+                    className="h-5 w-5 rounded text-blue-600"
+                  />
+                  <label
+                    htmlFor={`shareDish-${user.id}`}
+                    className="ml-2 text-sm text-gray-700"
+                  >
+                    {user.name}
+                  </label>
+                </div>
+              )
+            })}
+            <div className="space-y-4">
+              {data.modifierGroup.map((modifierGroup: ModifierGroups) => {
                 return (
-                  <div key={user.id} className="mt-2 flex items-center">
-                    <input
-                      type="checkbox"
-                      id={`shareDish-${user.id}`}
-                      name="shareDish"
-                      value={user.id}
-                      className="h-5 w-5 rounded text-blue-600"
-                    />
-                    <label
-                      htmlFor={`shareDish-${user.id}`}
-                      className="ml-2 text-sm text-gray-700"
-                    >
-                      {user.name}
-                    </label>
+                  <div key={modifierGroup.id} className="space-y-2">
+                    <Spacer spaceY="1" />
+                    <FlexRow>
+                      <H2 variant="secondary">{modifierGroup.name}</H2>
+                      <span className="rounded-full bg-button-primary px-2 text-white ">
+                        {modifierGroup?.isMandatory ? 'Requerido' : 'Opcional'}
+                      </span>
+                    </FlexRow>
+                    <div className="flex flex-col space-y-2">
+                      {modifierGroup.modifiers.map((modifier: Modifiers) => {
+                        const isChecked = actionData?.modifiers.find(
+                          (id: Modifiers['id']) => id === modifier.id,
+                        )
+                        return (
+                          <label
+                            htmlFor={modifier.id}
+                            className="flex flex-row space-x-2"
+                            key={modifier.id}
+                          >
+                            <span
+                              className={clsx('h-6 w-6 rounded-full ring-2', {
+                                'flex items-center justify-center bg-button-primary text-white ':
+                                  isChecked,
+                              })}
+                            >
+                              {isChecked ? <AiOutlineCheck /> : ''}
+                            </span>
+                            <input
+                              id={modifier.id}
+                              type={modifierGroup.type}
+                              name="modifier"
+                              value={modifier.id}
+                              required={
+                                modifierGroup.isMandatory ? true : false
+                              }
+                              className="sr-only"
+                              defaultChecked={
+                                modifierGroup.type === 'radio'
+                                  ? isChecked
+                                  : undefined
+                              }
+                            />
+                            <H3>{modifier.name}</H3>
+                            <H3>
+                              {formatCurrency(
+                                data.currency,
+                                Number(modifier.extraPrice),
+                              )}
+                            </H3>
+                          </label>
+                        )
+                      })}
+                    </div>
                   </div>
                 )
               })}
             </div>
-          </div> */}
+          </div>
+          <SendComments />
+
           <Button name="submittedItemId" value={data.dish.id} className="m-2">
             Agregar {data.dish.name}
           </Button>

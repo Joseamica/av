@@ -9,13 +9,21 @@ export async function getCartItems(cart: CartItem[]) {
         in: uniqueVariantIds,
       },
     },
+    include: {modifierGroups: {select: {id: !0, modifiers: true}}},
   })
 
   const itemsMap = new Map(uniqueItems.map(item => [item.id, item]))
+  //get all modifier groups for each item
+  const modifierGroups = uniqueItems.map(item => item.modifierGroups).flat()
+  //get all modifiers for each modifier group
+  const modifiers = modifierGroups.map(group => group.modifiers).flat()
 
   const cartItems = cart.map(item => ({
     ...itemsMap.get(item.variantId),
     quantity: item.quantity,
+    modifiers: modifiers.filter(modifier =>
+      item.modifiers.includes(modifier.id),
+    ),
   }))
   return cartItems
 }

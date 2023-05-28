@@ -163,7 +163,7 @@ model CartItem {
 
 model Modifiers {
   id                      String         @id @default(cuid())
-  type                    String?
+  name                    String?
   mandatorySelected       Boolean?
   onlyOne                 Boolean?
   multiSelect             Boolean?
@@ -177,13 +177,13 @@ model Modifiers {
 
 model ModifierGroup {
   id                  String      @id @default(cuid())
+  type                String      @default("radio")
   name                String?
   minSelectionAllowed Int?
   maxSelectionAllowed Int?
   isMandatory         Boolean?
   modifiers           Modifiers[]
   menuItems           MenuItem[]
-  // OrderItem           OrderItem[]
   cartItemId          String?
 }
 

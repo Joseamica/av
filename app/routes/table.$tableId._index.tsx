@@ -424,7 +424,7 @@ function PayButtons() {
         <LinkButton to="pay/fullpay">Pagar la cuenta completa</LinkButton>
         {showSplit && (
           <Modal onClose={() => setShowSplit(false)} title="Dividir cuenta">
-            <div className="flex flex-col space-y-2">
+            <div className="flex flex-col space-y-2 p-2">
               <LinkButton to="pay/perDish">Pagar por platillo</LinkButton>
               <LinkButton to="pay/perPerson">Pagar por usuario</LinkButton>
               <LinkButton to="pay/equalParts">

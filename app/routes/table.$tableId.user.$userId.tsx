@@ -5,7 +5,7 @@ import {Link, useLoaderData} from '@remix-run/react'
 import {motion} from 'framer-motion'
 import {Fragment} from 'react'
 import invariant from 'tiny-invariant'
-import {FlexRow, H1, H3, H4, Spacer} from '~/components'
+import {FlexRow, H1, H3, H4, SectionContainer, Spacer} from '~/components'
 import {prisma} from '~/db.server'
 
 export async function loader({params, request}: LoaderArgs) {
@@ -38,7 +38,7 @@ export default function User() {
   const data = useLoaderData()
 
   return (
-    <div className="p-2">
+    <SectionContainer className="p-2">
       <Spacer spaceY="2" />
       {/* <UserIcon fill={data.user?.color} className="w-10 h-10" /> */}
       <div className="flex w-full flex-col items-center justify-center ">
@@ -167,6 +167,6 @@ export default function User() {
       >
         Volver a la cuenta
       </Link>
-    </div>
+    </SectionContainer>
   )
 }
