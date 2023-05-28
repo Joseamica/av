@@ -19,7 +19,7 @@ interface LinkProps {
 
 function getClassName({className}: {className?: string}) {
   return clsx(
-    'group relative inline-flex text-lg font-medium focus:outline-none opacity-100 disabled:opacity-50 transition ',
+    'group relative inline-flex text-lg font-medium focus:outline-none opacity-100 disabled:opacity-50 transition  ',
     className,
   )
 }
@@ -33,7 +33,7 @@ function ButtonInner({
     <>
       <div
         className={clsx(
-          'focus-ring  absolute inset-0 transform rounded-full  border-4 opacity-100 transition disabled:opacity-50',
+          'focus-ring  absolute inset-0 transform rounded-full  border-4 opacity-100 transition disabled:opacity-50 ',
           {
             'border-secondary border-2 bg-transparent group-hover:border-transparent group-focus:border-transparent':
               variant === 'secondary' || variant === 'danger',

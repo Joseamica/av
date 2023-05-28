@@ -39,7 +39,7 @@ export function Payment({
   }
 
   return (
-    <div className="sticky inset-x-0 bottom-0 flex flex-col justify-center rounded-t-xl border-2 bg-white px-2">
+    <div className="dark:bg-night-bg_principal dark:text-night-text_principal sticky inset-x-0 bottom-0 flex flex-col justify-center rounded-t-xl border-2 bg-day-bg_principal px-2">
       {/* Radio Tip buttons */}
       <Spacer spaceY="2" />
       <H2>Método de pago</H2>
@@ -94,10 +94,11 @@ export function Payment({
       <H5 boldVariant="semibold" variant="error">
         {error}
       </H5>
-
+      <Spacer spaceY="2" />
       <Button name="_action" value="proceed">
-        Submit
+        Pagar {formatCurrency(currency, Number(total || 0) + Number(tip || 0))}
       </Button>
+      <Spacer spaceY="2" />
     </div>
   )
 }

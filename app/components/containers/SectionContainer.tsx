@@ -18,7 +18,7 @@ interface SectionContainerProps {
 
 function getClassName({className}: {className?: string}) {
   return clsx(
-    'no-scrollbar container  rounded-lg  bg-white p-2 font-sans shadow-lg',
+    'no-scrollbar container  rounded-lg bg-day-bg_principal dark:text-night-text_principal dark:bg-night-bg_principal p-2 font-sans shadow-lg ',
     className,
   )
 }
@@ -43,13 +43,13 @@ const SectionContainer = React.forwardRef<HTMLElement, SectionContainerProps>(
 
     return (
       <MotionTag
-        // initial={{opacity: 0, width: '0'}}
-        // animate={{opacity: 1, width: '100%'}}
-        // exit={{opacity: 0, width: '0'}}
-        // transition={{
-        //   duration: 0.9,
-        //   ease: [0.04, 0.62, 0.23, 0.98],
-        // }}
+        initial={{opacity: 0, height: '0'}}
+        animate={{opacity: 1, height: '100%'}}
+        exit={{opacity: 0, height: '0'}}
+        transition={{
+          duration: 0.9,
+          ease: [0.04, 0.62, 0.23, 0.98],
+        }}
         id={id}
         {...rest}
         ref={ref}

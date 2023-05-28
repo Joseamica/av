@@ -71,13 +71,13 @@ export async function action({request, params}: ActionArgs) {
   invariant(branchId, 'No se encontró la sucursal')
 
   const formData = await request.formData()
-  const shareDish = formData.getAll('shareDish')
   const variantId = formData.get('variantId') as string
   const _action = formData.get('_action') as string
 
   const redirectTo = validateRedirect(request.redirect, `/table/${tableId}`)
 
   const session = await getSession(request)
+  const shareDish = JSON.parse(session.get('shareUserIds') || false)
   let cart = JSON.parse(session.get('cart') || '[]')
   const quantityStr = cart.find(
     (item: {variantId: string}) => item.variantId === variantId,

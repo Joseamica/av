@@ -31,6 +31,12 @@ export default {
           500: '#3D3D4F',
           600: '#2C2C3B',
           700: '#1C1C28',
+          // bg_principal: '#28293D',
+          //temporal
+          principal: '#1E1E20',
+
+          // text_principal: 'white',
+          text_secondary: '#5F5F76',
         },
         day: {
           100: '#F7F5FF',
@@ -40,6 +46,7 @@ export default {
           500: '#9696E0',
           600: '#9999CC',
           700: '#6A44FF',
+          bg_principal: 'white',
           principal: '#1E1E20',
         },
         button: {

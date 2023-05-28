@@ -16,7 +16,9 @@ import {
   FlexRow,
   H1,
   H2,
+  H4,
   H5,
+  ItemContainer,
   Modal,
   SendComments,
   Spacer,
@@ -25,6 +27,7 @@ import {LinkButton} from '~/components/buttons/button'
 import {prisma} from '~/db.server'
 import {validateRedirect} from '~/redirect.server'
 import {getUserId} from '~/session.server'
+import {getInputClasses} from '~/utils'
 
 export async function action({request, params}: ActionArgs) {
   const {tableId} = params
@@ -172,74 +175,103 @@ export default function Report() {
   const by = searchParams.get('by') || 'No especificado'
   const subject = searchParams.get('subject') || undefined
 
+  let title = ''
+  if (by === 'waitress') {
+    title = 'Reportar a un mesero'
+  } else if (by === 'food') {
+    title = 'Reportar un platillo'
+  } else if (by === 'place') {
+    title = 'Reportar el lugar'
+  } else if (by === 'other') {
+    title = 'Reportar otro suceso'
+  }
   return (
     <Modal
-      title={by === 'No especificado' ? 'Reportar algún suceso' : by}
+      title={by === 'No especificado' ? 'Reportar algún suceso' : title}
       onClose={onClose}
       goBack={by === 'No especificado' ? false : true}
     >
-      <Spacer spaceY="2" />
+      {/* <Spacer spaceY="2" /> */}
 
       <Form
         method="POST"
         onChange={handleChange}
-        className="flex flex-col w-full space-y-2"
+        className="flex w-full flex-col space-y-2 p-2"
       >
         {by === 'waitress' ? (
           <div className="space-y-2">
             {data.waitresses.map((waitress: CartItem) => (
-              <div key={waitress.id}>
-                <label htmlFor={waitress.id}>
+              <ItemContainer key={waitress.id}>
+                <label htmlFor={waitress.id} className="text-xl">
                   {waitress.name}
-                  <input
-                    id={waitress.id}
-                    type="checkbox"
-                    name="selected"
-                    value={waitress.id}
-                  />
                 </label>
-              </div>
+                <input
+                  id={waitress.id}
+                  type="checkbox"
+                  name="selected"
+                  value={waitress.id}
+                  className="h-5 w-5"
+                />
+              </ItemContainer>
             ))}
-            <H1>Selecciona cual fue el problema</H1>
+            <Spacer spaceY="2" />
+            <H2>Selecciona cual fue el problema</H2>
             {Object.entries(WAITRESS_REPORT_SUBJECTS).map(([key, value]) => (
               <LinkButton
+                size="small"
                 to={`?by=waitress&subject=${value}`}
                 key={key}
                 variant={subject === value ? 'primary' : 'secondary'}
+                className="mx-1"
               >
                 {value}
               </LinkButton>
             ))}
-            <Button name="_action" value="proceed" disabled={isSubmitting}>
+            <Spacer spaceY="2" />
+            <Button
+              name="_action"
+              value="proceed"
+              disabled={isSubmitting}
+              className="w-full"
+            >
               {submitButton}
             </Button>
           </div>
         ) : by === 'food' ? (
           <div className="space-y-2">
             {data.cartItemsByUser.map((cartItem: CartItem) => (
-              <div key={cartItem.id}>
-                <label htmlFor={cartItem.id}>
-                  {cartItem.name}
-                  <input
-                    id={cartItem.id}
-                    type="checkbox"
-                    name="selected"
-                    value={cartItem.id}
-                  />
-                </label>
-              </div>
+              <ItemContainer key={cartItem.id}>
+                <label htmlFor={cartItem.id}>{cartItem.name}</label>
+                <input
+                  id={cartItem.id}
+                  type="checkbox"
+                  name="selected"
+                  value={cartItem.id}
+                  className="h-5 w-5"
+                />
+              </ItemContainer>
             ))}
+            <Spacer spaceY="2" />
+
             <H1>Selecciona cual fue el problema</H1>
             {Object.entries(FOOD_REPORT_SUBJECTS).map(([key, value]) => (
               <LinkButton
                 to={`?by=food&subject=${value}`}
                 key={key}
+                size="small"
+                className="mx-1"
                 variant={subject === value ? 'primary' : 'secondary'}
               >
                 {value}
               </LinkButton>
             ))}
-            <Button name="_action" value="proceed" disabled={isSubmitting}>
+            <Spacer spaceY="2" />
+            <Button
+              name="_action"
+              value="proceed"
+              disabled={isSubmitting}
+              className="w-full"
+            >
               {submitButton}
             </Button>
           </div>
@@ -252,25 +284,39 @@ export default function Report() {
               <LinkButton
                 to={`?by=place&subject=${value}`}
                 key={key}
+                size="small"
+                className="mx-1"
                 variant={subject === value ? 'primary' : 'secondary'}
               >
                 {value}
               </LinkButton>
             ))}
-            <Button name="_action" value="proceed" disabled={isSubmitting}>
+            <Spacer spaceY="2" />
+            <Button
+              name="_action"
+              value="proceed"
+              disabled={isSubmitting}
+              className="w-full"
+            >
               {submitButton}
             </Button>
           </div>
         ) : by === 'other' ? (
           <div className="space-y-2">
             <SendComments />
-            <Button name="_action" value="proceed" disabled={isSubmitting}>
+            <Button
+              name="_action"
+              value="proceed"
+              disabled={isSubmitting}
+              className="w-full"
+            >
               {submitButton}
             </Button>
           </div>
         ) : (
           <div>
-            <H2>Seleccione una opción para reportar algún suceso en la mesa</H2>
+            {/* <H4>Seleccione una opción para reportar algún suceso en la mesa</H4> */}
+            {/* <Spacer spaceY="2" /> */}
             <div className="flex flex-col space-y-2">
               <LinkButton to="?by=waitress" size="medium">
                 Mesero

@@ -13,7 +13,7 @@ export function Header({user}: HeaderProps) {
   const isTablePathOnly = location.pathname.split('/').length <= 3
 
   return (
-    <nav className="dark:bg-mainDark fixed inset-x-0 top-0 z-30 m-auto flex  w-full max-w-md flex-row items-center justify-between rounded-b-2xl bg-white p-3 drop-shadow-md sm:rounded-none">
+    <nav className="dark:bg-mainDark fixed inset-x-0 top-0 z-30 m-auto flex  w-full max-w-md flex-row items-center justify-between rounded-b-2xl bg-day-bg_principal p-3 drop-shadow-md dark:bg-night-bg_principal dark:text-night-text_principal sm:rounded-none">
       {!isTablePathOnly ? (
         <Link to={''}>
           <IoChevronBack />

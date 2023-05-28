@@ -11,7 +11,7 @@ export function RestaurantInfoCard() {
           src={data.branch.ppt_image}
           alt=""
           loading="lazy"
-          className="dark:bg-secondaryDark relative max-h-40 w-full rounded-3xl bg-white object-cover brightness-50"
+          className="dark:bg-secondaryDark relative max-h-40 w-full rounded-3xl bg-day-bg_principal object-cover brightness-50 dark:bg-night-bg_principal dark:text-night-text_principal"
         />
         <div className="absolute bottom-5 left-5">
           <p className="text-sm tracking-widest text-white">
@@ -32,7 +32,7 @@ export function RestaurantInfoCard() {
       {data.menu?.id ? (
         <Link
           to={`menu/${data.menu?.id}`}
-          className="dark:bg-mainDark dark:text-mainTextDark flex items-center justify-between rounded-full bg-white px-6 py-4 text-lg drop-shadow-xl"
+          className="dark:bg-mainDark dark:text-mainTextDark flex items-center justify-between rounded-full bg-day-bg_principal px-6 py-4 text-lg drop-shadow-xl dark:bg-night-bg_principal  dark:text-night-text_principal"
         >
           <BookOpenIcon className="h-6 w-6" />
           <span>Ver la carta</span>

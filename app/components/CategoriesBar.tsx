@@ -40,8 +40,11 @@ export function CategoriesBar({
     <motion.div
       ref={containerRef}
       className={clsx(
-        'no-scrollbar my-2 flex items-center space-x-2 overflow-x-scroll whitespace-nowrap rounded-xl px-5 py-4 shadow-lg',
-        {'sticky top-14 bg-white': isSticky},
+        'no-scrollbar my-2 flex items-center space-x-2 overflow-x-scroll whitespace-nowrap rounded-xl px-5 py-4 shadow-lg dark:bg-night-bg_principal',
+        {
+          'sticky top-14 bg-day-bg_principal  dark:text-night-text_principal':
+            isSticky,
+        },
       )}
     >
       {categories.map((category: MenuCategory) => (

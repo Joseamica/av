@@ -49,16 +49,16 @@ export default function User() {
         <H1> {data.user.name}</H1>
         <Spacer spaceY="2" />
 
-        <H4 className="dark:bg-mainDark flex w-full justify-center rounded-t-lg bg-white p-2 shadow-lg dark:shadow-none">
+        <H4 className="dark:bg-mainDark flex w-full justify-center rounded-t-lg bg-day-bg_principal p-2 shadow-lg dark:bg-night-bg_principal dark:shadow-none">
           Platillos ordenados
         </H4>
-        <div className="dark:bg-secondaryDark flex w-full flex-col justify-start rounded-b-xl bg-white p-2">
+        <div className="dark:bg-secondaryDark flex w-full flex-col justify-start rounded-b-xl bg-day-bg_principal p-2 dark:bg-night-bg_principal">
           {data.cartItems.length > 0 ? (
             data.cartItems.map(item => (
               <motion.div key={item.id} className="w-full">
                 <div className=" flex flex-col rounded-lg py-1 " key={item.id}>
                   <FlexRow
-                    className="dark:bg-DARK_1 w-full items-center justify-between rounded-lg bg-white px-4 py-2 shadow-md dark:shadow-none"
+                    className="dark:bg-DARK_1 w-full items-center justify-between rounded-lg bg-day-bg_principal px-4 py-2 shadow-md dark:bg-night-bg_principal dark:shadow-none"
                     key={item.id}
                   >
                     <FlexRow className="items-center justify-center space-x-4">
@@ -100,22 +100,22 @@ export default function User() {
             style={{ background: data.user?.color }}
           >
             <p>{data.user.name}</p>
-            <div className="p-2 bg-white rounded-full ring-2 ring-principal dark:bg-mainDark">
+            <div className="p-2 bg-day-bg_principal dark:bg-night-bg_principal rounded-full ring-2 ring-principal dark:bg-mainDark">
               <p>{data.user?.color.toUpperCase().replace("#", "N:")}</p>
             </div>
           </motion.div>
         </AnimatePresence> */}
       </div>
       <Spacer spaceY="2" />
-      <div className="dark:bg-secondaryDark rounded-t-lg bg-white">
-        <H4 className="dark:bg-mainDark flex justify-center rounded-t-lg bg-white p-2 shadow-lg dark:shadow-none">
+      <div className="dark:bg-secondaryDark rounded-t-lg bg-day-bg_principal dark:bg-night-bg_principal">
+        <H4 className="dark:bg-mainDark flex justify-center rounded-t-lg bg-day-bg_principal p-2 shadow-lg dark:bg-night-bg_principal dark:shadow-none">
           Mesa {data.user?.orders.table.table_number}
         </H4>
         <div className="flex flex-col space-y-2 p-2">
           {data.user?.paid >= 0 ? (
             <FlexRow
               justify="between"
-              className="dark:bg-mainDark rounded-lg bg-white px-4 py-2 shadow-lg dark:shadow-none "
+              className="dark:bg-mainDark rounded-lg bg-day-bg_principal px-4 py-2 shadow-lg dark:bg-night-bg_principal dark:shadow-none "
             >
               <H4>Pagado</H4>
               <H4>
@@ -126,7 +126,7 @@ export default function User() {
           {data.user?.tip >= 0 ? (
             <FlexRow
               justify="between"
-              className="dark:bg-mainDark rounded-lg bg-white px-4 py-2 shadow-lg dark:shadow-none "
+              className="dark:bg-mainDark rounded-lg bg-day-bg_principal px-4 py-2 shadow-lg dark:bg-night-bg_principal dark:shadow-none "
             >
               <H4>Propina</H4>
               <H4>
@@ -137,7 +137,7 @@ export default function User() {
           {data.user?.total >= 0 ? (
             <FlexRow
               justify="between"
-              className="dark:bg-mainDark rounded-lg bg-white px-4 py-2 shadow-lg dark:shadow-none "
+              className="dark:bg-mainDark rounded-lg bg-day-bg_principal px-4 py-2 shadow-lg dark:bg-night-bg_principal dark:shadow-none "
             >
               <H4>Total</H4>
               <H4>
@@ -149,7 +149,7 @@ export default function User() {
       </div>
       <FlexRow
         justify="between"
-        className="dark:bg-mainDark rounded-b-lg bg-white p-4 drop-shadow-lg dark:drop-shadow-none"
+        className="dark:bg-mainDark rounded-b-lg bg-day-bg_principal p-4 drop-shadow-lg dark:bg-night-bg_principal dark:drop-shadow-none"
       >
         <H3>Queda por pagar</H3>
         <H3>

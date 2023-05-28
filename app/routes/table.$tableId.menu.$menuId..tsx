@@ -120,6 +120,7 @@ export async function action({request, params}: ActionArgs) {
   const modifiers = formData.getAll('modifier') as string[]
 
   const redirectTo = validateRedirect(request.redirect, ``)
+  const shareDish = formData.getAll('shareDish')
 
   const session = await getSession(request)
   let cart = JSON.parse(session.get('cart') || '[]')
@@ -127,6 +128,7 @@ export async function action({request, params}: ActionArgs) {
   if (submittedItemId) {
     addToCart(cart, submittedItemId, 1, modifiers)
     session.set('cart', JSON.stringify(cart))
+    session.set('shareUserIds', JSON.stringify(shareDish))
     return redirect(redirectTo, {
       headers: {'Set-Cookie': await sessionStorage.commitSession(session)},
     })

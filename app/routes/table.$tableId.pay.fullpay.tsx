@@ -8,7 +8,7 @@ import {
   useSubmit,
 } from '@remix-run/react'
 import invariant from 'tiny-invariant'
-import {BillAmount, Payment} from '~/components'
+import {BillAmount, Payment, Spacer} from '~/components'
 import {Modal} from '~/components/modal'
 import {prisma} from '~/db.server'
 import {
@@ -135,7 +135,7 @@ export default function FullPay() {
   return (
     <Modal
       onClose={() => navigate('..')}
-      fullScreen={true}
+      // fullScreen={true}
       title="Pagar cuenta completa"
     >
       <div>

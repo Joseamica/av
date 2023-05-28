@@ -95,7 +95,7 @@ export function Modal({
       <AnimatePresence>
         <motion.dialog
           className={clsx(
-            'no-scrollbar  inset-x-0 bottom-0 m-0 mx-auto flex max-h-full w-full flex-col justify-between overflow-auto rounded-t-lg bg-white p-0',
+            'no-scrollbar  dark:bg-night-bg_principal dark:text-night-text_principal inset-x-0 bottom-0 m-0 mx-auto flex max-h-full w-full flex-col justify-between overflow-auto rounded-t-lg bg-day-bg_principal p-0 ',
             fullScreen && ' top-0 h-full',
           )}
           open
@@ -114,19 +114,19 @@ export function Modal({
               <button
                 onClick={onClose}
                 aria-label={`Close ${ariaLabel || 'dialog'}`}
-                className={`${' absolute right-5 top-5 flex h-10 w-10  items-center justify-center rounded-full bg-white shadow-md focus:border-0 focus:ring-0 dark:shadow-sm dark:shadow-black '}`}
+                className={`${' dark:bg-night-bg_principal dark:text-night-text_principal absolute right-5 top-5 flex  h-10 w-10 items-center justify-center rounded-full bg-day-bg_principal shadow-md focus:border-0 focus:ring-0 dark:shadow-sm  dark:shadow-black '}`}
               >
                 <XIcon className="h-6 w-6" />
               </button>
               <img
                 alt=""
                 src={imgHeader}
-                className=" max-h-72 w-full rounded-t-lg bg-white object-cover object-bottom"
+                className=" dark:bg-night-bg_principal max-h-72 w-full rounded-t-lg bg-day-bg_principal object-cover object-bottom"
                 loading="lazy"
               />
             </div>
           ) : (
-            <div className="sticky inset-x-0 top-0 mb-2 flex w-full flex-row items-center justify-between border-b-2 bg-white p-4">
+            <div className="dark:bg-night-bg_principal dark:text-night-text_principal sticky inset-x-0 top-0 z-[9999] mb-2 flex w-full flex-row items-center justify-between border-b-2 bg-day-bg_principal p-4">
               {goBack ? (
                 <Button onClick={NavigateBack} size="small">
                   <IoMdArrowBack />

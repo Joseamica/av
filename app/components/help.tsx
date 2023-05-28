@@ -43,13 +43,13 @@ export function Help() {
       <FlexRow className="w-full justify-around ">
         {Object.values(REPORT_TYPES).map((type, index) => {
           return (
-            <div className="flex flex-col items-center space-y-1" key={index}>
+            <div className="flex flex-col items-center space-y-1 " key={index}>
               <LinkButton
                 to={`help/${type?.name}`}
                 size="icon"
                 variant="icon"
 
-                // className="flex items-center justify-center bg-white rounded-full dark:bg-DARK_1 h-9 w-9 "
+                // className="flex items-center justify-center bg-day-bg_principal dark:bg-night-bg_principal rounded-full dark:bg-DARK_1 h-9 w-9 "
                 //   onClick={() => setShowModal(type?.name)}
               >
                 {type.icon}

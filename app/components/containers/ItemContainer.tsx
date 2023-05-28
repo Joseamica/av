@@ -21,7 +21,7 @@ function getClassName({
   className?: string
 }) {
   return clsx(
-    'no-scrollbar flex flex-row justify-between rounded-lg bg-white p-2 font-sans shadow-lg  container',
+    'no-scrollbar flex flex-row justify-between rounded-lg bg-day-bg_principal  dark:bg-night-bg_principal dark:text-night-text_principal p-4 font-sans shadow-lg  container',
     {'text-disabled': unActive},
     {className},
   )

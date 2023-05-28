@@ -173,11 +173,12 @@ export default function PerPerson() {
     e.preventDefault()
     setCollapse(!collapse)
   }
+  console.log('collapse', collapse)
 
   return (
     <Modal
       onClose={() => navigate('..')}
-      fullScreen={true}
+      // fullScreen={true}
       title="Dividir por usuario"
     >
       {/* <H1>Per Dish</H1> */}
@@ -189,7 +190,6 @@ export default function PerPerson() {
       >
         {Object.keys(data.userTotals).map(userId => {
           const user = data.userTotals[userId]
-
           return (
             <div className="space-y-2 p-2" key={userId}>
               <FlexRow justify="between">
@@ -214,6 +214,7 @@ export default function PerPerson() {
                 {user.cartItems.map((item: CartItem) => {
                   return (
                     <FlexRow key={item.id} className="p-2" justify="between">
+                      <H5>{item.quantity}</H5>
                       <H5>{item.name}</H5>
                       <FlexRow>
                         <H4>{formatCurrency(data.currency, item.price)}</H4>

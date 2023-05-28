@@ -153,20 +153,20 @@ export default function EqualParts() {
   return (
     <Modal
       onClose={() => navigate('..')}
-      fullScreen={true}
+      // fullScreen={true}
       title="Dividir en partes iguales"
     >
       <Form
         method="POST"
         preventScrollReset
         onChange={handleChange}
-        className="p-2"
+        className=""
       >
         <H5 variant="secondary" className="mr-2 text-end xs:text-sm">
           Elige personas en mesa y cuántas pagarás.
         </H5>
-        <div className="p-4 xs:flex xs:h-1/4 xs:flex-row xs:items-center xs:p-2">
-          <div className="flex flex-row justify-center space-x-2 p-4 ">
+        <div className=" p-4 xs:flex xs:h-1/4 xs:flex-row xs:items-center xs:p-2">
+          <div className="z-0 flex flex-row justify-center space-x-2 p-4 ">
             {/* Add more circles with decreasing radius and increasing stroke width */}
 
             <AnimatePresence>
@@ -192,6 +192,7 @@ export default function EqualParts() {
                       strokeDasharray: `${greenedPercent},${notGreenedPercent}`,
                       opacity: 1,
                     }}
+                    strokeLinecap="round" // aquí es donde se aplica
                     cx="18"
                     cy="18"
                     r="15.9155"
@@ -210,32 +211,35 @@ export default function EqualParts() {
               </div>
             </AnimatePresence>
           </div>
-        </div>
 
-        <div className="flex flex-col space-y-2 xs:space-y-1">
-          <div className="flex flex-row items-center justify-between space-y-2 xs:space-x-2 ">
-            <p className="text-md shrink-0 xs:text-xs">Personas en la mesa</p>
-            <QuantityManagerButton
-              quantity={personQuantity}
-              setQuantity={setPersonQuantity}
-              setPayingFor={setPayingFor}
-              payingFor={payingFor}
-              activate={activate}
-            />
+          <div className="flex flex-col space-y-2 p-2 xs:space-y-1">
+            <div className="flex flex-row items-center justify-between space-y-2 xs:space-x-2 ">
+              <div className="flex flex-col items-center">
+                <p className="text-md shrink-0 xs:text-xs">Personas en</p>
+                <p className="text-md shrink-0 xs:text-xs"> la mesa</p>
+              </div>
+
+              <QuantityManagerButton
+                quantity={personQuantity}
+                setQuantity={setPersonQuantity}
+                setPayingFor={setPayingFor}
+                payingFor={payingFor}
+                activate={activate}
+              />
+            </div>
+
+            {/* <Divider /> */}
+            <div className="flex flex-row items-center justify-between space-y-2 ">
+              <p className="text-md xs:text-xs">Pagando por</p>
+              <QuantityManagerButton
+                quantity={payingFor}
+                setQuantity={setPayingFor}
+                // tableNum={table.table_number}
+                disabledPlus={personQuantity === payingFor}
+              />
+            </div>
           </div>
-
-          {/* <Divider /> */}
-          <div className="flex flex-row items-center justify-between space-y-2 ">
-            <p className="text-md xs:text-xs">Pagando por</p>
-            <QuantityManagerButton
-              quantity={payingFor}
-              setQuantity={setPayingFor}
-              // tableNum={table.table_number}
-              disabledPlus={personQuantity === payingFor}
-            />
-          </div>
         </div>
-
         <Payment
           total={perPerson}
           tip={actionData?.tip}

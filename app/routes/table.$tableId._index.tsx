@@ -192,12 +192,12 @@ export default function Table() {
         <BillAmount />
 
         <Spacer spaceY="2" />
-        <div className="flex flex-row justify-center space-x-1">
+        <div className="flex flex-row justify-between space-x-1">
           {/* TODO UI */}
           <Link
             to="."
             className={clsx(
-              `rounded-l-full border-2 px-3 py-1 text-center  text-sm shadow-md `,
+              `w-full rounded-l-full border-2 px-3 py-1  text-center text-sm  shadow-md`,
               {
                 'border-2 border-button-outline bg-button-primary text-white':
                   filter !== 'perUser',
@@ -210,7 +210,7 @@ export default function Table() {
           <Link
             to="?filter=perUser"
             className={clsx(
-              `rounded-r-full border-2 px-3 py-1 text-center  text-sm shadow-md `,
+              `w-full rounded-r-full border-2 px-3 py-1  text-center text-sm shadow-md`,
               {
                 'border-2 border-button-outline bg-button-primary text-white shadow-md':
                   filter === 'perUser',
@@ -353,7 +353,7 @@ export default function Table() {
     return (
       <div>
         <RestaurantInfoCard />
-        <div className="dark:bg-secondaryDark flex h-10 w-10 items-center justify-center rounded-full bg-white shadow-sm ">
+        <div className="dark:bg-secondaryDark dark:bg-night-bg_principal flex h-10 w-10 items-center justify-center rounded-full bg-day-bg_principal shadow-sm ">
           <ChevronDoubleUpIcon className="h-5 w-5 motion-safe:animate-bounce" />
         </div>
         <H5>Aún no existe una orden con platillos.</H5>
@@ -362,7 +362,7 @@ export default function Table() {
             {`Mesa ${data.table.table_number}`}
           </h3>
         </Spacer>
-        <SectionContainer className="dark:bg-DARK_1 flex flex-col justify-start rounded-lg bg-white p-2 drop-shadow-md dark:drop-shadow-none">
+        <SectionContainer className="dark:bg-DARK_1 dark:bg-night-bg_principal dark:text-night-text_principal flex flex-col justify-start rounded-lg bg-day-bg_principal p-2 drop-shadow-md dark:drop-shadow-none">
           <p className="text-DARK_3">Usuarios en la mesa</p>
           <Spacer spaceY="2">
             <hr className="dark:border-DARK_OUTLINE border-LIGHT_DIVIDER" />
