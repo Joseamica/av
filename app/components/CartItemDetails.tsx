@@ -27,7 +27,7 @@ export function CartItemDetails({cartItem}: {cartItem: CartItem}) {
       // }}
     >
       <FlexRow>
-        <H6 className="flex h-5 w-5 items-center justify-center rounded-lg bg-gray-300 text-center">
+        <H6 className="flex h-5 w-5 items-center justify-center rounded-lg text-center">
           {cartItem.quantity}
         </H6>
         <img

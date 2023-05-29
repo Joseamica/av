@@ -50,7 +50,7 @@ export function BillAmount({isPaying}: {isPaying?: any}) {
             </div>
           </FlexRow>
           <button
-            className="flex flex-row items-center space-x-1 text-sm "
+            className="mb-2 flex flex-row items-center space-x-1 text-sm"
             onClick={() => setShowDetails(!showDetails)}
           >
             <H5>{showDetails ? 'Ocultar detalles' : 'Ver detalles'}</H5>
@@ -60,7 +60,7 @@ export function BillAmount({isPaying}: {isPaying?: any}) {
               <ChevronDownIcon className="h-6 w-6" />
             )}
           </button>
-          <AnimatePresence initial={false}>
+          <AnimatePresence>
             {showDetails &&
               data.paidUsers &&
               data.paidUsers.map((user: User, index: number) => {
@@ -70,8 +70,14 @@ export function BillAmount({isPaying}: {isPaying?: any}) {
                     animate={{height: 'auto', opacity: 1}}
                     exit={{height: 0, opacity: 0}}
                     transition={{
-                      height: {duration: 0.8, ease: [0.04, 0.62, 0.23, 0.98]},
-                      opacity: {duration: 0.2, ease: [0.04, 0.62, 0.23, 0.98]},
+                      height: {
+                        duration: 0.8,
+                        ease: [0.04, 0.62, 0.23, 0.98],
+                      },
+                      opacity: {
+                        duration: 0.2,
+                        ease: [0.04, 0.62, 0.23, 0.98],
+                      },
                     }}
                     key={index}
                     className="flex w-full flex-row justify-between space-x-1"

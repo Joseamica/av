@@ -1,6 +1,8 @@
 import {cssBundleHref} from '@remix-run/css-bundle'
 import type {ActionArgs, LinksFunction, LoaderArgs} from '@remix-run/node'
 import {json, redirect} from '@remix-run/node'
+import {RemixSseProvider} from 'remix-sse/client'
+
 import {
   Form,
   Links,
@@ -25,6 +27,7 @@ import {prisma} from './db.server'
 import {findOrCreateUser} from './models/user.server'
 import {validateRedirect} from './redirect.server'
 import appStylesheetUrl from './styles/app.css'
+import {Header} from './components'
 
 export const links: LinksFunction = () => [
   {rel: 'stylesheet', href: tailwindStylesheetUrl},
@@ -47,7 +50,7 @@ export const loader = async ({request}: LoaderArgs) => {
   const pathname = url.pathname
 
   return json(
-    {username, pathname},
+    {username, pathname, user},
     {headers: {'Set-Cookie': await sessionStorage.commitSession(session)}},
   )
 }
@@ -115,8 +118,12 @@ export default function App() {
         <Meta />
         <Links />
       </head>
-      <body className="hide-scrollbar no-scrollbar relative mx-auto h-full max-w-md px-2 pt-16  ">
+      <body className="hide-scrollbar no-scrollbar relative mx-auto h-full max-w-md px-2 pt-16 ">
+        {/* <RemixSseProvider> */}
+        <Header user={data.user} />
+
         <Outlet />
+        {/* </RemixSseProvider> */}
         <ScrollRestoration />
         <Scripts />
         <LiveReload />

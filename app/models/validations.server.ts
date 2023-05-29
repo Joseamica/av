@@ -1,5 +1,3 @@
-//ORDER
-
 import type {Order, Table, User} from '@prisma/client'
 import {json} from '@remix-run/node'
 import {prisma} from '~/db.server'
@@ -40,9 +38,14 @@ export async function validateUserIntegration(
   if (!isUserInOrder) {
     console.log(`🔌 Connecting '${username}' to the order`)
     await prisma.order.update({
-      where: {tableId},
+      where: {id: order?.id},
       data: {users: {connect: {id: userId}}},
     })
     console.log(`✅ Connected '${username}' to the order`)
+  }
+
+  // When user is already in both table and order
+  if (isUserInTable && isUserInOrder) {
+    return json({success: true})
   }
 }

@@ -43,13 +43,13 @@ const SectionContainer = React.forwardRef<HTMLElement, SectionContainerProps>(
 
     return (
       <MotionTag
-        initial={{opacity: 0, h: -100}} // Inicia fuera de la vista hacia arriba
-        animate={{opacity: 1, h: 0}} // Luego se mueve a su posición original
-        exit={{opacity: 0, h: -100}} // Al salir, se desplaza hacia arriba
-        transition={{
-          duration: 0.9,
-          ease: [0.04, 0.62, 0.23, 0.98],
-        }}
+        // initial={{opacity: 0, h: -100}} // Inicia fuera de la vista hacia arriba
+        // animate={{opacity: 1, h: 0}} // Luego se mueve a su posición original
+        // exit={{opacity: 0, h: -100}} // Al salir, se desplaza hacia arriba
+        // transition={{
+        //   duration: 0.9,
+        //   ease: [0.04, 0.62, 0.23, 0.98],
+        // }}
         id={id}
         {...rest}
         ref={ref}

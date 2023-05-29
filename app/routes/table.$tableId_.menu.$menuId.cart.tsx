@@ -9,7 +9,7 @@ import {
 import type {ActionArgs, LoaderArgs} from '@remix-run/server-runtime'
 import React from 'react'
 import invariant from 'tiny-invariant'
-import {Button, FlexRow, Modal} from '~/components'
+import {Button, FlexRow, ItemContainer, Modal, Spacer} from '~/components'
 import {prisma} from '~/db.server'
 import {getBranch, getBranchId} from '~/models/branch.server'
 import {getCartItems} from '~/models/cart.server'
@@ -225,11 +225,11 @@ export default function Menu() {
     fetcher.state === 'submitting' || fetcher.state === 'loading'
 
   return (
-    <Modal onClose={onClose} fullScreen={true} title="Carrito">
-      <fetcher.Form method="POST" preventScrollReset>
+    <Modal onClose={onClose} title="Carrito">
+      <fetcher.Form method="POST" preventScrollReset className="p-2">
         {data.cartItems?.map((items: CartItem, index: number) => {
           return (
-            <div
+            <ItemContainer
               key={index}
               className="flex flex-row items-center justify-between space-x-2 "
             >
@@ -238,7 +238,7 @@ export default function Menu() {
                 <p>{items.name}</p>
                 <p>{formatCurrency(data.currency, items.price)}</p>
               </FlexRow>
-              <FlexRow>
+              <FlexRow className="rounded-full bg-gray_bg p-1 ">
                 <Button
                   size="small"
                   name="_action"
@@ -257,14 +257,16 @@ export default function Menu() {
                   +
                 </Button>
               </FlexRow>
-            </div>
+            </ItemContainer>
           )
         })}
+        <Spacer spaceY="2" />
         <Button
           name="_action"
           value="submitCart"
           type="submit"
           disabled={isSubmitting || data.cartItems?.length === 0}
+          className="w-full"
         >
           {isSubmitting ? 'Agregando platillos...' : 'Completar orden'}
           {data.cartItems

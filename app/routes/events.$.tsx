@@ -1,7 +1,7 @@
 import type {LoaderArgs} from '@remix-run/node'
 import {eventStream} from 'remix-utils'
 
-import {table} from '~/events'
+import {emitter} from '~/events'
 
 export const loader = ({request, params}: LoaderArgs) => {
   const path = `/${params['*']}`
@@ -11,9 +11,9 @@ export const loader = ({request, params}: LoaderArgs) => {
       send({data: Date.now().toString()})
     }
 
-    table.addListener(path, handler)
+    emitter.addListener(path, handler)
     return () => {
-      table.removeListener(path, handler)
+      emitter.removeListener(path, handler)
     }
   })
 }

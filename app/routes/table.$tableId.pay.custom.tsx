@@ -7,18 +7,13 @@ import {
   useNavigate,
   useSubmit,
 } from '@remix-run/react'
-import {get} from 'http'
 import React from 'react'
 import invariant from 'tiny-invariant'
 import {H5, Payment} from '~/components'
 import {Modal} from '~/components/modal'
 import {prisma} from '~/db.server'
-import {
-  getBranchId,
-  getPaymentMethods,
-  getTipsPercentages,
-} from '~/models/branch.server'
-import {getMenu} from '~/models/menu.server'
+import {EVENTS} from '~/events'
+import {getPaymentMethods, getTipsPercentages} from '~/models/branch.server'
 import {validateRedirect} from '~/redirect.server'
 import {getUserId} from '~/session.server'
 import {formatCurrency, getAmountLeftToPay, getCurrency} from '~/utils'
@@ -50,13 +45,6 @@ export async function action({request, params}: ActionArgs) {
   })
   invariant(order, 'No se encontró la orden, o aun no ha sido creada.')
 
-  // const orderTotal = await prisma.order
-  //   .aggregate({
-  //     where: {id: order.id},
-  //     _sum: {total: true},
-  //   })
-  //   .then(res => res._sum.total)
-
   const tip = Number(total) * (Number(tipPercentage) / 100)
   const amountLeft = (await getAmountLeftToPay(tableId)) || 0
   const currency = await getCurrency(tableId)
@@ -70,6 +58,8 @@ export async function action({request, params}: ActionArgs) {
   }
 
   if (proceed) {
+    EVENTS.TABLE_CHANGED(tableId)
+
     //WHEN SUBMIT
     if (amountLeft < total) {
       return redirect(
@@ -109,6 +99,7 @@ export async function loader({request, params}: LoaderArgs) {
 
 export default function EqualParts() {
   const navigate = useNavigate()
+
   const data = useLoaderData()
   const actionData = useActionData()
 

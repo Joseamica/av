@@ -15,6 +15,7 @@ import {
   FlexRow,
   H1,
   H2,
+  H3,
   H4,
   H5,
   H6,
@@ -165,7 +166,7 @@ export default function PerDish() {
   return (
     <Modal
       onClose={() => navigate('..')}
-      fullScreen={true}
+      // fullScreen={true}
       title="Dividir por platillo"
     >
       <Form method="POST" preventScrollReset onChange={handleChange}>
@@ -178,8 +179,8 @@ export default function PerDish() {
                 // showCollapse={true}
               >
                 <FlexRow>
-                  <H5>{item.quantity}</H5>
-                  <H5>{item.name}</H5>
+                  <H4>{item.quantity}</H4>
+                  <H3>{item.name}</H3>
                 </FlexRow>
 
                 <FlexRow>
@@ -189,7 +190,11 @@ export default function PerDish() {
                   {item.paid ? (
                     <H6 className="rounded-full p-1 text-success">{`Pagado ${item.paidBy}`}</H6>
                   ) : (
-                    <input type="checkbox" name={`item-${item.id}`} />
+                    <input
+                      type="checkbox"
+                      name={`item-${item.id}`}
+                      className="h-5 w-5"
+                    />
                   )}
                   <input
                     type="hidden"
