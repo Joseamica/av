@@ -54,7 +54,7 @@ export default {
           outline: '#3568D4',
           successBg: '#DBFAE3',
         },
-        gray_bg: '#EBECF1',
+        gray_light: '#EBECF1',
         warning: '#FF8080',
         disabled: '#9898A1',
         success: '#336B42',

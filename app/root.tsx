@@ -13,6 +13,7 @@ import {
   ScrollRestoration,
   useFetcher,
   useLoaderData,
+  useLocation,
   useRevalidator,
 } from '@remix-run/react'
 
@@ -28,6 +29,8 @@ import {findOrCreateUser} from './models/user.server'
 import {validateRedirect} from './redirect.server'
 import appStylesheetUrl from './styles/app.css'
 import {Header} from './components'
+import {useEventSource} from 'remix-utils'
+import React from 'react'
 
 export const links: LinksFunction = () => [
   {rel: 'stylesheet', href: tailwindStylesheetUrl},
@@ -99,6 +102,9 @@ export default function App() {
   const handleValidate = () => {
     // revalidator.revalidate()
   }
+
+  // useRealtimeIssuesRevalidation();
+
   //TODO MAKE FETCHERS FOR EACH ACTION
   if (!data.username) {
     return (
@@ -119,11 +125,11 @@ export default function App() {
         <Links />
       </head>
       <body className="hide-scrollbar no-scrollbar relative mx-auto h-full max-w-md px-2 pt-16 ">
-        {/* <RemixSseProvider> */}
-        <Header user={data.user} />
+        <RemixSseProvider>
+          <Header user={data.user} />
 
-        <Outlet />
-        {/* </RemixSseProvider> */}
+          <Outlet />
+        </RemixSseProvider>
         <ScrollRestoration />
         <Scripts />
         <LiveReload />
@@ -132,12 +138,13 @@ export default function App() {
   )
 }
 
-// function useRealtimeIssuesRevalidation() {
-//   const eventName = useLocation().pathname
+function useRealtimeIssuesRevalidation() {
+  const eventName = useLocation().pathname
 
-//   const data = useEventSource(`/events${eventName}`)
-//   const {revalidate} = useRevalidator()
-//   useEffect(() => {
-//     console.dir('useRealtimeIssuesRevalidation -> data')
-//     revalidate()
-//   }, [data, revalidate])}
+  const data = useEventSource(`/events${eventName}`)
+  const {revalidate} = useRevalidator()
+  React.useEffect(() => {
+    console.dir('useRealtimeIssuesRevalidation -> data')
+    revalidate()
+  }, [data, revalidate])
+}

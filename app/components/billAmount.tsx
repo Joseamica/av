@@ -15,6 +15,8 @@ import {SectionContainer} from '~/components'
 
 export function BillAmount({isPaying}: {isPaying?: any}) {
   const data = useLoaderData()
+  const MotionLink = motion(Link)
+
   const [showDetails, setShowDetails] = useState(false)
   return (
     <SectionContainer className="space-y-2">
@@ -60,15 +62,19 @@ export function BillAmount({isPaying}: {isPaying?: any}) {
               <ChevronDownIcon className="h-6 w-6" />
             )}
           </button>
-          <AnimatePresence>
-            {showDetails &&
-              data.paidUsers &&
-              data.paidUsers.map((user: User, index: number) => {
-                return (
-                  <motion.div
-                    initial={{height: 0, opacity: 0}}
-                    animate={{height: 'auto', opacity: 1}}
-                    exit={{height: 0, opacity: 0}}
+          {/* <AnimatePresence> */}
+          {showDetails &&
+            data.paidUsers &&
+            data.paidUsers.map((user: User, index: number) => {
+              return (
+                <motion.div
+                  key={index}
+                  className="flex w-full flex-row justify-between space-x-1"
+                >
+                  <MotionLink
+                    initial={{y: '-100%', opacity: 0}}
+                    animate={{y: 0, opacity: 1}}
+                    exit={{y: '-100%', opacity: 0}}
                     transition={{
                       height: {
                         duration: 0.8,
@@ -79,34 +85,30 @@ export function BillAmount({isPaying}: {isPaying?: any}) {
                         ease: [0.04, 0.62, 0.23, 0.98],
                       },
                     }}
-                    key={index}
-                    className="flex w-full flex-row justify-between space-x-1"
+                    className="flex flex-row items-center space-x-1"
+                    to={`./user/${user.id}`}
                   >
-                    <Link
-                      className="flex flex-row items-center space-x-1"
-                      to={`./user/${user.id}`}
-                    >
-                      <UserCircleIcon
-                        fill={user?.color || ''}
-                        className="h-5 w-5"
-                      />
-                      <H4>{user?.name}</H4>
-                      {data.userId === user.id ? (
-                        <H4>Has pagado</H4>
-                      ) : (
-                        <H4>Ha pagado </H4>
-                      )}
-                    </Link>
-                    <H4>{formatCurrency(data.currency, Number(user?.paid))}</H4>
-                  </motion.div>
-                )
-              })}
-            {/* {isPaying.isPaying === true ? (
+                    <UserCircleIcon
+                      fill={user?.color || ''}
+                      className="h-5 w-5"
+                    />
+                    <H4>{user?.name}</H4>
+                    {data.userId === user.id ? (
+                      <H4>Has pagado</H4>
+                    ) : (
+                      <H4>Ha pagado </H4>
+                    )}
+                  </MotionLink>
+                  <H4>{formatCurrency(data.currency, Number(user?.paid))}</H4>
+                </motion.div>
+              )
+            })}
+          {/* {isPaying.isPaying === true ? (
               <motion.div>
                 <p>{isPaying?.user.name} esta pagando en este momento...</p>
               </motion.div>
             ) : null} */}
-          </AnimatePresence>
+          {/* </AnimatePresence> */}
         </div>
       ) : null}
     </SectionContainer>

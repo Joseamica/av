@@ -1,4 +1,4 @@
-import type {CartItem} from '@prisma/client'
+import type {CartItem, User} from '@prisma/client'
 import {Link, useLoaderData} from '@remix-run/react'
 import {motion} from 'framer-motion'
 import {formatCurrency} from '~/utils'
@@ -7,13 +7,20 @@ import {H4, H5, H6} from './util/typography'
 
 const MotionLink = motion(Link)
 
-export function CartItemDetails({cartItem}: {cartItem: CartItem}) {
+interface CartItemDetailsProps extends CartItem {
+  user: User[]
+}
+
+export function CartItemDetails({cartItem}: {cartItem: CartItemDetailsProps}) {
   const data = useLoaderData()
   let cartTotalPrice = cartItem.price * cartItem.quantity
+  let users = cartItem.user?.slice(0, 2).map(user => user.name)
+  if (cartItem.user?.length > 2) users.push('...')
   return (
     <MotionLink
       to={`cartItem/${cartItem.id}`}
       key={cartItem.id}
+      preventScrollReset
       className="flex flex-row items-center justify-between py-2"
       id="userDetails"
       // initial={{height: 0, opacity: 0}}
@@ -34,13 +41,16 @@ export function CartItemDetails({cartItem}: {cartItem: CartItem}) {
           alt=""
           loading="lazy"
           src={cartItem?.image || ''}
-          className="dark:bg-secondaryDark h-8 w-8 rounded-lg"
+          className="dark:bg-secondaryDark h-10 w-10 rounded-lg"
         />
-        {cartItem.quantity > 1 ? (
-          <H5>{cartItem.name}</H5>
-        ) : (
-          <H4>{cartItem.name}</H4>
-        )}
+        <div className="space-y-[2px]">
+          {cartItem.quantity > 1 ? (
+            <H5>{cartItem.name}</H5>
+          ) : (
+            <H4>{cartItem.name}</H4>
+          )}
+          <H6 className="">{users?.join(', ')}</H6>
+        </div>
       </FlexRow>
       <FlexRow className="shrink-0">
         {cartItem.quantity > 1 && (

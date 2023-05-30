@@ -4,6 +4,7 @@ import {H3} from '../util/typography'
 import {XIcon} from '@heroicons/react/outline'
 
 interface ButtonProps {
+  fullWith?: boolean
   variant?: 'primary' | 'secondary' | 'danger' | 'icon'
   size?: 'small' | 'medium' | 'large' | 'icon'
   children: React.ReactNode | React.ReactNode[]
@@ -17,9 +18,16 @@ interface LinkProps {
   to: string
 }
 
-function getClassName({className}: {className?: string}) {
+function getClassName({
+  className,
+  fullWith,
+}: {
+  className?: string
+  fullWith?: boolean
+}) {
   return clsx(
     'group relative inline-flex text-lg font-medium focus:outline-none opacity-100 disabled:opacity-50 transition  ',
+    {'w-full': fullWith},
     className,
   )
 }
@@ -66,13 +74,14 @@ function ButtonInner({
 
 function Button({
   children,
+  fullWith,
   variant = 'primary',
   size = 'large',
   className,
   ...buttonProps
 }: ButtonProps & JSX.IntrinsicElements['button']) {
   return (
-    <button {...buttonProps} className={getClassName({className})}>
+    <button {...buttonProps} className={getClassName({className, fullWith})}>
       <ButtonInner variant={variant} size={size}>
         {children}
       </ButtonInner>

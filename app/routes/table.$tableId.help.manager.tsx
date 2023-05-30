@@ -1,17 +1,19 @@
 import type {Employee, User} from '@prisma/client'
-import type {ActionArgs, LoaderArgs} from '@remix-run/node'
+import {ActionArgs, LoaderArgs, redirect} from '@remix-run/node'
 import {json} from '@remix-run/node'
 import {Form, useLoaderData, useNavigate} from '@remix-run/react'
 import invariant from 'tiny-invariant'
 import {Button, FlexRow, H2, H3, ItemContainer, Modal} from '~/components'
 import {prisma} from '~/db.server'
 import {getTable} from '~/models/table.server'
+import {validateRedirect} from '~/redirect.server'
 
 export async function action({request, params}: ActionArgs) {
   const {tableId} = params
   invariant(tableId, 'tableId is required')
   const formData = await request.formData()
   const managers = formData.getAll('managers')
+  const redirectTo = validateRedirect(request.redirect, `..`)
 
   const table = await getTable(tableId)
 
@@ -19,7 +21,7 @@ export async function action({request, params}: ActionArgs) {
     `CALL ~> Llaman al gerente ${managers} de la mesa ${table?.table_number}`,
   )
 
-  return json({success: true})
+  return redirect(redirectTo)
 }
 
 export async function loader({request, params}: LoaderArgs) {

@@ -23,6 +23,7 @@ import {validateRedirect} from '~/redirect.server'
 import {getUserId} from '~/session.server'
 import {getAmountLeftToPay, getCurrency} from '~/utils'
 import type {Order, User} from '@prisma/client'
+import {EVENTS} from '~/events'
 
 type LoaderData = {
   amountLeft: number
@@ -116,7 +117,7 @@ export async function action({request, params}: ActionArgs) {
         },
       },
     })
-
+    EVENTS.ISSUE_CHANGED(tableId)
     return redirect(redirectTo)
   }
 

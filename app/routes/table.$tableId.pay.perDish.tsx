@@ -25,6 +25,7 @@ import {
 import {ItemContainer} from '~/components/containers/ItemContainer'
 import {Modal} from '~/components/modal'
 import {prisma} from '~/db.server'
+import {EVENTS} from '~/events'
 import {getPaymentMethods, getTipsPercentages} from '~/models/branch.server'
 import {validateRedirect} from '~/redirect.server'
 import {getUserId, getUsername} from '~/session.server'
@@ -149,6 +150,7 @@ export async function action({request, params}: ActionArgs) {
         total: Number(userPrevPaidData?.total) + total + tip,
       },
     })
+    EVENTS.ISSUE_CHANGED(tableId)
     return redirect(redirectTo)
   }
   return json({total, tip, error})

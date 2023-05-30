@@ -1,12 +1,10 @@
-import clsx from 'clsx'
+import React from 'react'
+import {formatCurrency} from '~/utils'
 import {Button} from './buttons/button'
+import {RadioInputButton} from './buttons/input'
 import {FlexRow} from './util/flexrow'
 import {Spacer} from './util/spacer'
-import {H1, H2, H3, H4, H5} from './util/typography'
-import React from 'react'
-import {RadioInputButton} from './buttons/input'
-import {formatCurrency} from '~/utils'
-import {useActionData, useLoaderData} from '@remix-run/react'
+import {H2, H4, H5} from './util/typography'
 
 export function Payment({
   total = 0,
@@ -23,7 +21,6 @@ export function Payment({
   currency: string
   error?: string
 }) {
-  const data = useLoaderData()
   // console.log('data', data)
   const [activeRadioPaymentMethod, setActiveRadioPaymentMethod] =
     React.useState<string>('cash')

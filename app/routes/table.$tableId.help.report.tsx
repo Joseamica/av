@@ -9,14 +9,13 @@ import {
   useSearchParams,
   useSubmit,
 } from '@remix-run/react'
-import React, {useState} from 'react'
+import React from 'react'
 import invariant from 'tiny-invariant'
 import {
   Button,
   FlexRow,
   H1,
   H2,
-  H4,
   H5,
   ItemContainer,
   Modal,
@@ -27,7 +26,6 @@ import {LinkButton} from '~/components/buttons/button'
 import {prisma} from '~/db.server'
 import {validateRedirect} from '~/redirect.server'
 import {getUserId} from '~/session.server'
-import {getInputClasses} from '~/utils'
 
 export async function action({request, params}: ActionArgs) {
   const {tableId} = params
@@ -135,7 +133,7 @@ export async function loader({request, params}: LoaderArgs) {
   return json({waitresses, managers, cartItemsByUser})
 }
 
-const FOOD_REPORT_SUBJECTS = {
+export const FOOD_REPORT_SUBJECTS = {
   1: 'Sabor',
   2: 'Presentación',
   3: 'Demora',

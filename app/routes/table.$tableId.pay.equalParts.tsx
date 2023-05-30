@@ -7,15 +7,18 @@ import {
   useNavigate,
   useSubmit,
 } from '@remix-run/react'
+import {Loader} from 'esbuild'
 import {AnimatePresence, motion} from 'framer-motion'
 import React from 'react'
 import invariant from 'tiny-invariant'
 import {H5, Payment, QuantityManagerButton} from '~/components'
 import {Modal} from '~/components/modal'
 import {prisma} from '~/db.server'
+import {EVENTS} from '~/events'
 import {getPaymentMethods, getTipsPercentages} from '~/models/branch.server'
 import {validateRedirect} from '~/redirect.server'
 import {getUserId} from '~/session.server'
+import {useLiveLoader} from '~/use-live-loader'
 import {formatCurrency, getAmountLeftToPay, getCurrency} from '~/utils'
 
 export async function action({request, params}: ActionArgs) {
@@ -76,6 +79,7 @@ export async function action({request, params}: ActionArgs) {
         total: Number(userPrevPaidData?.total) + payingTotal + tip,
       },
     })
+    EVENTS.ISSUE_CHANGED(tableId)
     return redirect(redirectTo)
   }
 
@@ -119,7 +123,7 @@ export async function loader({request, params}: LoaderArgs) {
 
 export default function EqualParts() {
   const navigate = useNavigate()
-  const data = useLoaderData()
+  const data = useLiveLoader()
   const actionData = useActionData()
   const submit = useSubmit()
 

@@ -39,6 +39,13 @@ const effect = {
  * @param ariaLabel - string to set the aria-label of the modal
  * @returns
  */
+
+const justifyItems = {
+  start: 'justify-start',
+  between: 'justify-between',
+  center: 'justify-center',
+  end: 'justify-end',
+}
 export function Modal({
   children,
   className,
@@ -48,6 +55,7 @@ export function Modal({
   ariaLabel,
   goBack = false,
   imgHeader,
+  justify = 'between',
 }: {
   children: ReactNode
   onClose: () => void
@@ -57,7 +65,7 @@ export function Modal({
   ariaLabel?: string
   goBack?: boolean
   imgHeader?: string
-}) {
+} & {justify?: keyof typeof justifyItems}) {
   const navigate = useNavigate()
 
   const NavigateBack = () => {
@@ -95,8 +103,9 @@ export function Modal({
       <AnimatePresence>
         <motion.dialog
           className={clsx(
-            'no-scrollbar  dark:bg-night-bg_principal dark:text-night-text_principal inset-x-0 bottom-0 m-0 mx-auto flex max-h-full w-full flex-col justify-between overflow-auto rounded-t-lg bg-day-bg_principal p-0 ',
-            fullScreen && ' top-0 h-full',
+            'no-scrollbar  dark:bg-night-bg_principal dark:text-night-text_principal inset-x-0 bottom-0 m-0 mx-auto flex max-h-full w-full flex-col  overflow-auto rounded-t-lg bg-day-bg_principal p-0 ',
+            justifyItems[justify],
+            {'top-0 h-full': fullScreen},
           )}
           open
           variants={effect}
