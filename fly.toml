@@ -1,56 +1,64 @@
+# fly.toml app configuration file generated for av on 2023-06-13T14:37:21-06:00
+#
+# See https://fly.io/docs/reference/configuration/ for information about how to use this file.
+#
+
 app = "av"
-
+primary_region = "dfw"
 kill_signal = "SIGINT"
-kill_timeout = 5
-processes = []
-
-[env]
-  PORT = "8080"
-  METRICS_PORT = "8081"
-
-[metrics]
-  port = 8081
-  path = "/metrics"
-
-[deploy]
-  release_command = "bash ./scripts/migrate.sh"
+kill_timeout = "5s"
 
 [experimental]
-  allowed_public_ports = []
-  auto_rollback = true
+auto_rollback = true
+
+[deploy]
+release_command = "bash ./scripts/migrate.sh"
+
+
+[mounts]
+source = "av"
+destination = "/data"
+
+
+[env]
+FLY_REGION = "dfw"
+METRICS_PORT = "8081"
+PORT = "8080"
+PRIMARY_REGION = "dfw"
 
 [[services]]
-  internal_port = 8080
-  processes = ["app"]
-  protocol = "tcp"
-  script_checks = []
+protocol = "tcp"
+internal_port = 8080
+processes = ["app"]
 
-  [services.concurrency]
-    hard_limit = 25
-    soft_limit = 20
-    type = "connections"
+[[services.ports]]
+port = 80
+handlers = ["http"]
+force_https = true
 
-  [[services.ports]]
-    handlers = ["http"]
-    port = 80
-    force_https = true
+[[services.ports]]
+port = 443
+handlers = ["tls", "http"]
+[services.concurrency]
+type = "connections"
+hard_limit = 25
+soft_limit = 20
 
-  [[services.ports]]
-    handlers = ["tls", "http"]
-    port = 443
+[[services.tcp_checks]]
+interval = "15s"
+timeout = "2s"
+grace_period = "1s"
+restart_limit = 0
 
-  [[services.tcp_checks]]
-    grace_period = "1s"
-    interval = "15s"
-    restart_limit = 0
-    timeout = "2s"
+[[services.http_checks]]
+interval = "10s"
+timeout = "2s"
+grace_period = "5s"
+restart_limit = 0
+method = "get"
+path = "/healthcheck"
+protocol = "http"
 
-  [[services.http_checks]]
-    interval = "10s"
-    grace_period = "5s"
-    method = "get"
-    path = "/healthcheck"
-    protocol = "http"
-    timeout = "2s"
-    tls_skip_verify = false
-    [services.http_checks.headers]
+[metrics]
+port = 8081
+path = "/metrics"

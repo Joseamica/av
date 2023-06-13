@@ -12,8 +12,8 @@ FROM base as deps
 
 WORKDIR /myapp
 
-ADD package.json package-lock.json .npmrc ./
-RUN npm install --production=false
+ADD package.json .npmrc ./
+RUN npm install --include=dev
 
 # Setup production node_modules
 FROM base as production-deps
@@ -21,8 +21,8 @@ FROM base as production-deps
 WORKDIR /myapp
 
 COPY --from=deps /myapp/node_modules /myapp/node_modules
-ADD package.json package-lock.json .npmrc ./
-RUN npm prune --production
+ADD package.json .npmrc ./
+RUN npm prune --omit=dev
 
 # Build the app
 FROM base as build
@@ -31,12 +31,12 @@ WORKDIR /myapp
 
 COPY --from=deps /myapp/node_modules /myapp/node_modules
 
-# If we're using Prisma, uncomment to cache the prisma schema
 ADD prisma .
 RUN npx prisma generate
 
 ADD . .
 RUN npm run build
+# RUN npx prisma db seed
 
 # Finally, build the production image with minimal footprint
 FROM base

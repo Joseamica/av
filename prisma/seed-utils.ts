@@ -1,5 +1,4 @@
 import {faker} from '@faker-js/faker'
-import bcrypt from 'bcryptjs'
 
 export function createUsers() {
   const firstName = faker.name.firstName()

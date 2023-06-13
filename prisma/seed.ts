@@ -1,5 +1,4 @@
 // const { PrismaClient } = require("@prisma/client");
-import {faker} from '@faker-js/faker'
 import {PrismaClient} from '@prisma/client'
 import {createUsers} from './seed-utils'
 const prisma = new PrismaClient()
