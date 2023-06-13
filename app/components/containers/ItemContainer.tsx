@@ -51,9 +51,9 @@ export function ItemContainer({
           })}
         >
           {collapse ? (
-            <ChevronDownIcon className="h-7 w-7 rounded-full p-1 shadow-md" />
+            <ChevronDownIcon className="p-1 rounded-full shadow-md h-7 w-7" />
           ) : (
-            <ChevronUpIcon className="h-7 w-7 rounded-full p-1 shadow-md" />
+            <ChevronUpIcon className="p-1 rounded-full shadow-md h-7 w-7" />
           )}
         </button>
       )}

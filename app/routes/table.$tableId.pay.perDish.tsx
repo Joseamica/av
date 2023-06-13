@@ -22,7 +22,7 @@ import {
   Payment,
   SectionContainer,
 } from '~/components'
-import {ItemContainer} from '~/components/containers/ItemContainer'
+import {ItemContainer} from '~/components/containers/itemContainer'
 import {Modal} from '~/components/modal'
 import {prisma} from '~/db.server'
 import {EVENTS} from '~/events'
