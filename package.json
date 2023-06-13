@@ -8,6 +8,7 @@
     "build:remix": "remix build",
     "build:server": "esbuild --platform=node --format=cjs ./server.ts --outdir=build --bundle",
     "dev": "run-p dev:*",
+    "deploy": "fly deploy --build-arg REMIX_TOKEN=${REMIX_TOKEN}",
     "dev:build": "cross-env NODE_ENV=development npm run build:server -- --watch",
     "dev:css": "cross-env NODE_ENV=development npm run generate:css -- --watch",
     "dev:remix": "cross-env NODE_ENV=development remix watch",
