@@ -1,8 +1,8 @@
 import {prisma} from '~/db.server'
-import {getDateTime} from '~/utils'
+import {getHour} from '~/utils'
 
 export function getMenu(branchId: string | undefined) {
-  const timeNow = getDateTime()
+  const timeNow = getHour()
 
   return prisma.menu.findFirst({
     where: {

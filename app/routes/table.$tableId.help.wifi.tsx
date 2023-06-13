@@ -41,7 +41,7 @@ export default function Help() {
               onClick={() =>
                 navigator.clipboard.writeText(data.wifiDetails.wifipwd)
               }
-              className="dark:bg-DARK_PRIMARY_1 bg-principal flex flex-row items-center space-x-2 rounded-full px-2 py-1 text-sm text-white"
+              className="bg-principal flex flex-row items-center space-x-2 rounded-full border-button-outline px-2 py-1 text-sm text-white dark:bg-button-primary"
             >
               Copiar
             </button>

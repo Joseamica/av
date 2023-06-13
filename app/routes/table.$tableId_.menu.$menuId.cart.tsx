@@ -9,13 +9,23 @@ import {
 import type {ActionArgs, LoaderArgs} from '@remix-run/server-runtime'
 import React from 'react'
 import invariant from 'tiny-invariant'
-import {Button, FlexRow, ItemContainer, Modal, Spacer} from '~/components'
+import {
+  Button,
+  FlexRow,
+  H4,
+  H5,
+  ItemContainer,
+  Modal,
+  Spacer,
+} from '~/components'
 import {prisma} from '~/db.server'
+import {EVENTS} from '~/events'
 import {getBranch, getBranchId} from '~/models/branch.server'
 import {getCartItems} from '~/models/cart.server'
 import {getOrderTotal} from '~/models/order.server'
 import {validateRedirect} from '~/redirect.server'
 import {getSession, sessionStorage, updateCartItem} from '~/session.server'
+import {sendWhatsapp} from '~/twilio.server'
 import {formatCurrency, getCurrency} from '~/utils'
 
 // type MenuCategory = {
@@ -193,6 +203,8 @@ export async function action({request, params}: ActionArgs) {
       )
 
       session.unset('cart')
+      EVENTS.ISSUE_CHANGED(tableId)
+
       return redirect(redirectTo, {
         headers: {'Set-Cookie': await sessionStorage.commitSession(session)},
       })
@@ -234,11 +246,11 @@ export default function Menu() {
               className="flex flex-row items-center justify-between space-x-2 "
             >
               <input type="hidden" name="variantId" value={item} />
-              <FlexRow>
-                <p>{items.name}</p>
-                <p>{formatCurrency(data.currency, items.price)}</p>
+              <FlexRow justify="between">
+                <H4>{items.name}</H4>
+                <H5>{formatCurrency(data.currency, items.price)}</H5>
               </FlexRow>
-              <FlexRow className="rounded-full bg-gray_bg p-1 ">
+              <FlexRow className="rounded-full bg-gray_light p-1 ">
                 <Button
                   size="small"
                   name="_action"
@@ -268,14 +280,7 @@ export default function Menu() {
           disabled={isSubmitting || data.cartItems?.length === 0}
           className="w-full"
         >
-          {isSubmitting ? 'Agregando platillos...' : 'Completar orden'}
-          {data.cartItems
-            ?.map((items: CartItem) => {
-              return items.quantity
-            })
-            .reduce((acc: number, item: number) => {
-              return acc + item
-            }, 0)}
+          {isSubmitting ? 'Agregando platillos...' : `Completar orden`}
         </Button>
       </fetcher.Form>
     </Modal>

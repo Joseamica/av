@@ -25,9 +25,11 @@ import {
 import {ItemContainer} from '~/components/containers/ItemContainer'
 import {Modal} from '~/components/modal'
 import {prisma} from '~/db.server'
+import {EVENTS} from '~/events'
 import {getPaymentMethods, getTipsPercentages} from '~/models/branch.server'
 import {validateRedirect} from '~/redirect.server'
 import {getUserId, getUsername} from '~/session.server'
+import {useLiveLoader} from '~/use-live-loader'
 import {formatCurrency, getAmountLeftToPay, getCurrency} from '~/utils'
 
 type LoaderData = {
@@ -149,6 +151,7 @@ export async function action({request, params}: ActionArgs) {
         total: Number(userPrevPaidData?.total) + total + tip,
       },
     })
+    EVENTS.ISSUE_CHANGED(tableId)
     return redirect(redirectTo)
   }
   return json({total, tip, error})
@@ -156,7 +159,7 @@ export async function action({request, params}: ActionArgs) {
 
 export default function PerDish() {
   const navigate = useNavigate()
-  const data = useLoaderData<LoaderData>()
+  const data = useLiveLoader<LoaderData>()
   const actionData = useActionData()
   const submit = useSubmit()
   function handleChange(event: React.FormEvent<HTMLFormElement>) {

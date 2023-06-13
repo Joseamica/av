@@ -1,4 +1,4 @@
-import {CartItem} from '@prisma/client'
+import type {CartItem} from '@prisma/client'
 import {createCookieSessionStorage, redirect} from '@remix-run/node'
 import invariant from 'tiny-invariant'
 import {v4 as uuidv4} from 'uuid'
@@ -15,6 +15,7 @@ export const sessionStorage = createCookieSessionStorage({
     httpOnly: true,
     path: '/',
     sameSite: 'lax',
+    // expires: new Date('1970-01-01'), // Set a past date so the cookie is deleted when the browser closes
     secrets: [process.env.SESSION_SECRET],
     secure: process.env.NODE_ENV === 'production',
   },
@@ -130,9 +131,9 @@ export async function createUserSession({
   })
 }
 
-export async function logout(request: Request) {
+export async function logout(request: Request, path = '/') {
   const session = await getSession(request)
-  return redirect('/', {
+  return redirect(path, {
     headers: {
       'Set-Cookie': await sessionStorage.destroySession(session),
     },

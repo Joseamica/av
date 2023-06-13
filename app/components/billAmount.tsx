@@ -15,6 +15,8 @@ import {SectionContainer} from '~/components'
 
 export function BillAmount({isPaying}: {isPaying?: any}) {
   const data = useLoaderData()
+  const MotionLink = motion(Link)
+
   const [showDetails, setShowDetails] = useState(false)
   return (
     <SectionContainer className="space-y-2">
@@ -66,21 +68,15 @@ export function BillAmount({isPaying}: {isPaying?: any}) {
               data.paidUsers.map((user: User, index: number) => {
                 return (
                   <motion.div
-                    initial={{height: 0, opacity: 0}}
-                    animate={{height: 'auto', opacity: 1}}
-                    exit={{height: 0, opacity: 0}}
-                    transition={{
-                      height: {
-                        duration: 0.8,
-                        ease: [0.04, 0.62, 0.23, 0.98],
-                      },
-                      opacity: {
-                        duration: 0.2,
-                        ease: [0.04, 0.62, 0.23, 0.98],
-                      },
-                    }}
                     key={index}
                     className="flex w-full flex-row justify-between space-x-1"
+                    initial={{height: 0}}
+                    animate={{height: 'auto'}}
+                    exit={{opacity: 0, height: 0}}
+                    transition={{
+                      duration: 0.8,
+                      ease: [0.04, 0.62, 0.23, 0.98],
+                    }}
                   >
                     <Link
                       className="flex flex-row items-center space-x-1"

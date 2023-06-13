@@ -9,7 +9,7 @@ import {
 } from '@remix-run/react'
 import React from 'react'
 import invariant from 'tiny-invariant'
-import {BillAmount, Button, H1, Spacer} from '~/components'
+import {BillAmount, Button, H1, H2, H3, H5, Payment, Spacer} from '~/components'
 import {Modal} from '~/components/modal'
 import {prisma} from '~/db.server'
 import {
@@ -21,6 +21,7 @@ import {getMenu} from '~/models/menu.server'
 import {getPaidUsers} from '~/models/user.server'
 import {validateRedirect} from '~/redirect.server'
 import {getUserId} from '~/session.server'
+import {useLiveLoader} from '~/use-live-loader'
 import {formatCurrency, getAmountLeftToPay, getCurrency} from '~/utils'
 
 export async function action({request, params}: ActionArgs) {
@@ -31,6 +32,7 @@ export async function action({request, params}: ActionArgs) {
   const redirectTo = validateRedirect(request.redirect, `/table/${tableId}`)
 
   const proceed = formData.get('_action') === 'proceed'
+  const tip = formData.get('tip') as string
 
   const order = await prisma.order.findFirst({
     where: {tableId},
@@ -39,7 +41,7 @@ export async function action({request, params}: ActionArgs) {
 
   const url = new URL(request.url)
   const searchParams = new URLSearchParams(url.search)
-  const tip = Number(searchParams.get('tip')) as number
+  // const tip = Number(searchParams.get('tip')) as number
 
   //WHEN SUBMIT
   if (proceed) {
@@ -53,8 +55,9 @@ export async function action({request, params}: ActionArgs) {
       where: {id: userId},
       data: {
         paid: Number(userPrevPaidData?.paid) + Number(amountLeft),
-        tip: Number(userPrevPaidData?.tip) + tip,
-        total: Number(userPrevPaidData?.total) + Number(amountLeft) + tip,
+        tip: Number(userPrevPaidData?.tip) + Number(tip),
+        total:
+          Number(userPrevPaidData?.total) + Number(amountLeft) + Number(tip),
       },
     })
     return redirect(redirectTo)
@@ -107,7 +110,7 @@ export async function loader({request, params}: LoaderArgs) {
 
 export default function EqualParts() {
   const navigate = useNavigate()
-  const data = useLoaderData()
+  const data = useLiveLoader()
 
   const [searchParams] = useSearchParams()
   const tip = Number(searchParams.get('tip')) as number
@@ -121,23 +124,56 @@ export default function EqualParts() {
   return (
     <Modal
       onClose={() => navigate('..')}
-      fullScreen={true}
+      // fullScreen={true}
       title="Estás siendo super generoso"
     >
-      <Form method="POST" preventScrollReset onChange={handleChange}>
+      <Form
+        method="POST"
+        preventScrollReset
+        onChange={handleChange}
+        className="p-2"
+      >
         <BillAmount
         // isPaying={isPaying}
         />
-        <H1>Quieres pagar {formatCurrency(data.currency, total)}</H1>
+        <Spacer spaceY="2" />
+        <div className="flex flex-col items-center justify-center rounded-lg bg-white p-2 shadow-lg">
+          <H5>Quieres pagar</H5>
+          <H1 className="text-3xl">{formatCurrency(data.currency, total)}</H1>
+        </div>
         <Spacer spaceY="2" />
 
-        <div>
+        {/* <div>
           <H1>Total: {formatCurrency(data.currency, data.amountLeft)}</H1>
           <H1>Propina: {formatCurrency(data.currency, tip)}</H1>
-        </div>
-        <Button name="_action" value="proceed">
-          Submit
+        </div> */}
+        <Button name="_action" value="proceed" fullWith={true}>
+          Añade{' '}
+          {formatCurrency(
+            data.currency,
+            Number(total || 0) - Number(data.amountLeft || 0),
+          )}{' '}
+          como propina y paga{' '}
+          {formatCurrency(data.currency, +Number(data.amountLeft || 0))}
         </Button>
+        <input
+          type="hidden"
+          name="tip"
+          value={Number(total || 0) - Number(data.amountLeft || 0)}
+        />
+        <Spacer spaceY="1" />
+        {/* FIX MAKE IT WORK */}
+        {/* <Button name="_action" value="proceed" fullWith={true}>
+          Pagar {formatCurrency(data.currency, Number(total || 0))} y dejar{' '}
+          {formatCurrency(data.currency, +Number(tip || 0))} de propina
+        </Button> */}
+        {/* <Payment
+          total={data.amountLeft}
+          tip={tip}
+          tipsPercentages={data.tipsPercentages}
+          paymentMethods={data.paymentMethods}
+          currency={data.currency}
+        /> */}
       </Form>
     </Modal>
   )

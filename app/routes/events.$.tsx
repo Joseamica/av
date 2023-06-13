@@ -1,6 +1,5 @@
 import type {LoaderArgs} from '@remix-run/node'
 import {eventStream} from 'remix-utils'
-
 import {emitter} from '~/events'
 
 export const loader = ({request, params}: LoaderArgs) => {

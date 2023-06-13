@@ -1,6 +1,5 @@
-import {ChevronDoubleUpIcon} from '@heroicons/react/outline'
-import type {CartItem, User} from '@prisma/client'
-import type {ActionArgs, DataFunctionArgs} from '@remix-run/node'
+import type {CartItem, Order, Table as TableProps, User} from '@prisma/client'
+import type {ActionArgs, LoaderArgs} from '@remix-run/node'
 import {json, redirect} from '@remix-run/node'
 import {
   Form,
@@ -20,7 +19,6 @@ import {
   BillAmount,
   CartItemDetails,
   FlexRow,
-  H2,
   H3,
   H4,
   H5,
@@ -32,19 +30,27 @@ import {
   UserButton,
 } from '~/components/index'
 import {prisma} from '~/db.server'
+import {EVENTS} from '~/events'
 import {getBranch} from '~/models/branch.server'
 import {getMenu} from '~/models/menu.server'
 import {getTable} from '~/models/table.server'
-import {getUsersOnTable} from '~/models/user.server'
-import {getPaidUsers} from '~/models/user.server'
+import {getPaidUsers, getUsersOnTable} from '~/models/user.server'
 import {validateUserIntegration} from '~/models/validations.server'
-import {getSession, sessionStorage} from '~/session.server'
+import {getSession, logout, sessionStorage} from '~/session.server'
 import {useLiveLoader} from '~/use-live-loader'
 import {formatCurrency, getAmountLeftToPay, getCurrency} from '~/utils'
-//
-export async function loader({request, params}: DataFunctionArgs) {
-  const {tableId} = params
+import {addHours, compareAsc, formatISO} from 'date-fns'
 
+type LoaderData = {
+  order: Order & {cartItems: CartItemDetailsProps[]; users: UserWithCart[]}
+  table: TableProps
+  total: number
+  currency: string
+  usersInTable: User[]
+}
+
+export async function loader({request, params}: LoaderArgs) {
+  const {tableId} = params
   invariant(tableId, 'No se encontró el ID de la mesa')
 
   const branch = await getBranch(tableId)
@@ -55,13 +61,16 @@ export async function loader({request, params}: DataFunctionArgs) {
     getUsersOnTable(tableId),
   ])
 
+  const url = new URL(request.url)
+  const pathname = url.pathname
+
   const session = await getSession(request)
   const userId = session.get('userId')
   const username = session.get('username')
-  const user = await prisma.user.findFirst({where: {id: userId}})
-  const tables = await prisma.table.findMany({
-    where: {branchId: branch.id},
-  })
+  // const user = await prisma.user.findFirst({where: {id: userId}})
+  // const tables = await prisma.table.findMany({
+  //   where: {branchId: branch.id},
+  // })
 
   if (userId && username) {
     const userValidations = await validateUserIntegration(
@@ -69,6 +78,29 @@ export async function loader({request, params}: DataFunctionArgs) {
       tableId,
       username,
     )
+    const sessionId = session.get('sessionId')
+    // console.log('sessionId', sessionId)
+    const sessionExpiryTime = session.get('expiryTime')
+    if (
+      sessionExpiryTime &&
+      compareAsc(new Date(sessionExpiryTime), new Date()) < 0
+    ) {
+      // If the session has expired, delete it
+      // await prisma.session.delete({where: {id: sessionId}})
+      await prisma.user.update({
+        where: {id: userId},
+        data: {
+          orders: {disconnect: true},
+          tables: {disconnect: true},
+          sessions: {deleteMany: {}},
+        },
+      })
+      throw await logout(request, pathname)
+    }
+
+    if (!sessionId) {
+      throw new Error('No se encontró el ID de la sesión')
+    }
     if (!userValidations) {
       return redirect(``)
     }
@@ -77,7 +109,10 @@ export async function loader({request, params}: DataFunctionArgs) {
 
   const order = await prisma.order.findFirst({
     where: {tableId, active: true},
-    include: {cartItems: true, users: {include: {cartItems: true}}},
+    include: {
+      cartItems: {include: {user: true}},
+      users: {include: {cartItems: true}},
+    },
   })
 
   // console.log('order', order)
@@ -127,6 +162,7 @@ export async function action({request, params}: ActionArgs) {
 
   switch (_action) {
     case 'endOrder':
+      EVENTS.ISSUE_CHANGED(tableId)
       console.log('ending order')
       const order = await prisma.order.findFirst({
         where: {
@@ -137,6 +173,7 @@ export async function action({request, params}: ActionArgs) {
           users: true,
         },
       })
+      // EVENTS.TABLE_CHANGED(tableId)
       invariant(order, 'Orden no existe')
       // Update each user to set `paid` to 0
       for (let user of order.users) {
@@ -182,20 +219,23 @@ export async function action({request, params}: ActionArgs) {
 }
 
 interface UserWithCart extends User {
-  cartItems: CartItem[]
+  cartItems: CartItemDetailsProps[]
+}
+
+interface CartItemDetailsProps extends CartItem {
+  user: User[]
 }
 
 export default function Table() {
-  const data = useLoaderData()
+  // const data = useLoaderData()
   const [searchParams] = useSearchParams()
 
   const [collapse, setCollapse] = useState(false)
   const handleCollapse = () => {
     setCollapse(!collapse)
   }
-
-  // const data = useLiveLoader()
-  // console.log('dataLive', data)
+  // const data = useLoaderData()e
+  const data = useLiveLoader<LoaderData>()
   // console.log('data', data)
   const filter = searchParams.get('filter')
   const userId = searchParams.get('userId')
@@ -203,21 +243,21 @@ export default function Table() {
 
   if (data.total > 0) {
     return (
-      <div className="">
+      <motion.main>
         <RestaurantInfoCard />
         <Spacer spaceY="2">
-          <h3 className="text-secondaryTextDark flex shrink-0 justify-center text-sm">
+          <h3 className="flex justify-center text-sm text-secondaryTextDark shrink-0">
             {`Mesa ${data.table.table_number}`}
           </h3>
         </Spacer>
+        <h1>TODO: SESSIONS EXPIRATION & STRIPE INTEGRATION & WHATSAPP MSG</h1>
         <Help />
-
         <BillAmount />
-
         <Spacer spaceY="2" />
         <div className="flex flex-row justify-between space-x-1">
           {/* TODO UI */}
           <Link
+            preventScrollReset
             to="."
             className={clsx(
               `w-full rounded-l-full border-2 px-3 py-1  text-center text-sm  shadow-md`,
@@ -226,7 +266,6 @@ export default function Table() {
                   filter !== 'perUser',
               },
             )}
-            preventScrollReset
           >
             Ver orden por platillos
           </Link>
@@ -245,156 +284,146 @@ export default function Table() {
           </Link>
         </div>
         <Spacer spaceY="2" />
-        <AnimatePresence>
-          {filter === 'perUser' ? (
-            <motion.div
-              className="space-y-2"
-              // initial={{opacity: 0, width: '0'}}
-              // animate={{opacity: 1, width: '100%'}}
-              // exit={{opacity: 0, width: '0'}}
-              // transition={{
-              //   duration: 0.4,
-              //   ease: [0.04, 0.62, 0.23, 0.98],
-              // }}
-            >
-              {data.order.users.map((user: UserWithCart) => {
-                return (
-                  <SectionContainer key={user.id}>
-                    <FlexRow justify="between" className="rounded-xl">
-                      <Spacer spaceY="2">
-                        <H3>{user.name}</H3>
-                        <H5>
-                          {Number(user.paid) > 0
-                            ? `Pagado: $${Number(user.paid)}`
-                            : 'No ha pagado'}
-                        </H5>
-                      </Spacer>
-                      <NavLink
-                        preventScrollReset
-                        to={
-                          userId === user.id
-                            ? `?${toggleLink}`
-                            : `?${toggleLink}&userId=${user.id}`
-                        }
-                        className="flex items-center justify-center rounded-full bg-button-primary px-2 py-1 text-white"
-                      >
-                        Detalles
-                      </NavLink>
-                    </FlexRow>
-                    <hr />
-                    <AnimatePresence>
-                      {userId === user.id && (
-                        <motion.div
-                          id="userDetails"
-                          initial={{height: 0, opacity: 0}}
-                          animate={{height: 'auto', opacity: 1}}
-                          exit={{height: 0, opacity: 0}}
-                          transition={{
-                            height: {
-                              duration: 0.8,
-                              ease: [0.04, 0.62, 0.23, 0.98],
-                            },
-                            opacity: {
-                              duration: 0.2,
-                              ease: [0.04, 0.62, 0.23, 0.98],
-                            },
-                          }}
-                        >
-                          {user.cartItems.length > 0 ? (
-                            <div>
-                              {user.cartItems.map((cartItem: CartItem) => {
-                                return (
-                                  <CartItemDetails
-                                    key={cartItem.id}
-                                    cartItem={cartItem}
-                                  />
-                                )
-                              })}
-                            </div>
-                          ) : (
-                            <H5 variant="secondary">
-                              Usuario no cuenta con platillos ordenados
-                            </H5>
-                          )}
-                        </motion.div>
-                      )}
-                    </AnimatePresence>
-
-                    <hr />
-                    <div className="flex justify-between py-2">
-                      <H5>{user.cartItems?.length || 0} platillos</H5>
+        {filter === 'perUser' ? (
+          <motion.div className="space-y-2">
+            {data.order.users.map((user: UserWithCart) => {
+              return (
+                <SectionContainer key={user.id}>
+                  <FlexRow justify="between" className="rounded-xl">
+                    <Spacer spaceY="2">
+                      <H3>{user.name}</H3>
                       <H5>
-                        {formatCurrency(
-                          data.currency,
-                          user.cartItems.reduce(
-                            (sum, item) => sum + item.price,
-                            0,
-                          ),
-                        )}
+                        {Number(user.paid) > 0
+                          ? `Pagado: $${Number(user.paid)}`
+                          : 'No ha pagado'}
                       </H5>
-                    </div>
-                  </SectionContainer>
-                )
-              })}
-            </motion.div>
-          ) : (
-            <SectionContainer
-              divider={true}
-              showCollapse={data.order.cartItems.length > 4 ? true : false}
-              collapse={collapse}
-              handleCollapse={handleCollapse}
-            >
-              {!collapse ? (
-                <AnimatePresence>
-                  {data.order.cartItems.map((cartItem: CartItem) => {
-                    return (
-                      <CartItemDetails cartItem={cartItem} key={cartItem.id} />
-                    )
-                  })}
-                </AnimatePresence>
-              ) : (
-                <AnimatePresence>
-                  {data.order.cartItems
-                    .slice(0, 4)
-                    .map((cartItem: CartItem) => {
-                      return (
-                        <CartItemDetails
-                          cartItem={cartItem}
-                          key={cartItem.id}
-                        />
-                      )
-                    })}
-                </AnimatePresence>
-              )}
-            </SectionContainer>
-          )}
-        </AnimatePresence>
+                    </Spacer>
+                    <NavLink
+                      preventScrollReset
+                      to={
+                        userId === user.id
+                          ? `?${toggleLink}`
+                          : `?${toggleLink}&userId=${user.id}`
+                      }
+                      className="flex items-center justify-center px-2 py-1 text-white rounded-full bg-button-primary"
+                    >
+                      Detalles
+                    </NavLink>
+                  </FlexRow>
+                  <hr />
+                  {userId === user.id && (
+                    <motion.div
+                      id="userDetails"
+                      initial={{height: 0, opacity: 0}}
+                      animate={{height: 'auto', opacity: 1}}
+                      exit={{height: 0, opacity: 0}}
+                      transition={{
+                        height: {
+                          duration: 0.8,
+                          ease: [0.04, 0.62, 0.23, 0.98],
+                        },
+                        opacity: {
+                          duration: 0.2,
+                          ease: [0.04, 0.62, 0.23, 0.98],
+                        },
+                      }}
+                    >
+                      {user.cartItems.length > 0 ? (
+                        <div>
+                          {user.cartItems.map(
+                            (cartItem: CartItemDetailsProps) => {
+                              return (
+                                <CartItemDetails
+                                  key={cartItem.id}
+                                  cartItem={cartItem}
+                                />
+                              )
+                            },
+                          )}
+                        </div>
+                      ) : (
+                        <H5 variant="secondary">
+                          Usuario no cuenta con platillos ordenados
+                        </H5>
+                      )}
+                    </motion.div>
+                  )}
+
+                  <hr />
+                  <div className="flex justify-between py-2">
+                    <H5>{user.cartItems?.length || 0} platillos</H5>
+                    <H5>
+                      {formatCurrency(
+                        data.currency,
+                        user.cartItems.reduce(
+                          (sum, item) => sum + item.price,
+                          0,
+                        ),
+                      )}
+                    </H5>
+                  </div>
+                </SectionContainer>
+              )
+            })}
+          </motion.div>
+        ) : (
+          <SectionContainer
+            divider={true}
+            showCollapse={data.order.cartItems.length > 4 ? true : false}
+            collapse={collapse}
+            collapseTitle={
+              collapse ? 'Ver más platillos' : 'Ver menos platillos '
+            }
+            handleCollapse={handleCollapse}
+          >
+            {!collapse ? (
+              <AnimatePresence initial={false}>
+                {data.order.cartItems.map(cartItem => {
+                  return (
+                    <CartItemDetails cartItem={cartItem} key={cartItem.id} />
+                  )
+                })}
+              </AnimatePresence>
+            ) : (
+              <AnimatePresence>
+                {data.order.cartItems.slice(0, 4).map(cartItem => {
+                  return (
+                    <CartItemDetails cartItem={cartItem} key={cartItem.id} />
+                  )
+                })}
+              </AnimatePresence>
+            )}
+          </SectionContainer>
+        )}
         <Spacer spaceY="2" />
         <PayButtons />
         <Outlet />
-      </div>
+      </motion.main>
     )
   } else {
     return (
       <div>
         <RestaurantInfoCard />
-        <div className="dark:bg-secondaryDark dark:bg-night-bg_principal flex h-10 w-10 items-center justify-center rounded-full bg-day-bg_principal shadow-sm ">
-          <ChevronDoubleUpIcon className="h-5 w-5 motion-safe:animate-bounce" />
-        </div>
-        <H5>Aún no existe una orden con platillos.</H5>
+        {/* <div className="flex items-center justify-center w-10 h-10 rounded-full shadow-sm dark:bg-secondaryDark dark:bg-night-bg_principal bg-day-bg_principal ">
+          <ChevronDoubleUpIcon className="w-5 h-5 motion-safe:animate-bounce" />
+        </div>*/}
+        <Spacer spaceY="2" />
+        <H5 className="flex justify-center w-full ">
+          Aún no existe una orden con platillos.
+        </H5>
         <Spacer spaceY="3">
-          <h3 className="text-secondaryTextDark flex shrink-0 justify-center pr-2 text-sm">
+          <h3 className="flex justify-center pr-2 text-sm text-secondaryTextDark shrink-0">
             {`Mesa ${data.table.table_number}`}
           </h3>
         </Spacer>
-        <SectionContainer className="dark:bg-DARK_1 dark:bg-night-bg_principal dark:text-night-text_principal flex flex-col justify-start rounded-lg bg-day-bg_principal p-2 drop-shadow-md dark:drop-shadow-none">
+        <SectionContainer className="flex flex-col justify-start p-2 rounded-lg dark:bg-DARK_1 dark:bg-night-bg_principal dark:text-night-text_principal bg-day-bg_principal drop-shadow-md dark:drop-shadow-none">
           <p className="text-DARK_3">Usuarios en la mesa</p>
           <Spacer spaceY="2">
             <hr className="dark:border-DARK_OUTLINE border-LIGHT_DIVIDER" />
           </Spacer>
-          {data.usersInTable?.map((user: User, index: number) => (
+          {data.usersInTable?.map((user, index: number) => (
             <FlexRow
-              className="w-full items-center justify-between space-x-2 space-y-2"
+              className="items-center justify-between w-full space-x-2 space-y-2"
               key={user.id}
             >
               <FlexRow className="items-center space-x-2">
@@ -403,8 +432,9 @@ export default function Table() {
               </FlexRow>
               <div>
                 <Link
+                  preventScrollReset
                   to={`user/${user?.id}`}
-                  className="dark:bg-buttonBgDark bg-componentBg flex flex-row items-center justify-center rounded-full px-2 py-1 "
+                  className="flex flex-row items-center justify-center px-2 py-1 rounded-full dark:bg-buttonBgDark bg-componentBg "
                 >
                   Detalles
                 </Link>
@@ -412,15 +442,6 @@ export default function Table() {
             </FlexRow>
           ))}
         </SectionContainer>
-        <div>
-          TODO:
-          <ol>
-            <li>
-              - Cuando usuario se une, que automaticamente lo muestre, que no
-              tenga que hacer reload
-            </li>
-          </ol>
-        </div>
       </div>
     )
   }
@@ -450,7 +471,7 @@ function PayButtons() {
         <Spacer spaceY="2" />
         {showSplit && (
           <Modal onClose={() => setShowSplit(false)} title="Dividir cuenta">
-            <div className="flex flex-col space-y-2 p-2">
+            <div className="flex flex-col p-2 space-y-2">
               <LinkButton to="pay/perDish">Pagar por platillo</LinkButton>
               <LinkButton to="pay/perPerson">Pagar por usuario</LinkButton>
               <LinkButton to="pay/equalParts">
@@ -465,7 +486,12 @@ function PayButtons() {
   } else {
     return (
       <Form method="POST">
-        <Button name="_action" value="endOrder" onClick={handleValidate}>
+        <Button
+          name="_action"
+          value="endOrder"
+          onClick={handleValidate}
+          fullWith={true}
+        >
           Terminar orden
         </Button>
       </Form>

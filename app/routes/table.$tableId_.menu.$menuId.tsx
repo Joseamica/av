@@ -188,6 +188,14 @@ export default function Menu() {
   let isSubmitting =
     fetcher.state === 'submitting' || fetcher.state === 'loading'
 
+  const cartItemsAdded = data.cartItems
+    ?.map((items: CartItem) => {
+      return items.quantity
+    })
+    .reduce((acc: number, item: number) => {
+      return acc + item
+    }, 0)
+
   return (
     <>
       <fetcher.Form
@@ -252,16 +260,11 @@ export default function Menu() {
           <LinkButton
             to="cart"
             disabled={isSubmitting}
-            className="sticky inset-x-0 bottom-0 w-full"
+            className="sticky inset-x-0 bottom-0 mb-2 w-full"
           >
-            {isSubmitting ? 'Agregando platillos...' : 'Ir al carrito'}
-            {data.cartItems
-              ?.map((items: CartItem) => {
-                return items.quantity
-              })
-              .reduce((acc: number, item: number) => {
-                return acc + item
-              }, 0)}
+            {isSubmitting
+              ? `Agregando platillos... (${cartItemsAdded})`
+              : `Ir al carrito (${cartItemsAdded})`}
           </LinkButton>
         ) : null}
         {/* MODAL */}

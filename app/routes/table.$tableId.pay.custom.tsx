@@ -9,6 +9,7 @@ import {
 } from '@remix-run/react'
 import React from 'react'
 import invariant from 'tiny-invariant'
+import {Twilio} from 'twilio'
 import {H5, Payment} from '~/components'
 import {Modal} from '~/components/modal'
 import {prisma} from '~/db.server'
@@ -16,6 +17,7 @@ import {EVENTS} from '~/events'
 import {getPaymentMethods, getTipsPercentages} from '~/models/branch.server'
 import {validateRedirect} from '~/redirect.server'
 import {getUserId} from '~/session.server'
+import {useLiveLoader} from '~/use-live-loader'
 import {formatCurrency, getAmountLeftToPay, getCurrency} from '~/utils'
 
 export async function action({request, params}: ActionArgs) {
@@ -58,8 +60,7 @@ export async function action({request, params}: ActionArgs) {
   }
 
   if (proceed) {
-    EVENTS.TABLE_CHANGED(tableId)
-
+    // EVENTS.TABLE_CHANGED(tableId, amountLeft < Number(total))
     //WHEN SUBMIT
     if (amountLeft < total) {
       return redirect(
@@ -81,6 +82,8 @@ export async function action({request, params}: ActionArgs) {
         total: Number(userPrevPaidData?.total) + total + tip,
       },
     })
+    EVENTS.ISSUE_CHANGED(tableId)
+
     return redirect(redirectTo)
   }
 
@@ -97,10 +100,10 @@ export async function loader({request, params}: LoaderArgs) {
   return json({paymentMethods, tipsPercentages, currency})
 }
 
-export default function EqualParts() {
+export default function Custom() {
   const navigate = useNavigate()
 
-  const data = useLoaderData()
+  const data = useLiveLoader<typeof loader>()
   const actionData = useActionData()
 
   const submit = useSubmit()
@@ -134,7 +137,6 @@ export default function EqualParts() {
             placeholder="0.00"
           />
         </div>
-        <H5 variant="error">{actionData?.error}</H5>
         <Payment
           total={actionData?.total}
           tip={actionData?.tip}

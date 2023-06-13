@@ -1,37 +1,40 @@
 import type {Employee} from '@prisma/client'
 import type {ActionArgs, LoaderArgs} from '@remix-run/node'
+import {redirect} from '@remix-run/node'
 import {json} from '@remix-run/node'
 import {Form, useLoaderData, useNavigate} from '@remix-run/react'
 import invariant from 'tiny-invariant'
 import {Button, FlexRow, ItemContainer, Modal} from '~/components'
 import {prisma} from '~/db.server'
 import {getTable} from '~/models/table.server'
+import {validateRedirect} from '~/redirect.server'
 
 export async function action({request, params}: ActionArgs) {
   const {tableId} = params
   invariant(tableId, 'tableId is required')
   const formData = await request.formData()
-  const waitresses = formData.getAll('waitresses')
+  const waiters = formData.getAll('waiters')
+  const redirectTo = validateRedirect(request.redirect, `..`)
 
   const table = await getTable(tableId)
-  // const waitresses = await prisma.employee.findMany({
-  //   where: {id: data.,rol: 'waitress', tables: {some: {id: tableId}}},
+  // const waiters = await prisma.employee.findMany({
+  //   where: {id: data.,rol: 'waiter', tables: {some: {id: tableId}}},
   // })
   console.dir(
-    `CALL ~> Llaman al mesero ${waitresses} de la mesa ${table?.table_number}`,
+    `CALL ~> Llaman al mesero ${waiters} de la mesa ${table?.table_number}`,
   )
 
-  return json({success: true})
+  return redirect(redirectTo)
 }
 
 export async function loader({request, params}: LoaderArgs) {
   const {tableId} = params
   invariant(tableId, 'tableId is required')
-  const waitresses = await prisma.employee.findMany({
-    where: {rol: 'waitress', tables: {some: {id: tableId}}},
+  const waiters = await prisma.employee.findMany({
+    where: {role: 'waiter', tables: {some: {id: tableId}}},
   })
 
-  return json({waitresses})
+  return json({waiters})
 }
 
 export default function Help() {
@@ -45,21 +48,21 @@ export default function Help() {
   return (
     <Modal title="Llama al mesero" onClose={onClose}>
       <Form method="POST" className="space-y-2 p-2">
-        {data.waitresses?.map((waitress: Employee) => (
-          <ItemContainer key={waitress.id} className="flex flex-row">
+        {data.waiters?.map((waiter: Employee) => (
+          <ItemContainer key={waiter.id} className="flex flex-row">
             <FlexRow className="space-x-4">
-              <label className="text-xl" htmlFor={waitress.id}>
-                {waitress.name}
+              <label className="text-xl" htmlFor={waiter.id}>
+                {waiter.name}
               </label>
               <span className="rounded-full bg-button-primary px-2  text-sm text-white ring ring-button-outline">
-                {waitress.rol ? 'Mesero' : ''}
+                {waiter.role ? 'Mesero' : ''}
               </span>
             </FlexRow>
             <input
               type="checkbox"
-              name="waitresses"
-              id={waitress.id}
-              value={waitress.name}
+              name="waiters"
+              id={waiter.id}
+              value={waiter.name}
             />
           </ItemContainer>
         ))}

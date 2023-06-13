@@ -8,7 +8,7 @@ datasource db {
 }
 
 model Restaurant {
-  id         Int      @id @default(autoincrement())
+  id         String   @id @default(cuid())
   name       String
   logo       String
   email      String
@@ -36,7 +36,7 @@ model Branch {
   rating              Float?
   rating_quantity     Int?
   cuisine             String
-  restaurantId        Int
+  restaurantId        String
   timezone            String?
   open                Int?
   close               Int
@@ -199,8 +199,7 @@ model User {
   total        Decimal?
   orderId      String?
   orders       Order?       @relation(fields: [orderId], references: [id])
-  isAdmin      Boolean?     @default(false)
-  isWaitress   Boolean?     @default(false)
+  role         Role?
   branch       Branch?      @relation(fields: [branchId], references: [id])
   branchId     String?
   restaurant   Restaurant[]
@@ -220,12 +219,19 @@ model Password {
 
 model Employee {
   id        String     @id @default(cuid())
-  rol       String
+  role      Role
   name      String
   image     String?
+  phone     String?
   email     String
   tables    Table[]
   feedbacks Feedback[]
+}
+
+enum Role {
+  admin
+  manager
+  waiter
 }
 
 model Feedback {
