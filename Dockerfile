@@ -31,6 +31,7 @@ WORKDIR /myapp
 
 COPY --from=deps /myapp/node_modules /myapp/node_modules
 
+# If we're using Prisma, uncomment to cache the prisma schema
 ADD prisma .
 RUN npx prisma generate
 

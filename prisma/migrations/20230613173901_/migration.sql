@@ -1,39 +1,9 @@
-/*
-  Warnings:
-
-  - You are about to drop the column `createdAt` on the `User` table. All the data in the column will be lost.
-  - You are about to drop the column `updatedAt` on the `User` table. All the data in the column will be lost.
-  - You are about to drop the `Note` table. If the table is not empty, all the data it contains will be lost.
-
-*/
--- DropForeignKey
-ALTER TABLE "Note" DROP CONSTRAINT "Note_userId_fkey";
-
--- DropForeignKey
-ALTER TABLE "Password" DROP CONSTRAINT "Password_userId_fkey";
-
--- AlterTable
-ALTER TABLE "User" DROP COLUMN "createdAt",
-DROP COLUMN "updatedAt",
-ADD COLUMN     "branchId" TEXT,
-ADD COLUMN     "color" TEXT,
-ADD COLUMN     "creationDate" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-ADD COLUMN     "isAdmin" BOOLEAN DEFAULT false,
-ADD COLUMN     "isWaitress" BOOLEAN DEFAULT false,
-ADD COLUMN     "name" TEXT,
-ADD COLUMN     "orderId" TEXT,
-ADD COLUMN     "paid" DECIMAL(65,30),
-ADD COLUMN     "restaurantId" TEXT,
-ADD COLUMN     "tip" DECIMAL(65,30),
-ADD COLUMN     "total" DECIMAL(65,30),
-ALTER COLUMN "email" DROP NOT NULL;
-
--- DropTable
-DROP TABLE "Note";
+-- CreateEnum
+CREATE TYPE "Role" AS ENUM ('admin', 'manager', 'waiter');
 
 -- CreateTable
 CREATE TABLE "Restaurant" (
-    "id" SERIAL NOT NULL,
+    "id" TEXT NOT NULL,
     "name" TEXT NOT NULL,
     "logo" TEXT NOT NULL,
     "email" TEXT NOT NULL,
@@ -51,7 +21,7 @@ CREATE TABLE "Branch" (
     "ppt_image" TEXT NOT NULL,
     "email" TEXT NOT NULL,
     "phone" TEXT,
-    "wifi" TEXT,
+    "wifiName" TEXT,
     "wifipwd" TEXT,
     "instagram" TEXT,
     "facebook" TEXT,
@@ -62,9 +32,17 @@ CREATE TABLE "Branch" (
     "rating" DOUBLE PRECISION,
     "rating_quantity" INTEGER,
     "cuisine" TEXT NOT NULL,
-    "restaurantId" INTEGER NOT NULL,
+    "restaurantId" TEXT NOT NULL,
+    "timezone" TEXT,
     "open" INTEGER,
     "close" INTEGER NOT NULL,
+    "firstTip" DECIMAL(65,30) DEFAULT 10,
+    "secondTip" DECIMAL(65,30) DEFAULT 12,
+    "thirdTip" DECIMAL(65,30) DEFAULT 15,
+    "firstPaymentMethod" TEXT DEFAULT 'cash',
+    "secondPaymentMethod" TEXT DEFAULT 'card',
+    "thirdPaymentMethod" TEXT DEFAULT 'paypal',
+    "fourthPaymentMethod" TEXT DEFAULT 'apple pay',
 
     CONSTRAINT "Branch_pkey" PRIMARY KEY ("id")
 );
@@ -85,24 +63,14 @@ CREATE TABLE "Menu" (
     "name" TEXT,
     "type" TEXT,
     "currency" TEXT,
+    "fromHour" DECIMAL(65,30),
+    "toHour" DECIMAL(65,30),
+    "allday" BOOLEAN,
     "branchId" TEXT NOT NULL,
     "personalizeMenu" BOOLEAN DEFAULT false,
     "image" TEXT,
-    "showingHoursId" TEXT,
 
     CONSTRAINT "Menu_pkey" PRIMARY KEY ("id")
-);
-
--- CreateTable
-CREATE TABLE "ShowingHours" (
-    "id" TEXT NOT NULL,
-    "fromHour" INTEGER,
-    "fromMinute" INTEGER,
-    "toHour" INTEGER,
-    "toMinute" INTEGER,
-    "allDay" BOOLEAN NOT NULL,
-
-    CONSTRAINT "ShowingHours_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
@@ -146,16 +114,17 @@ CREATE TABLE "Order" (
 CREATE TABLE "CartItem" (
     "id" TEXT NOT NULL,
     "name" TEXT,
+    "image" TEXT,
     "price" DOUBLE PRECISION NOT NULL,
     "creationDate" TEXT,
     "quantity" INTEGER NOT NULL,
     "orderId" TEXT,
     "menuItemId" TEXT,
     "comments" TEXT,
-    "paid" BOOLEAN,
+    "paid" BOOLEAN DEFAULT false,
+    "paidBy" TEXT,
     "stock" INTEGER,
     "feedbackId" TEXT,
-    "userId" TEXT,
     "activeOnOrder" BOOLEAN,
     "rating" TEXT,
 
@@ -165,7 +134,7 @@ CREATE TABLE "CartItem" (
 -- CreateTable
 CREATE TABLE "Modifiers" (
     "id" TEXT NOT NULL,
-    "type" TEXT,
+    "name" TEXT,
     "mandatorySelected" BOOLEAN,
     "onlyOne" BOOLEAN,
     "multiSelect" BOOLEAN,
@@ -180,6 +149,7 @@ CREATE TABLE "Modifiers" (
 -- CreateTable
 CREATE TABLE "ModifierGroup" (
     "id" TEXT NOT NULL,
+    "type" TEXT NOT NULL DEFAULT 'radio',
     "name" TEXT,
     "minSelectionAllowed" INTEGER,
     "maxSelectionAllowed" INTEGER,
@@ -190,11 +160,37 @@ CREATE TABLE "ModifierGroup" (
 );
 
 -- CreateTable
+CREATE TABLE "User" (
+    "id" TEXT NOT NULL,
+    "name" TEXT,
+    "email" TEXT,
+    "creationDate" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "color" TEXT,
+    "tip" DECIMAL(65,30),
+    "paid" DECIMAL(65,30),
+    "total" DECIMAL(65,30),
+    "orderId" TEXT,
+    "role" "Role",
+    "branchId" TEXT,
+    "restaurantId" TEXT,
+    "tableId" TEXT,
+
+    CONSTRAINT "User_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "Password" (
+    "hash" TEXT NOT NULL,
+    "userId" TEXT NOT NULL
+);
+
+-- CreateTable
 CREATE TABLE "Employee" (
     "id" TEXT NOT NULL,
-    "rol" TEXT NOT NULL,
+    "role" "Role" NOT NULL,
     "name" TEXT NOT NULL,
     "image" TEXT,
+    "phone" TEXT,
     "email" TEXT NOT NULL,
 
     CONSTRAINT "Employee_pkey" PRIMARY KEY ("id")
@@ -209,13 +205,24 @@ CREATE TABLE "Feedback" (
     "orderedDate" TIMESTAMP(3),
     "tableId" TEXT,
     "branchId" TEXT,
+    "userId" TEXT,
 
     CONSTRAINT "Feedback_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
+CREATE TABLE "Session" (
+    "id" TEXT NOT NULL,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "userId" TEXT NOT NULL,
+    "expirationDate" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "Session_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
 CREATE TABLE "_RestaurantToUser" (
-    "A" INTEGER NOT NULL,
+    "A" TEXT NOT NULL,
     "B" TEXT NOT NULL
 );
 
@@ -227,6 +234,12 @@ CREATE TABLE "_MenuItemToModifierGroup" (
 
 -- CreateTable
 CREATE TABLE "_CartItemToModifiers" (
+    "A" TEXT NOT NULL,
+    "B" TEXT NOT NULL
+);
+
+-- CreateTable
+CREATE TABLE "_CartItemToUser" (
     "A" TEXT NOT NULL,
     "B" TEXT NOT NULL
 );
@@ -247,6 +260,12 @@ CREATE TABLE "_EmployeeToFeedback" (
 CREATE UNIQUE INDEX "Order_tableId_key" ON "Order"("tableId");
 
 -- CreateIndex
+CREATE UNIQUE INDEX "User_email_key" ON "User"("email");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "Password_userId_key" ON "Password"("userId");
+
+-- CreateIndex
 CREATE UNIQUE INDEX "_RestaurantToUser_AB_unique" ON "_RestaurantToUser"("A", "B");
 
 -- CreateIndex
@@ -263,6 +282,12 @@ CREATE UNIQUE INDEX "_CartItemToModifiers_AB_unique" ON "_CartItemToModifiers"("
 
 -- CreateIndex
 CREATE INDEX "_CartItemToModifiers_B_index" ON "_CartItemToModifiers"("B");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "_CartItemToUser_AB_unique" ON "_CartItemToUser"("A", "B");
+
+-- CreateIndex
+CREATE INDEX "_CartItemToUser_B_index" ON "_CartItemToUser"("B");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "_EmployeeToTable_AB_unique" ON "_EmployeeToTable"("A", "B");
@@ -286,9 +311,6 @@ ALTER TABLE "Table" ADD CONSTRAINT "Table_branchId_fkey" FOREIGN KEY ("branchId"
 ALTER TABLE "Menu" ADD CONSTRAINT "Menu_branchId_fkey" FOREIGN KEY ("branchId") REFERENCES "Branch"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "Menu" ADD CONSTRAINT "Menu_showingHoursId_fkey" FOREIGN KEY ("showingHoursId") REFERENCES "ShowingHours"("id") ON DELETE SET NULL ON UPDATE CASCADE;
-
--- AddForeignKey
 ALTER TABLE "MenuCategory" ADD CONSTRAINT "MenuCategory_menuId_fkey" FOREIGN KEY ("menuId") REFERENCES "Menu"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
@@ -310,9 +332,6 @@ ALTER TABLE "CartItem" ADD CONSTRAINT "CartItem_orderId_fkey" FOREIGN KEY ("orde
 ALTER TABLE "CartItem" ADD CONSTRAINT "CartItem_feedbackId_fkey" FOREIGN KEY ("feedbackId") REFERENCES "Feedback"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "CartItem" ADD CONSTRAINT "CartItem_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE SET NULL ON UPDATE CASCADE;
-
--- AddForeignKey
 ALTER TABLE "Modifiers" ADD CONSTRAINT "Modifiers_modifierGroupId_fkey" FOREIGN KEY ("modifierGroupId") REFERENCES "ModifierGroup"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
@@ -322,6 +341,9 @@ ALTER TABLE "User" ADD CONSTRAINT "User_orderId_fkey" FOREIGN KEY ("orderId") RE
 ALTER TABLE "User" ADD CONSTRAINT "User_branchId_fkey" FOREIGN KEY ("branchId") REFERENCES "Branch"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
+ALTER TABLE "User" ADD CONSTRAINT "User_tableId_fkey" FOREIGN KEY ("tableId") REFERENCES "Table"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
 ALTER TABLE "Password" ADD CONSTRAINT "Password_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
@@ -329,6 +351,12 @@ ALTER TABLE "Feedback" ADD CONSTRAINT "Feedback_branchId_fkey" FOREIGN KEY ("bra
 
 -- AddForeignKey
 ALTER TABLE "Feedback" ADD CONSTRAINT "Feedback_tableId_fkey" FOREIGN KEY ("tableId") REFERENCES "Table"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "Feedback" ADD CONSTRAINT "Feedback_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "Session" ADD CONSTRAINT "Session_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "_RestaurantToUser" ADD CONSTRAINT "_RestaurantToUser_A_fkey" FOREIGN KEY ("A") REFERENCES "Restaurant"("id") ON DELETE CASCADE ON UPDATE CASCADE;
@@ -347,6 +375,12 @@ ALTER TABLE "_CartItemToModifiers" ADD CONSTRAINT "_CartItemToModifiers_A_fkey" 
 
 -- AddForeignKey
 ALTER TABLE "_CartItemToModifiers" ADD CONSTRAINT "_CartItemToModifiers_B_fkey" FOREIGN KEY ("B") REFERENCES "Modifiers"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "_CartItemToUser" ADD CONSTRAINT "_CartItemToUser_A_fkey" FOREIGN KEY ("A") REFERENCES "CartItem"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "_CartItemToUser" ADD CONSTRAINT "_CartItemToUser_B_fkey" FOREIGN KEY ("B") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "_EmployeeToTable" ADD CONSTRAINT "_EmployeeToTable_A_fkey" FOREIGN KEY ("A") REFERENCES "Employee"("id") ON DELETE CASCADE ON UPDATE CASCADE;
