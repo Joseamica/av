@@ -1,17 +1,58 @@
 // const { PrismaClient } = require("@prisma/client");
+import {faker} from '@faker-js/faker'
 import {PrismaClient} from '@prisma/client'
-const db = new PrismaClient()
+import {createUsers} from './seed-utils'
+const prisma = new PrismaClient()
 
 async function seed() {
-  const user = await db.user.create({
-    data: {
-      name: 'hola',
-      email: 'kiliman@gmail',
-      total: 0,
-    },
-  })
+  console.log('🌱 Seeding...')
+  console.time(`🌱 Database has been seeded`)
 
-  const restaurant = await db.restaurant.create({
+  console.time('🧹 Cleaned up the database...')
+  await prisma.restaurant.deleteMany()
+  await prisma.branch.deleteMany()
+  await prisma.table.deleteMany()
+  await prisma.employee.deleteMany()
+  await prisma.menu.deleteMany()
+  await prisma.menuCategory.deleteMany()
+  await prisma.menuItem.deleteMany()
+  await prisma.modifierGroup.deleteMany()
+  await prisma.modifiers.deleteMany()
+  await prisma.cartItem.deleteMany()
+  await prisma.session.deleteMany()
+  await prisma.user.deleteMany()
+  await prisma.order.deleteMany()
+  await prisma.feedback.deleteMany()
+  await prisma.employee.deleteMany()
+  console.timeEnd('🧹 Cleaned up the database...')
+
+  const totalUsers = 2
+  console.time(`👤 Created ${totalUsers} users...`)
+  const users = await Promise.all(
+    Array.from({length: totalUsers}).map(async (_, i) => {
+      const userData = createUsers()
+
+      const user = await prisma.user.create({
+        data: {
+          ...userData,
+        },
+      })
+      return user
+    }),
+  )
+  console.timeEnd(`👤 Created ${totalUsers} users...`)
+
+  // const admin = await prisma.user.create({
+  //   data: {
+  //     name: 'Jose',
+  //     role: 'admin',
+  //     email: 'joseamica@gmail.com',
+
+  //   },
+
+  // })
+
+  const restaurant = await prisma.restaurant.create({
     data: {
       name: 'Guavos',
       logo: 'https://madre-cafe.com/wp-content/uploads/2021/11/logo-madre-cafe-header.svg',
@@ -21,7 +62,7 @@ async function seed() {
     },
   })
 
-  const branch = await db.branch.create({
+  const branch = await prisma.branch.create({
     data: {
       name: 'La Bikina',
       ppt_image:
@@ -45,29 +86,29 @@ async function seed() {
 
   const NUMBER_OF_TABLES = 4
   for (let i = 1; i <= NUMBER_OF_TABLES; i++) {
-    const table = await db.table.create({
+    const table = await prisma.table.create({
       data: {
         table_number: i,
         order_in_progress: false,
         branch: {connect: {id: branch.id}},
-        employees: {
-          create: {
-            name: 'Victor',
-            rol: 'waitress',
-            email: 'bnlabla@gmaillcom',
-            image:
-              'https://images.unsplash.com/photo-1544723795-3fb6469f5b39?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=778&q=80',
-          },
-        },
+        // employees: {
+        //   create: {
+        //     name: 'Victor',
+        //     rol: 'waiter',
+        //     email: 'bnlabla@gmaillcom',
+        //     image:
+        //       'https://images.unsplash.com/photo-1544723795-3fb6469f5b39?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=778&q=80',
+        //   },
+        // },
       },
     })
   }
 
-  const tableId = await db.table.findFirst({where: {table_number: 1}})
+  const tableId = await prisma.table.findFirst({where: {table_number: 1}})
 
-  const manager = await db.employee.create({
+  const manager = await prisma.employee.create({
     data: {
-      rol: 'manager',
+      role: 'manager',
       name: 'Daniel',
       email: 'gerente',
       image:
@@ -75,15 +116,15 @@ async function seed() {
       tables: {connect: {id: tableId?.id}},
     },
   })
-  // const waitress = await db.employee.create({
+  // const waiter = await prisma.employee.create({
   //   data:{
-  //     rol: "waitress",
+  //     rol: "waiter",
   //     name:"Enrique",
   //     table: { connect: { id: table.id } }
   //   }
   // })
 
-  const menu = await db.menu.create({
+  const menu = await prisma.menu.create({
     data: {
       name: 'DESAYUNO',
       type: 'breakfast',
@@ -97,7 +138,7 @@ async function seed() {
 
   const bikinaMenuCategories = await Promise.all(
     getBikinaCategories().map(({name}) =>
-      db.menuCategory.create({
+      prisma.menuCategory.create({
         data: {
           name,
           menu: {connect: {id: menu.id}},
@@ -129,7 +170,7 @@ async function seed() {
   const menuItems = await Promise.all(
     bikinaMenuCategories.flatMap((category, i) =>
       range(1, 1).map(j =>
-        db.menuItem.create({
+        prisma.menuItem.create({
           data: {
             name: `${category.name} Item #${j}`,
             image:

@@ -25,6 +25,7 @@ import {getCartItems} from '~/models/cart.server'
 import {getOrderTotal} from '~/models/order.server'
 import {validateRedirect} from '~/redirect.server'
 import {getSession, sessionStorage, updateCartItem} from '~/session.server'
+import {sendWhatsapp} from '~/twilio.server'
 import {formatCurrency, getCurrency} from '~/utils'
 
 // type MenuCategory = {

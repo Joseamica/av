@@ -19,7 +19,7 @@ interface SectionContainerProps {
 
 function getClassName({className}: {className?: string}) {
   return clsx(
-    'no-scrollbar container  rounded-lg bg-day-bg_principal dark:text-night-text_principal dark:bg-night-bg_principal p-2 font-sans shadow-lg border border-gray_light ',
+    'no-scrollbar container rounded-lg bg-day-bg_principal dark:text-night-text_principal dark:bg-night-bg_principal p-2 font-sans shadow-lg border border-gray_light ',
     className,
   )
 }
@@ -70,9 +70,9 @@ const SectionContainer = React.forwardRef<HTMLElement, SectionContainerProps>(
           >
             <H4>{collapseTitle}</H4>
             {collapse ? (
-              <ChevronDownIcon className="h-7 w-7 rounded-full border border-gray_light p-1 shadow-md" />
+              <ChevronDownIcon className="p-1 border rounded-full shadow-md h-7 w-7 border-gray_light" />
             ) : (
-              <ChevronUpIcon className="h-7 w-7 rounded-full border border-gray_light p-1 shadow-md" />
+              <ChevronUpIcon className="p-1 border rounded-full shadow-md h-7 w-7 border-gray_light" />
             )}
           </div>
         )}

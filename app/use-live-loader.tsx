@@ -6,8 +6,6 @@ export function useLiveLoader<T>() {
   const eventName = useLocation().pathname
   const data = useEventSource(`/events${eventName}`)
 
-  console.log('data', data)
-
   const {revalidate} = useRevalidator()
 
   useEffect(() => {

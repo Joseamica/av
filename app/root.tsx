@@ -31,6 +31,8 @@ import appStylesheetUrl from './styles/app.css'
 import {Header} from './components'
 import {useEventSource} from 'remix-utils'
 import React from 'react'
+import {EVENTS} from './events'
+import {addHours, addMinutes, addSeconds, formatISO} from 'date-fns'
 
 export const links: LinksFunction = () => [
   {rel: 'stylesheet', href: tailwindStylesheetUrl},
@@ -44,6 +46,14 @@ export const loader = async ({request}: LoaderArgs) => {
   const session = await getSession(request)
   session.set('userId', userId)
 
+  //ADMIN PURPOSES
+  const isAdmin = await prisma.user.findFirst({
+    where: {
+      id: userId,
+      role: 'admin',
+    },
+  })
+
   const username = await getUsername(request)
 
   //Verify if user is on the database or create
@@ -53,7 +63,7 @@ export const loader = async ({request}: LoaderArgs) => {
   const pathname = url.pathname
 
   return json(
-    {username, pathname, user},
+    {username, pathname, user, isAdmin},
     {headers: {'Set-Cookie': await sessionStorage.commitSession(session)}},
   )
 }
@@ -71,7 +81,7 @@ export const action = async ({request, params}: ActionArgs) => {
   const userId = session.get('userId')
 
   if (name) {
-    console.log('✅ Creating session and user with name:', name)
+    console.time(`✅ Creating session and user with name... ${name}`)
     const sessionId = await prisma.session.create({
       data: {
         expirationDate: new Date(Date.now() + SESSION_EXPIRATION_TIME),
@@ -85,8 +95,13 @@ export const action = async ({request, params}: ActionArgs) => {
       // select: {id: !0, expirationDate: !0},
     })
     session.set('sessionId', sessionId.id)
+
+    // Set expiry time 4 hours from now
+    const expiryTime = formatISO(addHours(new Date(), 4))
+    session.set('expiryTime', expiryTime)
     session.set('username', name)
 
+    console.timeEnd(`✅ Creating session and user with name... ${name}`)
     return redirect(redirectTo, {
       headers: {'Set-Cookie': await sessionStorage.commitSession(session)},
     })
@@ -97,13 +112,6 @@ export const action = async ({request, params}: ActionArgs) => {
 
 export default function App() {
   const data = useLoaderData()
-  const fetcher = useFetcher()
-  const revalidator = useRevalidator()
-  const handleValidate = () => {
-    // revalidator.revalidate()
-  }
-
-  // useRealtimeIssuesRevalidation();
 
   //TODO MAKE FETCHERS FOR EACH ACTION
   if (!data.username) {
@@ -112,7 +120,7 @@ export default function App() {
         <h1>Tu Nombre por favor</h1>
         <input type="text" name="name" />
         <input type="hidden" name="url" value={data.pathname} />
-        <button onClick={handleValidate}>submit</button>
+        <button>submit</button>
       </Form>
     )
   }
@@ -124,12 +132,12 @@ export default function App() {
         <Meta />
         <Links />
       </head>
-      <body className="hide-scrollbar no-scrollbar relative mx-auto h-full max-w-md px-2 pt-16 ">
-        <RemixSseProvider>
-          <Header user={data.user} />
+      <body className="relative h-full max-w-md px-2 pt-16 mx-auto hide-scrollbar no-scrollbar ">
+        {/* <RemixSseProvider> */}
+        <Header user={data.user} isAdmin={data.isAdmin} />
 
-          <Outlet />
-        </RemixSseProvider>
+        <Outlet />
+        {/* </RemixSseProvider> */}
         <ScrollRestoration />
         <Scripts />
         <LiveReload />

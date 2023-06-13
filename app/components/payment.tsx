@@ -21,7 +21,6 @@ export function Payment({
   currency: string
   error?: string
 }) {
-  // console.log('data', data)
   const [activeRadioPaymentMethod, setActiveRadioPaymentMethod] =
     React.useState<string>('cash')
   const handleChangePaymentMethod = (

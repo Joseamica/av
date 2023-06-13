@@ -1,5 +1,4 @@
-import {ChevronDoubleUpIcon} from '@heroicons/react/outline'
-import type {CartItem, User} from '@prisma/client'
+import type {CartItem, Order, Table as TableProps, User} from '@prisma/client'
 import type {ActionArgs, LoaderArgs} from '@remix-run/node'
 import {json, redirect} from '@remix-run/node'
 import {
@@ -37,13 +36,21 @@ import {getMenu} from '~/models/menu.server'
 import {getTable} from '~/models/table.server'
 import {getPaidUsers, getUsersOnTable} from '~/models/user.server'
 import {validateUserIntegration} from '~/models/validations.server'
-import {getSession, sessionStorage} from '~/session.server'
+import {getSession, logout, sessionStorage} from '~/session.server'
 import {useLiveLoader} from '~/use-live-loader'
 import {formatCurrency, getAmountLeftToPay, getCurrency} from '~/utils'
+import {addHours, compareAsc, formatISO} from 'date-fns'
+
+type LoaderData = {
+  order: Order & {cartItems: CartItemDetailsProps[]; users: UserWithCart[]}
+  table: TableProps
+  total: number
+  currency: string
+  usersInTable: User[]
+}
 
 export async function loader({request, params}: LoaderArgs) {
   const {tableId} = params
-
   invariant(tableId, 'No se encontró el ID de la mesa')
 
   const branch = await getBranch(tableId)
@@ -53,6 +60,9 @@ export async function loader({request, params}: LoaderArgs) {
     getTable(tableId),
     getUsersOnTable(tableId),
   ])
+
+  const url = new URL(request.url)
+  const pathname = url.pathname
 
   const session = await getSession(request)
   const userId = session.get('userId')
@@ -69,6 +79,25 @@ export async function loader({request, params}: LoaderArgs) {
       username,
     )
     const sessionId = session.get('sessionId')
+    // console.log('sessionId', sessionId)
+    const sessionExpiryTime = session.get('expiryTime')
+    if (
+      sessionExpiryTime &&
+      compareAsc(new Date(sessionExpiryTime), new Date()) < 0
+    ) {
+      // If the session has expired, delete it
+      // await prisma.session.delete({where: {id: sessionId}})
+      await prisma.user.update({
+        where: {id: userId},
+        data: {
+          orders: {disconnect: true},
+          tables: {disconnect: true},
+          sessions: {deleteMany: {}},
+        },
+      })
+      throw await logout(request, pathname)
+    }
+
     if (!sessionId) {
       throw new Error('No se encontró el ID de la sesión')
     }
@@ -205,8 +234,8 @@ export default function Table() {
   const handleCollapse = () => {
     setCollapse(!collapse)
   }
-  // const data = useLoaderData()
-  const data = useLiveLoader<typeof loader>()
+  // const data = useLoaderData()e
+  const data = useLiveLoader<LoaderData>()
   // console.log('data', data)
   const filter = searchParams.get('filter')
   const userId = searchParams.get('userId')
@@ -217,14 +246,13 @@ export default function Table() {
       <motion.main>
         <RestaurantInfoCard />
         <Spacer spaceY="2">
-          <h3 className="text-secondaryTextDark flex shrink-0 justify-center text-sm">
+          <h3 className="flex justify-center text-sm text-secondaryTextDark shrink-0">
             {`Mesa ${data.table.table_number}`}
           </h3>
         </Spacer>
+        <h1>TODO: SESSIONS EXPIRATION & STRIPE INTEGRATION & WHATSAPP MSG</h1>
         <Help />
-
         <BillAmount />
-
         <Spacer spaceY="2" />
         <div className="flex flex-row justify-between space-x-1">
           {/* TODO UI */}
@@ -256,7 +284,6 @@ export default function Table() {
           </Link>
         </div>
         <Spacer spaceY="2" />
-
         {filter === 'perUser' ? (
           <motion.div className="space-y-2">
             {data.order.users.map((user: UserWithCart) => {
@@ -278,7 +305,7 @@ export default function Table() {
                           ? `?${toggleLink}`
                           : `?${toggleLink}&userId=${user.id}`
                       }
-                      className="flex items-center justify-center rounded-full bg-button-primary px-2 py-1 text-white"
+                      className="flex items-center justify-center px-2 py-1 text-white rounded-full bg-button-primary"
                     >
                       Detalles
                     </NavLink>
@@ -351,7 +378,7 @@ export default function Table() {
           >
             {!collapse ? (
               <AnimatePresence initial={false}>
-                {data.order.cartItems.map((cartItem: CartItemDetailsProps) => {
+                {data.order.cartItems.map(cartItem => {
                   return (
                     <CartItemDetails cartItem={cartItem} key={cartItem.id} />
                   )
@@ -359,18 +386,15 @@ export default function Table() {
               </AnimatePresence>
             ) : (
               <AnimatePresence>
-                {data.order.cartItems
-                  .slice(0, 4)
-                  .map((cartItem: CartItemDetailsProps) => {
-                    return (
-                      <CartItemDetails cartItem={cartItem} key={cartItem.id} />
-                    )
-                  })}
+                {data.order.cartItems.slice(0, 4).map(cartItem => {
+                  return (
+                    <CartItemDetails cartItem={cartItem} key={cartItem.id} />
+                  )
+                })}
               </AnimatePresence>
             )}
           </SectionContainer>
         )}
-
         <Spacer spaceY="2" />
         <PayButtons />
         <Outlet />
@@ -380,23 +404,26 @@ export default function Table() {
     return (
       <div>
         <RestaurantInfoCard />
-        <div className="dark:bg-secondaryDark dark:bg-night-bg_principal flex h-10 w-10 items-center justify-center rounded-full bg-day-bg_principal shadow-sm ">
-          <ChevronDoubleUpIcon className="h-5 w-5 motion-safe:animate-bounce" />
-        </div>
-        <H5>Aún no existe una orden con platillos.</H5>
+        {/* <div className="flex items-center justify-center w-10 h-10 rounded-full shadow-sm dark:bg-secondaryDark dark:bg-night-bg_principal bg-day-bg_principal ">
+          <ChevronDoubleUpIcon className="w-5 h-5 motion-safe:animate-bounce" />
+        </div>*/}
+        <Spacer spaceY="2" />
+        <H5 className="flex justify-center w-full ">
+          Aún no existe una orden con platillos.
+        </H5>
         <Spacer spaceY="3">
-          <h3 className="text-secondaryTextDark flex shrink-0 justify-center pr-2 text-sm">
+          <h3 className="flex justify-center pr-2 text-sm text-secondaryTextDark shrink-0">
             {`Mesa ${data.table.table_number}`}
           </h3>
         </Spacer>
-        <SectionContainer className="dark:bg-DARK_1 dark:bg-night-bg_principal dark:text-night-text_principal flex flex-col justify-start rounded-lg bg-day-bg_principal p-2 drop-shadow-md dark:drop-shadow-none">
+        <SectionContainer className="flex flex-col justify-start p-2 rounded-lg dark:bg-DARK_1 dark:bg-night-bg_principal dark:text-night-text_principal bg-day-bg_principal drop-shadow-md dark:drop-shadow-none">
           <p className="text-DARK_3">Usuarios en la mesa</p>
           <Spacer spaceY="2">
             <hr className="dark:border-DARK_OUTLINE border-LIGHT_DIVIDER" />
           </Spacer>
-          {data.usersInTable?.map((user: User, index: number) => (
+          {data.usersInTable?.map((user, index: number) => (
             <FlexRow
-              className="w-full items-center justify-between space-x-2 space-y-2"
+              className="items-center justify-between w-full space-x-2 space-y-2"
               key={user.id}
             >
               <FlexRow className="items-center space-x-2">
@@ -407,7 +434,7 @@ export default function Table() {
                 <Link
                   preventScrollReset
                   to={`user/${user?.id}`}
-                  className="dark:bg-buttonBgDark bg-componentBg flex flex-row items-center justify-center rounded-full px-2 py-1 "
+                  className="flex flex-row items-center justify-center px-2 py-1 rounded-full dark:bg-buttonBgDark bg-componentBg "
                 >
                   Detalles
                 </Link>
@@ -415,15 +442,6 @@ export default function Table() {
             </FlexRow>
           ))}
         </SectionContainer>
-        <div>
-          TODO:
-          <ol>
-            <li>
-              - Cuando usuario se une, que automaticamente lo muestre, que no
-              tenga que hacer reload
-            </li>
-          </ol>
-        </div>
       </div>
     )
   }
@@ -453,7 +471,7 @@ function PayButtons() {
         <Spacer spaceY="2" />
         {showSplit && (
           <Modal onClose={() => setShowSplit(false)} title="Dividir cuenta">
-            <div className="flex flex-col space-y-2 p-2">
+            <div className="flex flex-col p-2 space-y-2">
               <LinkButton to="pay/perDish">Pagar por platillo</LinkButton>
               <LinkButton to="pay/perPerson">Pagar por usuario</LinkButton>
               <LinkButton to="pay/equalParts">

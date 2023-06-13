@@ -1,5 +1,6 @@
-import {CartItem} from '@prisma/client'
-import {ActionArgs, LoaderArgs, json, redirect} from '@remix-run/node'
+import type {CartItem} from '@prisma/client'
+import {json, redirect} from '@remix-run/node'
+import type {ActionArgs, LoaderArgs} from '@remix-run/node'
 import {
   Form,
   useActionData,
@@ -63,7 +64,8 @@ export async function action({request, params}: ActionArgs) {
   if (subject && reportType && proceed) {
     switch (reportType) {
       case 'food':
-        const foodFeedback = await prisma.feedback.create({
+        // const foodFeedback =
+        await prisma.feedback.create({
           data: {
             report: subject,
             type: `${reportType}-${comments}`,
@@ -73,8 +75,9 @@ export async function action({request, params}: ActionArgs) {
           },
         })
         break
-      case 'waitress':
-        const waitressFeedback = await prisma.feedback.create({
+      case 'waiter':
+        // const waiterFeedback =
+        await prisma.feedback.create({
           data: {
             report: subject,
             type: `${reportType}-${comments}`,
@@ -85,7 +88,8 @@ export async function action({request, params}: ActionArgs) {
         })
         break
       case 'place':
-        const placeFeedback = await prisma.feedback.create({
+        // const placeFeedback =
+        await prisma.feedback.create({
           data: {
             report: subject,
             type: `${reportType}-${comments}`,
@@ -95,7 +99,8 @@ export async function action({request, params}: ActionArgs) {
         })
         break
       case 'other':
-        const otherFeedback = await prisma.feedback.create({
+        // const otherFeedback =
+        await prisma.feedback.create({
           data: {
             report: subject,
             type: `${reportType}-${comments}`,
@@ -105,7 +110,7 @@ export async function action({request, params}: ActionArgs) {
         })
         break
     }
-    //COnnect if waitress then connect to a employee id, if dish then connect to a dish id
+    //COnnect if waiter then connect to a employee id, if dish then connect to a dish id
 
     return redirect(redirectTo)
   }
@@ -122,15 +127,15 @@ export async function loader({request, params}: LoaderArgs) {
     where: {user: {some: {id: userId}}},
   })
 
-  const waitresses = await prisma.employee.findMany({
-    where: {rol: 'waitress', tables: {some: {id: tableId}}},
+  const waiters = await prisma.employee.findMany({
+    where: {role: 'waiter', tables: {some: {id: tableId}}},
   })
 
   const managers = await prisma.employee.findMany({
-    where: {rol: 'manager', tables: {some: {id: tableId}}},
+    where: {role: 'manager', tables: {some: {id: tableId}}},
   })
 
-  return json({waitresses, managers, cartItemsByUser})
+  return json({waiters, managers, cartItemsByUser})
 }
 
 export const FOOD_REPORT_SUBJECTS = {
@@ -139,7 +144,7 @@ export const FOOD_REPORT_SUBJECTS = {
   3: 'Demora',
 }
 
-const WAITRESS_REPORT_SUBJECTS = {
+const WAITER_REPORT_SUBJECTS = {
   1: 'Servicio',
   2: 'Actitud',
   3: 'Demora',
@@ -174,7 +179,7 @@ export default function Report() {
   const subject = searchParams.get('subject') || undefined
 
   let title = ''
-  if (by === 'waitress') {
+  if (by === 'waiter') {
     title = 'Reportar a un mesero'
   } else if (by === 'food') {
     title = 'Reportar un platillo'
@@ -196,28 +201,28 @@ export default function Report() {
         onChange={handleChange}
         className="flex w-full flex-col space-y-2 p-2"
       >
-        {by === 'waitress' ? (
+        {by === 'waiter' ? (
           <div className="space-y-2">
-            {data.waitresses.map((waitress: CartItem) => (
-              <ItemContainer key={waitress.id}>
-                <label htmlFor={waitress.id} className="text-xl">
-                  {waitress.name}
+            {data.waiters.map((waiter: CartItem) => (
+              <ItemContainer key={waiter.id}>
+                <label htmlFor={waiter.id} className="text-xl">
+                  {waiter.name}
                 </label>
                 <input
-                  id={waitress.id}
+                  id={waiter.id}
                   type="checkbox"
                   name="selected"
-                  value={waitress.id}
+                  value={waiter.id}
                   className="h-5 w-5"
                 />
               </ItemContainer>
             ))}
             <Spacer spaceY="2" />
             <H2>Selecciona cual fue el problema</H2>
-            {Object.entries(WAITRESS_REPORT_SUBJECTS).map(([key, value]) => (
+            {Object.entries(WAITER_REPORT_SUBJECTS).map(([key, value]) => (
               <LinkButton
                 size="small"
-                to={`?by=waitress&subject=${value}`}
+                to={`?by=waiter&subject=${value}`}
                 key={key}
                 variant={subject === value ? 'primary' : 'secondary'}
                 className="mx-1"
@@ -316,7 +321,7 @@ export default function Report() {
             {/* <H4>Seleccione una opción para reportar algún suceso en la mesa</H4> */}
             {/* <Spacer spaceY="2" /> */}
             <div className="flex flex-col space-y-2">
-              <LinkButton to="?by=waitress" size="medium">
+              <LinkButton to="?by=waiter" size="medium">
                 Mesero
               </LinkButton>
               <LinkButton to="?by=food" size="medium">

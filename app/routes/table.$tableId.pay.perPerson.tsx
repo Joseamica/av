@@ -25,6 +25,7 @@ import {EVENTS} from '~/events'
 import {getPaymentMethods, getTipsPercentages} from '~/models/branch.server'
 import {validateRedirect} from '~/redirect.server'
 import {getUserId} from '~/session.server'
+import {useLiveLoader} from '~/use-live-loader'
 import {formatCurrency, getAmountLeftToPay, getCurrency} from '~/utils'
 
 export async function loader({request, params}: LoaderArgs) {
@@ -162,7 +163,7 @@ interface User {
 
 export default function PerPerson() {
   const navigate = useNavigate()
-  const data = useLoaderData()
+  const data = useLiveLoader()
   const actionData = useActionData()
 
   const submit = useSubmit()

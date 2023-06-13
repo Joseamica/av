@@ -1,6 +1,7 @@
 import type {Order, Table, User} from '@prisma/client'
 import {json} from '@remix-run/node'
 import {prisma} from '~/db.server'
+import {EVENTS} from '~/events'
 
 export async function validateUserIntegration(
   userId: User['id'],
@@ -22,6 +23,7 @@ export async function validateUserIntegration(
       },
     })
     console.log(`✅ Connected '${username}' to the table`)
+    EVENTS.ISSUE_CHANGED(tableId)
   }
 
   //If user is not in order, then connect

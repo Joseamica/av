@@ -24,6 +24,7 @@ import {getUserId} from '~/session.server'
 import {getAmountLeftToPay, getCurrency} from '~/utils'
 import type {Order, User} from '@prisma/client'
 import {EVENTS} from '~/events'
+import {useLiveLoader} from '~/use-live-loader'
 
 type LoaderData = {
   amountLeft: number
@@ -125,7 +126,7 @@ export async function action({request, params}: ActionArgs) {
 }
 
 export default function FullPay() {
-  const data = useLoaderData<LoaderData>()
+  const data = useLiveLoader<LoaderData>()
   const actionData = useActionData()
   const navigate = useNavigate()
   const submit = useSubmit()

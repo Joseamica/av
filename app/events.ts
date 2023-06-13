@@ -37,7 +37,7 @@ if (process.env.NODE_ENV === 'production') {
 
 export const EVENTS = {
   ISSUE_CHANGED: (tableId: string, data?: any) => {
-    // emitter.emit('/')
+    emitter.emit('/')
     emitter.emit(`/table/${tableId}`, {data})
   },
 }

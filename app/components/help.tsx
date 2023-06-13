@@ -5,8 +5,8 @@ import {H5} from './util/typography'
 import {LinkButton} from './buttons/button'
 
 const REPORT_TYPES = {
-  waitress: {
-    name: 'waitress',
+  waiter: {
+    name: 'waiter',
     icon: <ClipboardCopyIcon className="h-4 w-4" />,
     es: 'Mesero',
   },
