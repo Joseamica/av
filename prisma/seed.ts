@@ -1,6 +1,6 @@
 // const { PrismaClient } = require("@prisma/client");
 import {PrismaClient} from '@prisma/client'
-import {createUsers} from './seed-utils'
+// import {createUsers} from './seed-utils'
 const prisma = new PrismaClient()
 
 async function seed() {
@@ -25,15 +25,18 @@ async function seed() {
   await prisma.employee.deleteMany()
   console.timeEnd('🧹 Cleaned up the database...')
 
-  const totalUsers = 2
+  const totalUsers = 1
   console.time(`👤 Created ${totalUsers} users...`)
   const users = await Promise.all(
     Array.from({length: totalUsers}).map(async (_, i) => {
-      const userData = createUsers()
+      // const userData = createUsers()
 
       const user = await prisma.user.create({
         data: {
-          ...userData,
+          // ...userData,
+          name: 'Jose',
+          role: 'admin',
+          email: 'joseamica@gmail.com',
         },
       })
       return user

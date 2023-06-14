@@ -8,7 +8,8 @@
     "build:remix": "remix build",
     "build:server": "esbuild --platform=node --format=cjs ./server.ts --outdir=build --bundle",
     "dev": "run-p dev:*",
-    "deploy": "fly deploy --build-arg REMIX_TOKEN=${REMIX_TOKEN}",
+      "deploy": "fly deploy --build-arg REMIX_TOKEN=${REMIX_TOKEN}",
+
     "dev:build": "cross-env NODE_ENV=development npm run build:server -- --watch",
     "dev:css": "cross-env NODE_ENV=development npm run generate:css -- --watch",
     "dev:remix": "cross-env NODE_ENV=development remix watch",
@@ -25,7 +26,8 @@
     "pretest:e2e:run": "npm run build",
     "test:e2e:run": "cross-env PORT=8811 start-server-and-test start:mocks http://localhost:8811 \"npx cypress run\"",
     "typecheck": "tsc && tsc -p cypress",
-    "validate": "run-p \"test -- --run\" lint typecheck test:e2e:run"
+    "validate": "run-p \"test -- --run\" lint typecheck test:e2e:run",
+    "seed:build": "tsc --project ./tsconfig.seed.json && tsc-alias -p ./tsconfig.seed.json"
   },
 
   "prettier": {},
