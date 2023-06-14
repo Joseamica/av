@@ -141,6 +141,7 @@ export default function Search() {
   const submit = useSubmit()
 
   function handleChange(event: React.ChangeEvent<HTMLInputElement>) {
+    event.preventDefault()
     setSearchText(event.target.value.toLowerCase())
     // submit(event.currentTarget, {replace: true})
   }
@@ -191,7 +192,7 @@ export default function Search() {
               handleChange(e)
             }
             placeholder="Buscar platillo"
-            className="flex w-full rounded-r-full bg-gray_light p-3 px-3 py-3  text-sm focus:border-none focus:outline-none focus:ring-0 dark:bg-gray_light"
+            className="flex w-full rounded-r-full bg-gray_light p-3 px-3 py-3 text-sm focus:border-none focus:outline-none focus:ring-0 dark:bg-gray_light"
           />
         </label>
         <div className="flex flex-col space-y-2 p-2">
@@ -205,7 +206,7 @@ export default function Search() {
             return (
               <SectionContainer key={categories.id} divider={true}>
                 {filteredItems != '' ? (
-                  <H3 className="sticky top-12 w-full bg-white p-4 shadow-md  dark:shadow-none ">
+                  <H3 className="sticky top-12 w-full bg-white p-4 shadow-md dark:shadow-none ">
                     {categories.name}
                   </H3>
                 ) : null}

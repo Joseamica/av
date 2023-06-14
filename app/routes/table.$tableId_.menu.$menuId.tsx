@@ -217,7 +217,7 @@ export default function Menu() {
             return (
               <SectionContainer
                 key={categories.id}
-                className=" scroll-mt-[120px] rounded-xl"
+                className=" scroll-mt-[120px] rounded-xl "
                 id={categories.id}
                 ref={el => (categoryRefs.current[categories.id] = el)} // Aquí asignas la ref al objeto
                 title={categories.name}

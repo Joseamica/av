@@ -9,6 +9,7 @@ import {
   useSubmit,
 } from '@remix-run/react'
 import clsx from 'clsx'
+import {motion} from 'framer-motion'
 import React from 'react'
 import invariant from 'tiny-invariant'
 import {
@@ -39,6 +40,27 @@ type LoaderData = {
   tipsPercentages: number[]
   paymentMethods: string[]
   currency: string
+}
+
+const effect = {
+  hidden: {
+    y: '100vh',
+    opacity: 0,
+  },
+  visible: {
+    y: '0',
+    opacity: 1,
+    transition: {
+      type: 'linear',
+      stiffness: 600,
+      // duration: 3,
+      damping: 30,
+    },
+  },
+  exit: {
+    y: '100vh',
+    opacity: 0,
+  },
 }
 
 export async function loader({request, params}: LoaderArgs) {
@@ -98,6 +120,7 @@ export async function action({request, params}: ActionArgs) {
   const total = itemData.reduce((acc, item) => {
     return acc + parseFloat(item.price)
   }, 0)
+
   if (!total) {
     return json({error: 'No se ha seleccionado ningún platillo'}, {status: 400})
   }
@@ -173,6 +196,9 @@ export default function PerDish() {
       title="Dividir por platillo"
     >
       <Form method="POST" preventScrollReset onChange={handleChange}>
+        <H5 className="px-2 text-end">
+          Selecciona los platillos que deseas pagar
+        </H5>
         <div className="space-y-2 p-2">
           {data.cartItems?.map((item: CartItem) => {
             return (
@@ -209,14 +235,16 @@ export default function PerDish() {
             )
           })}
         </div>
-        <Payment
-          total={actionData?.total}
-          tip={actionData?.tip}
-          tipsPercentages={data.tipsPercentages}
-          paymentMethods={data.paymentMethods}
-          currency={data.currency}
-          error={actionData?.error}
-        />
+        {actionData?.total && (
+          <Payment
+            total={actionData?.total}
+            tip={actionData?.tip}
+            tipsPercentages={data.tipsPercentages}
+            paymentMethods={data.paymentMethods}
+            currency={data.currency}
+            error={actionData?.error}
+          />
+        )}
       </Form>
     </Modal>
   )

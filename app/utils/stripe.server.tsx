@@ -12,13 +12,21 @@ export function getDomainUrl(request: Request) {
 }
 
 export const getStripeSession = async (
-  priceId: string,
+  amount: number, // Amount in cents (or the smallest currency unit)
   domainUrl: string,
+  currency: string = 'usd', // Default to USD
 ): Promise<string> => {
   const stripe = initStripe(process.env.STRIPE_SECRET_KEY)
   const lineItems = [
     {
-      price: priceId,
+      price_data: {
+        currency: currency,
+        product_data: {
+          name: 'Custom amount',
+          // Add more product data if needed
+        },
+        unit_amount: amount,
+      },
       quantity: 1,
     },
   ]

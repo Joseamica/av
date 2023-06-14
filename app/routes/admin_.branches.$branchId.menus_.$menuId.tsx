@@ -22,7 +22,7 @@ export async function loader({request, params}: LoaderArgs) {
   })
   const searchParams = new URL(request.url).searchParams
   const categoryId = searchParams.get('categoryId')
-  const itemId = searchParams.get('item') || ''
+  const editItemId = searchParams.get('editItemId') || ''
 
   if (categoryId) {
     const menuCategory = await prisma.menuCategory.findUnique({
@@ -30,7 +30,7 @@ export async function loader({request, params}: LoaderArgs) {
       include: {menuItems: true},
     })
     const menuItem = await prisma.menuItem.findUnique({
-      where: {id: itemId},
+      where: {id: editItemId},
     })
 
     return json({menu, menuCategory, menuItem})
@@ -42,7 +42,6 @@ export async function action({request, params}: ActionArgs) {
   const {branchId, menuId} = params
   const formData = await request.formData()
   const data = Object.fromEntries(formData.entries())
-  console.log('data', data)
 
   const name = formData.get('name') as string
   const image = formData.get('image') as string
@@ -54,7 +53,7 @@ export async function action({request, params}: ActionArgs) {
 
   const searchParams = new URL(request.url).searchParams
   const categoryId = searchParams.get('categoryId')
-  const itemId = searchParams.get('item') || ''
+  const editItemId = searchParams.get('editItemId') || ''
   let url = new URL(request.url)
 
   //CREATE ITEM
@@ -72,10 +71,10 @@ export async function action({request, params}: ActionArgs) {
       })
       url.searchParams.delete('add')
     }
-    if (data._action === 'edit' && itemId) {
+    if (data._action === 'edit' && editItemId) {
       await prisma.menuItem.update({
         where: {
-          id: itemId,
+          id: editItemId,
         },
         data: {
           name,
@@ -84,7 +83,7 @@ export async function action({request, params}: ActionArgs) {
           price,
         },
       })
-      url.searchParams.delete('item')
+      url.searchParams.delete('editItemId')
     }
 
     return redirect(url.pathname + url.search)
@@ -94,10 +93,10 @@ export async function action({request, params}: ActionArgs) {
   if (data._action === 'delete') {
     await prisma.menuItem.delete({
       where: {
-        id: itemId,
+        id: editItemId,
       },
     })
-    url.searchParams.delete('item')
+    url.searchParams.delete('editItemId')
     return redirect(url.pathname + url.search)
   }
 
@@ -113,10 +112,11 @@ export default function AdminMenuId() {
   const navigate = useNavigate()
   const [searchParams, setSearchParams] = useSearchParams()
   const categoryId = searchParams.get('categoryId')
-  const itemId = searchParams.get('item') || ''
+  const editItemId = searchParams.get('editItemId') || ''
   const add = searchParams.get('add')
   const del = searchParams.get('del')
   const addMenu = searchParams.get('addMenu')
+  const addItem = searchParams.get('addItem')
 
   return (
     <Form method="post" className="space-y-2">
@@ -127,9 +127,6 @@ export default function AdminMenuId() {
               <IoChevronBack />
             </LinkButton> */}
             <H1 className="shrink-0">{data.menu.name}</H1>
-            <LinkButton size="small" to={`?addMenu=true`}>
-              Agregar
-            </LinkButton>
           </FlexRow>
           <Spacer spaceY="2" />
           <div className="space-x-1 space-y-2">
@@ -138,11 +135,11 @@ export default function AdminMenuId() {
                 <LinkButton size="small" to={`?categoryId=${category.id}`}>
                   {category.name}
                 </LinkButton>
-                <Link to={`?categoryId=${data.menuCategory?.id}&item=`}>
+                <Link to={`?categoryId=${data.menuCategory?.id}&editItemId=`}>
                   <AiFillEdit />
                 </Link>
                 <Link
-                  to={`?categoryId=${data.menuCategory?.id}&item=&del=true`}
+                  to={`?categoryId=${data.menuCategory?.id}&editItemId=&del=true`}
                 >
                   <AiFillDelete />
                 </Link>
@@ -215,7 +212,10 @@ export default function AdminMenuId() {
               <IoChevronBack />
             </LinkButton>
             <H1 className="shrink-0">{data.menuCategory.name}</H1>
-            <LinkButton size="small" to={``}>
+            <LinkButton
+              size="small"
+              to={`?categoryId=${data.menuCategory.id}&addItem=true`}
+            >
               Agregar
             </LinkButton>
           </FlexRow>
@@ -225,12 +225,12 @@ export default function AdminMenuId() {
               <FlexRow key={item.id}>
                 <H3>{item.name}</H3>
                 <Link
-                  to={`?categoryId=${data.menuCategory.id}&item=${item.id}`}
+                  to={`?categoryId=${data.menuCategory.id}&editItemId=${item.id}`}
                 >
                   <AiFillEdit />
                 </Link>
                 <Link
-                  to={`?categoryId=${data.menuCategory.id}&item=${item.id}&del=true`}
+                  to={`?categoryId=${data.menuCategory.id}&editItemId=${item.id}&del=true`}
                 >
                   <AiFillDelete />
                 </Link>
@@ -239,8 +239,35 @@ export default function AdminMenuId() {
           </div>
 
           {/* MODALS */}
-
-          {itemId && !del && (
+          {addItem && (
+            <Modal
+              title="Agregar platillo"
+              onClose={() => navigate(`?categoryId=${data.menuCategory.id}`)}
+            >
+              <label htmlFor="addItemImage" className="capitalize">
+                Imagen
+              </label>
+              <input
+                type="url"
+                name="addItemImage"
+                id="addItemImage"
+                className="dark:bg-DARK_2 dark:ring-DARK_4 w-full rounded-full dark:ring-1"
+              />
+              <label htmlFor="addItemName" className="capitalize">
+                Nombre
+              </label>
+              <input
+                type="text"
+                name="addItemName"
+                id="addItemName"
+                className="dark:bg-DARK_2 dark:ring-DARK_4 w-full rounded-full dark:ring-1"
+              />
+              <Button name="_action" value="addItem" type="submit">
+                Editar
+              </Button>
+            </Modal>
+          )}
+          {editItemId && !del && (
             <Modal
               title="Editar platillo"
               onClose={() => navigate(`?categoryId=${data.menuCategory.id}`)}
@@ -291,7 +318,7 @@ export default function AdminMenuId() {
               </Button>
             </Modal>
           )}
-          {itemId && del && (
+          {editItemId && del && (
             <Modal
               title="Eliminar platillo"
               onClose={() => navigate(`?categoryId=${data.menuCategory.id}`)}

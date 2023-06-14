@@ -19,7 +19,7 @@ export function BillAmount({isPaying}: {isPaying?: any}) {
 
   const [showDetails, setShowDetails] = useState(false)
   return (
-    <SectionContainer className="space-y-2">
+    <SectionContainer className="">
       <FlexRow className="justify-between">
         <H2>Cuenta Total</H2>
         <H2

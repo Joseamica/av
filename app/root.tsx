@@ -132,7 +132,7 @@ export default function App() {
         <Meta />
         <Links />
       </head>
-      <body className="relative h-full max-w-md px-2 pt-16 mx-auto hide-scrollbar no-scrollbar ">
+      <body className="hide-scrollbar no-scrollbar relative mx-auto h-full max-w-md bg-[#F3F4F6] px-2 pt-16">
         {/* <RemixSseProvider> */}
         <Header user={data.user} isAdmin={data.isAdmin} />
 

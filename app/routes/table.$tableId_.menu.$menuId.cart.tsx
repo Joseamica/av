@@ -12,6 +12,8 @@ import invariant from 'tiny-invariant'
 import {
   Button,
   FlexRow,
+  H2,
+  H3,
   H4,
   H5,
   ItemContainer,
@@ -69,8 +71,19 @@ export async function loader({request, params}: LoaderArgs) {
 
   const cartItems = await getCartItems(cart)
   const currency = await getCurrency(tableId)
+  let cartItemsTotal =
+    cartItems.reduce((acc, item) => {
+      return acc + Number(item.price) * item.quantity
+    }, 0) || 0
 
-  return json({categories, cartItems, usersOnTable, dish, currency})
+  return json({
+    categories,
+    cartItems,
+    usersOnTable,
+    dish,
+    currency,
+    cartItemsTotal,
+  })
 }
 
 export async function action({request, params}: ActionArgs) {
@@ -233,55 +246,78 @@ export default function Menu() {
     }
   }, [data.cartItems, navigate, params])
 
+  const cartItemsQuantity = data.cartItems?.reduce((acc, item) => {
+    return acc + item.quantity
+  }, 0)
+
   let isSubmitting =
     fetcher.state === 'submitting' || fetcher.state === 'loading'
 
   return (
     <Modal onClose={onClose} title="Carrito">
-      <fetcher.Form method="POST" preventScrollReset className="p-2">
-        {data.cartItems?.map((items: CartItem, index: number) => {
-          return (
-            <ItemContainer
-              key={index}
-              className="flex flex-row items-center justify-between space-x-2 "
-            >
-              <input type="hidden" name="variantId" value={item} />
-              <FlexRow justify="between">
-                <H4>{items.name}</H4>
-                <H5>{formatCurrency(data.currency, items.price)}</H5>
-              </FlexRow>
-              <FlexRow className="rounded-full bg-gray_light p-1 ">
-                <Button
-                  size="small"
-                  name="_action"
-                  value="decreaseQuantity"
-                  onClick={() => setItem(items.id)}
+      <fetcher.Form method="POST" preventScrollReset>
+        <div className="p-2">
+          <H2>Mis platillos</H2>
+          <div className="space-y-2">
+            {data.cartItems?.map((items: CartItem, index: number) => {
+              return (
+                <ItemContainer
+                  key={index}
+                  className="flex flex-row items-center justify-between space-x-2 "
                 >
-                  -
-                </Button>
-                <p>{items.quantity}</p>
-                <Button
-                  size="small"
-                  name="_action"
-                  value="increaseQuantity"
-                  onClick={() => setItem(items.id)}
-                >
-                  +
-                </Button>
-              </FlexRow>
-            </ItemContainer>
-          )
-        })}
+                  <input type="hidden" name="variantId" value={item} />
+                  <FlexRow justify="between" className="w-full pr-2">
+                    <H4>{items.name}</H4>
+                    <H5 className="shrink-0">
+                      {formatCurrency(data.currency, items.price)}
+                    </H5>
+                  </FlexRow>
+                  <FlexRow className="rounded-full bg-gray_light p-1 ">
+                    <Button
+                      size="small"
+                      name="_action"
+                      value="decreaseQuantity"
+                      onClick={() => setItem(items.id)}
+                    >
+                      -
+                    </Button>
+                    <p>{items.quantity}</p>
+                    <Button
+                      size="small"
+                      name="_action"
+                      value="increaseQuantity"
+                      onClick={() => setItem(items.id)}
+                    >
+                      +
+                    </Button>
+                  </FlexRow>
+                </ItemContainer>
+              )
+            })}
+          </div>
+        </div>
         <Spacer spaceY="2" />
-        <Button
-          name="_action"
-          value="submitCart"
-          type="submit"
-          disabled={isSubmitting || data.cartItems?.length === 0}
-          className="w-full"
-        >
-          {isSubmitting ? 'Agregando platillos...' : `Completar orden`}
-        </Button>
+        <div className="sticky bottom-0 rounded-t-lg border-x border-t bg-day-bg_principal p-2">
+          <FlexRow justify="between" className="px-2">
+            <H4>Numero de platillos: </H4>
+            <H3>{cartItemsQuantity}</H3>
+          </FlexRow>
+          <Spacer spaceY="3" />
+          <Button
+            name="_action"
+            value="submitCart"
+            type="submit"
+            disabled={isSubmitting || data.cartItems?.length === 0}
+            className="w-full"
+          >
+            {isSubmitting
+              ? 'Agregando platillos...'
+              : `Completar orden ${formatCurrency(
+                  data.currency,
+                  data.cartItemsTotal,
+                )}`}
+          </Button>
+        </div>
       </fetcher.Form>
     </Modal>
   )

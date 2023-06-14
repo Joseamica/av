@@ -246,11 +246,11 @@ export default function Table() {
       <motion.main>
         <RestaurantInfoCard />
         <Spacer spaceY="2">
-          <h3 className="flex justify-center text-sm text-secondaryTextDark shrink-0">
+          <h3 className="text-secondaryTextDark flex shrink-0 justify-center text-sm">
             {`Mesa ${data.table.table_number}`}
           </h3>
         </Spacer>
-        <h1>TODO: SESSIONS EXPIRATION & STRIPE INTEGRATION & WHATSAPP MSG</h1>
+        {/* <h1>TODO: SESSIONS EXPIRATION & STRIPE INTEGRATION & WHATSAPP MSG</h1> */}
         <Help />
         <BillAmount />
         <Spacer spaceY="2" />
@@ -305,7 +305,7 @@ export default function Table() {
                           ? `?${toggleLink}`
                           : `?${toggleLink}&userId=${user.id}`
                       }
-                      className="flex items-center justify-center px-2 py-1 text-white rounded-full bg-button-primary"
+                      className="flex items-center justify-center rounded-full bg-button-primary px-2 py-1 text-white"
                     >
                       Detalles
                     </NavLink>
@@ -408,22 +408,22 @@ export default function Table() {
           <ChevronDoubleUpIcon className="w-5 h-5 motion-safe:animate-bounce" />
         </div>*/}
         <Spacer spaceY="2" />
-        <H5 className="flex justify-center w-full ">
+        <H5 className="flex w-full justify-center ">
           Aún no existe una orden con platillos.
         </H5>
         <Spacer spaceY="3">
-          <h3 className="flex justify-center pr-2 text-sm text-secondaryTextDark shrink-0">
+          <h3 className="text-secondaryTextDark flex shrink-0 justify-center pr-2 text-sm">
             {`Mesa ${data.table.table_number}`}
           </h3>
         </Spacer>
-        <SectionContainer className="flex flex-col justify-start p-2 rounded-lg dark:bg-DARK_1 dark:bg-night-bg_principal dark:text-night-text_principal bg-day-bg_principal drop-shadow-md dark:drop-shadow-none">
+        <SectionContainer className="dark:bg-DARK_1 dark:bg-night-bg_principal dark:text-night-text_principal flex flex-col justify-start rounded-lg bg-day-bg_principal p-2 drop-shadow-md dark:drop-shadow-none">
           <p className="text-DARK_3">Usuarios en la mesa</p>
           <Spacer spaceY="2">
             <hr className="dark:border-DARK_OUTLINE border-LIGHT_DIVIDER" />
           </Spacer>
           {data.usersInTable?.map((user, index: number) => (
             <FlexRow
-              className="items-center justify-between w-full space-x-2 space-y-2"
+              className="w-full items-center justify-between space-x-2 space-y-2"
               key={user.id}
             >
               <FlexRow className="items-center space-x-2">
@@ -434,7 +434,7 @@ export default function Table() {
                 <Link
                   preventScrollReset
                   to={`user/${user?.id}`}
-                  className="flex flex-row items-center justify-center px-2 py-1 rounded-full dark:bg-buttonBgDark bg-componentBg "
+                  className="dark:bg-buttonBgDark bg-componentBg flex flex-row items-center justify-center rounded-full px-2 py-1 "
                 >
                   Detalles
                 </Link>
@@ -471,7 +471,7 @@ function PayButtons() {
         <Spacer spaceY="2" />
         {showSplit && (
           <Modal onClose={() => setShowSplit(false)} title="Dividir cuenta">
-            <div className="flex flex-col p-2 space-y-2">
+            <div className="flex flex-col space-y-2 p-2">
               <LinkButton to="pay/perDish">Pagar por platillo</LinkButton>
               <LinkButton to="pay/perPerson">Pagar por usuario</LinkButton>
               <LinkButton to="pay/equalParts">

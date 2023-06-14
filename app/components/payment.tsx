@@ -5,6 +5,28 @@ import {RadioInputButton} from './buttons/input'
 import {FlexRow} from './util/flexrow'
 import {Spacer} from './util/spacer'
 import {H2, H4, H5} from './util/typography'
+import {motion} from 'framer-motion'
+
+const effect = {
+  hidden: {
+    y: '100vh',
+    opacity: 0,
+  },
+  visible: {
+    y: '0',
+    opacity: 1,
+    transition: {
+      type: 'linear',
+      stiffness: 600,
+      // duration: 3,
+      damping: 30,
+    },
+  },
+  exit: {
+    y: '100vh',
+    opacity: 0,
+  },
+}
 
 export function Payment({
   total = 0,
@@ -35,27 +57,11 @@ export function Payment({
   }
 
   return (
-    <div className="dark:bg-night-bg_principal dark:text-night-text_principal sticky inset-x-0 bottom-0 flex flex-col justify-center rounded-t-xl border-2 bg-day-bg_principal px-2">
+    <motion.div
+      variants={effect}
+      className="dark:bg-night-bg_principal dark:text-night-text_principal sticky inset-x-0 bottom-0 flex flex-col justify-center rounded-t-xl border-2 bg-day-bg_principal px-2"
+    >
       {/* Radio Tip buttons */}
-      <Spacer spaceY="2" />
-      <H2>Método de pago</H2>
-      <Spacer spaceY="2" />
-      <FlexRow>
-        {Object.values(paymentMethods).map(paymentMethod => (
-          <RadioInputButton
-            key={paymentMethod}
-            title={`${paymentMethod}`}
-            state={activeRadioPaymentMethod}
-            id={`${paymentMethod}`}
-            type="radio"
-            name="paymentMethod"
-            value={`${paymentMethod}`}
-            className="sr-only"
-            handlerFunction={handleChangePaymentMethod}
-          />
-        ))}
-      </FlexRow>
-      <Spacer spaceY="2" />
       <H2>Deseas dejar propina</H2>
       <Spacer spaceY="2" />
       <FlexRow className="space-x-4">
@@ -74,6 +80,26 @@ export function Payment({
         ))}
       </FlexRow>
       <Spacer spaceY="2" />
+
+      <H2>Método de pago</H2>
+      <Spacer spaceY="2" />
+      <FlexRow>
+        {Object.values(paymentMethods).map(paymentMethod => (
+          <RadioInputButton
+            key={paymentMethod}
+            title={`${paymentMethod}`}
+            state={activeRadioPaymentMethod}
+            id={`${paymentMethod}`}
+            type="radio"
+            name="paymentMethod"
+            value={`${paymentMethod}`}
+            className="sr-only"
+            handlerFunction={handleChangePaymentMethod}
+          />
+        ))}
+      </FlexRow>
+      <Spacer spaceY="2" />
+
       {/* Total, propina, total */}
       <div>
         <FlexRow justify="between">
@@ -91,10 +117,11 @@ export function Payment({
         {error}
       </H5>
       <Spacer spaceY="2" />
+
       <Button name="_action" value="proceed">
         Pagar {formatCurrency(currency, Number(total || 0) + Number(tip || 0))}
       </Button>
       <Spacer spaceY="2" />
-    </div>
+    </motion.div>
   )
 }

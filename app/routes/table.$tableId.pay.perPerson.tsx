@@ -27,6 +27,7 @@ import {validateRedirect} from '~/redirect.server'
 import {getUserId} from '~/session.server'
 import {useLiveLoader} from '~/use-live-loader'
 import {formatCurrency, getAmountLeftToPay, getCurrency} from '~/utils'
+import {getDomainUrl, getStripeSession} from '~/utils/stripe.server'
 
 export async function loader({request, params}: LoaderArgs) {
   const {tableId} = params
@@ -109,6 +110,7 @@ export async function action({request, params}: ActionArgs) {
   }
   const proceed = formData.get('_action') === 'proceed'
   const tipPercentage = formData.get('tipPercentage') as string
+  const paymentMethod = formData.get('paymentMethod') as string
 
   const redirectTo = validateRedirect(request.redirect, `/table/${tableId}`)
   const userId = await getUserId(request)
@@ -150,6 +152,15 @@ export async function action({request, params}: ActionArgs) {
     EVENTS.ISSUE_CHANGED(tableId)
 
     return redirect(redirectTo)
+  }
+  const stripe = formData.get('stripe') as string
+  if (paymentMethod === 'card') {
+    const stripeRedirectUrl = await getStripeSession(
+      total * 100 + tip * 100,
+      getDomainUrl(request),
+      'eur',
+    )
+    return redirect(stripeRedirectUrl)
   }
 
   return json({total, tip, error})

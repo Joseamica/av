@@ -7,7 +7,7 @@ import {Button, FlexRow, H2, H3, ItemContainer, Modal} from '~/components'
 import {prisma} from '~/db.server'
 import {getTable} from '~/models/table.server'
 import {validateRedirect} from '~/redirect.server'
-import {sendWhatsapp} from '~/twilio.server'
+import {SendWhatsApp} from '~/twilio.server'
 
 export async function action({request, params}: ActionArgs) {
   const {tableId} = params
@@ -24,8 +24,7 @@ export async function action({request, params}: ActionArgs) {
     })
     .then(managers => managers.map(manager => manager.phone))
 
-  console.log('managers', managers)
-  const sendNotification = sendWhatsapp(
+  const sendNotification = SendWhatsApp(
     '14155238886',
     managers,
     `Llamada de la mesa ${table?.table_number} test`,
@@ -63,7 +62,7 @@ export default function Help() {
               <label className="text-xl" htmlFor={manager.id}>
                 {manager.name}
               </label>
-              <span className="rounded-full bg-button-primary px-2  text-sm text-white ring ring-button-outline">
+              <span className="rounded-full bg-button-primary px-2 text-sm text-white ring ring-button-outline">
                 {manager.role ? 'Gerente' : ''}
               </span>
             </FlexRow>

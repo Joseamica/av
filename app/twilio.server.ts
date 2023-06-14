@@ -1,16 +1,22 @@
 import {Twilio} from 'twilio'
 
-export function sendWhatsapp(from: string, to: string[], body: string) {
+export function SendWhatsApp(
+  from: string,
+  to: string[] | string,
+  body: string,
+) {
   const accountSid = process.env.TWILIO_ACCOUNT_SID
   const authToken = process.env.TWILIO_AUTH_TOKEN
 
   const client = new Twilio(accountSid, authToken)
+  if (!Array.isArray(to)) to = [to]
 
-  const promises = to.map(id => {
+  const promises = to.map(phone => {
     return client.messages.create({
       body: body,
       from: `whatsapp:${from}`,
-      to: `whatsapp:${id}`,
+      // from: `whatsapp:+14155238886`,
+      to: `whatsapp:${phone}`,
     })
   })
 

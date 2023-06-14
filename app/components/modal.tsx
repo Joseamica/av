@@ -103,7 +103,7 @@ export function Modal({
       <AnimatePresence>
         <motion.dialog
           className={clsx(
-            'no-scrollbar  dark:bg-night-bg_principal dark:text-night-text_principal inset-x-0 bottom-0 m-0 mx-auto flex max-h-full w-full flex-col  overflow-auto rounded-t-lg bg-day-bg_principal p-0 ',
+            'no-scrollbar  dark:text-night-text_principal inset-x-0 bottom-0 m-0 mx-auto flex max-h-full w-full flex-col overflow-auto  rounded-t-lg bg-day-bg_principal p-0 dark:bg-[#F3F4F6] ',
             justifyItems[justify],
             {'top-0 h-full': fullScreen},
           )}
@@ -130,7 +130,7 @@ export function Modal({
               <img
                 alt=""
                 src={imgHeader}
-                className=" dark:bg-night-bg_principal max-h-72 w-full rounded-t-lg bg-day-bg_principal object-cover object-bottom"
+                className="dark:bg-night-bg_principal max-h-72 w-full rounded-t-lg  bg-day-bg_principal object-cover object-bottom"
                 loading="lazy"
               />
             </div>

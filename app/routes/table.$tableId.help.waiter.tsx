@@ -8,21 +8,40 @@ import {Button, FlexRow, ItemContainer, Modal} from '~/components'
 import {prisma} from '~/db.server'
 import {getTable} from '~/models/table.server'
 import {validateRedirect} from '~/redirect.server'
+import {SendWhatsApp} from '~/twilio.server'
 
 export async function action({request, params}: ActionArgs) {
   const {tableId} = params
   invariant(tableId, 'tableId is required')
   const formData = await request.formData()
-  const waiters = formData.getAll('waiters')
+  const waiters = formData.getAll('waiters') || []
   const redirectTo = validateRedirect(request.redirect, `..`)
 
   const table = await getTable(tableId)
-  // const waiters = await prisma.employee.findMany({
-  //   where: {id: data.,rol: 'waiter', tables: {some: {id: tableId}}},
-  // })
-  console.dir(
-    `CALL ~> Llaman al mesero ${waiters} de la mesa ${table?.table_number}`,
-  )
+
+  if (waiters.length > 0) {
+    const waitersNumbers = await prisma.employee
+      .findMany({
+        where: {
+          id: {in: waiters},
+          NOT: {phone: null},
+          tables: {some: {id: tableId}},
+        },
+      })
+      .then(waiters => waiters.map(waiter => waiter.phone))
+
+    if (waitersNumbers.length > 0) {
+      SendWhatsApp(
+        '14155238886',
+        waitersNumbers,
+        `Te llaman de la mesa ${table?.table_number}`,
+      )
+    }
+  }
+
+  // console.dir(
+  //   `CALL ~> Llaman al mesero ${waiters} de la mesa ${table?.table_number}`,
+  // )
 
   return redirect(redirectTo)
 }
@@ -54,7 +73,7 @@ export default function Help() {
               <label className="text-xl" htmlFor={waiter.id}>
                 {waiter.name}
               </label>
-              <span className="rounded-full bg-button-primary px-2  text-sm text-white ring ring-button-outline">
+              <span className="rounded-full bg-button-primary px-2 text-sm text-white ring ring-button-outline">
                 {waiter.role ? 'Mesero' : ''}
               </span>
             </FlexRow>
@@ -62,7 +81,7 @@ export default function Help() {
               type="checkbox"
               name="waiters"
               id={waiter.id}
-              value={waiter.name}
+              value={waiter.id}
             />
           </ItemContainer>
         ))}
