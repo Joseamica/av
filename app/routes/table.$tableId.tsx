@@ -80,6 +80,8 @@ export async function loader({request, params}: LoaderArgs) {
     )
     const sessionId = session.get('sessionId')
     // console.log('sessionId', sessionId)
+    const expiryTime = formatISO(addHours(new Date(), 4))
+    session.set('expiryTime', expiryTime)
     const sessionExpiryTime = session.get('expiryTime')
     if (
       sessionExpiryTime &&

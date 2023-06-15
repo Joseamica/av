@@ -40,6 +40,7 @@ type LoaderData = {
   tipsPercentages: number[]
   paymentMethods: string[]
   currency: string
+  amountLeft: number
 }
 
 const effect = {
@@ -84,6 +85,8 @@ export async function loader({request, params}: LoaderArgs) {
   const unpaidCartItems = cartItems.filter(item => item.paid === false) || []
   const currency = await getCurrency(tableId)
 
+  const amountLeft = (await getAmountLeftToPay(tableId)) || 0
+
   return json({
     cartItems,
     paidCartItems,
@@ -91,6 +94,7 @@ export async function loader({request, params}: LoaderArgs) {
     tipsPercentages,
     paymentMethods,
     currency,
+    amountLeft,
   })
 }
 
@@ -98,6 +102,9 @@ export async function action({request, params}: ActionArgs) {
   const {tableId} = params
   invariant(tableId, 'No se encontró mesa')
   const formData = await request.formData()
+
+  const paymentMethod = formData.get('paymentMethod') as string
+  console.log('paymentMethod', paymentMethod)
 
   const redirectTo = validateRedirect(request.redirect, `/table/${tableId}`)
 
@@ -235,16 +242,17 @@ export default function PerDish() {
             )
           })}
         </div>
-        {actionData?.total && (
-          <Payment
-            total={actionData?.total}
-            tip={actionData?.tip}
-            tipsPercentages={data.tipsPercentages}
-            paymentMethods={data.paymentMethods}
-            currency={data.currency}
-            error={actionData?.error}
-          />
-        )}
+        {/* {actionData?.total && ( */}
+        <Payment
+          total={actionData?.total}
+          tip={actionData?.tip}
+          tipsPercentages={data.tipsPercentages}
+          paymentMethods={data.paymentMethods}
+          currency={data.currency}
+          error={actionData?.error}
+          amountLeft={data.amountLeft}
+        />
+        {/* )} */}
       </Form>
     </Modal>
   )
