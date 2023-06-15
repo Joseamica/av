@@ -36,11 +36,11 @@ export function FlexRow({
   [x: string]: any
 }) {
   return (
-    <motion.div
+    <div
       {...rest}
       className={`flex flex-row items-center space-x-${spaceX} ${justifyContent[justify]} ${className}`}
     >
       {children}
-    </motion.div>
+    </div>
   )
 }

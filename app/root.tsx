@@ -134,6 +134,7 @@ export default function App() {
       </head>
       <body className="hide-scrollbar no-scrollbar relative mx-auto h-full max-w-md bg-[#F3F4F6] px-2 pt-16">
         {/* <RemixSseProvider> */}
+        <div id="modal-root" />
         <Header user={data.user} isAdmin={data.isAdmin} />
 
         <Outlet />

@@ -6,6 +6,7 @@ import {
   useActionData,
   useLoaderData,
   useNavigate,
+  useSearchParams,
   useSubmit,
 } from '@remix-run/react'
 import clsx from 'clsx'
@@ -110,6 +111,7 @@ export async function action({request, params}: ActionArgs) {
 
   const proceed = formData.get('_action') === 'proceed'
   const tipPercentage = formData.get('tipPercentage') as string
+  console.log('tipPercentages', tipPercentage)
   const entries = formData.entries()
   const items = [...entries].filter(([key]) => key.startsWith('item-'))
   const prices = [...formData.entries()].filter(([key]) =>
@@ -195,7 +197,7 @@ export default function PerDish() {
   function handleChange(event: React.FormEvent<HTMLFormElement>) {
     submit(event.currentTarget, {replace: true})
   }
-
+  const [searchParams] = useSearchParams()
   return (
     <Modal
       onClose={() => navigate('..')}

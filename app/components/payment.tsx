@@ -4,7 +4,7 @@ import {Button, LinkButton} from './buttons/button'
 import {RadioInputButton} from './buttons/input'
 import {FlexRow} from './util/flexrow'
 import {Spacer} from './util/spacer'
-import {H2, H3, H4, H5} from './util/typography'
+import {H2, H3, H4, H5, H6} from './util/typography'
 import {motion} from 'framer-motion'
 import {
   Link,
@@ -12,7 +12,7 @@ import {
   useNavigate,
   useSearchParams,
 } from '@remix-run/react'
-import {Modal} from '.'
+import {Modal} from './modals'
 import {ChevronDownIcon, ChevronRightIcon} from '@heroicons/react/outline'
 import {ChevronUpIcon} from '@heroicons/react/solid'
 
@@ -68,9 +68,8 @@ export function Payment({
     setActiveRadioTip(event.target.value)
   }
 
-  const [changeMethod, setChangeMethod] = useState(false)
+  const [showChangeMethod, setShowChangeMethod] = useState(false)
 
-  const [searchParams] = useSearchParams()
   const [payMethodName, setPayMethodName] = useState('Efectivo')
 
   useEffect(() => {
@@ -82,6 +81,9 @@ export function Payment({
       setPayMethodName('Efectivo')
     }
   }, [activeRadioPaymentMethod])
+
+  const navigate = useNavigate()
+  const [showAddTip, setShowAddTip] = useState(false)
 
   return (
     <>
@@ -144,12 +146,12 @@ export function Payment({
         </H5>
         <Spacer spaceY="2" /> */}
         <FlexRow justify="between">
-          <H4>Queda por pagar:</H4>
+          <H5>Queda por pagar:</H5>
           <H3>{formatCurrency(currency, amountLeft ? amountLeft : 0)}</H3>
         </FlexRow>
         <Spacer spaceY="1" />
         <FlexRow justify="between">
-          <H4>Total seleccionado:</H4>
+          <H5>Total seleccionado:</H5>
           <H3>{formatCurrency(currency, total ? total : 0)}</H3>
         </FlexRow>
         <Spacer spaceY="1" />
@@ -157,21 +159,27 @@ export function Payment({
         <Spacer spaceY="1" />
         <button
           className="flex flex-row items-center justify-between"
-          onClick={() => setChangeMethod(!changeMethod)}
+          onClick={() => setShowChangeMethod(!showChangeMethod)}
         >
-          <H4>Método de pago</H4>
+          <H5>Método de pago</H5>
           <FlexRow>
             <H3>{payMethodName}</H3>
-            {changeMethod ? (
-              <ChevronUpIcon className="h-6 w-6" />
+            {showChangeMethod ? (
+              <FlexRow className="rounded-full bg-gray_light px-2 py-1">
+                <H6>Cerrar</H6>
+                <ChevronUpIcon className="h-4 w-4" />
+              </FlexRow>
             ) : (
-              <ChevronRightIcon className="h-6 w-6" />
+              <FlexRow className="rounded-full bg-gray_light px-2 py-1">
+                <H6>Cambiar</H6>
+                <ChevronRightIcon className="h-4 w-4" />
+              </FlexRow>
             )}
           </FlexRow>
         </button>
         <Spacer spaceY="1" />
-        {changeMethod && (
-          <FlexRow>
+        {showChangeMethod && (
+          <FlexRow justify="between" className="w-full">
             {Object.values(paymentMethods).map(paymentMethod => (
               <RadioInputButton
                 key={paymentMethod}
@@ -181,8 +189,50 @@ export function Payment({
                 type="radio"
                 name="paymentMethod"
                 value={`${paymentMethod}`}
-                className="sr-only"
+                className=""
                 handlerFunction={handleChangePaymentMethod}
+              />
+            ))}
+          </FlexRow>
+        )}
+        <Spacer spaceY="3" />
+        <button
+          className="flex flex-row items-center justify-between"
+          onClick={() => setShowAddTip(!showAddTip)}
+          type="button"
+        >
+          <H5>Propina</H5>
+          <FlexRow>
+            <H3>{activeRadioTip}%</H3>
+
+            {showAddTip ? (
+              <FlexRow className="rounded-full bg-gray_light px-2 py-1">
+                <H6>Cerrar</H6>
+                <ChevronUpIcon className="h-4 w-4" />
+              </FlexRow>
+            ) : (
+              <FlexRow className="rounded-full bg-gray_light px-2 py-1">
+                <H6>Cambiar</H6>
+                <ChevronRightIcon className="h-4 w-4" />
+              </FlexRow>
+            )}
+          </FlexRow>
+        </button>
+
+        <Spacer spaceY="1" />
+        {showAddTip && (
+          <FlexRow>
+            {Object.values(tipsPercentages).map(tipPercentage => (
+              <RadioInputButton
+                key={tipPercentage}
+                title={`${tipPercentage}%`}
+                state={activeRadioTip}
+                id={`${tipPercentage}`}
+                type="radio"
+                name="tipPercentage"
+                value={`${tipPercentage}`}
+                className="w-full justify-center"
+                handlerFunction={handleChangeTip}
               />
             ))}
           </FlexRow>
@@ -192,8 +242,40 @@ export function Payment({
           Pagar{' '}
           {formatCurrency(currency, Number(total || 0) + Number(tip || 0))}
         </Button>
-        <Spacer spaceY="2" />
+        {/* <Button
+          disabled={total <= 0}
+          fullWith={true}
+          type="button"
+          onClick={() => setShowAddTip(true)}
+        >
+          Pagar {formatCurrency(currency, Number(total || 0))}
+        </Button>
+        <Spacer spaceY="2" /> */}
       </motion.div>
+      {/* <Modal
+        isOpen={showAddTip}
+        handleClose={() => {
+          setShowAddTip(false)
+        }}
+      >
+        <div className="w-full space-y-2 bg-white">
+          <H2>Deseas dejar propina</H2>
+          <Spacer spaceY="2" />
+          {Object.values(tipsPercentages).map(tipPercentage => (
+            <RadioInputButton
+              key={tipPercentage}
+              title={`${tipPercentage}%`}
+              state={activeRadioTip}
+              id={`${tipPercentage}`}
+              type="radio"
+              name="tipPercentage"
+              value={`${tipPercentage}`}
+              className="sr-only"
+              handlerFunction={handleChangeTip}
+            />
+          ))}
+        </div>
+      </Modal> */}
     </>
   )
 }

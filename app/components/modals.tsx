@@ -6,7 +6,7 @@ import {useEffect, useState} from 'react'
 import {AnimatePresence, motion} from 'framer-motion'
 import FocusLock from 'react-focus-lock'
 import {ChevronDownIcon, XIcon} from '@heroicons/react/outline'
-import {FlexRow, Fragment, Spacer} from '.'
+import {FlexRow, Spacer} from '.'
 import {ChevronLeftIcon} from '@heroicons/react/solid'
 import {H3} from './util/typography'
 // import { Invisible } from "./invisible";
@@ -40,7 +40,7 @@ const Backdrop = ({
   handleClose: () => void
 }) => (
   <motion.div
-    className="bg-backdrop fixed inset-0 z-50 flex max-h-screen flex-row items-center justify-center bg-black bg-opacity-70 backdrop-blur-sm backdrop-filter"
+    className="bg-backdrop fixed inset-0 z-[999] flex max-h-screen flex-row items-center justify-center bg-black bg-opacity-70 backdrop-blur-sm backdrop-filter"
     onClick={handleClose}
     initial={{opacity: 0}}
     animate={{opacity: 1}}
@@ -97,14 +97,14 @@ const ModalContent = ({
             }`}
           >
             {/* {backButton ? null : ( */}
-            <h3 className="xs:text-base text-xl font-medium">{title}</h3>
+            <h3 className="text-xl font-medium xs:text-base">{title}</h3>
             {/* // )} */}
             <button
               onClick={handleClose}
               aria-label={`Close ${ariaLabel || 'dialog'}`}
-              className={`${'xs:h-7 xs:w-7 text-principal dark:bg-secondaryDark dark:text-mainTextDark flex h-10 w-10 items-center justify-center rounded-full bg-white shadow-md dark:shadow-sm dark:shadow-black'} `}
+              className={`${'text-principal dark:bg-secondaryDark dark:text-mainTextDark flex h-10 w-10 items-center justify-center rounded-full bg-white shadow-md dark:shadow-sm dark:shadow-black xs:h-7 xs:w-7'} `}
             >
-              <XIcon className="xs:w-4 xs:h-4 h-6 w-6" />
+              <XIcon className="h-6 w-6 xs:h-4 xs:w-4" />
             </button>
           </FlexRow>
         </div>
@@ -112,7 +112,7 @@ const ModalContent = ({
 
       {/* //~~>If imgHeader<~~// */}
       {imgHeader && (
-        <Fragment>
+        <>
           <button
             onClick={handleClose}
             aria-label={`Close ${ariaLabel || 'dialog'}`}
@@ -126,7 +126,7 @@ const ModalContent = ({
             className="dark:bg-secondaryDark max-h-72 w-full rounded-t-lg bg-white object-cover"
             loading="lazy"
           />
-        </Fragment>
+        </>
       )}
 
       <div className="no-scrollbar w-full overflow-auto">{children}</div>
