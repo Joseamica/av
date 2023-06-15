@@ -29,6 +29,7 @@ import {
   Spacer,
   UserButton,
 } from '~/components/index'
+import {Modal as ModalPortal} from '~/components/modals'
 import {prisma} from '~/db.server'
 import {EVENTS} from '~/events'
 import {getBranch} from '~/models/branch.server'
@@ -242,6 +243,7 @@ export default function Table() {
   const filter = searchParams.get('filter')
   const userId = searchParams.get('userId')
   const toggleLink = filter === 'perUser' ? 'filter=perUser' : ''
+  const [showPaymentOptions, setShowPaymentOptions] = useState(false)
 
   if (data.total > 0) {
     return (
@@ -398,7 +400,32 @@ export default function Table() {
           </SectionContainer>
         )}
         <Spacer spaceY="2" />
-        <PayButtons />
+        {/* {data.order.cartItems.length > 7 ? (
+          <SinglePayButton
+            showPaymentOptions={showPaymentOptions}
+            setShowPaymentOptions={setShowPaymentOptions}
+          />
+        ) : (
+          <PayButtons />
+        )} */}
+        {data.amountLeft > 0 ? (
+          <SinglePayButton
+            showPaymentOptions={showPaymentOptions}
+            setShowPaymentOptions={setShowPaymentOptions}
+          />
+        ) : (
+          <Form method="POST">
+            <Button
+              name="_action"
+              value="endOrder"
+              // onClick={handleValidate}
+              fullWith={true}
+            >
+              Terminar orden
+            </Button>
+          </Form>
+        )}
+
         <Outlet />
       </motion.main>
     )
@@ -449,40 +476,99 @@ export default function Table() {
   }
 }
 
-function PayButtons() {
+function SinglePayButton({
+  showPaymentOptions,
+  setShowPaymentOptions,
+}: {
+  showPaymentOptions: boolean
+  setShowPaymentOptions: (value: boolean) => void
+}) {
+  return (
+    <div className="sticky bottom-2">
+      <Button
+        size="medium"
+        variant="primary"
+        fullWith={true}
+        className="sticky"
+        onClick={() => setShowPaymentOptions(true)}
+      >
+        Pagar o dividir la cuenta
+      </Button>
+      <ModalPortal
+        title="Pagar o dividir la cuenta"
+        isOpen={showPaymentOptions}
+        handleClose={() => setShowPaymentOptions(false)}
+      >
+        <div className="bg-white px-2 pt-4">
+          <PayButtons setShowPaymentOptions={setShowPaymentOptions} />
+        </div>
+      </ModalPortal>
+    </div>
+  )
+}
+
+function PayButtons({
+  setShowPaymentOptions,
+}: {
+  setShowPaymentOptions?: (value: boolean) => void
+}) {
   const data = useLoaderData()
   const [showSplit, setShowSplit] = useState(false)
+  console.log('showSplit', showSplit)
   const revalidator = useRevalidator()
 
   const handleValidate = () => {
     revalidator.revalidate()
   }
 
+  const handleFullPay = () => {
+    if (setShowPaymentOptions) setShowPaymentOptions(false)
+  }
+
+  const handleSplitPay = () => {
+    if (setShowPaymentOptions) {
+      setShowSplit(false)
+      setShowPaymentOptions(false)
+    }
+  }
+
   if (data.amountLeft > 0) {
     return (
-      <div className="flex flex-col">
+      <div className="flex h-full flex-col">
         <Button
-          onClick={() => setShowSplit(true)}
+          onClick={() => {
+            setShowSplit(true)
+          }}
           variant="primary"
           size="large"
         >
           Dividir Cuenta
         </Button>
         <Spacer spaceY="1" />
-        <LinkButton to="pay/fullpay">Pagar la cuenta completa</LinkButton>
+        <LinkButton to="pay/fullpay" onClick={handleFullPay}>
+          Pagar la cuenta completa
+        </LinkButton>
         <Spacer spaceY="2" />
-        {showSplit && (
-          <Modal onClose={() => setShowSplit(false)} title="Dividir cuenta">
-            <div className="flex flex-col space-y-2 p-2">
-              <LinkButton to="pay/perDish">Pagar por platillo</LinkButton>
-              <LinkButton to="pay/perPerson">Pagar por usuario</LinkButton>
-              <LinkButton to="pay/equalParts">
-                Pagar en partes iguales
-              </LinkButton>
-              <LinkButton to="pay/custom">Pagar monto personalizado</LinkButton>
-            </div>
-          </Modal>
-        )}
+        <ModalPortal
+          isOpen={showSplit}
+          handleClose={() => setShowSplit(false)}
+          title="Dividir cuenta"
+        >
+          <div className="flex flex-col space-y-2 bg-white p-2">
+            <LinkButton to="pay/perDish" onClick={handleSplitPay}>
+              Pagar por platillo
+            </LinkButton>
+            <LinkButton to="pay/perPerson" onClick={handleSplitPay}>
+              Pagar por usuario
+            </LinkButton>
+            <LinkButton to="pay/equalParts" onClick={handleSplitPay}>
+              Pagar en partes iguales
+            </LinkButton>
+            <LinkButton to="pay/custom" onClick={handleSplitPay}>
+              Pagar monto personalizado
+            </LinkButton>
+          </div>
+        </ModalPortal>
       </div>
     )
   } else {

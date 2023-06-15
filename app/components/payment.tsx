@@ -147,96 +147,102 @@ export function Payment({
         <Spacer spaceY="2" /> */}
         <FlexRow justify="between">
           <H5>Queda por pagar:</H5>
-          <H3>{formatCurrency(currency, amountLeft ? amountLeft : 0)}</H3>
+          <H3>{formatCurrency(currency, amountLeft ? amountLeft : total)}</H3>
         </FlexRow>
         <Spacer spaceY="1" />
-        <FlexRow justify="between">
-          <H5>Total seleccionado:</H5>
-          <H3>{formatCurrency(currency, total ? total : 0)}</H3>
-        </FlexRow>
-        <Spacer spaceY="1" />
-        <hr />
-        <Spacer spaceY="1" />
-        <button
-          className="flex flex-row items-center justify-between"
-          onClick={() => setShowChangeMethod(!showChangeMethod)}
-        >
-          <H5>Método de pago</H5>
-          <FlexRow>
-            <H3>{payMethodName}</H3>
-            {showChangeMethod ? (
-              <FlexRow className="rounded-full bg-gray_light px-2 py-1">
-                <H6>Cerrar</H6>
-                <ChevronUpIcon className="h-4 w-4" />
+        {total <= 0 ? null : (
+          <>
+            <FlexRow justify="between">
+              <H5>Total seleccionado:</H5>
+              <H3>{formatCurrency(currency, total ? total : 0)}</H3>
+            </FlexRow>
+            <Spacer spaceY="1" />
+            <hr />
+            <Spacer spaceY="1" />
+            <button
+              className="flex flex-row items-center justify-between"
+              onClick={() => setShowChangeMethod(!showChangeMethod)}
+            >
+              <H5>Método de pago</H5>
+              <FlexRow>
+                <H3>{payMethodName}</H3>
+                {showChangeMethod ? (
+                  <FlexRow className="rounded-full bg-gray_light px-2 py-1">
+                    <H6>Cerrar</H6>
+                    <ChevronUpIcon className="h-4 w-4" />
+                  </FlexRow>
+                ) : (
+                  <FlexRow className="rounded-full bg-gray_light px-2 py-1">
+                    <H6>Cambiar</H6>
+                    <ChevronRightIcon className="h-4 w-4" />
+                  </FlexRow>
+                )}
               </FlexRow>
-            ) : (
-              <FlexRow className="rounded-full bg-gray_light px-2 py-1">
-                <H6>Cambiar</H6>
-                <ChevronRightIcon className="h-4 w-4" />
-              </FlexRow>
-            )}
-          </FlexRow>
-        </button>
-        <Spacer spaceY="1" />
-        {showChangeMethod && (
-          <FlexRow justify="between" className="w-full">
-            {Object.values(paymentMethods).map(paymentMethod => (
-              <RadioInputButton
-                key={paymentMethod}
-                title={`${paymentMethod}`}
-                state={activeRadioPaymentMethod}
-                id={`${paymentMethod}`}
-                type="radio"
-                name="paymentMethod"
-                value={`${paymentMethod}`}
-                className=""
-                handlerFunction={handleChangePaymentMethod}
-              />
-            ))}
-          </FlexRow>
-        )}
-        <Spacer spaceY="3" />
-        <button
-          className="flex flex-row items-center justify-between"
-          onClick={() => setShowAddTip(!showAddTip)}
-          type="button"
-        >
-          <H5>Propina</H5>
-          <FlexRow>
-            <H3>{activeRadioTip}%</H3>
-
-            {showAddTip ? (
-              <FlexRow className="rounded-full bg-gray_light px-2 py-1">
-                <H6>Cerrar</H6>
-                <ChevronUpIcon className="h-4 w-4" />
-              </FlexRow>
-            ) : (
-              <FlexRow className="rounded-full bg-gray_light px-2 py-1">
-                <H6>Cambiar</H6>
-                <ChevronRightIcon className="h-4 w-4" />
+            </button>
+            <Spacer spaceY="1" />
+            {showChangeMethod && (
+              <FlexRow justify="between" className="w-full">
+                {Object.values(paymentMethods).map(paymentMethod => (
+                  <RadioInputButton
+                    disabled={total <= 0}
+                    key={paymentMethod}
+                    title={paymentMethod}
+                    state={activeRadioPaymentMethod}
+                    id={`${paymentMethod}`}
+                    type="radio"
+                    name="paymentMethod"
+                    value={`${paymentMethod}`}
+                    className=""
+                    handlerFunction={handleChangePaymentMethod}
+                  />
+                ))}
               </FlexRow>
             )}
-          </FlexRow>
-        </button>
+            <Spacer spaceY="3" />
+            <button
+              className="flex flex-row items-center justify-between"
+              onClick={() => setShowAddTip(!showAddTip)}
+              type="button"
+            >
+              <H5>Propina</H5>
+              <FlexRow>
+                <H3>{activeRadioTip}%</H3>
 
-        <Spacer spaceY="1" />
-        {showAddTip && (
-          <FlexRow>
-            {Object.values(tipsPercentages).map(tipPercentage => (
-              <RadioInputButton
-                key={tipPercentage}
-                title={`${tipPercentage}%`}
-                state={activeRadioTip}
-                id={`${tipPercentage}`}
-                type="radio"
-                name="tipPercentage"
-                value={`${tipPercentage}`}
-                className="w-full justify-center"
-                handlerFunction={handleChangeTip}
-              />
-            ))}
-          </FlexRow>
+                {showAddTip ? (
+                  <FlexRow className="rounded-full bg-gray_light px-2 py-1">
+                    <H6>Cerrar</H6>
+                    <ChevronUpIcon className="h-4 w-4" />
+                  </FlexRow>
+                ) : (
+                  <FlexRow className="rounded-full bg-gray_light px-2 py-1">
+                    <H6>Cambiar</H6>
+                    <ChevronRightIcon className="h-4 w-4" />
+                  </FlexRow>
+                )}
+              </FlexRow>
+            </button>
+
+            <Spacer spaceY="1" />
+            {showAddTip && (
+              <FlexRow>
+                {Object.values(tipsPercentages).map(tipPercentage => (
+                  <RadioInputButton
+                    key={tipPercentage}
+                    title={`${tipPercentage}%`}
+                    state={activeRadioTip}
+                    id={`${tipPercentage}`}
+                    type="radio"
+                    name="tipPercentage"
+                    value={`${tipPercentage}`}
+                    className="w-full justify-center"
+                    handlerFunction={handleChangeTip}
+                  />
+                ))}
+              </FlexRow>
+            )}
+          </>
         )}
+
         <Spacer spaceY="2" />
         <Button name="_action" value="proceed" disabled={total <= 0}>
           Pagar{' '}

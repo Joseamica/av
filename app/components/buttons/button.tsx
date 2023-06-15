@@ -16,6 +16,7 @@ interface LinkProps {
   size?: 'small' | 'medium' | 'large' | 'icon'
   children: React.ReactNode | React.ReactNode[]
   to: string
+  onClick?: () => void
 }
 
 function getClassName({
@@ -97,9 +98,15 @@ function LinkButton({
   size = 'large',
   className,
   to = '/',
+  onClick,
 }: LinkProps & JSX.IntrinsicElements['button']) {
   return (
-    <Link to={to} preventScrollReset className={getClassName({className})}>
+    <Link
+      onClick={onClick}
+      to={to}
+      preventScrollReset
+      className={getClassName({className})}
+    >
       <ButtonInner variant={variant} size={size}>
         {children}
       </ButtonInner>

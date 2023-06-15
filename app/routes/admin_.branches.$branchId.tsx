@@ -2,6 +2,7 @@ import type {Menu, Table} from '@prisma/client'
 import type {ActionArgs, LoaderArgs} from '@remix-run/node'
 import {json} from '@remix-run/node'
 import {
+  Form,
   Link,
   Outlet,
   useLoaderData,
@@ -11,7 +12,7 @@ import {
 import React from 'react'
 import {AiFillDelete, AiFillEdit} from 'react-icons/ai'
 import {IoChevronBack, IoChevronDown, IoChevronUp} from 'react-icons/io5'
-import {FlexRow, H1, LinkButton, Spacer} from '~/components'
+import {Button, FlexRow, H1, LinkButton, Modal, Spacer} from '~/components'
 import {prisma} from '~/db.server'
 
 export async function loader({request, params}: LoaderArgs) {
@@ -35,6 +36,14 @@ export async function action({request, params}: ActionArgs) {
   const {branchId} = params
   const formData = await request.formData()
   const url = new URL(request.url)
+  await prisma.branch.update({
+    where: {id: branchId},
+    data: {
+      ppt_image:
+        'https://firebasestorage.googleapis.com/v0/b/avoqado-d0a24.appspot.com/o/kuikku%2FKuikku%20General.JPG?alt=media&token=e585a90e-59dd-499d-97b6-b059a031ff8b',
+    },
+  })
+
   return json({success: true})
 }
 
@@ -47,6 +56,7 @@ export default function AdminBranch() {
     menu: false,
   })
   const matches = useMatches()
+  const [searchParams] = useSearchParams()
   return (
     <div>
       <Spacer spaceY="2" />
@@ -62,6 +72,10 @@ export default function AdminBranch() {
           <IoChevronBack />
         </Link>
         <H1>{data.branch.name}</H1>
+        <Link to="?editBranch=true">
+          <AiFillEdit />
+        </Link>
+
         {/* <LinkButton to="edit" className="ml-2">
           Edit
         </LinkButton> */}
@@ -141,6 +155,13 @@ export default function AdminBranch() {
           <Outlet />
         </div>
       </div>
+      {searchParams.get('editBranch') && (
+        <Modal>
+          <Form method="post">
+            <Button>asign image</Button>
+          </Form>
+        </Modal>
+      )}
     </div>
   )
 }

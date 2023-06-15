@@ -19,8 +19,8 @@ import {
   ItemContainer,
   Payment,
   SectionContainer,
+  Modal,
 } from '~/components'
-import {Modal} from '~/components/modal'
 import {prisma} from '~/db.server'
 import {EVENTS} from '~/events'
 import {getPaymentMethods, getTipsPercentages} from '~/models/branch.server'
@@ -155,6 +155,7 @@ export async function action({request, params}: ActionArgs) {
     return redirect(redirectTo)
   }
   const stripe = formData.get('stripe') as string
+  console.log('paymentMethod', paymentMethod)
   if (paymentMethod === 'card') {
     const stripeRedirectUrl = await getStripeSession(
       total * 100 + tip * 100,
@@ -193,75 +194,30 @@ export default function PerPerson() {
       [userId]: !prev[userId],
     }))
   }
-  useEffect(() => {
-    if (data.userTotals) {
-      const initialCollapsedSections = {}
-      Object.keys(data.userTotals).forEach(userId => {
-        initialCollapsedSections[userId] = true
-      })
-      setCollapsedSections(initialCollapsedSections)
-    }
-  }, [data.userTotals])
+  // useEffect(() => {
+  //   if (data.userTotals) {
+  //     const initialCollapsedSections = {}
+  //     Object.keys(data.userTotals).forEach(userId => {
+  //       initialCollapsedSections[userId] = true
+  //     })
+  //     setCollapsedSections(initialCollapsedSections)
+  //   }
+  // }, [data.userTotals])
 
   return (
     <Modal onClose={() => navigate('..')} title="Dividir por usuario">
+      <H5 className="px-2 text-end">
+        Selecciona a los usuarios que deseas pagar
+      </H5>
       <Form method="POST" preventScrollReset onChange={handleChange}>
-        {Object.keys(data.userTotals).length > 0
-          ? Object.keys(data.userTotals).map(userId => {
-              const user = data.userTotals[userId]
-              return (
-                <div className="p-2 " key={userId}>
-                  <FlexRow justify="between">
-                    <ItemContainer
-                      showCollapse={true}
-                      handleCollapse={handleCollapse(userId)}
-                      collapse={collapsedSections[userId]}
-                      className={clsx({
-                        'rounded-b-none': !collapsedSections[userId],
-                      })}
-                    >
-                      <H4>{user.user.name}</H4>
-                      <FlexRow>
-                        <H2>{formatCurrency(data.currency, user.total)}</H2>
-                        <input
-                          type="checkbox"
-                          name="selectedUsers"
-                          value={user.total}
-                          className="h-5 w-5"
-                        />
-                      </FlexRow>
-                    </ItemContainer>
-                  </FlexRow>
-                  {collapsedSections[userId] ? null : (
-                    <SectionContainer divider={true} className="rounded-t-none">
-                      {user.cartItems.map((item: CartItem) => {
-                        return (
-                          <FlexRow
-                            key={item.id}
-                            className="p-2"
-                            justify="between"
-                          >
-                            <H5>{item.quantity}</H5>
-                            <H5>{item.name}</H5>
-                            <FlexRow>
-                              <H4>
-                                {formatCurrency(data.currency, item.price)}
-                              </H4>
-                              <H4>
-                                c/u:
-                                {formatCurrency(data.currency, item.itemTotal)}
-                              </H4>
-                            </FlexRow>
-                          </FlexRow>
-                        )
-                      })}
-                    </SectionContainer>
-                  )}
-                </div>
-              )
-            })
+        {Object.values(data.userTotals).length > 0
+          ? Object.values(data.userTotals).map(user => (
+              <UserItemContainer
+                key={user.user.id}
+                {...{user, handleCollapse, collapsedSections, data}}
+              />
+            ))
           : null}
-
         <Payment
           total={actionData?.total}
           tip={actionData?.tip}
@@ -273,4 +229,100 @@ export default function PerPerson() {
       </Form>
     </Modal>
   )
+}
+
+const UserItemContainer = ({
+  user,
+  handleCollapse,
+  collapsedSections,
+  data,
+}: UserItemContainerProps) => (
+  <div className="p-2" key={user.user.id}>
+    <FlexRow>
+      <ItemContainer
+        showCollapse={true}
+        handleCollapse={handleCollapse(user.user.id)}
+        collapse={collapsedSections[user.user.id]}
+        className={clsx('justify-center', {
+          'rounded-b-none': !collapsedSections[user.user.id],
+        })}
+      >
+        <H4>{user.user.name}</H4>
+        <FlexRow>
+          <H2>{formatCurrency(data.currency, user.total)}</H2>
+          <input
+            type="checkbox"
+            name="selectedUsers"
+            value={user.total}
+            className="h-5 w-5"
+            onClick={e => e.stopPropagation()} // Add this line
+          />
+        </FlexRow>
+      </ItemContainer>
+    </FlexRow>
+    {collapsedSections[user.user.id] ? null : (
+      <SectionContainer divider={true} className="rounded-t-none">
+        {user.cartItems.map((item: CartItem) => (
+          <CartItemComponent key={item.id} {...{item, data}} />
+        ))}
+      </SectionContainer>
+    )}
+  </div>
+)
+
+const CartItemComponent = ({item, data}: CartItemComponentProps) => (
+  <FlexRow key={item.id} className="p-2" justify="between">
+    <FlexRow>
+      <H5>{item.quantity}</H5>
+      <H5>{item.name}</H5>
+    </FlexRow>
+    <FlexRow className="items-center justify-center">
+      <H5>c/u:{formatCurrency(data.currency, item.price)}</H5>
+      <H4>{formatCurrency(data.currency, item.itemTotal)}</H4>
+    </FlexRow>
+  </FlexRow>
+)
+
+interface UserWithTotal {
+  user: {
+    id: number
+    name: string
+  }
+  cartItems: CartItem[]
+  total: number
+}
+
+interface UserTotalsData {
+  userTotals: Record<number, UserWithTotal>
+  tableId: string
+  tipsPercentages: number[]
+  paymentMethods: string[]
+  currency: string
+}
+
+interface PerPersonProps {
+  data: UserTotalsData
+}
+
+interface UserItemContainerProps {
+  user: UserWithTotal
+  handleCollapse: (userId: string) => (e: Event) => void
+  collapsedSections: Record<string, boolean>
+  data: UserTotalsData
+}
+
+interface ActionData {
+  total?: number
+  tip?: number
+  error?: string
+}
+
+interface PerPersonProps {
+  data: UserTotalsData
+  actionData: ActionData
+}
+
+interface CartItemComponentProps {
+  item: CartItem
+  data: UserTotalsData
 }

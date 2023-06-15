@@ -145,6 +145,7 @@ export default function FullPay() {
 
         // isPaying={isPaying}
         />
+        <Spacer spaceY="2" />
         <Form method="POST" preventScrollReset onChange={handleChange}>
           <Payment
             total={data.amountLeft}

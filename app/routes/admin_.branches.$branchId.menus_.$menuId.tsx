@@ -51,6 +51,25 @@ export async function action({request, params}: ActionArgs) {
   const allDay = formData.get('allDay') === 'on' ? true : false
   const type = formData.get('type') as string
 
+  // DELETE AFTER
+  const asignImageMenu = formData.get('asignImageMenu') as string
+  if (asignImageMenu) {
+    await prisma.menu.update({
+      where: {id: menuId},
+      data: {
+        image:
+          'https://firebasestorage.googleapis.com/v0/b/avoqado-d0a24.appspot.com/o/kuikku%2FKUIKKU%20(2)%20(1)%20copy.png?alt=media&token=c077af1b-4ed4-4807-a762-a9c091c1ccfa',
+      },
+    })
+  }
+  const delMenu = formData.get('delMenu') as string
+  if (delMenu) {
+    await prisma.menu.delete({
+      where: {id: menuId},
+    })
+    return redirect(`/admin/branches/${branchId}/menus`)
+  }
+
   const searchParams = new URL(request.url).searchParams
   const categoryId = searchParams.get('categoryId')
   const editItemId = searchParams.get('editItemId') || ''
@@ -127,6 +146,12 @@ export default function AdminMenuId() {
               <IoChevronBack />
             </LinkButton> */}
             <H1 className="shrink-0">{data.menu.name}</H1>
+            <Link to={`?editMenu=true`}>
+              <AiFillEdit />
+            </Link>
+            <Link to={`?delMenu=true`}>
+              <AiFillDelete />
+            </Link>
           </FlexRow>
           <Spacer spaceY="2" />
           <div className="space-x-1 space-y-2">
@@ -146,6 +171,20 @@ export default function AdminMenuId() {
               </FlexRow>
             ))}
           </div>
+          {searchParams.get('editMenu') && (
+            <Modal>
+              <Button name="asignImageMenu" value="true">
+                asign image to menu
+              </Button>
+            </Modal>
+          )}
+          {searchParams.get('delMenu') && (
+            <Modal>
+              <Button name="delMenu" value="true">
+                asign image to menu
+              </Button>
+            </Modal>
+          )}
           {addMenu && (
             <Modal title="Agregar menu" onClose={() => navigate(``)}>
               <label htmlFor="name" className="capitalize">
