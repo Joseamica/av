@@ -23,7 +23,7 @@ function getClassName({
   return clsx(
     'no-scrollbar flex flex-row justify-between rounded-lg bg-day-bg_principal  dark:bg-night-bg_principal dark:text-night-text_principal p-4 font-sans shadow-lg  container',
     {'text-disabled': unActive},
-    {className},
+    className,
   )
 }
 
@@ -44,6 +44,7 @@ export function ItemContainer({
     >
       {showCollapse && (
         <button
+          {...rest}
           onClick={handleCollapse}
           className={clsx('flex cursor-pointer ', {
             // 'justify-center': collapse,
@@ -51,9 +52,9 @@ export function ItemContainer({
           })}
         >
           {collapse ? (
-            <ChevronDownIcon className="p-1 rounded-full shadow-md h-7 w-7" />
+            <ChevronDownIcon className="h-7 w-7 rounded-full p-1 shadow-md" />
           ) : (
-            <ChevronUpIcon className="p-1 rounded-full shadow-md h-7 w-7" />
+            <ChevronUpIcon className="h-7 w-7 rounded-full p-1 shadow-md" />
           )}
         </button>
       )}

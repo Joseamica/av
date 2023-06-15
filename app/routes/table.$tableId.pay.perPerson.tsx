@@ -8,7 +8,8 @@ import {
   useNavigate,
   useSubmit,
 } from '@remix-run/react'
-import {useState} from 'react'
+import {clsx} from 'clsx'
+import {useEffect, useState} from 'react'
 import invariant from 'tiny-invariant'
 import {
   FlexRow,
@@ -183,69 +184,83 @@ export default function PerPerson() {
     submit(event.currentTarget, {replace: true})
   }
 
-  const [collapse, setCollapse] = useState(false)
-  const handleCollapse = (e: any) => {
+  const [collapsedSections, setCollapsedSections] = useState({})
+
+  const handleCollapse = (userId: string) => (e: Event) => {
     e.preventDefault()
-    setCollapse(!collapse)
+    setCollapsedSections(prev => ({
+      ...prev,
+      [userId]: !prev[userId],
+    }))
   }
-  console.log('collapse', collapse)
+  useEffect(() => {
+    if (data.userTotals) {
+      const initialCollapsedSections = {}
+      Object.keys(data.userTotals).forEach(userId => {
+        initialCollapsedSections[userId] = true
+      })
+      setCollapsedSections(initialCollapsedSections)
+    }
+  }, [data.userTotals])
 
   return (
-    <Modal
-      onClose={() => navigate('..')}
-      // fullScreen={true}
-      title="Dividir por usuario"
-    >
-      {/* <H1>Per Dish</H1> */}
-      <Form
-        method="POST"
-        preventScrollReset
-        onChange={handleChange}
-        // action={`../pay/action`}
-      >
-        {Object.keys(data.userTotals).map(userId => {
-          const user = data.userTotals[userId]
-          return (
-            <div className="space-y-2 p-2" key={userId}>
-              <FlexRow justify="between">
-                <ItemContainer
-                  showCollapse={true}
-                  handleCollapse={handleCollapse}
-                >
-                  {/* <label htmlFor="selectedUsers">{user.user.name}</label> */}
-                  <H4>{user.user.name}</H4>
-                  <FlexRow>
-                    <H2>{formatCurrency(data.currency, user.total)}</H2>
-                    <input
-                      type="checkbox"
-                      name="selectedUsers"
-                      value={user.total}
-                    />
-                  </FlexRow>
-                </ItemContainer>
-                {/* Detalles */}
-              </FlexRow>
-              <SectionContainer divider={true}>
-                {user.cartItems.map((item: CartItem) => {
-                  return (
-                    <FlexRow key={item.id} className="p-2" justify="between">
-                      <H5>{item.quantity}</H5>
-                      <H5>{item.name}</H5>
+    <Modal onClose={() => navigate('..')} title="Dividir por usuario">
+      <Form method="POST" preventScrollReset onChange={handleChange}>
+        {Object.keys(data.userTotals).length > 0
+          ? Object.keys(data.userTotals).map(userId => {
+              const user = data.userTotals[userId]
+              return (
+                <div className="p-2 " key={userId}>
+                  <FlexRow justify="between">
+                    <ItemContainer
+                      showCollapse={true}
+                      handleCollapse={handleCollapse(userId)}
+                      collapse={collapsedSections[userId]}
+                      className={clsx({
+                        'rounded-b-none': !collapsedSections[userId],
+                      })}
+                    >
+                      <H4>{user.user.name}</H4>
                       <FlexRow>
-                        <H4>{formatCurrency(data.currency, item.price)}</H4>
-                        <H4>
-                          c/u:
-                          {/* @ts-expect-error */}
-                          {formatCurrency(data.currency, item.itemTotal)}
-                        </H4>
+                        <H2>{formatCurrency(data.currency, user.total)}</H2>
+                        <input
+                          type="checkbox"
+                          name="selectedUsers"
+                          value={user.total}
+                          className="h-5 w-5"
+                        />
                       </FlexRow>
-                    </FlexRow>
-                  )
-                })}
-              </SectionContainer>
-            </div>
-          )
-        })}
+                    </ItemContainer>
+                  </FlexRow>
+                  {collapsedSections[userId] ? null : (
+                    <SectionContainer divider={true} className="rounded-t-none">
+                      {user.cartItems.map((item: CartItem) => {
+                        return (
+                          <FlexRow
+                            key={item.id}
+                            className="p-2"
+                            justify="between"
+                          >
+                            <H5>{item.quantity}</H5>
+                            <H5>{item.name}</H5>
+                            <FlexRow>
+                              <H4>
+                                {formatCurrency(data.currency, item.price)}
+                              </H4>
+                              <H4>
+                                c/u:
+                                {formatCurrency(data.currency, item.itemTotal)}
+                              </H4>
+                            </FlexRow>
+                          </FlexRow>
+                        )
+                      })}
+                    </SectionContainer>
+                  )}
+                </div>
+              )
+            })
+          : null}
 
         <Payment
           total={actionData?.total}
