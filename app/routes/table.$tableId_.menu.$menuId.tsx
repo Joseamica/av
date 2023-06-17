@@ -238,14 +238,20 @@ export default function Menu() {
                             <Spacer spaceY="1" />
                             <H3>{formatCurrency(data.currency, dish.price)}</H3>
                           </div>
+                          {/* <div className="relative flex shrink-0 flex-row items-center "> */}
                           <motion.img
                             whileHover={{scale: 1}}
                             whileTap={{scale: 0.8}}
-                            src={dish.image ? dish.image : ''}
+                            src={
+                              dish.image ? dish.image : data.branch.ppt_image
+                            }
                             onError={() => console.log('image error')}
-                            className="dark:bg-secondaryDark max-h-24 w-24 shrink-0 rounded-lg bg-white object-cover"
+                            className="dark:bg-secondaryDark h-28 max-h-28 w-28 shrink-0 rounded-lg bg-white object-cover"
                             loading="lazy"
+                            width="112"
+                            height="112"
                           />
+                          {/* </div> */}
                         </FlexRow>
                         {/* FIX */}
                       </Link>

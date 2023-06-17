@@ -41,7 +41,7 @@ export function Header({user, isAdmin}: HeaderProps) {
               </LinkButton>
               <Link
                 to={`${location.pathname}/search`}
-                className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-full border border-gray_light bg-white p-1 shadow-md`}
+                className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-gray_light bg-white p-1 shadow-md`}
               >
                 <SearchIcon className="h-5 w-5" />
               </Link>

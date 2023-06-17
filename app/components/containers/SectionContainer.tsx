@@ -1,8 +1,9 @@
 import {ChevronDownIcon, ChevronUpIcon} from '@heroicons/react/solid'
 import clsx from 'clsx'
 import {motion} from 'framer-motion'
-import React from 'react'
+import React, {LegacyRef, Ref} from 'react'
 import {H1, H2, H3, H4} from '../util/typography'
+import {Spacer} from '..'
 
 interface SectionContainerProps {
   id?: string
@@ -13,7 +14,7 @@ interface SectionContainerProps {
   divider?: boolean
   collapse?: boolean
   handleCollapse?: any | (() => void)
-  collapseTitle?: string
+  collapseTitle?: React.ReactNode | string
   showCollapse?: boolean
 }
 
@@ -39,17 +40,16 @@ const SectionContainer = React.forwardRef<HTMLElement, SectionContainerProps>(
       showCollapse = false,
       ...rest
     },
-    ref,
+    ref: any,
   ) {
-    const MotionTag = motion(Tag)
-
     return (
-      <MotionTag
-        // initial={{opacity: 0, h: 0}} // Inicia fuera de la vista hacia arriba
-        // animate={{opacity: 1, h: '100%'}} // Luego se mueve a su posición original
-        // exit={{opacity: 0, h: 0}} // Al salir, se desplaza hacia arriba
+      <motion.div
+        key="content"
+        initial={{opacity: 0}}
+        animate={{opacity: 1}}
+        exit={{opacity: 0}}
         // transition={{
-        //   duration: 0.9,
+        //   duration: 0.8,
         //   ease: [0.04, 0.62, 0.23, 0.98],
         // }}
         id={id}
@@ -68,17 +68,22 @@ const SectionContainer = React.forwardRef<HTMLElement, SectionContainerProps>(
               },
             )}
           >
-            <H4>{collapseTitle}</H4>
+            {collapseTitle}
             {collapse ? (
-              <ChevronDownIcon className="p-1 border rounded-full shadow-md h-7 w-7 border-gray_light" />
+              <ChevronDownIcon className="h-7 w-7 rounded-full border border-gray_light p-1 shadow-md" />
             ) : (
-              <ChevronUpIcon className="p-1 border rounded-full shadow-md h-7 w-7 border-gray_light" />
+              <ChevronUpIcon className="h-7 w-7 rounded-full border border-gray_light p-1 shadow-md" />
             )}
           </div>
         )}
         <H1 className="font-medium">{title}</H1>
+        {title && (
+          <>
+            <Spacer spaceY="1" /> <hr />
+          </>
+        )}
         <div className={clsx({'divide-y': divider === true})}>{children}</div>
-      </MotionTag>
+      </motion.div>
     )
   },
 )

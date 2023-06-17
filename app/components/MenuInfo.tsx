@@ -23,7 +23,7 @@ export const MenuInfo = ({
           <img
             src={menu.image || ''}
             alt=""
-            className="dark:bg-secondaryDark max-h-40 w-full rounded-3xl  bg-day-bg_principal object-cover brightness-50 dark:bg-night-bg_principal "
+            className="dark:bg-secondaryDark dark:bg-night-bg_principal max-h-40 w-full  rounded-3xl bg-day-bg_principal object-cover brightness-50 "
             loading="lazy"
           />
         }

@@ -20,7 +20,7 @@ export function BillAmount({isPaying}: {isPaying?: any}) {
   const [showDetails, setShowDetails] = useState(false)
   return (
     <SectionContainer className="">
-      <FlexRow className="justify-between">
+      <FlexRow className="justify-between p-2">
         <H2>Cuenta Total</H2>
         <H2
           className={clsx('text-xl', {
@@ -32,7 +32,7 @@ export function BillAmount({isPaying}: {isPaying?: any}) {
         </H2>
       </FlexRow>
       {data.amountLeft < data.total ? (
-        <div className="flex flex-col">
+        <div className="flex flex-col p-2">
           <FlexRow className="justify-between">
             <H2>Por Pagar</H2>
             <div className="flex flex-col">

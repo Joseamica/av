@@ -1,8 +1,12 @@
 import type {Config} from 'tailwindcss'
+const defaultTheme = require('tailwindcss/defaultTheme')
 
 export default {
   content: ['./app/**/*.{js,jsx,ts,tsx}'],
   theme: {
+    fontFamily: {
+      sans: ['Matter', ...defaultTheme.fontFamily.sans],
+    },
     screens: {
       '2xl': {max: '1535px'},
       // => @media (max-width: 1535px) { ... }
@@ -50,9 +54,13 @@ export default {
           principal: '#1E1E20',
         },
         button: {
-          primary: '#3E7BFA',
-          outline: '#3568D4',
+          // primary: '#3E7BFA',
+          primary: '#1E1E20',
+          // outline: '#3E7BFA',
+          outline: '#4E4E62',
           successBg: '#DBFAE3',
+          notSelected: '#ECECF1',
+          textNotSelected: '#8E8EA0',
         },
         gray_light: '#EBECF1',
         warning: '#FF8080',

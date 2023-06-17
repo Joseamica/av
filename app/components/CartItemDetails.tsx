@@ -34,7 +34,7 @@ export function CartItemDetails({cartItem}: {cartItem: CartItemDetailsProps}) {
       // }}
     >
       <FlexRow>
-        <H6 className="flex h-5 w-5 items-center justify-center rounded-lg text-center">
+        <H6 className="flex h-4 w-4 items-center justify-center rounded-md bg-button-notSelected text-center">
           {cartItem.quantity}
         </H6>
         <img
@@ -45,9 +45,9 @@ export function CartItemDetails({cartItem}: {cartItem: CartItemDetailsProps}) {
         />
         <div className="space-y-[2px]">
           {cartItem.quantity > 1 ? (
-            <H5>{cartItem.name}</H5>
+            <H5 className="text-md">{cartItem.name}</H5>
           ) : (
-            <H4>{cartItem.name}</H4>
+            <H5>{cartItem.name}</H5>
           )}
           <H6 className="">{users?.join(', ')}</H6>
         </div>
@@ -59,9 +59,9 @@ export function CartItemDetails({cartItem}: {cartItem: CartItemDetailsProps}) {
           </H6>
         )}
 
-        <H4 boldVariant="medium">
+        <H5 boldVariant="medium">
           {formatCurrency(data.currency, cartTotalPrice)}
-        </H4>
+        </H5>
       </FlexRow>
     </MotionLink>
   )

@@ -39,7 +39,7 @@ export async function loader({request, params}: LoaderArgs) {
 
   const cartItem = await prisma.cartItem.findUnique({
     where: {id: cartItemId},
-    include: {user: {where: {NOT: {id: userId}}}},
+    include: {user: true},
   })
   invariant(cartItem, 'No se encontró el item')
   return json({cartItem, currency})
@@ -186,13 +186,17 @@ export default function CartItemId() {
             <Spacer spaceY="2" />
             <hr />
             <Spacer spaceY="2" />
-            <H4 className="mx-2">Pedido por:</H4>
-            <div className="space-y-2">
+            <div className="space-y-1">
+              {data.cartItem.user.length > 1 && (
+                <H4 className="mx-2">Pedido por:</H4>
+              )}
               {data.cartItem.user.map((user: User) => (
-                <ItemContainer key={user.id}>
-                  <H5>{user.name}</H5>
-                  <H5>{sharedPrice}</H5>
-                </ItemContainer>
+                <>
+                  <ItemContainer key={user.id}>
+                    <H5>{user.name}</H5>
+                    <H5>{sharedPrice}</H5>
+                  </ItemContainer>
+                </>
               ))}
             </div>
             <Spacer spaceY="2" />
