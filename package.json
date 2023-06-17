@@ -60,7 +60,6 @@
     "react-focus-lock": "^2.9.4",
     "react-icons": "^4.8.0",
     "react-intersection-observer": "^9.4.3",
-    "react-router-dom": "^6.13.0",
     "react-scroll": "^1.8.9",
     "remix-sse": "^3.0.1",
     "remix-utils": "^6.3.0",

@@ -28,7 +28,7 @@ import {validateRedirect} from '~/redirect.server'
 import {getUserId} from '~/session.server'
 import {formatCurrency, getCurrency, getDateTime} from '~/utils'
 import {FOOD_REPORT_SUBJECTS} from './table.$tableId.help.report'
-import {StarIcon} from '@heroicons/react/solid'
+import {StarIcon, UserCircleIcon} from '@heroicons/react/solid'
 
 export async function loader({request, params}: LoaderArgs) {
   const {tableId, cartItemId} = params
@@ -192,8 +192,14 @@ export default function CartItemId() {
               )}
               {data.cartItem.user.map((user: User) => (
                 <>
-                  <ItemContainer key={user.id}>
-                    <H5>{user.name}</H5>
+                  <ItemContainer key={user.id} className="items-center">
+                    <FlexRow>
+                      <UserCircleIcon
+                        fill={user.color || '#000'}
+                        className=" min-h-5 min-w-8 h-8 "
+                      />
+                      <H5>{user.name}</H5>
+                    </FlexRow>
                     <H5>{sharedPrice}</H5>
                   </ItemContainer>
                 </>

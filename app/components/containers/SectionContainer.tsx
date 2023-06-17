@@ -14,7 +14,7 @@ interface SectionContainerProps {
   divider?: boolean
   collapse?: boolean
   handleCollapse?: any | (() => void)
-  collapseTitle?: React.ReactNode | string
+  collapseTitle?: React.ReactNode
   showCollapse?: boolean
 }
 
@@ -40,7 +40,7 @@ const SectionContainer = React.forwardRef<HTMLElement, SectionContainerProps>(
       showCollapse = false,
       ...rest
     },
-    ref: any,
+    ref,
   ) {
     return (
       <motion.div
@@ -68,7 +68,7 @@ const SectionContainer = React.forwardRef<HTMLElement, SectionContainerProps>(
               },
             )}
           >
-            {collapseTitle}
+            <H4>{collapseTitle}</H4>
             {collapse ? (
               <ChevronDownIcon className="h-7 w-7 rounded-full border border-gray_light p-1 shadow-md" />
             ) : (

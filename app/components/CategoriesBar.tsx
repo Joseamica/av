@@ -1,8 +1,8 @@
 import type {MenuCategory} from '@prisma/client'
+import {Link} from '@remix-run/react'
 import clsx from 'clsx'
 import {motion} from 'framer-motion'
 import React from 'react'
-import {Link} from 'react-router-dom'
 
 type Props = {
   categories: MenuCategory[]

@@ -1,7 +1,7 @@
 import {redirect} from '@remix-run/node'
 import type {ActionArgs, LoaderArgs} from '@remix-run/node'
 import {Form} from '@remix-run/react'
-import {json} from 'react-router'
+import {json} from '@remix-run/node'
 import {Button, H2} from '~/components'
 import {prisma} from '~/db.server'
 import {getSession} from '~/session.server'

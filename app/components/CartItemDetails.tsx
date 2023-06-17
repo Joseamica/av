@@ -4,6 +4,7 @@ import {motion} from 'framer-motion'
 import {formatCurrency} from '~/utils'
 import {FlexRow} from './util/flexrow'
 import {H4, H5, H6} from './util/typography'
+import {UserCircleIcon} from '@heroicons/react/solid'
 
 const MotionLink = motion(Link)
 
@@ -49,7 +50,39 @@ export function CartItemDetails({cartItem}: {cartItem: CartItemDetailsProps}) {
           ) : (
             <H5>{cartItem.name}</H5>
           )}
-          <H6 className="">{users?.join(', ')}</H6>
+          {cartItem.user?.length > 0 && (
+            <FlexRow className="w-full">
+              {cartItem.user.map((user: User) => (
+                <div
+                  key={user.id}
+                  className="flex flex-row items-center space-x-1"
+                >
+                  <UserCircleIcon
+                    fill={user.color || '#000'}
+                    className=" min-h-5 min-w-5 h-5 "
+                  />
+                  <H6 className="">{user.name}</H6>
+                  {/* {cartItem.user?.length > 1 && (
+                    <H6 variant="secondary" boldVariant="light">
+                      {cartItem.user?.length > 1 ? 'Platillo compartido' : ''}
+                    </H6>
+                  )} */}
+                </div>
+              ))}
+            </FlexRow>
+          )}
+          {/* {cartItem.user?.length > 0 && (
+            <H6 variant="secondary" boldVariant="light">
+              {cartItem.user?.length > 1 ? 'Compartido por' : 'Compartido por'}
+            </H6>
+          )} */}
+          {/* <FlexRow>
+            <UserCircleIcon
+              // fill={user.color || '#000'}
+              className=" min-h-5 min-w-5 h-5 "
+            />
+            <H6 className="">{users?.join(', ')}</H6>
+          </FlexRow> */}
         </div>
       </FlexRow>
       <FlexRow className="shrink-0">

@@ -1,7 +1,6 @@
 import {cssBundleHref} from '@remix-run/css-bundle'
 import type {ActionArgs, LinksFunction, LoaderArgs} from '@remix-run/node'
 import {json, redirect} from '@remix-run/node'
-import {RemixSseProvider} from 'remix-sse/client'
 
 import {
   Form,
@@ -11,12 +10,10 @@ import {
   Outlet,
   Scripts,
   ScrollRestoration,
-  useFetcher,
   useLoaderData,
-  useLocation,
-  useRevalidator,
 } from '@remix-run/react'
 
+import {addHours, formatISO} from 'date-fns'
 import {
   getSession,
   getUserId,
@@ -24,15 +21,12 @@ import {
   sessionStorage,
 } from '~/session.server'
 import tailwindStylesheetUrl from '~/styles/tailwind.css'
+import {Button, FlexRow, Header, Spacer} from './components'
 import {prisma} from './db.server'
 import {findOrCreateUser} from './models/user.server'
 import {validateRedirect} from './redirect.server'
 import appStylesheetUrl from './styles/app.css'
-import {Header} from './components'
-import {useEventSource} from 'remix-utils'
-import React from 'react'
-import {EVENTS} from './events'
-import {addHours, addMinutes, addSeconds, formatISO} from 'date-fns'
+import {Modal} from './components/modals'
 
 export const links: LinksFunction = () => [
   {rel: 'stylesheet', href: tailwindStylesheetUrl},
@@ -74,6 +68,7 @@ export const action = async ({request, params}: ActionArgs) => {
   let formData = new URLSearchParams(body)
 
   const name = formData.get('name') as string
+  const color = formData.get('color') as string
   const url = formData.get('url') as string
 
   let redirectTo = validateRedirect(formData.get('redirect'), url)
@@ -89,6 +84,7 @@ export const action = async ({request, params}: ActionArgs) => {
           create: {
             id: userId,
             name: name,
+            color: color ? color : '#000000',
           },
         },
       },
@@ -116,12 +112,53 @@ export default function App() {
   //TODO MAKE FETCHERS FOR EACH ACTION
   if (!data.username) {
     return (
-      <Form method="post">
-        <h1>Tu Nombre por favor</h1>
-        <input type="text" name="name" />
-        <input type="hidden" name="url" value={data.pathname} />
-        <button>submit</button>
-      </Form>
+      <html lang="en" className="h-screen">
+        <head>
+          <meta charSet="utf-8" />
+          <meta name="viewport" content="width=device-width,initial-scale=1" />
+          <Meta />
+          <Links />
+        </head>
+        <body className="hide-scrollbar no-scrollbar relative mx-auto h-full max-w-md bg-[#F3F4F6] px-2 pt-16">
+          {/* <RemixSseProvider> */}
+          <div id="modal-root" />
+          {/* <Header user={data.user} isAdmin={data.isAdmin} /> */}
+          <Modal
+            handleClose={() => null}
+            title="Registro de usuario"
+            isOpen={true}
+          >
+            <Form method="post" className="space-y-2 bg-day-bg_principal p-4">
+              <FlexRow>
+                <label htmlFor="name">Nombre:</label>
+                <input
+                  type="text"
+                  name="name"
+                  id="name"
+                  className="rounded-xl ring ring-button-outline"
+                />
+              </FlexRow>
+              <input type="hidden" name="url" value={data.pathname} />
+              <FlexRow>
+                <label htmlFor="color">Color</label>
+                <input
+                  type="color"
+                  name="color"
+                  id="color"
+                  className="rounded-full"
+                />
+              </FlexRow>
+              <Spacer spaceY="2" />
+              <Button fullWith={true}>Continuar a la mesa</Button>
+            </Form>
+          </Modal>
+          <Outlet />
+          {/* </RemixSseProvider> */}
+          <ScrollRestoration />
+          <Scripts />
+          <LiveReload />
+        </body>
+      </html>
     )
   }
   return (
@@ -147,13 +184,13 @@ export default function App() {
   )
 }
 
-function useRealtimeIssuesRevalidation() {
-  const eventName = useLocation().pathname
+// function useRealtimeIssuesRevalidation() {
+//   const eventName = useLocation().pathname
 
-  const data = useEventSource(`/events${eventName}`)
-  const {revalidate} = useRevalidator()
-  React.useEffect(() => {
-    console.dir('useRealtimeIssuesRevalidation -> data')
-    revalidate()
-  }, [data, revalidate])
-}
+//   const data = useEventSource(`/events${eventName}`)
+//   const {revalidate} = useRevalidator()
+//   React.useEffect(() => {
+//     console.dir('useRealtimeIssuesRevalidation -> data')
+//     revalidate()
+//   }, [data, revalidate])
+// }

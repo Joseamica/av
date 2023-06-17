@@ -45,7 +45,12 @@ import {useLiveLoader} from '~/use-live-loader'
 import {formatCurrency, getAmountLeftToPay, getCurrency} from '~/utils'
 import {addHours, compareAsc, formatISO} from 'date-fns'
 import {type} from 'node:os'
-import {ChevronDownIcon} from '@heroicons/react/solid'
+import {
+  ChevronDownIcon,
+  UserCircleIcon,
+  UsersIcon,
+} from '@heroicons/react/solid'
+import {IoFastFood} from 'react-icons/io5'
 
 type LoaderData = {
   order: Order & {cartItems: CartItemDetailsProps[]; users: UserWithCart[]}
@@ -275,13 +280,23 @@ export default function Table() {
         <BillAmount />
         <Spacer spaceY="2" />
         {/* SWITCH BUTTON */}
-        <SwitchButton
-          state={filterPerUser}
-          setToggle={handleToggle}
-          leftText="Filtrar por platillos"
-          rightText="Filtrar por usuarios"
-          stretch
-        />
+        <div className="flex  w-full justify-end">
+          {/* <button
+            onClick={() => setFilterPerUser(!filterPerUser)}
+            className="text-md dark:text-secondaryTextDark flex shrink-0 justify-center pr-2"
+          >
+            {filterPerUser ? 'Ver por orden' : 'Ver por usuario'}
+          </button> */}
+          <SwitchButton
+            state={filterPerUser}
+            setToggle={handleToggle}
+            leftIcon={<IoFastFood className="h-4 w-4" />}
+            rightIcon={<UsersIcon className="h-4 w-4" />}
+            leftText="Ver por orden"
+            rightText="Ver por usuario"
+            stretch
+          />
+        </div>
         {/* <Spacer spaceY="1" /> */}
         <Spacer className="py-[2px]" />
         {filterPerUser ? (
@@ -292,12 +307,20 @@ export default function Table() {
                   <SectionContainer key={user.id} as="div">
                     <FlexRow justify="between" className="rounded-xl px-1 ">
                       <Spacer spaceY="2">
-                        <H3>{user.name}</H3>
-                        <H6>
-                          {Number(user.paid) > 0
-                            ? `Pagado: $${Number(user.paid)}`
-                            : 'No ha pagado'}
-                        </H6>
+                        <FlexRow className="items-center space-x-2">
+                          <UserCircleIcon
+                            fill={user.color || '#000'}
+                            className=" min-h-10 min-w-10 h-8 w-8"
+                          />
+                          <div className="flex flex-col">
+                            <H3>{user.name}</H3>
+                            <H6>
+                              {Number(user.paid) > 0
+                                ? `Pagado: $${Number(user.paid)}`
+                                : 'No ha pagado'}
+                            </H6>
+                          </div>
+                        </FlexRow>
                       </Spacer>
                       <button
                         onClick={() => handleToggleUser(user.id)}
