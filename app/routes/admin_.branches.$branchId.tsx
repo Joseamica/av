@@ -1,4 +1,4 @@
-import type {Menu, Order, Table} from '@prisma/client'
+import type {Employee, Menu, Order, Table, User} from '@prisma/client'
 import type {ActionArgs, LoaderArgs} from '@remix-run/node'
 import {json} from '@remix-run/node'
 import {
@@ -22,10 +22,11 @@ export async function loader({request, params}: LoaderArgs) {
     include: {
       menus: true,
       table: true,
-      orders: true,
+      orders: {where: {active: true}},
       users: true,
       feedbacks: true,
       restaurant: true,
+      employees: true,
     },
   })
   const menus = await prisma.menu.findMany({where: {branchId}})
@@ -55,6 +56,7 @@ export default function AdminBranch() {
     feedback: false,
     menu: false,
     order: false,
+    employee: false,
   })
   const matches = useMatches()
   const [searchParams] = useSearchParams()
@@ -88,7 +90,7 @@ export default function AdminBranch() {
           <FlexRow className="">
             <button
               onClick={() => setShow({...show, table: !show.table})}
-              className="flex flex-row items-center text-xl"
+              className="flex flex-row items-center text-base"
             >
               {show.table ? <IoChevronUp /> : <IoChevronDown />}
               Tables
@@ -122,7 +124,7 @@ export default function AdminBranch() {
             <FlexRow className="">
               <button
                 onClick={() => setShow({...show, menu: !show.menu})}
-                className="flex flex-row items-center text-xl"
+                className="flex flex-row items-center text-base"
               >
                 {show.menu ? <IoChevronUp /> : <IoChevronDown />}
                 Menus
@@ -153,30 +155,103 @@ export default function AdminBranch() {
             <FlexRow className="">
               <button
                 onClick={() => setShow({...show, order: !show.order})}
-                className="flex flex-row items-center text-xl"
+                className="flex flex-row items-center text-base"
               >
                 {show.order ? <IoChevronUp /> : <IoChevronDown />}
-                Ordenes
+                Ordenes Activas
               </button>
               {/* <Link className="rounded-full border px-2" to="add?type=table">
                 Add
               </Link> */}
             </FlexRow>
             {show.order && (
-              <div className="flex flex-col items-center divide-y">
+              <div className="flex flex-col items-center divide-y ">
                 {data.branch.orders.map((order: Order) => (
                   <FlexRow key={order.id} className="w-full justify-between">
-                    <Link to={`orders/${order.id}`} className="text-base">
+                    <Link
+                      to={`orders/${order.id}`}
+                      className="truncate text-base"
+                    >
                       {order.id}
                     </Link>
-                    <div>
+                    <FlexRow>
                       <button>
                         <AiFillDelete />
                       </button>
                       <button>
                         <AiFillEdit />
                       </button>
-                    </div>
+                    </FlexRow>
+                  </FlexRow>
+                ))}
+              </div>
+            )}
+            <FlexRow className="">
+              <button
+                onClick={() => setShow({...show, user: !show.user})}
+                className="flex flex-row items-center text-base"
+              >
+                {show.user ? <IoChevronUp /> : <IoChevronDown />}
+                Usuarios
+              </button>
+
+              {/* <Link className="rounded-full border px-2" to="add?type=table">
+                Add
+              </Link> */}
+            </FlexRow>
+            {show.user && (
+              <div className="flex flex-col items-center divide-y ">
+                {data.branch.users.map((user: User) => (
+                  <FlexRow key={user.id} className="w-full justify-between">
+                    <Link
+                      to={`users/${user.id}`}
+                      className="truncate text-base"
+                    >
+                      {user.name}
+                    </Link>
+                    <FlexRow>
+                      <button>
+                        <AiFillDelete />
+                      </button>
+                      <button>
+                        <AiFillEdit />
+                      </button>
+                    </FlexRow>
+                  </FlexRow>
+                ))}
+              </div>
+            )}
+            <FlexRow className="">
+              <button
+                onClick={() => setShow({...show, employee: !show.employee})}
+                className="flex flex-row items-center text-base"
+              >
+                {show.employee ? <IoChevronUp /> : <IoChevronDown />}
+                Empleados
+              </button>
+
+              {/* <Link className="rounded-full border px-2" to="add?type=table">
+                Add
+              </Link> */}
+            </FlexRow>
+            {show.employee && (
+              <div className="flex flex-col items-center divide-y ">
+                {data.branch.employees.map((employee: Employee) => (
+                  <FlexRow key={employee.id} className="w-full justify-between">
+                    <Link
+                      to={`employees/${employee.id}`}
+                      className="truncate text-base"
+                    >
+                      {employee.name}
+                    </Link>
+                    <FlexRow>
+                      <button>
+                        <AiFillDelete />
+                      </button>
+                      <button>
+                        <AiFillEdit />
+                      </button>
+                    </FlexRow>
                   </FlexRow>
                 ))}
               </div>

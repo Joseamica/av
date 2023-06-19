@@ -81,7 +81,6 @@ export default function Add() {
 
 export function AddTable() {
   const [waiters, setWaiters] = useState([])
-  console.log('waiter', waiters)
 
   return (
     <Form method="post">

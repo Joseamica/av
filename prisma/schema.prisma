@@ -52,6 +52,7 @@ model Branch {
   table               Table[]
   orders              Order[]
   users               User[]
+  employees           Employee[]
   feedbacks           Feedback[]
 }
 
@@ -226,12 +227,15 @@ model Employee {
   email     String
   tables    Table[]
   feedbacks Feedback[]
+  branch    Branch?    @relation(fields: [branchId], references: [id])
+  branchId  String?
 }
 
 enum Role {
   admin
   manager
   waiter
+  user
 }
 
 model Feedback {

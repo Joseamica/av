@@ -1,4 +1,4 @@
-import type {Order, Table, User} from '@prisma/client'
+import type {Branch, Order, Table, User} from '@prisma/client'
 import {json} from '@remix-run/node'
 import {prisma} from '~/db.server'
 import {EVENTS} from '~/events'
@@ -7,6 +7,7 @@ export async function validateUserIntegration(
   userId: User['id'],
   tableId: Table['id'],
   username: string,
+  branchId: Branch['id'],
 ) {
   // If user is not in table, then connect
   const isUserInTable = await prisma.user
@@ -20,6 +21,7 @@ export async function validateUserIntegration(
       where: {id: userId},
       data: {
         tableId: tableId,
+        branchId,
       },
     })
     console.log(`✅ Connected '${username}' to the table`)

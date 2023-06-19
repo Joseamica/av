@@ -61,7 +61,7 @@ async function seed() {
     data: {
       name: 'La Bikina',
       ppt_image:
-        'https://firebasestorage.googleapis.com/v0/b/avoqado-d0a24.appspot.com/o/kuikku%2FKUIKKU%20(2)%20(1)%20copy.png?alt=media&token=c077af1b-4ed4-4807-a762-a9c091c1ccfa',
+        'https://firebasestorage.googleapis.com/v0/b/avoqado-d0a24.appspot.com/o/bikina%2Fven-a-disfrutar-de-nuestra.jpeg?alt=media&token=12440861-bdd0-435f-8ad7-0c29c8103f1e',
       email: 'branch1@madrecafe.com',
       phone: '8885551212',
       wifiName: '1A2B3C4D5e%6789',
@@ -124,7 +124,7 @@ async function seed() {
       type: 'breakfast',
       branchId: branch.id,
       image:
-        'https://firebasestorage.googleapis.com/v0/b/avoqado-d0a24.appspot.com/o/kuikku%2FKuikku%20General.JPG?alt=media&token=e585a90e-59dd-499d-97b6-b059a031ff8b',
+        'https://firebasestorage.googleapis.com/v0/b/avoqado-d0a24.appspot.com/o/bikina%2Fven-a-disfrutar-de-nuestra.jpeg?alt=media&token=12440861-bdd0-435f-8ad7-0c29c8103f1e',
       allday: true,
       currency: 'euro',
     },

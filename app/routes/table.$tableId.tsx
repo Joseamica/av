@@ -91,6 +91,7 @@ export async function loader({request, params}: LoaderArgs) {
       userId,
       tableId,
       username,
+      branch.id,
     )
     const sessionId = session.get('sessionId')
     session.set('tableSession', tableId)
@@ -133,7 +134,6 @@ export async function loader({request, params}: LoaderArgs) {
     },
   })
 
-  // console.log('order', order)
   let paidUsers = null
   let amountLeft = null
 
