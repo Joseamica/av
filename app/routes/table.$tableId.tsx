@@ -90,6 +90,8 @@ export async function loader({request, params}: LoaderArgs) {
       username,
     )
     const sessionId = session.get('sessionId')
+    console.log('', session.get('tableSession'))
+    session.set('tableSession', tableId)
     // console.log('sessionId', sessionId)
     const expiryTime = formatISO(addHours(new Date(), 4))
     session.set('expiryTime', expiryTime)
@@ -151,18 +153,24 @@ export async function loader({request, params}: LoaderArgs) {
 
   const currency = await getCurrency(tableId)
 
-  return json({
-    table,
-    branch,
-    menu,
-    order,
-    total,
-    currency,
-    amountLeft,
-    paidUsers,
-    error,
-    usersInTable,
-  })
+  return json(
+    {
+      table,
+      branch,
+      menu,
+      order,
+      total,
+      currency,
+      amountLeft,
+      paidUsers,
+      error,
+      usersInTable,
+    },
+
+    {
+      headers: {'Set-Cookie': await sessionStorage.commitSession(session)},
+    },
+  )
 }
 
 //payment ACTION
@@ -175,8 +183,8 @@ export async function action({request, params}: ActionArgs) {
 
   switch (_action) {
     case 'endOrder':
+      // TODO REDIRECT ALL TO ENDED ORDER
       EVENTS.ISSUE_CHANGED(tableId)
-      console.log('ending order')
       const order = await prisma.order.findFirst({
         where: {
           tableId,

@@ -44,7 +44,7 @@ export function Header({user, isAdmin}: HeaderProps) {
                 <i>
                   <UserCircleIcon
                     className="h-5 w-5"
-                    fill={user.color || '#000'}
+                    fill={user.color || '#fff'}
                   />
                 </i>
                 <H5>{user.name}</H5>
@@ -57,15 +57,18 @@ export function Header({user, isAdmin}: HeaderProps) {
               </Link>
             </FlexRow>
           ) : (
-            <Link
+            <LinkButton
               to={`table/${location.pathname.split('/')[2]}/user/${user.id}`}
-              // size="small"
-              className="flex flex-row items-center justify-center space-x-1 rounded-full px-4 py-2 shadow-md "
+              size="small"
             >
-              <UserCircleIcon className="h-6 w-6" fill={user.color || '#000'} />
-              {/* <div className="px-[1px]" /> */}
-              <H4>{user.name}</H4>
-            </Link>
+              <i>
+                <UserCircleIcon
+                  className="h-5 w-5"
+                  fill={user.color || '#fff'}
+                />
+              </i>
+              <H5>{user.name}</H5>
+            </LinkButton>
           )}
         </>
       ) : (

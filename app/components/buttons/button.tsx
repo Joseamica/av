@@ -44,7 +44,7 @@ function ButtonInner({
         className={clsx(
           'focus-ring  absolute inset-0 transform rounded-full  border-4 opacity-100 transition disabled:opacity-50 ',
           {
-            'border-secondary border-2 bg-transparent group-hover:border-transparent group-focus:border-transparent':
+            'border-2 border-button-outline bg-transparent group-hover:border-transparent group-focus:border-transparent':
               variant === 'secondary' || variant === 'danger',
             danger: variant === 'danger',
             'shadow-md': variant === 'icon',

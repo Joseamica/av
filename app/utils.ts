@@ -163,3 +163,12 @@ export async function getAmountLeftToPay(
 //   setState({...state, })
 
 // }
+
+export function getRandomColor() {
+  let color = '#'
+  for (let i = 0; i < 3; i++) {
+    const value = Math.floor(Math.random() * 100) + 100 // adjust range as needed
+    color += value.toString(16)
+  }
+  return color
+}

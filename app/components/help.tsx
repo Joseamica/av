@@ -1,9 +1,11 @@
-import {BellIcon, ClipboardCopyIcon} from '@heroicons/react/outline'
-import {Spacer} from './util/spacer'
-import {FlexRow} from './util/flexrow'
-import {H5} from './util/typography'
-import {LinkButton} from './buttons/button'
+import {BellIcon} from '@heroicons/react/outline'
+import {WifiIcon} from '@heroicons/react/solid'
 import {Link} from '@remix-run/react'
+import {IoIosPerson} from 'react-icons/io'
+import {IoWarning} from 'react-icons/io5'
+import {FlexRow} from './util/flexrow'
+import {Spacer} from './util/spacer'
+import {H5} from './util/typography'
 
 const REPORT_TYPES = {
   waiter: {
@@ -13,12 +15,12 @@ const REPORT_TYPES = {
   },
   manager: {
     name: 'manager',
-    icon: <ClipboardCopyIcon className="h-4 w-4" fontSize="small" />,
+    icon: <IoIosPerson className="h-4 w-4" fontSize="small" />,
     es: 'Gerente',
   },
   report: {
     name: 'report',
-    icon: <ClipboardCopyIcon fontSize="small" className="h-4 w-4 " />,
+    icon: <IoWarning />,
     es: 'Reportar',
   },
   // car: {
@@ -33,7 +35,7 @@ const REPORT_TYPES = {
   // },
   wifi: {
     name: 'wifi',
-    icon: <ClipboardCopyIcon fontSize="small" className="h-4 w-4 " />,
+    icon: <WifiIcon fontSize="small" className="h-4 w-4 " />,
     es: 'Wifi',
   },
 }

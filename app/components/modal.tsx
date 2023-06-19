@@ -119,7 +119,7 @@ export function Modal({
           onClick={event => event.stopPropagation()}
         >
           {imgHeader ? (
-            <div className="relative">
+            <div className="">
               <button
                 onClick={onClose}
                 aria-label={`Close ${ariaLabel || 'dialog'}`}
@@ -130,7 +130,7 @@ export function Modal({
               <img
                 alt=""
                 src={imgHeader}
-                className="dark:bg-night-bg_principal max-h-72 w-full rounded-t-lg bg-day-bg_principal  object-bottom"
+                className="dark:bg-secondaryDark max-h-72 w-full rounded-t-lg bg-white object-cover"
                 loading="lazy"
               />
             </div>

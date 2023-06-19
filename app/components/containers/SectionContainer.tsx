@@ -68,7 +68,7 @@ const SectionContainer = React.forwardRef<HTMLElement, SectionContainerProps>(
               },
             )}
           >
-            <H4>{collapseTitle}</H4>
+            {collapseTitle}
             {collapse ? (
               <ChevronDownIcon className="h-7 w-7 rounded-full border border-gray_light p-1 shadow-md" />
             ) : (

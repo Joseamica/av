@@ -1,22 +1,45 @@
-import type {Table} from '@prisma/client'
-import {json} from '@remix-run/node'
 import type {LoaderArgs} from '@remix-run/node'
-import React from 'react'
+import {json} from '@remix-run/node'
 import {useLoaderData} from '@remix-run/react'
-import {H1, LinkButton} from '~/components'
+import {H1, H2} from '~/components'
 import {prisma} from '~/db.server'
 
 export async function loader({request, params}: LoaderArgs) {
   const {branchId, tableId} = params
-  const table = await prisma.table.findUnique({where: {id: tableId}})
+  const table = await prisma.table.findUnique({
+    where: {id: tableId},
+    include: {order: {include: {cartItems: true}}},
+  })
   return json({table})
 }
 
 export default function AdminTables() {
   const data = useLoaderData()
+  console.log('data', data)
   return (
     <div>
       <H1>Table {data.table.table_number}</H1>
+      <data>
+        {data.table.order ? (
+          <div>
+            <h2>ORDEN {data.table.order.id}</h2>
+            <ul>
+              <li>{data.table.order.paid ? 'Pagado' : 'Por Pagar'}</li>
+              <li>{data.table.order.tip}</li>
+              <li>{data.table.order.total}</li>
+              <H2>Platillos</H2>
+
+              {data.table.order.cartItems.map(item => (
+                <li key={item.id}>
+                  {item.name} - ${item.price}
+                </li>
+              ))}
+            </ul>
+          </div>
+        ) : (
+          <p>No order</p>
+        )}
+      </data>
     </div>
   )
 }

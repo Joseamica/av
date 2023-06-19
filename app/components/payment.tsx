@@ -89,7 +89,7 @@ export function Payment({
     <>
       <motion.div
         variants={effect}
-        className="dark:bg-night-bg_principal dark:text-night-text_principal sticky inset-x-0 bottom-0 flex flex-col justify-center rounded-t-xl border-2 bg-day-bg_principal px-3"
+        className="dark:bg-night-bg_principal dark:text-night-text_principal sticky inset-x-0 bottom-0 flex flex-col justify-center rounded-t-xl border-4 bg-day-bg_principal px-3"
       >
         {/* Radio Tip buttons */}
         {/* <H2>Deseas dejar propina</H2>

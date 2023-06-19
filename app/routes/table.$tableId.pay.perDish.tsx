@@ -209,10 +209,10 @@ export default function PerDish() {
           Selecciona los platillos que deseas pagar
         </H5>
         <div className="space-y-2 p-2">
-          {data.cartItems?.map((item: CartItem) => {
+          {data.cartItems?.map((item: CartItem, index: number) => {
             return (
               <ItemContainer
-                key={item.id}
+                key={index}
                 unActive={item.paid ? true : false}
                 // showCollapse={true}
               >
