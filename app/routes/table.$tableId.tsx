@@ -9,12 +9,13 @@ import {
   NavLink,
   Outlet,
   useLoaderData,
+  useNavigate,
   useRevalidator,
   useSearchParams,
 } from '@remix-run/react'
 import clsx from 'clsx'
 import {AnimatePresence, motion} from 'framer-motion'
-import {useState} from 'react'
+import {useEffect, useState} from 'react'
 import invariant from 'tiny-invariant'
 import {Button, LinkButton} from '~/components/buttons/button'
 import {
@@ -34,7 +35,7 @@ import {
 } from '~/components/index'
 import {Modal as ModalPortal} from '~/components/modals'
 import {prisma} from '~/db.server'
-import {EVENTS} from '~/events'
+import {EVENTS, emitter} from '~/events'
 import {getBranch} from '~/models/branch.server'
 import {getMenu} from '~/models/menu.server'
 import {getTable} from '~/models/table.server'
@@ -51,6 +52,8 @@ import {
   UsersIcon,
 } from '@heroicons/react/solid'
 import {IoFastFood} from 'react-icons/io5'
+import {eventStream, useEventSource} from 'remix-utils'
+import {EventStream} from 'remix-sse'
 
 type LoaderData = {
   order: Order & {cartItems: CartItemDetailsProps[]; users: UserWithCart[]}
@@ -90,12 +93,12 @@ export async function loader({request, params}: LoaderArgs) {
       username,
     )
     const sessionId = session.get('sessionId')
-    console.log('', session.get('tableSession'))
     session.set('tableSession', tableId)
-    // console.log('sessionId', sessionId)
+
     const expiryTime = formatISO(addHours(new Date(), 4))
     session.set('expiryTime', expiryTime)
     const sessionExpiryTime = session.get('expiryTime')
+
     if (
       sessionExpiryTime &&
       compareAsc(new Date(sessionExpiryTime), new Date()) < 0
@@ -166,7 +169,6 @@ export async function loader({request, params}: LoaderArgs) {
       error,
       usersInTable,
     },
-
     {
       headers: {'Set-Cookie': await sessionStorage.commitSession(session)},
     },
@@ -184,56 +186,8 @@ export async function action({request, params}: ActionArgs) {
   switch (_action) {
     case 'endOrder':
       // TODO REDIRECT ALL TO ENDED ORDER
-      EVENTS.ISSUE_CHANGED(tableId)
-      const order = await prisma.order.findFirst({
-        where: {
-          tableId,
-          active: true,
-        },
-        include: {
-          users: true,
-        },
-      })
-      // EVENTS.TABLE_CHANGED(tableId)
-      invariant(order, 'Orden no existe')
-      // Update each user to set `paid` to 0
-      for (let user of order.users) {
-        await prisma.user.update({
-          where: {
-            id: user.id,
-          },
-          data: {
-            tip: 0,
-            paid: 0,
-            total: 0,
-            cartItems: {set: []},
-            // tableId: null,
-            // tables: {disconnect: true},
-          },
-        })
-      }
-      await prisma.table.update({
-        where: {
-          id: tableId,
-        },
-        data: {
-          users: {set: []},
-        },
-      })
-      await prisma.order.update({
-        where: {
-          id: order.id,
-        },
-        data: {
-          active: false,
-          table: {disconnect: true},
-          users: {set: []},
-        },
-      })
-      session.unset('cart')
-      return redirect('/thankyou', {
-        headers: {'Set-Cookie': await sessionStorage.commitSession(session)},
-      })
+      // EVENTS.ISSUE_CHANGED(tableId)
+      EVENTS.ISSUE_CHANGED(tableId, 'endOrder')
   }
 
   return json({success: true})
@@ -249,8 +203,10 @@ interface CartItemDetailsProps extends CartItem {
 
 export default function Table() {
   // const data = useLoaderData()
+  const data = useLiveLoader<LoaderData>()
   const [selectedUsers, setSelectedUsers] = useState<string[]>([])
   const [filterPerUser, setFilterPerUser] = useState(false)
+  const [isUserPaid, setIsUserPaid] = useState('')
 
   const handleToggleUser = (userId: string) => {
     setSelectedUsers((prevSelected: string[]) =>
@@ -264,19 +220,18 @@ export default function Table() {
   const handleCollapse = () => {
     setCollapse(!collapse)
   }
-  // const data = useLoaderData()e
-  const data = useLiveLoader<LoaderData>()
-  // console.log('data', data)
 
   const handleToggle = () => {
     setFilterPerUser(!filterPerUser)
   }
-  // const toggleLink = filter === 'perUser' ? 'filter=perUser' : ''
   const [showPaymentOptions, setShowPaymentOptions] = useState(false)
 
   if (data.total > 0) {
     return (
       <motion.main className="no-scrollbar">
+        <div className="fixed inset-x-0 top-0 z-50 w-full bg-button-successBg text-success">
+          {isUserPaid ? isUserPaid : ''}
+        </div>
         <RestaurantInfoCard />
         <Spacer spaceY="4" />
         <h3 className="text-secondaryTextDark flex shrink-0 justify-center text-sm">
@@ -576,12 +531,11 @@ function PayButtons({
 }) {
   const data = useLoaderData()
   const [showSplit, setShowSplit] = useState(false)
-  console.log('showSplit', showSplit)
-  const revalidator = useRevalidator()
+  // const revalidator = useRevalidator()
 
-  const handleValidate = () => {
-    revalidator.revalidate()
-  }
+  // const handleValidate = () => {
+  //   revalidator.revalidate()
+  // }
 
   const handleFullPay = () => {
     if (setShowPaymentOptions) setShowPaymentOptions(false)
@@ -639,7 +593,7 @@ function PayButtons({
         <Button
           name="_action"
           value="endOrder"
-          onClick={handleValidate}
+          // onClick={handleValidate}
           fullWith={true}
         >
           Terminar orden

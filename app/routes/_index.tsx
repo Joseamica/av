@@ -7,7 +7,6 @@ import {getSession} from '~/session.server'
 export async function loader({request, params}: LoaderArgs) {
   const session = await getSession(request)
   const tableSession = session.get('tableSession')
-  console.log('tableSession', tableSession)
   if (tableSession) {
     return redirect(`/table/${tableSession}`)
   }

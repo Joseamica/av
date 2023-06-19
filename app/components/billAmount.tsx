@@ -1,19 +1,16 @@
-import {
-  ChevronDownIcon,
-  ChevronUpIcon,
-  UserCircleIcon,
-} from '@heroicons/react/outline'
+import {ChevronDownIcon, ChevronUpIcon} from '@heroicons/react/outline'
 import type {User} from '@prisma/client'
 import {Link, useLoaderData} from '@remix-run/react'
 import clsx from 'clsx'
 import {AnimatePresence, motion} from 'framer-motion'
-import {useState} from 'react'
+import {useEffect, useState} from 'react'
 import {formatCurrency} from '~/utils'
 import {FlexRow} from './util/flexrow'
 import {H2, H4, H5} from './util/typography'
 import {SectionContainer} from '~/components'
+import {UserCircleIcon} from '@heroicons/react/solid'
 
-export function BillAmount({isPaying}: {isPaying?: any}) {
+export function BillAmount({userIsPaying}: {userIsPaying?: any}) {
   const data = useLoaderData()
   const MotionLink = motion(Link)
 
@@ -97,11 +94,11 @@ export function BillAmount({isPaying}: {isPaying?: any}) {
                   </motion.div>
                 )
               })}
-            {/* {isPaying.isPaying === true ? (
+            {userIsPaying ? (
               <motion.div>
-                <p>{isPaying?.user.name} esta pagando en este momento...</p>
+                <p>esta pagando en este momento...</p>
               </motion.div>
-            ) : null} */}
+            ) : null}
           </AnimatePresence>
         </div>
       ) : null}

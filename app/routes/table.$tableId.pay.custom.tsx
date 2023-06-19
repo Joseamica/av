@@ -16,7 +16,7 @@ import {prisma} from '~/db.server'
 import {EVENTS} from '~/events'
 import {getPaymentMethods, getTipsPercentages} from '~/models/branch.server'
 import {validateRedirect} from '~/redirect.server'
-import {getUserId} from '~/session.server'
+import {getUserId, getUsername} from '~/session.server'
 import {useLiveLoader} from '~/use-live-loader'
 import {formatCurrency, getAmountLeftToPay, getCurrency} from '~/utils'
 
@@ -24,6 +24,7 @@ export async function action({request, params}: ActionArgs) {
   const {tableId} = params
   invariant(tableId, 'No se encontró mesa')
   const formData = await request.formData()
+  const userName = await getUsername(request)
 
   const redirectTo = validateRedirect(request.redirect, `/table/${tableId}`)
 
@@ -74,7 +75,8 @@ export async function action({request, params}: ActionArgs) {
       where: {id: userId},
       select: {paid: true, tip: true, total: true},
     })
-    const updateUser = await prisma.user.update({
+    // const updateUser =
+    await prisma.user.update({
       where: {id: userId},
       data: {
         paid: Number(userPrevPaidData?.paid) + total,
@@ -82,7 +84,7 @@ export async function action({request, params}: ActionArgs) {
         total: Number(userPrevPaidData?.total) + total + tip,
       },
     })
-    EVENTS.ISSUE_CHANGED(tableId)
+    EVENTS.ISSUE_CHANGED(tableId, `userPaid ${userName}`)
 
     return redirect(redirectTo)
   }

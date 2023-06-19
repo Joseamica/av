@@ -30,7 +30,12 @@ import {prisma} from '~/db.server'
 import {EVENTS} from '~/events'
 import {getPaymentMethods, getTipsPercentages} from '~/models/branch.server'
 import {validateRedirect} from '~/redirect.server'
-import {getUserId, getUsername} from '~/session.server'
+import {
+  getSession,
+  getUserId,
+  getUsername,
+  sessionStorage,
+} from '~/session.server'
 import {useLiveLoader} from '~/use-live-loader'
 import {formatCurrency, getAmountLeftToPay, getCurrency} from '~/utils'
 
@@ -70,6 +75,8 @@ export async function loader({request, params}: LoaderArgs) {
   invariant(tableId, 'No se encontró mesa')
   const tipsPercentages = await getTipsPercentages(tableId)
   const paymentMethods = await getPaymentMethods(tableId)
+  const session = await getSession(request)
+  const username = session.get('username')
   const order = await prisma.order.findFirst({
     where: {tableId},
   })
@@ -87,6 +94,7 @@ export async function loader({request, params}: LoaderArgs) {
   const currency = await getCurrency(tableId)
 
   const amountLeft = (await getAmountLeftToPay(tableId)) || 0
+  // EVENTS.ISSUE_CHANGED(tableId, `userIsPaying ${username}`)
 
   return json({
     cartItems,
@@ -105,7 +113,6 @@ export async function action({request, params}: ActionArgs) {
   const formData = await request.formData()
 
   const paymentMethod = formData.get('paymentMethod') as string
-  console.log('paymentMethod', paymentMethod)
 
   const redirectTo = validateRedirect(request.redirect, `/table/${tableId}`)
 
@@ -183,7 +190,8 @@ export async function action({request, params}: ActionArgs) {
         total: Number(userPrevPaidData?.total) + total + tip,
       },
     })
-    EVENTS.ISSUE_CHANGED(tableId)
+    EVENTS.ISSUE_CHANGED(tableId, `userPaid ${userName}`)
+
     return redirect(redirectTo)
   }
   return json({total, tip, error})
@@ -197,10 +205,11 @@ export default function PerDish() {
   function handleChange(event: React.FormEvent<HTMLFormElement>) {
     submit(event.currentTarget, {replace: true})
   }
+
   const [searchParams] = useSearchParams()
   return (
     <Modal
-      onClose={() => navigate('..')}
+      onClose={() => navigate('..', {replace: true})}
       // fullScreen={true}
       title="Dividir por platillo"
     >

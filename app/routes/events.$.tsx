@@ -7,7 +7,11 @@ export const loader = ({request, params}: LoaderArgs) => {
 
   return eventStream(request.signal, send => {
     const handler = (message: string) => {
-      send({data: Date.now().toString()})
+      if (message) {
+        send({event: 'message', data: message})
+      } else {
+        send({data: Date.now().toString()})
+      }
     }
 
     emitter.addListener(path, handler)

@@ -73,6 +73,9 @@ export function Header({user, isAdmin}: HeaderProps) {
         </>
       ) : (
         <FlexRow>
+          <Link to=".">
+            <H1>Avoqado</H1>
+          </Link>
           <LinkButton to={`/admin`} size="small">
             Admin
           </LinkButton>
