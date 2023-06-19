@@ -156,8 +156,11 @@ export default function FullPay() {
     >
       <div>
         <BillAmount
-
-        // isPaying={isPaying}
+          amountLeft={data.amountLeft}
+          currency={data.currency}
+          paidUsers={data.paidUsers}
+          total={data.total}
+          userId={data.userId}
         />
         <Spacer spaceY="2" />
         <Form method="POST" preventScrollReset onChange={handleChange}>

@@ -9,7 +9,7 @@ export default function Thankyou() {
           alt="Thank you illustration"
           className="mx-auto mb-8 h-auto w-48"
         />
-        <h1 className="text-2xl font-semibold dark:text-white">
+        <h1 className="text-2xl font-semibold ">
           Gracias por usar los servicios de Avoqado!
         </h1>
         <H4 variant="secondary">
