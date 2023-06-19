@@ -284,6 +284,7 @@ export default function Menu() {
               <H2 boldVariant="semibold">{data.dish.name}</H2>
               <H3> {formatCurrency(data.currency, data.dish?.price)}</H3>
               <H4 variant="secondary">{data.dish.description}</H4>
+              <H4>¿Quieres compartir?</H4>
               {data.usersOnTable.map((user: User) => {
                 return (
                   <div key={user.id} className="mt-2 flex items-center">

@@ -144,17 +144,18 @@ export async function getAmountLeftToPay(
 ) {
   const order = await prisma.order.findFirst({where: {tableId, active: true}})
   if (order) {
-    const getTotalPaidUsers = await prisma.user.aggregate({
-      _sum: {paid: true},
+    const payments = await prisma.payments.aggregate({
       where: {orderId: order.id},
+      _sum: {amount: true},
     })
-    const totalPaidUsers = Number(getTotalPaidUsers._sum.paid)
+
+    const totalPayments = Number(payments._sum.amount)
     const getTotalBill = await prisma.order.aggregate({
       _sum: {total: true},
       where: {id: order.id},
     })
     const totalBill = Number(getTotalBill._sum.total)
-    return Number(totalBill - totalPaidUsers)
+    return Number(totalBill - totalPayments)
   }
   return null
 }

@@ -1,4 +1,4 @@
-import type {CartItem} from '@prisma/client'
+import type {CartItem, PaymentMethod} from '@prisma/client'
 import type {ActionArgs, LoaderArgs} from '@remix-run/node'
 import {json, redirect} from '@remix-run/node'
 import {
@@ -23,7 +23,12 @@ import {
 } from '~/components'
 import {prisma} from '~/db.server'
 import {EVENTS} from '~/events'
-import {getPaymentMethods, getTipsPercentages} from '~/models/branch.server'
+import {
+  getBranchId,
+  getPaymentMethods,
+  getTipsPercentages,
+} from '~/models/branch.server'
+import {createPayment} from '~/models/payments.server'
 import {validateRedirect} from '~/redirect.server'
 import {getUserId} from '~/session.server'
 import {useLiveLoader} from '~/use-live-loader'
@@ -98,6 +103,12 @@ export async function action({request, params}: ActionArgs) {
   const {tableId} = params
   invariant(tableId, 'No se encontró mesa')
 
+  const branchId = await getBranchId(tableId)
+  const order = await prisma.order.findFirst({
+    where: {tableId},
+  })
+  invariant(order, 'No se encontró la orden')
+
   const selectedUsers = formData.getAll('selectedUsers')
 
   const total = Number(
@@ -111,7 +122,7 @@ export async function action({request, params}: ActionArgs) {
   }
   const proceed = formData.get('_action') === 'proceed'
   const tipPercentage = formData.get('tipPercentage') as string
-  const paymentMethod = formData.get('paymentMethod') as string
+  const paymentMethod = formData.get('paymentMethod') as PaymentMethod
 
   const redirectTo = validateRedirect(request.redirect, `/table/${tableId}`)
   const userId = await getUserId(request)
@@ -133,7 +144,7 @@ export async function action({request, params}: ActionArgs) {
       return redirect(
         `/table/${tableId}/pay/confirmExtra?total=${total}&tip=${
           tip <= 0 ? total * 0.12 : tip
-        }`,
+        }&pMethod=${paymentMethod}`,
       )
     }
 
@@ -142,6 +153,8 @@ export async function action({request, params}: ActionArgs) {
       select: {paid: true, tip: true, total: true},
     })
     // const updateUser =
+    await createPayment(paymentMethod, total, tip, order.id, userId, branchId)
+
     await prisma.user.update({
       where: {id: userId},
       data: {
@@ -155,7 +168,6 @@ export async function action({request, params}: ActionArgs) {
     return redirect(redirectTo)
   }
   const stripe = formData.get('stripe') as string
-  console.log('paymentMethod', paymentMethod)
   if (paymentMethod === 'card') {
     const stripeRedirectUrl = await getStripeSession(
       total * 100 + tip * 100,

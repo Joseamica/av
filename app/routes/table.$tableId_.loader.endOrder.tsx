@@ -54,7 +54,7 @@ export async function loader({request, params}: LoaderArgs) {
     },
   })
   session.unset('cart')
-  session.unset('tableSession')
+  // session.unset('tableSession')
   return redirect('/thankyou', {
     headers: {'Set-Cookie': await sessionStorage.commitSession(session)},
   })

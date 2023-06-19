@@ -95,7 +95,7 @@ const fontSize = {
 
 const titleColors = {
   primary: 'text-principal dark:text-mainTextDark ',
-  secondary: 'text-principal dark:text-DARK_3 ',
+  secondary: 'text-principal dark:text-button-textNotSelected ',
   semibold: 'font-semibold dark:text-mainTextDark ',
   bold: 'font-bold ',
   bolder: 'font-extrabold',

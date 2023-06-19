@@ -1,5 +1,5 @@
 import {ChevronDownIcon, ChevronUpIcon} from '@heroicons/react/outline'
-import type {User} from '@prisma/client'
+import type {Payments, User} from '@prisma/client'
 import {Link, useLoaderData} from '@remix-run/react'
 import clsx from 'clsx'
 import {AnimatePresence, motion} from 'framer-motion'
@@ -10,8 +10,22 @@ import {H2, H4, H5} from './util/typography'
 import {SectionContainer} from '~/components'
 import {UserCircleIcon} from '@heroicons/react/solid'
 
-export function BillAmount({userIsPaying}: {userIsPaying?: any}) {
-  const data = useLoaderData()
+export function BillAmount({
+  userIsPaying,
+  amountLeft,
+  total,
+  currency,
+  paidUsers,
+  userId,
+}: {
+  userIsPaying?: any
+  amountLeft: number
+  total: number
+  currency: string
+  paidUsers: User[]
+  userId: string
+}) {
+  // const data = useLoaderData()
   const MotionLink = motion(Link)
 
   const [showDetails, setShowDetails] = useState(false)
@@ -22,18 +36,18 @@ export function BillAmount({userIsPaying}: {userIsPaying?: any}) {
         <H2
           className={clsx('text-xl', {
             'dark:decoration-DARK_PRIMARY_1   decoration-principal  line-through decoration-2':
-              data.amountLeft < data.total,
+              amountLeft < total,
           })}
         >
-          {formatCurrency(data.currency, Number(data.total))}
+          {formatCurrency(currency, Number(total))}
         </H2>
       </FlexRow>
-      {data.amountLeft < data.total ? (
+      {amountLeft < total ? (
         <div className="flex flex-col p-2">
           <FlexRow className="justify-between">
             <H2>Por Pagar</H2>
             <div className="flex flex-col">
-              <H2> {formatCurrency(data.currency, Number(data.amountLeft))}</H2>
+              <H2> {formatCurrency(currency, Number(amountLeft))}</H2>
               <svg
                 viewBox="0 0 72 6"
                 fill="none"
@@ -61,8 +75,8 @@ export function BillAmount({userIsPaying}: {userIsPaying?: any}) {
           </button>
           <AnimatePresence>
             {showDetails &&
-              data.paidUsers &&
-              data.paidUsers.map((user: User, index: number) => {
+              paidUsers &&
+              paidUsers.map((user: User, index: number) => {
                 return (
                   <motion.div
                     key={index}
@@ -84,13 +98,13 @@ export function BillAmount({userIsPaying}: {userIsPaying?: any}) {
                         className="h-5 w-5"
                       />
                       <H4>{user?.name}</H4>
-                      {data.userId === user.id ? (
+                      {userId === user.id ? (
                         <H4>Has pagado</H4>
                       ) : (
                         <H4>Ha pagado </H4>
                       )}
                     </Link>
-                    <H4>{formatCurrency(data.currency, Number(user?.paid))}</H4>
+                    <H4>{formatCurrency(currency, Number(user?.paid))}</H4>
                   </motion.div>
                 )
               })}

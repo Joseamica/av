@@ -191,18 +191,16 @@ export default function CartItemId() {
                 <H4 className="mx-2">Pedido por:</H4>
               )}
               {data.cartItem.user.map((user: User) => (
-                <>
-                  <ItemContainer key={user.id} className="items-center">
-                    <FlexRow>
-                      <UserCircleIcon
-                        fill={user.color || '#000'}
-                        className=" min-h-5 min-w-8 h-8 "
-                      />
-                      <H5>{user.name}</H5>
-                    </FlexRow>
-                    <H5>{sharedPrice}</H5>
-                  </ItemContainer>
-                </>
+                <ItemContainer key={user.id} className="items-center">
+                  <FlexRow>
+                    <UserCircleIcon
+                      fill={user.color || '#000'}
+                      className=" min-h-5 min-w-8 h-8 "
+                    />
+                    <H5>{user.name}</H5>
+                  </FlexRow>
+                  <H5>{sharedPrice}</H5>
+                </ItemContainer>
               ))}
             </div>
             <Spacer spaceY="2" />

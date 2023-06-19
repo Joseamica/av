@@ -1,3 +1,4 @@
+import {PaymentMethod} from '@prisma/client'
 import type {ActionArgs, LoaderArgs} from '@remix-run/node'
 import {json, redirect} from '@remix-run/node'
 import {
@@ -18,6 +19,7 @@ import {
   getTipsPercentages,
 } from '~/models/branch.server'
 import {getMenu} from '~/models/menu.server'
+import {createPayment} from '~/models/payments.server'
 import {getPaidUsers} from '~/models/user.server'
 import {validateRedirect} from '~/redirect.server'
 import {getUserId} from '~/session.server'
@@ -33,6 +35,8 @@ export async function action({request, params}: ActionArgs) {
 
   const proceed = formData.get('_action') === 'proceed'
   const tip = formData.get('tip') as string
+  const paymentMethod = formData.get('paymentMethod') as PaymentMethod
+  const branchId = await getBranchId(tableId)
 
   const order = await prisma.order.findFirst({
     where: {tableId},
@@ -47,6 +51,15 @@ export async function action({request, params}: ActionArgs) {
   if (proceed) {
     const amountLeft = (await getAmountLeftToPay(tableId)) || 0
     const userId = await getUserId(request)
+    await createPayment(
+      paymentMethod,
+      amountLeft,
+      Number(tip),
+      order.id,
+      userId,
+      branchId,
+    )
+
     const userPrevPaidData = await prisma.user.findFirst({
       where: {id: userId},
       select: {paid: true, tip: true, total: true},
@@ -115,6 +128,8 @@ export default function EqualParts() {
   const [searchParams] = useSearchParams()
   const tip = Number(searchParams.get('tip')) as number
   const total = Number(searchParams.get('total')) as number
+  const paymentMethod = searchParams.get('pMethod') as PaymentMethod
+  console.log('paymentMethod', paymentMethod)
 
   const submit = useSubmit()
   function handleChange(event: React.FormEvent<HTMLFormElement>) {
@@ -134,7 +149,11 @@ export default function EqualParts() {
         className="p-2"
       >
         <BillAmount
-        // isPaying={isPaying}
+          amountLeft={data.amountLeft}
+          currency={data.currency}
+          paidUsers={data.paidUsers}
+          total={data.total}
+          userId={data.userId}
         />
         <Spacer spaceY="2" />
         <div className="flex flex-col items-center justify-center rounded-lg bg-white p-2 shadow-lg">
@@ -148,7 +167,7 @@ export default function EqualParts() {
           <H1>Propina: {formatCurrency(data.currency, tip)}</H1>
         </div> */}
         <Button name="_action" value="proceed" fullWith={true}>
-          Añade{' '}
+          Da{' '}
           {formatCurrency(
             data.currency,
             Number(total || 0) - Number(data.amountLeft || 0),
@@ -161,6 +180,7 @@ export default function EqualParts() {
           name="tip"
           value={Number(total || 0) - Number(data.amountLeft || 0)}
         />
+        <input type="hidden" name="paymentMethod" value={paymentMethod} />
         <Spacer spaceY="1" />
         {/* FIX MAKE IT WORK */}
         {/* <Button name="_action" value="proceed" fullWith={true}>

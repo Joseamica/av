@@ -1,3 +1,4 @@
+import {PaymentMethod} from '@prisma/client'
 import type {ActionArgs, LoaderArgs} from '@remix-run/node'
 import {json, redirect} from '@remix-run/node'
 import {
@@ -14,7 +15,12 @@ import {H5, Payment} from '~/components'
 import {Modal} from '~/components/modal'
 import {prisma} from '~/db.server'
 import {EVENTS} from '~/events'
-import {getPaymentMethods, getTipsPercentages} from '~/models/branch.server'
+import {
+  getBranchId,
+  getPaymentMethods,
+  getTipsPercentages,
+} from '~/models/branch.server'
+import {createPayment} from '~/models/payments.server'
 import {validateRedirect} from '~/redirect.server'
 import {getUserId, getUsername} from '~/session.server'
 import {useLiveLoader} from '~/use-live-loader'
@@ -31,6 +37,7 @@ export async function action({request, params}: ActionArgs) {
   const proceed = formData.get('_action') === 'proceed'
   const total = Number(formData.get('amountToPay')) as number
   const tipPercentage = formData.get('tipPercentage') as string
+  const paymentMethod = formData.get('paymentMethod') as PaymentMethod
 
   if (!proceed && tipPercentage && total <= 0) {
     return json(
@@ -46,6 +53,8 @@ export async function action({request, params}: ActionArgs) {
   const order = await prisma.order.findFirst({
     where: {tableId},
   })
+  const branchId = await getBranchId(tableId)
+
   invariant(order, 'No se encontró la orden, o aun no ha sido creada.')
 
   const tip = Number(total) * (Number(tipPercentage) / 100)
@@ -67,7 +76,7 @@ export async function action({request, params}: ActionArgs) {
       return redirect(
         `/table/${tableId}/pay/confirmExtra?total=${total}&tip=${
           tip <= 0 ? total * 0.12 : tip
-        }`,
+        }&pMethod=${paymentMethod}`,
       )
     }
     const userId = await getUserId(request)
@@ -75,6 +84,8 @@ export async function action({request, params}: ActionArgs) {
       where: {id: userId},
       select: {paid: true, tip: true, total: true},
     })
+    await createPayment(paymentMethod, total, tip, order.id, userId, branchId)
+
     // const updateUser =
     await prisma.user.update({
       where: {id: userId},

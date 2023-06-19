@@ -54,6 +54,7 @@ model Branch {
   users               User[]
   employees           Employee[]
   feedbacks           Feedback[]
+  payments            Payments[]
 }
 
 model Table {
@@ -132,6 +133,7 @@ model Order {
   branch       Branch?    @relation(fields: [branchId], references: [id])
   branchId     String?
   cartItems    CartItem[]
+  payments     Payments[]
 }
 
 model CartItem {
@@ -210,6 +212,7 @@ model User {
   tableId      String?
   feedbacks    Feedback[]
   sessions     Session[]
+  payments     Payments[]
 }
 
 model Password {
@@ -261,4 +264,28 @@ model Session {
   user           User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   userId         String
   expirationDate DateTime
+}
+
+model Payments {
+  id        String        @id @default(cuid())
+  createdAt DateTime      @default(now())
+  method    PaymentMethod
+  amount    Decimal
+  tip       Decimal?
+  total     Decimal?
+  branchId  String?
+  branch    Branch?       @relation(fields: [branchId], references: [id])
+  orderId   String?
+  order     Order?        @relation(fields: [orderId], references: [id])
+  userId    String?
+  user      User?         @relation(fields: [userId], references: [id])
+}
+
+enum PaymentMethod {
+  cash
+  card
+  debitCard
+  paypal
+  applePay
+  other
 }

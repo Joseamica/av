@@ -7,7 +7,7 @@ import {Button} from './buttons/button'
 import {RadioInputButton} from './buttons/input'
 import {FlexRow} from './util/flexrow'
 import {Spacer} from './util/spacer'
-import {H3, H5, H6} from './util/typography'
+import {H3, H4, H5, H6} from './util/typography'
 import {Modal} from './modals'
 
 const variants = {
@@ -130,20 +130,29 @@ export function Payment({
                 type="button"
               >
                 <H5>Propina</H5>
-                <FlexRow>
-                  <H3>{activeRadioTip}%</H3>
+                <div className="flex flex-row items-center space-x-2">
+                  <H4 variant="secondary">( {activeRadioTip}% )</H4>
+
+                  <H3>
+                    {formatCurrency(
+                      currency,
+                      (total * Number(activeRadioTip)) / 100,
+                    )}
+                  </H3>
+
                   {showAddTip ? (
                     <FlexRow className="rounded-full bg-gray_light px-2 py-1">
                       <H6>Cerrar</H6>
                       <ChevronUpIcon className="h-4 w-4" />
                     </FlexRow>
                   ) : (
-                    <FlexRow className="rounded-full bg-gray_light px-2 py-1">
+                    <FlexRow className="items-center justify-center rounded-full bg-gray_light px-2 py-1">
+                      {/* <H5>{activeRadioTip}%</H5> */}
                       <H6>Cambiar</H6>
                       <ChevronRightIcon className="h-4 w-4" />
                     </FlexRow>
                   )}
-                </FlexRow>
+                </div>
               </button>
               <Spacer spaceY="1" />
             </motion.div>
@@ -154,12 +163,8 @@ export function Payment({
           Pagar{' '}
           {formatCurrency(currency, Number(total || 0) + Number(tip || 0))}
         </Button>
-        <input
-          type="hidden"
-          name="paymentMethod"
-          value={activeRadioPaymentMethod}
-        />
       </div>
+
       <Modal
         isOpen={showChangeMethod}
         handleClose={() => setShowChangeMethod(false)}
@@ -180,6 +185,7 @@ export function Payment({
               handlerFunction={handleChangePaymentMethod}
             />
           ))}
+          <Spacer spaceY="1" />
           <Button
             onClick={() => setShowChangeMethod(false)}
             type="button"
@@ -198,7 +204,7 @@ export function Payment({
           {Object.values(tipsPercentages).map(tipPercentage => (
             <RadioInputButton
               key={tipPercentage}
-              title={`${tipPercentage}%`}
+              title={`${tipPercentage}% `}
               state={activeRadioTip}
               id={`${tipPercentage}`}
               type="radio"
@@ -208,8 +214,30 @@ export function Payment({
               handlerFunction={handleChangeTip}
             />
           ))}
+
+          <Spacer spaceY="1" />
+          <FlexRow>
+            <H5>Propina</H5>
+            <H3>
+              {formatCurrency(currency, (total * Number(activeRadioTip)) / 100)}
+            </H3>
+          </FlexRow>
+          <Button
+            onClick={() => setShowAddTip(false)}
+            type="button"
+            fullWith={true}
+          >
+            Asignar
+            {/* {(total * Number(activeRadioTip)) / 100} */}
+          </Button>
         </div>
       </Modal>
+      <input
+        type="hidden"
+        name="paymentMethod"
+        value={activeRadioPaymentMethod}
+      />
+      <input type="hidden" name="tipPercentage" value={activeRadioTip} />
     </>
   )
 }

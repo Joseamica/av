@@ -94,28 +94,28 @@ export async function loader({request, params}: LoaderArgs) {
       branch.id,
     )
     const sessionId = session.get('sessionId')
-    session.set('tableSession', tableId)
+    // session.set('tableSession', tableId)
 
-    const expiryTime = formatISO(addHours(new Date(), 4))
-    session.set('expiryTime', expiryTime)
-    const sessionExpiryTime = session.get('expiryTime')
+    // const expiryTime = formatISO(addHours(new Date(), 4))
+    // session.set('expiryTime', expiryTime)
+    // const sessionExpiryTime = session.get('expiryTime')
 
-    if (
-      sessionExpiryTime &&
-      compareAsc(new Date(sessionExpiryTime), new Date()) < 0
-    ) {
-      // If the session has expired, delete it
-      // await prisma.session.delete({where: {id: sessionId}})
-      await prisma.user.update({
-        where: {id: userId},
-        data: {
-          orders: {disconnect: true},
-          tables: {disconnect: true},
-          sessions: {deleteMany: {}},
-        },
-      })
-      throw await logout(request, pathname)
-    }
+    // if (
+    //   sessionExpiryTime &&
+    //   compareAsc(new Date(sessionExpiryTime), new Date()) < 0
+    // ) {
+    //   // If the session has expired, delete it
+    //   // await prisma.session.delete({where: {id: sessionId}})
+    //   await prisma.user.update({
+    //     where: {id: userId},
+    //     data: {
+    //       orders: {disconnect: true},
+    //       tables: {disconnect: true},
+    //       sessions: {deleteMany: {}},
+    //     },
+    //   })
+    //   throw await logout(request, pathname)
+    // }
 
     if (!sessionId) {
       throw new Error('No se encontró el ID de la sesión')
@@ -139,6 +139,7 @@ export async function loader({request, params}: LoaderArgs) {
 
   if (order) {
     paidUsers = await getPaidUsers(order.id)
+
     amountLeft = await getAmountLeftToPay(tableId)
   }
 
@@ -156,23 +157,18 @@ export async function loader({request, params}: LoaderArgs) {
 
   const currency = await getCurrency(tableId)
 
-  return json(
-    {
-      table,
-      branch,
-      menu,
-      order,
-      total,
-      currency,
-      amountLeft,
-      paidUsers,
-      error,
-      usersInTable,
-    },
-    {
-      headers: {'Set-Cookie': await sessionStorage.commitSession(session)},
-    },
-  )
+  return json({
+    table,
+    branch,
+    menu,
+    order,
+    total,
+    currency,
+    amountLeft,
+    paidUsers,
+    error,
+    usersInTable,
+  })
 }
 
 //payment ACTION
@@ -240,16 +236,16 @@ export default function Table() {
         <Spacer spaceY="2" />
         {/* <h1>TODO: SESSIONS EXPIRATION & STRIPE INTEGRATION & WHATSAPP MSG</h1> */}
         <Help />
-        <BillAmount />
+        <BillAmount
+          amountLeft={data.amountLeft}
+          currency={data.currency}
+          paidUsers={data.paidUsers}
+          total={data.total}
+          userId={data.userId}
+        />
         <Spacer spaceY="2" />
         {/* SWITCH BUTTON */}
         <div className="flex  w-full justify-end">
-          {/* <button
-            onClick={() => setFilterPerUser(!filterPerUser)}
-            className="text-md dark:text-secondaryTextDark flex shrink-0 justify-center pr-2"
-          >
-            {filterPerUser ? 'Ver por orden' : 'Ver por usuario'}
-          </button> */}
           <SwitchButton
             state={filterPerUser}
             setToggle={handleToggle}
@@ -548,57 +544,42 @@ function PayButtons({
     }
   }
 
-  if (data.amountLeft > 0) {
-    return (
-      <div className="flex h-full flex-col">
-        <Button
-          onClick={() => {
-            setShowSplit(true)
-          }}
-          variant="primary"
-          size="large"
-        >
-          Dividir cuenta
-        </Button>
-        <Spacer spaceY="1" />
-        <LinkButton to="pay/fullpay" onClick={handleFullPay}>
-          Pagar la cuenta completa
-        </LinkButton>
-        <Spacer spaceY="2" />
-        <ModalPortal
-          isOpen={showSplit}
-          handleClose={() => setShowSplit(false)}
-          title="Dividir cuenta"
-        >
-          <div className="flex flex-col space-y-2 bg-white p-2">
-            <LinkButton to="pay/perDish" onClick={handleSplitPay}>
-              Pagar por platillo
-            </LinkButton>
-            <LinkButton to="pay/perPerson" onClick={handleSplitPay}>
-              Pagar por usuario
-            </LinkButton>
-            <LinkButton to="pay/equalParts" onClick={handleSplitPay}>
-              Pagar en partes iguales
-            </LinkButton>
-            <LinkButton to="pay/custom" onClick={handleSplitPay}>
-              Pagar monto personalizado
-            </LinkButton>
-          </div>
-        </ModalPortal>
-      </div>
-    )
-  } else {
-    return (
-      <Form method="POST">
-        <Button
-          name="_action"
-          value="endOrder"
-          // onClick={handleValidate}
-          fullWith={true}
-        >
-          Terminar orden
-        </Button>
-      </Form>
-    )
-  }
+  return (
+    <div className="flex h-full flex-col">
+      <Button
+        onClick={() => {
+          setShowSplit(true)
+        }}
+        variant="primary"
+        size="large"
+      >
+        Dividir cuenta
+      </Button>
+      <Spacer spaceY="1" />
+      <LinkButton to="pay/fullpay" onClick={handleFullPay}>
+        Pagar la cuenta completa
+      </LinkButton>
+      <Spacer spaceY="2" />
+      <ModalPortal
+        isOpen={showSplit}
+        handleClose={() => setShowSplit(false)}
+        title="Dividir cuenta"
+      >
+        <div className="flex flex-col space-y-2 bg-white p-2">
+          <LinkButton to="pay/perDish" onClick={handleSplitPay}>
+            Pagar por platillo
+          </LinkButton>
+          <LinkButton to="pay/perPerson" onClick={handleSplitPay}>
+            Pagar por usuario
+          </LinkButton>
+          <LinkButton to="pay/equalParts" onClick={handleSplitPay}>
+            Pagar en partes iguales
+          </LinkButton>
+          <LinkButton to="pay/custom" onClick={handleSplitPay}>
+            Pagar monto personalizado
+          </LinkButton>
+        </div>
+      </ModalPortal>
+    </div>
+  )
 }

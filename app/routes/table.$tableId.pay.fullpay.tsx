@@ -22,9 +22,10 @@ import {getPaidUsers} from '~/models/user.server'
 import {validateRedirect} from '~/redirect.server'
 import {getUserId} from '~/session.server'
 import {getAmountLeftToPay, getCurrency} from '~/utils'
-import type {Order, User} from '@prisma/client'
+import type {Order, PaymentMethod, User} from '@prisma/client'
 import {EVENTS} from '~/events'
 import {useLiveLoader} from '~/use-live-loader'
+import {createPayment} from '~/models/payments.server'
 
 type LoaderData = {
   amountLeft: number
@@ -45,11 +46,9 @@ export async function loader({request, params}: LoaderArgs) {
   const total = order?.total
   const userId = await getUserId(request)
 
-  const branchId = await getBranchId(tableId)
   const tipsPercentages = await getTipsPercentages(tableId)
   const paymentMethods = await getPaymentMethods(tableId)
 
-  // console.log('order', order)
   let paidUsers = null
 
   if (order) {
@@ -79,6 +78,7 @@ export async function action({request, params}: ActionArgs) {
 
   const {tableId} = params
   invariant(tableId, 'tableId no encontrado')
+  const branchId = await getBranchId(tableId)
 
   const order = await getOrder(tableId)
   invariant(order, 'No se encontró la orden')
@@ -88,20 +88,34 @@ export async function action({request, params}: ActionArgs) {
   const userId = await getUserId(request)
   const proceed = formData.get('_action') === 'proceed'
   const tipPercentage = formData.get('tipPercentage') as string
+  const paymentMethod = formData.get('paymentMethod') as PaymentMethod
 
   const userPrevPaid = await prisma.user.findFirst({
     where: {id: userId},
     select: {paid: true},
   })
 
-  const amountLeft = await getAmountLeftToPay(tableId)
+  const amountLeft = (await getAmountLeftToPay(tableId)) || 0
   const total = Number(amountLeft) + Number(userPrevPaid?.paid)
   //FIX this \/
   //@ts-expect-error
   const tip = amountLeft * Number(tipPercentage / 100)
 
   if (proceed) {
-    const updateTotal = await prisma.order.update({
+    await prisma.payments.create({
+      data: {
+        createdAt: new Date(),
+        method: paymentMethod,
+        amount: amountLeft,
+        tip: Number(tip),
+        total: amountLeft + tip,
+        branchId,
+        orderId: order?.id,
+      },
+    })
+
+    // const updateTotal =
+    await prisma.order.update({
       where: {tableId: tableId},
       data: {
         paid: true,

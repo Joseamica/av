@@ -1,4 +1,4 @@
-import type {CartItem} from '@prisma/client'
+import type {CartItem, PaymentMethod} from '@prisma/client'
 import type {ActionArgs, LoaderArgs} from '@remix-run/node'
 import {json, redirect} from '@remix-run/node'
 import {
@@ -28,7 +28,12 @@ import {ItemContainer} from '~/components/containers/itemContainer'
 import {Modal} from '~/components/modal'
 import {prisma} from '~/db.server'
 import {EVENTS} from '~/events'
-import {getPaymentMethods, getTipsPercentages} from '~/models/branch.server'
+import {
+  getBranchId,
+  getPaymentMethods,
+  getTipsPercentages,
+} from '~/models/branch.server'
+import {createPayment} from '~/models/payments.server'
 import {validateRedirect} from '~/redirect.server'
 import {
   getSession,
@@ -91,7 +96,12 @@ export async function action({request, params}: ActionArgs) {
   invariant(tableId, 'No se encontró mesa')
   const formData = await request.formData()
 
-  const paymentMethod = formData.get('paymentMethod') as string
+  const branchId = await getBranchId(tableId)
+  const order = await prisma.order.findFirst({
+    where: {tableId},
+  })
+  invariant(order, 'No se encontró la orden, o aun no ha sido creada.')
+  const paymentMethod = formData.get('paymentMethod') as PaymentMethod
 
   const redirectTo = validateRedirect(request.redirect, `/table/${tableId}`)
 
@@ -138,7 +148,7 @@ export async function action({request, params}: ActionArgs) {
       return redirect(
         `/table/${tableId}/pay/confirmExtra?total=${total}&tip=${
           tip <= 0 ? total * 0.12 : tip
-        }`,
+        }&pMethod=${paymentMethod}`,
       )
     }
     const userId = await getUserId(request)
@@ -160,6 +170,9 @@ export async function action({request, params}: ActionArgs) {
       where: {id: userId},
       select: {paid: true, tip: true, total: true},
     })
+
+    await createPayment(paymentMethod, total, tip, order.id, userId, branchId)
+
     // const updateUser =
     await prisma.user.update({
       where: {id: userId},

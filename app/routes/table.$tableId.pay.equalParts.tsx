@@ -1,3 +1,4 @@
+import {PaymentMethod} from '@prisma/client'
 import type {ActionArgs, LoaderArgs} from '@remix-run/node'
 import {json, redirect} from '@remix-run/node'
 import {
@@ -15,7 +16,12 @@ import {H5, Payment, QuantityManagerButton} from '~/components'
 import {Modal} from '~/components/modal'
 import {prisma} from '~/db.server'
 import {EVENTS} from '~/events'
-import {getPaymentMethods, getTipsPercentages} from '~/models/branch.server'
+import {
+  getBranchId,
+  getPaymentMethods,
+  getTipsPercentages,
+} from '~/models/branch.server'
+import {createPayment} from '~/models/payments.server'
 import {validateRedirect} from '~/redirect.server'
 import {getUserId} from '~/session.server'
 import {useLiveLoader} from '~/use-live-loader'
@@ -25,11 +31,13 @@ export async function action({request, params}: ActionArgs) {
   const {tableId} = params
   invariant(tableId, 'No se encontró mesa')
   const formData = await request.formData()
+  const branchId = await getBranchId(tableId)
 
   const redirectTo = validateRedirect(request.redirect, `/table/${tableId}`)
 
   const proceed = formData.get('_action') === 'proceed'
   const tipPercentage = formData.get('tipPercentage') as string
+  const paymentMethod = formData.get('paymentMethod') as PaymentMethod
 
   const order = await prisma.order.findFirst({
     where: {tableId},
@@ -62,7 +70,7 @@ export async function action({request, params}: ActionArgs) {
       return redirect(
         `/table/${tableId}/pay/confirmExtra?total=${total}&tip=${
           tip <= 0 ? Number(total) * 0.12 : tip
-        }`,
+        }&pMethod=${paymentMethod}`,
       )
     }
     const userId = await getUserId(request)
@@ -70,6 +78,15 @@ export async function action({request, params}: ActionArgs) {
       where: {id: userId},
       select: {paid: true, tip: true, total: true},
     })
+    await createPayment(
+      paymentMethod,
+      payingTotal,
+      tip,
+      order.id,
+      userId,
+      branchId,
+    )
+
     // const updateUser =
     await prisma.user.update({
       where: {id: userId},
@@ -247,6 +264,7 @@ export default function EqualParts() {
         <Payment
           total={perPerson}
           tip={actionData?.tip}
+          amountLeft={data.amountLeft}
           tipsPercentages={data.tipsPercentages}
           paymentMethods={data.paymentMethods}
           currency={data.currency}
