@@ -49,27 +49,6 @@ type LoaderData = {
   amountLeft: number
 }
 
-const effect = {
-  hidden: {
-    y: '100vh',
-    opacity: 0,
-  },
-  visible: {
-    y: '0',
-    opacity: 1,
-    transition: {
-      type: 'linear',
-      stiffness: 600,
-      // duration: 3,
-      damping: 30,
-    },
-  },
-  exit: {
-    y: '100vh',
-    opacity: 0,
-  },
-}
-
 export async function loader({request, params}: LoaderArgs) {
   const {tableId} = params
   invariant(tableId, 'No se encontró mesa')
@@ -118,7 +97,7 @@ export async function action({request, params}: ActionArgs) {
 
   const proceed = formData.get('_action') === 'proceed'
   const tipPercentage = formData.get('tipPercentage') as string
-  console.log('tipPercentages', tipPercentage)
+
   const entries = formData.entries()
   const items = [...entries].filter(([key]) => key.startsWith('item-'))
   const prices = [...formData.entries()].filter(([key]) =>
