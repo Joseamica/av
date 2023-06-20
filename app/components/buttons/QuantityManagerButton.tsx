@@ -33,7 +33,7 @@ export const QuantityManagerButton = ({
     }
   }
   return (
-    <div className="dark:bg-secondaryDark flex items-center justify-center rounded-full p-1">
+    <div className="flex items-center justify-center rounded-full p-1 dark:bg-button-primary">
       <button
         type="button"
         className="dark:bg-mainDark dark:bg-night-bg_principal dark:text-night-text_principal h-10 w-10 rounded-full bg-day-bg_principal shadow-lg disabled:text-gray-300 xs:h-7 xs:w-7"
@@ -42,7 +42,7 @@ export const QuantityManagerButton = ({
       >
         -
       </button>
-      <span className="px-3 py-2  disabled:text-gray-200 xs:px-2 xs:py-1 xs:text-xs">
+      <span className="px-3 py-2  text-white disabled:text-gray-200 xs:px-2 xs:py-1 xs:text-xs">
         {quantity}
       </span>
       <button

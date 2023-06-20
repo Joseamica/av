@@ -32,6 +32,7 @@ import {
   LinkButton,
   MenuInfo,
   Modal,
+  QuantityButton,
   QuantityManagerButton,
   SectionContainer,
   SendComments,
@@ -126,12 +127,13 @@ export async function action({request, params}: ActionArgs) {
 
   const redirectTo = validateRedirect(request.redirect, ``)
   const shareDish = formData.getAll('shareDish')
+  const quantity = Number(formData.get('quantity') as string)
 
   const session = await getSession(request)
   let cart = JSON.parse(session.get('cart') || '[]')
 
   if (_action && submittedItemId) {
-    addToCart(cart, submittedItemId, 1, modifiers)
+    addToCart(cart, submittedItemId, quantity, modifiers)
     session.set('cart', JSON.stringify(cart))
     session.set('shareUserIds', JSON.stringify(shareDish))
     return redirect(redirectTo, {
@@ -146,7 +148,7 @@ export default function Menu() {
   const data = useLoaderData()
   const actionData = useActionData()
   const fetcher = useFetcher()
-  const [searchParams] = useSearchParams()
+  const [searchParams, setSearchParams] = useSearchParams()
   const [isSticky, setIsSticky] = React.useState(false)
 
   const dish = searchParams.get('dishId')
@@ -155,7 +157,8 @@ export default function Menu() {
   const navigate = useNavigate()
 
   const onClose = () => {
-    navigate(``)
+    searchParams.delete('dishId')
+    setSearchParams(searchParams)
   }
 
   const refReachTop = useRef<HTMLDivElement>(null)
@@ -182,6 +185,11 @@ export default function Menu() {
     window.addEventListener('scroll', handleScroll)
     return () => window.removeEventListener('scroll', handleScroll)
   }, [])
+
+  //NOTE - This is to reset the quantity when the modal closes
+  React.useEffect(() => {
+    setQuantity(1)
+  }, [dish === null])
 
   const submit = useSubmit()
   function handleChange(event: React.FormEvent<HTMLFormElement>) {
@@ -307,27 +315,13 @@ export default function Menu() {
                   </div>
                 )
               })}
-              <div className="flex w-32 items-center justify-between rounded-full p-1 dark:bg-button-primary">
-                <button
-                  type="button"
-                  className="dark:bg-mainDark dark:bg-night-bg_principal dark:text-night-text_principal h-10 w-10 rounded-full bg-day-bg_principal shadow-lg disabled:text-gray-300 xs:h-7 xs:w-7"
-                  onClick={() => setQuantity(quantity - 1)}
-                  disabled={quantity <= 1}
-                >
-                  -
-                </button>
-                <span className="px-3 py-2  text-white disabled:text-gray-200 xs:px-2 xs:py-1 xs:text-xs">
-                  {quantity}
-                </span>
-                <button
-                  type="button"
-                  onClick={() => setQuantity(quantity + 1)}
-                  className="dark:bg-mainDark dark:bg-night-bg_principal dark:text-night-text_principal h-10 w-10 rounded-full bg-day-bg_principal shadow-lg xs:h-7 xs:w-7"
-                  // disabled={disabledPlus}
-                >
-                  +
-                </button>
-              </div>
+              <Spacer spaceY="1" />
+              <QuantityButton
+                onDecrease={() => setQuantity(quantity - 1)}
+                onIncrease={() => setQuantity(quantity + 1)}
+                quantity={quantity}
+                disabled={quantity <= 1}
+              />
               <div className="space-y-4">
                 {data.modifierGroup.map((modifierGroup: ModifierGroups) => {
                   return (
@@ -399,6 +393,7 @@ export default function Menu() {
               Agregar {data.dish.name}
             </Button>
             <input type="hidden" name="submittedItemId" value={data.dish.id} />
+            <input type="hidden" name="quantity" value={quantity} />
           </Modal>
         )}
         {/* <input type="hidden" name="isSticky" value={isSticky ? 'isSticky' : ''} /> */}

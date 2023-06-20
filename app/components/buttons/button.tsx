@@ -2,6 +2,7 @@ import {Link} from '@remix-run/react'
 import clsx from 'clsx'
 import {H3} from '../util/typography'
 import {XIcon} from '@heroicons/react/outline'
+import {TrashIcon} from '@heroicons/react/solid'
 
 interface ButtonProps {
   fullWith?: boolean
@@ -114,4 +115,80 @@ function LinkButton({
   )
 }
 
-export {Button, LinkButton}
+function QuantityButton({
+  onDecrease,
+  onIncrease,
+  quantity,
+  disabled,
+  isForm = false,
+  name,
+  decreaseValue,
+  increaseValue,
+}: {
+  onDecrease?: () => void
+  onIncrease?: () => void
+  quantity: number
+  disabled?: boolean
+  isForm?: boolean
+  name?: string
+  decreaseValue?: string
+  increaseValue?: string
+}) {
+  return (
+    <div className="flex w-32 items-center justify-between rounded-full p-1 dark:bg-button-primary">
+      {/* NOTE - Esto es que si el componente isForm, entonces aparezca el icono de basura cuando este en quantity <= 1*/}
+      {isForm ? (
+        <>
+          {quantity <= 1 ? (
+            <button
+              type={'submit'}
+              className="dark:bg-mainDark dark:text-night-text_principal flex h-10 w-10 items-center justify-center rounded-full bg-day-bg_principal text-2xl  text-day-principal shadow-lg disabled:text-gray-300 dark:bg-warning xs:h-7 xs:w-7"
+              onClick={onDecrease}
+              disabled={disabled}
+              name={name}
+              value={decreaseValue}
+            >
+              <TrashIcon className="h-5 w-5" />
+            </button>
+          ) : (
+            <button
+              type={isForm ? 'submit' : 'button'}
+              className="dark:bg-mainDark dark:bg-night-bg_principal dark:text-night-text_principal h-10 w-10 rounded-full bg-day-bg_principal text-2xl shadow-lg disabled:text-gray-300 xs:h-7 xs:w-7"
+              onClick={onDecrease}
+              disabled={disabled}
+              name={name}
+              value={decreaseValue}
+            >
+              -
+            </button>
+          )}
+        </>
+      ) : (
+        <button
+          type={isForm ? 'submit' : 'button'}
+          className="dark:bg-mainDark dark:bg-night-bg_principal dark:text-night-text_principal h-10 w-10 rounded-full bg-day-bg_principal text-2xl shadow-lg disabled:text-gray-300 xs:h-7 xs:w-7"
+          onClick={onDecrease}
+          disabled={disabled}
+          name={name}
+          value={decreaseValue}
+        >
+          -
+        </button>
+      )}
+      <span className="flex w-7  justify-center px-3 py-2 text-white disabled:text-gray-200 xs:px-2 xs:py-1 xs:text-xs">
+        {quantity}
+      </span>
+      <button
+        type={isForm ? 'submit' : 'button'}
+        onClick={onIncrease}
+        className="dark:bg-mainDark dark:bg-night-bg_principal dark:text-night-text_principal h-10 w-10 rounded-full bg-day-bg_principal text-2xl shadow-lg xs:h-7 xs:w-7"
+        name={name}
+        value={increaseValue}
+      >
+        +
+      </button>
+    </div>
+  )
+}
+
+export {Button, LinkButton, QuantityButton}

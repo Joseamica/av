@@ -18,6 +18,7 @@ import {
   H5,
   ItemContainer,
   Modal,
+  QuantityButton,
   Spacer,
 } from '~/components'
 import {prisma} from '~/db.server'
@@ -250,6 +251,10 @@ export default function Menu() {
     return acc + item.quantity
   }, 0)
 
+  const cartItemsTotal = data.cartItems?.reduce((acc, item) => {
+    return acc + Number(item.price) * item.quantity
+  }, 0)
+
   let isSubmitting =
     fetcher.state === 'submitting' || fetcher.state === 'loading'
 
@@ -257,7 +262,7 @@ export default function Menu() {
     <Modal onClose={onClose} title="Carrito">
       <fetcher.Form method="POST" preventScrollReset>
         <div className="p-2">
-          <H2>Mis platillos</H2>
+          {/* <H5 className="px-2 text-end">Tus platillos</H5> */}
           <div className="space-y-2">
             {data.cartItems?.map((items: CartItem, index: number) => {
               return (
@@ -272,11 +277,21 @@ export default function Menu() {
                       {formatCurrency(data.currency, items.price)}
                     </H5>
                   </FlexRow>
-                  <FlexRow className="rounded-full bg-gray_light p-1 ">
+                  <QuantityButton
+                    isForm={true}
+                    onDecrease={() => setItem(items.id)}
+                    onIncrease={() => setItem(items.id)}
+                    quantity={items.quantity}
+                    name="_action"
+                    decreaseValue="decreaseQuantity"
+                    increaseValue="increaseQuantity"
+                  />
+                  {/* <FlexRow className="rounded-full bg-gray_light p-1 ">
                     <Button
                       size="small"
                       name="_action"
                       value="decreaseQuantity"
+                      variant="secondary"
                       onClick={() => setItem(items.id)}
                     >
                       -
@@ -286,11 +301,12 @@ export default function Menu() {
                       size="small"
                       name="_action"
                       value="increaseQuantity"
+                      variant="secondary"
                       onClick={() => setItem(items.id)}
                     >
                       +
                     </Button>
-                  </FlexRow>
+                  </FlexRow> */}
                 </ItemContainer>
               )
             })}
@@ -301,6 +317,10 @@ export default function Menu() {
           <FlexRow justify="between" className="px-2">
             <H4>Numero de platillos: </H4>
             <H3>{cartItemsQuantity}</H3>
+          </FlexRow>
+          <FlexRow justify="between" className="px-2">
+            <H4>Total: </H4>
+            <H3>{formatCurrency(data.currency, cartItemsTotal)}</H3>
           </FlexRow>
           <Spacer spaceY="3" />
           <Button
