@@ -1,3 +1,4 @@
+import {Branch, PaymentMethod, User} from '@prisma/client'
 import initStripe from 'stripe'
 
 // copied from (https://github.com/kentcdodds/kentcdodds.com/blob/ebb36d82009685e14da3d4b5d0ce4d577ed09c63/app/utils/misc.tsx#L229-L237)
@@ -14,7 +15,13 @@ export function getDomainUrl(request: Request) {
 export const getStripeSession = async (
   amount: number, // Amount in cents (or the smallest currency unit)
   domainUrl: string,
+  sseURL: string,
   currency: string = 'usd', // Default to USD
+  tip: number,
+  orderId: string,
+  paymentMethod: PaymentMethod,
+  userId: User['id'],
+  branchId: Branch['id'],
 ): Promise<string> => {
   const stripe = initStripe(process.env.STRIPE_SECRET_KEY)
   const lineItems = [
@@ -34,6 +41,14 @@ export const getStripeSession = async (
     mode: 'payment',
     payment_method_types: ['card'],
     line_items: lineItems,
+    metadata: {
+      tip,
+      orderId,
+      paymentMethod,
+      userId,
+      branchId,
+      sseURL,
+    },
     success_url: `${domainUrl}/payment/success`,
     cancel_url: `${domainUrl}/payment/cancelled`,
   })

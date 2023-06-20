@@ -43,6 +43,7 @@ import {
 } from '~/session.server'
 import {useLiveLoader} from '~/use-live-loader'
 import {formatCurrency, getAmountLeftToPay, getCurrency} from '~/utils'
+import {getDomainUrl, getStripeSession} from '~/utils/stripe.server'
 
 type LoaderData = {
   cartItems: CartItem[]
@@ -153,6 +154,20 @@ export async function action({request, params}: ActionArgs) {
     }
     const userId = await getUserId(request)
     const userName = await getUsername(request)
+    if (paymentMethod === 'card') {
+      const stripeRedirectUrl = await getStripeSession(
+        total * 100 + tip * 100,
+        getDomainUrl(request),
+        `${tableId}`,
+        'eur',
+        tip * 100,
+        order.id,
+        paymentMethod,
+        userId,
+        branchId,
+      )
+      return redirect(stripeRedirectUrl)
+    }
     //loop through items and update price and paid
     for (const {itemId} of itemData) {
       const cartItem = await prisma.cartItem.findUnique({

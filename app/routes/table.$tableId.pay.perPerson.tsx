@@ -148,6 +148,22 @@ export async function action({request, params}: ActionArgs) {
       )
     }
 
+    const stripe = formData.get('stripe') as string
+    if (paymentMethod === 'card') {
+      const stripeRedirectUrl = await getStripeSession(
+        total * 100 + tip * 100,
+        getDomainUrl(request),
+        `${tableId}`,
+        'eur',
+        tip * 100,
+        order.id,
+        paymentMethod,
+        userId,
+        branchId,
+      )
+      return redirect(stripeRedirectUrl)
+    }
+
     const userPrevPaidData = await prisma.user.findFirst({
       where: {id: userId},
       select: {paid: true, tip: true, total: true},
@@ -166,15 +182,6 @@ export async function action({request, params}: ActionArgs) {
     EVENTS.ISSUE_CHANGED(tableId)
 
     return redirect(redirectTo)
-  }
-  const stripe = formData.get('stripe') as string
-  if (paymentMethod === 'card') {
-    const stripeRedirectUrl = await getStripeSession(
-      total * 100 + tip * 100,
-      getDomainUrl(request),
-      'eur',
-    )
-    return redirect(stripeRedirectUrl)
   }
 
   return json({total, tip, error})

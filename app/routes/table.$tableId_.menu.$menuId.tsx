@@ -32,6 +32,7 @@ import {
   LinkButton,
   MenuInfo,
   Modal,
+  QuantityManagerButton,
   SectionContainer,
   SendComments,
   Spacer,
@@ -140,6 +141,7 @@ export async function action({request, params}: ActionArgs) {
 
   return json({modifiers})
 }
+
 export default function Menu() {
   const data = useLoaderData()
   const actionData = useActionData()
@@ -158,6 +160,7 @@ export default function Menu() {
 
   const refReachTop = useRef<HTMLDivElement>(null)
   const [currentCategory, setCurrentCategory] = React.useState<string>('')
+  const [quantity, setQuantity] = React.useState<number>(1)
 
   const handleScroll = () => {
     const categoryIds = Object.keys(categoryRefs.current)
@@ -284,7 +287,7 @@ export default function Menu() {
               <H2 boldVariant="semibold">{data.dish.name}</H2>
               <H3> {formatCurrency(data.currency, data.dish?.price)}</H3>
               <H4 variant="secondary">{data.dish.description}</H4>
-              <H4>¿Quieres compartir?</H4>
+              {data.usersOnTable.length > 0 && <H4>¿Quieres compartir?</H4>}
               {data.usersOnTable.map((user: User) => {
                 return (
                   <div key={user.id} className="mt-2 flex items-center">
@@ -304,6 +307,27 @@ export default function Menu() {
                   </div>
                 )
               })}
+              <div className="flex w-32 items-center justify-between rounded-full p-1 dark:bg-button-primary">
+                <button
+                  type="button"
+                  className="dark:bg-mainDark dark:bg-night-bg_principal dark:text-night-text_principal h-10 w-10 rounded-full bg-day-bg_principal shadow-lg disabled:text-gray-300 xs:h-7 xs:w-7"
+                  onClick={() => setQuantity(quantity - 1)}
+                  disabled={quantity <= 1}
+                >
+                  -
+                </button>
+                <span className="px-3 py-2  text-white disabled:text-gray-200 xs:px-2 xs:py-1 xs:text-xs">
+                  {quantity}
+                </span>
+                <button
+                  type="button"
+                  onClick={() => setQuantity(quantity + 1)}
+                  className="dark:bg-mainDark dark:bg-night-bg_principal dark:text-night-text_principal h-10 w-10 rounded-full bg-day-bg_principal shadow-lg xs:h-7 xs:w-7"
+                  // disabled={disabledPlus}
+                >
+                  +
+                </button>
+              </div>
               <div className="space-y-4">
                 {data.modifierGroup.map((modifierGroup: ModifierGroups) => {
                   return (

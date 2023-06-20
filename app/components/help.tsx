@@ -1,5 +1,4 @@
-import {BellIcon} from '@heroicons/react/outline'
-import {WifiIcon} from '@heroicons/react/solid'
+import {WifiIcon, BellIcon} from '@heroicons/react/solid'
 import {Link} from '@remix-run/react'
 import {IoIosPerson} from 'react-icons/io'
 import {IoWarning} from 'react-icons/io5'
