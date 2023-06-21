@@ -91,8 +91,6 @@ function Button({
   )
 }
 
-//TODO SELECT BUTTON
-
 function LinkButton({
   children,
   variant = 'primary',

@@ -88,7 +88,7 @@ export async function loader({request, params}: LoaderArgs) {
 }
 
 export async function action({request, params}: ActionArgs) {
-  const {tableId} = params
+  const {tableId, menuId} = params
   invariant(tableId, 'No se encontró la mesa')
 
   const branchId = await getBranchId(tableId)

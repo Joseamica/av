@@ -10,6 +10,8 @@ kill_timeout = "5s"
 
 [experimental]
 auto_rollback = true
+enable_consul = true
+allowed_public_ports = []
 
 [deploy]
 release_command = "bash ./scripts/migrate.sh"
@@ -27,6 +29,8 @@ PORT = "8080"
 PRIMARY_REGION = "dfw"
 
 [[services]]
+# http_checks = []
+script_checks = []
 protocol = "tcp"
 internal_port = 8080
 processes = ["app"]
@@ -39,6 +43,7 @@ force_https = true
 [[services.ports]]
 port = 443
 handlers = ["tls", "http"]
+
 [services.concurrency]
 type = "connections"
 hard_limit = 25
@@ -47,17 +52,19 @@ soft_limit = 20
 [[services.tcp_checks]]
 interval = "15s"
 timeout = "2s"
-grace_period = "1s"
+grace_period = "15s"
 restart_limit = 0
 
 [[services.http_checks]]
 interval = "10s"
 timeout = "2s"
 grace_period = "5s"
-restart_limit = 0
 method = "get"
 path = "/healthcheck"
 protocol = "http"
+tls_skip_verify = false
+headers = {}
+# [services.http_checks.headers]
 
 [metrics]
 port = 8081

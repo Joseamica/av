@@ -1,4 +1,4 @@
-import {Branch, PaymentMethod, User} from '@prisma/client'
+import type {Branch, PaymentMethod, User} from '@prisma/client'
 import initStripe from 'stripe'
 
 // copied from (https://github.com/kentcdodds/kentcdodds.com/blob/ebb36d82009685e14da3d4b5d0ce4d577ed09c63/app/utils/misc.tsx#L229-L237)
@@ -23,34 +23,40 @@ export const getStripeSession = async (
   userId: User['id'],
   branchId: Branch['id'],
 ): Promise<string> => {
-  const stripe = initStripe(process.env.STRIPE_SECRET_KEY)
-  const lineItems = [
-    {
-      price_data: {
-        currency: currency,
-        product_data: {
-          name: 'Custom amount',
-          // Add more product data if needed
+  console.log(tip, orderId, paymentMethod, userId, branchId)
+  try {
+    const stripe = initStripe(process.env.STRIPE_SECRET_KEY)
+    const lineItems = [
+      {
+        price_data: {
+          currency: currency,
+          product_data: {
+            name: 'Tu cuenta',
+            // Add more product data if needed
+          },
+          unit_amount: amount,
         },
-        unit_amount: amount,
+        quantity: 1,
       },
-      quantity: 1,
-    },
-  ]
-  const session = await stripe.checkout.sessions.create({
-    mode: 'payment',
-    payment_method_types: ['card'],
-    line_items: lineItems,
-    metadata: {
-      tip,
-      orderId,
-      paymentMethod,
-      userId,
-      branchId,
-      sseURL,
-    },
-    success_url: `${domainUrl}/payment/success`,
-    cancel_url: `${domainUrl}/payment/cancelled`,
-  })
-  return session.url
+    ]
+    const session = await stripe.checkout.sessions.create({
+      mode: 'payment',
+      payment_method_types: ['card'],
+      line_items: lineItems,
+      metadata: {
+        tip,
+        orderId,
+        paymentMethod,
+        userId,
+        branchId,
+        sseURL,
+      },
+      success_url: `${domainUrl}/payment/success`,
+      cancel_url: `${domainUrl}/payment/cancelled`,
+    })
+    return session.url
+  } catch (error) {
+    console.error('Error creating Stripe session:', error)
+    throw new Error('Failed to create payment session.')
+  }
 }

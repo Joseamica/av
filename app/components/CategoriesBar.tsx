@@ -54,7 +54,7 @@ export function CategoriesBar({
           {...{preventScrollReset: true}}
           key={category.id}
           className={clsx({
-            'rounded-full bg-gray_light px-3 text-lg font-medium text-black  underline-offset-4':
+            'rounded-full bg-day-principal px-3 text-lg font-medium text-white  underline-offset-4':
               category.id === categoryId, // Aplica el estilo si la categoría es la actual
           })}
         >

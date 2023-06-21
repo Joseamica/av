@@ -29,7 +29,9 @@ export async function loader({request, params}: LoaderArgs) {
         tip: 0,
         paid: 0,
         total: 0,
+        orders: {disconnect: true},
         cartItems: {set: []},
+
         // tableId: null,
         // tables: {disconnect: true},
       },

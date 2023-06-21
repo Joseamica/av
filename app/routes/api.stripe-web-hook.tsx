@@ -5,7 +5,7 @@ import {prisma} from '~/db.server'
 import {EVENTS} from '~/events'
 import {getUserId} from '~/session.server'
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
+const stripe = new Stripe('sk_test_a5qO2sn2n6AYZEge444HVrXU00v1RQv7qr', {
   apiVersion: '2022-11-15',
 })
 
@@ -29,24 +29,38 @@ export const action = async ({request}: ActionArgs) => {
   }
   console.log('event', event)
 
+  console.log('event.data.object.metadata', event.data.object.metadata)
+
   const metadata = event.data.object.metadata
+  console.log(
+    'data',
+    Number(event.data.object.amount_total) / 100 - Number(metadata.tip),
+  )
+
   if (event.data.object.payment_status === 'paid') {
     console.time('Creating...')
-    // const userId = await getUserId(request)
-    await prisma.payments.create({
-      data: {
-        id: event.data.object.id,
-        amount: Number(event.data.object.amount_total) / 100,
-        method: metadata.paymentMethod,
-        orderId: metadata.orderId,
-        tip: Number(metadata.tip),
-        branchId: metadata.branchId,
-        userId: metadata.userId,
-      },
-    })
-    EVENTS.ISSUE_CHANGED(metadata.sseURL)
-    console.timeEnd('Creating...')
+    try {
+      await prisma.payments.create({
+        data: {
+          amount:
+            Number(event.data.object.amount_total) / 100 - Number(metadata.tip),
+          method: metadata.paymentMethod,
+          orderId: metadata.orderId,
+          tip: Number(metadata.tip),
+          total: Number(event.data.object.amount_total) / 100,
+          branchId: metadata.branchId,
+          userId: metadata.userId,
+        },
+      })
+      EVENTS.ISSUE_CHANGED(metadata.sseURL)
+      console.timeEnd('Creating...')
+    } catch (err) {
+      console.error('Error creating payment:', err)
+      // Here, you can handle the error as needed. For example:
+      // - Send an alert or notification
+      // - Retry the operation
+      // - Exit the function or throw the error to be caught higher up
+    }
   }
-
   return new Response(null, {status: 200})
 }

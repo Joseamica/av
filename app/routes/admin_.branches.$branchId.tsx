@@ -27,6 +27,8 @@ export async function loader({request, params}: LoaderArgs) {
       feedbacks: true,
       restaurant: true,
       employees: true,
+      // FIXME: quitar el method, ya que por ahora estoy viendo solo si sirve stripe
+      payments: {where: {method: 'card'}},
     },
   })
   const menus = await prisma.menu.findMany({where: {branchId}})
@@ -57,6 +59,7 @@ export default function AdminBranch() {
     menu: false,
     order: false,
     employee: false,
+    payment: false,
   })
   const matches = useMatches()
   const [searchParams] = useSearchParams()
@@ -243,6 +246,41 @@ export default function AdminBranch() {
                       className="truncate text-base"
                     >
                       {employee.name}
+                    </Link>
+                    <FlexRow>
+                      <button>
+                        <AiFillDelete />
+                      </button>
+                      <button>
+                        <AiFillEdit />
+                      </button>
+                    </FlexRow>
+                  </FlexRow>
+                ))}
+              </div>
+            )}
+            <FlexRow className="">
+              <button
+                onClick={() => setShow({...show, payment: !show.payment})}
+                className="flex flex-row items-center text-base"
+              >
+                {show.payment ? <IoChevronUp /> : <IoChevronDown />}
+                Pagos
+              </button>
+
+              {/* <Link className="rounded-full border px-2" to="add?type=table">
+                Add
+              </Link> */}
+            </FlexRow>
+            {show.payment && (
+              <div className="flex flex-col items-center divide-y ">
+                {data.branch.payments.map((payment: any) => (
+                  <FlexRow key={payment.id} className="w-full justify-between">
+                    <Link
+                      to={`payments/${payment.id}`}
+                      className="truncate text-base"
+                    >
+                      {payment.total}
                     </Link>
                     <FlexRow>
                       <button>

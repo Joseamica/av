@@ -25,6 +25,7 @@ import {validateRedirect} from '~/redirect.server'
 import {getUserId, getUsername} from '~/session.server'
 import {useLiveLoader} from '~/use-live-loader'
 import {formatCurrency, getAmountLeftToPay, getCurrency} from '~/utils'
+import {getStripeSession, getDomainUrl} from '~/utils/stripe.server'
 
 export async function action({request, params}: ActionArgs) {
   const {tableId} = params
@@ -56,6 +57,7 @@ export async function action({request, params}: ActionArgs) {
   const branchId = await getBranchId(tableId)
 
   invariant(order, 'No se encontró la orden, o aun no ha sido creada.')
+  invariant(branchId, 'No se encontró la sucursal')
 
   const tip = Number(total) * (Number(tipPercentage) / 100)
   const amountLeft = (await getAmountLeftToPay(tableId)) || 0
@@ -80,13 +82,11 @@ export async function action({request, params}: ActionArgs) {
       )
     }
     const userId = await getUserId(request)
+
     const userPrevPaidData = await prisma.user.findFirst({
       where: {id: userId},
       select: {paid: true, tip: true, total: true},
     })
-    await createPayment(paymentMethod, total, tip, order.id, userId, branchId)
-
-    // const updateUser =
     await prisma.user.update({
       where: {id: userId},
       data: {
@@ -95,6 +95,31 @@ export async function action({request, params}: ActionArgs) {
         total: Number(userPrevPaidData?.total) + total + tip,
       },
     })
+    // NOTE - esto va aqui porque si el metodo de pago es otro que no sea tarjeta, entonces que cree el pago directo, sin stripe (ya que stripe tiene su propio create payment en el webhook)
+    if (paymentMethod === 'card') {
+      try {
+        const stripeRedirectUrl = await getStripeSession(
+          total * 100 + tip * 100,
+          getDomainUrl(request),
+          tableId,
+          'eur',
+          tip,
+          order.id,
+          paymentMethod,
+          userId,
+          branchId,
+        )
+        return redirect(stripeRedirectUrl)
+      } catch (error) {
+        // Handle the error, perhaps by redirecting to an error page or sending a response to the user
+        console.error('Failed to create payment session:', error)
+        return redirect('/error')
+      }
+    } else if (paymentMethod === 'cash') {
+      await createPayment(paymentMethod, total, tip, order.id, userId, branchId)
+    }
+    // const updateUser =
+
     EVENTS.ISSUE_CHANGED(tableId, `userPaid ${userName}`)
 
     return redirect(redirectTo)
