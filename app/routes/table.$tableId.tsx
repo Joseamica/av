@@ -1,21 +1,25 @@
-import type {CartItem, Order, Table as TableProps, User} from '@prisma/client'
+import type {
+  Branch,
+  CartItem,
+  Menu,
+  Order,
+  Table as TableProps,
+  User,
+} from '@prisma/client'
 import type {ActionArgs, LoaderArgs} from '@remix-run/node'
 import {json, redirect} from '@remix-run/node'
 import {SwitchButton} from '../components/buttons/switch' // Assuming SwitchButton is in the same directory
 
 import {
-  Form,
-  Link,
-  NavLink,
-  Outlet,
-  useLoaderData,
-  useNavigate,
-  useRevalidator,
-  useSearchParams,
-} from '@remix-run/react'
+  ChevronDownIcon,
+  UserCircleIcon,
+  UsersIcon,
+} from '@heroicons/react/solid'
+import {Form, Link, Outlet, useLoaderData} from '@remix-run/react'
 import clsx from 'clsx'
 import {AnimatePresence, motion} from 'framer-motion'
-import {useEffect, useState} from 'react'
+import {useState} from 'react'
+import {IoFastFood} from 'react-icons/io5'
 import invariant from 'tiny-invariant'
 import {Button, LinkButton} from '~/components/buttons/button'
 import {
@@ -27,7 +31,6 @@ import {
   H5,
   H6,
   Help,
-  Modal,
   RestaurantInfoCard,
   SectionContainer,
   Spacer,
@@ -35,25 +38,15 @@ import {
 } from '~/components/index'
 import {Modal as ModalPortal} from '~/components/modals'
 import {prisma} from '~/db.server'
-import {EVENTS, emitter} from '~/events'
+import {EVENTS} from '~/events'
 import {getBranch} from '~/models/branch.server'
 import {getMenu} from '~/models/menu.server'
 import {getTable} from '~/models/table.server'
 import {getPaidUsers, getUsersOnTable} from '~/models/user.server'
 import {validateUserIntegration} from '~/models/validations.server'
-import {getSession, logout, sessionStorage} from '~/session.server'
+import {getSession} from '~/session.server'
 import {useLiveLoader} from '~/use-live-loader'
 import {formatCurrency, getAmountLeftToPay, getCurrency} from '~/utils'
-import {addHours, compareAsc, formatISO} from 'date-fns'
-import {type} from 'node:os'
-import {
-  ChevronDownIcon,
-  UserCircleIcon,
-  UsersIcon,
-} from '@heroicons/react/solid'
-import {IoFastFood} from 'react-icons/io5'
-import {eventStream, useEventSource} from 'remix-utils'
-import {EventStream} from 'remix-sse'
 
 type LoaderData = {
   order: Order & {cartItems: CartItemDetailsProps[]; users: UserWithCart[]}
@@ -61,6 +54,12 @@ type LoaderData = {
   total: number
   currency: string
   usersInTable: User[]
+  user: User
+  branch: Branch
+  menu: Menu
+  amountLeft: number
+  paidUsers: any
+  userId: string
 }
 
 export async function loader({request, params}: LoaderArgs) {
@@ -75,8 +74,8 @@ export async function loader({request, params}: LoaderArgs) {
     getUsersOnTable(tableId),
   ])
 
-  const url = new URL(request.url)
-  const pathname = url.pathname
+  // const url = new URL(request.url)
+  // const pathname = url.pathname
 
   const session = await getSession(request)
   const userId = session.get('userId')
@@ -259,7 +258,7 @@ export default function Table() {
         {filterPerUser ? (
           <AnimatePresence>
             <div className="space-y-2">
-              {data.order.users.map((user: UserWithCart) => {
+              {data.order.users.map((user: any) => {
                 const userPaid = Number(user.paid)
                 return (
                   <SectionContainer key={user.id} as="div">
