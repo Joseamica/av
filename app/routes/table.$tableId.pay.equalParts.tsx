@@ -23,9 +23,11 @@ import {
 } from '~/models/branch.server'
 import {createPayment} from '~/models/payments.server'
 import {validateRedirect} from '~/redirect.server'
-import {getUserId} from '~/session.server'
+import {getUserId, getUsername} from '~/session.server'
+import {SendWhatsApp} from '~/twilio.server'
 import {useLiveLoader} from '~/use-live-loader'
 import {formatCurrency, getAmountLeftToPay, getCurrency} from '~/utils'
+import {getStripeSession, getDomainUrl} from '~/utils/stripe.server'
 
 export async function action({request, params}: ActionArgs) {
   const {tableId} = params
@@ -43,6 +45,7 @@ export async function action({request, params}: ActionArgs) {
     where: {tableId},
   })
   invariant(order, 'No se encontró la orden, o aun no ha sido creada.')
+  invariant(branchId, 'No se encontró la sucursal')
 
   const total = await prisma.order
     .aggregate({
@@ -66,6 +69,7 @@ export async function action({request, params}: ActionArgs) {
   }
   //WHEN SUBMIT
   if (proceed) {
+    const userName = await getUsername(request)
     if (amountLeft < Number(total)) {
       return redirect(
         `/table/${tableId}/pay/confirmExtra?total=${total}&tip=${
@@ -78,14 +82,6 @@ export async function action({request, params}: ActionArgs) {
       where: {id: userId},
       select: {paid: true, tip: true, total: true},
     })
-    await createPayment(
-      paymentMethod,
-      payingTotal,
-      tip,
-      order.id,
-      userId,
-      branchId,
-    )
 
     // const updateUser =
     await prisma.user.update({
@@ -96,6 +92,36 @@ export async function action({request, params}: ActionArgs) {
         total: Number(userPrevPaidData?.total) + payingTotal + tip,
       },
     })
+    // NOTE - esto va aqui porque si el metodo de pago es otro que no sea tarjeta, entonces que cree el pago directo, sin stripe (ya que stripe tiene su propio create payment en el webhook)
+    if (paymentMethod === 'card') {
+      const stripeRedirectUrl = await getStripeSession(
+        payingTotal * 100 + tip * 100,
+        getDomainUrl(request),
+        tableId,
+        // FIX aqui tiene que tener congruencia con el currency del database, ya que stripe solo acepta ciertas monedas, puedo hacer una condicion o cambiar db a "eur"
+        'eur',
+        tip,
+        order.id,
+        paymentMethod,
+        userId,
+        branchId,
+      )
+      return redirect(stripeRedirectUrl)
+    } else if (paymentMethod === 'cash') {
+      await createPayment(
+        paymentMethod,
+        payingTotal,
+        tip,
+        order.id,
+        userId,
+        branchId,
+      )
+      SendWhatsApp(
+        '14155238886',
+        `5215512956265`,
+        `El usuario ${userName} ha pagado quiere pagar en efectivo propina ${tip} y total ${payingTotal}`,
+      )
+    }
     EVENTS.ISSUE_CHANGED(tableId)
     return redirect(redirectTo)
   }

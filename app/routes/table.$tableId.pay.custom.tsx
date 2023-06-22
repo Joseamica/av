@@ -23,6 +23,7 @@ import {
 import {createPayment} from '~/models/payments.server'
 import {validateRedirect} from '~/redirect.server'
 import {getUserId, getUsername} from '~/session.server'
+import {SendWhatsApp} from '~/twilio.server'
 import {useLiveLoader} from '~/use-live-loader'
 import {formatCurrency, getAmountLeftToPay, getCurrency} from '~/utils'
 import {getStripeSession, getDomainUrl} from '~/utils/stripe.server'
@@ -72,7 +73,6 @@ export async function action({request, params}: ActionArgs) {
   }
 
   if (proceed) {
-    // EVENTS.TABLE_CHANGED(tableId, amountLeft < Number(total))
     //WHEN SUBMIT
     if (amountLeft < total) {
       return redirect(
@@ -81,12 +81,54 @@ export async function action({request, params}: ActionArgs) {
         }&pMethod=${paymentMethod}`,
       )
     }
-    const userId = await getUserId(request)
 
+    const userId = await getUserId(request)
     const userPrevPaidData = await prisma.user.findFirst({
       where: {id: userId},
       select: {paid: true, tip: true, total: true},
     })
+
+    switch (paymentMethod) {
+      case 'card':
+        try {
+          const stripeRedirectUrl = await getStripeSession(
+            total * 100 + tip * 100,
+            getDomainUrl(request),
+            tableId,
+            'eur',
+            tip,
+            order.id,
+            paymentMethod,
+            userId,
+            branchId,
+          )
+
+          return redirect(stripeRedirectUrl)
+        } catch (error) {
+          console.error('Failed to create payment session:', error)
+          return redirect('/error')
+        }
+
+      case 'cash':
+        await createPayment(
+          paymentMethod,
+          total,
+          tip,
+          order.id,
+          userId,
+          branchId,
+        )
+        SendWhatsApp(
+          '14155238886',
+          `5215512956265`,
+          `El usuario ${userName} ha pagado quiere pagar en efectivo propina ${tip} y total ${total}`,
+        )
+        break
+    }
+
+    // Add other payment methods similarly
+
+    // Update user's payment records in the database, this will run regardless of the payment method
     await prisma.user.update({
       where: {id: userId},
       data: {
@@ -95,33 +137,8 @@ export async function action({request, params}: ActionArgs) {
         total: Number(userPrevPaidData?.total) + total + tip,
       },
     })
-    // NOTE - esto va aqui porque si el metodo de pago es otro que no sea tarjeta, entonces que cree el pago directo, sin stripe (ya que stripe tiene su propio create payment en el webhook)
-    if (paymentMethod === 'card') {
-      try {
-        const stripeRedirectUrl = await getStripeSession(
-          total * 100 + tip * 100,
-          getDomainUrl(request),
-          tableId,
-          'eur',
-          tip,
-          order.id,
-          paymentMethod,
-          userId,
-          branchId,
-        )
-        return redirect(stripeRedirectUrl)
-      } catch (error) {
-        // Handle the error, perhaps by redirecting to an error page or sending a response to the user
-        console.error('Failed to create payment session:', error)
-        return redirect('/error')
-      }
-    } else if (paymentMethod === 'cash') {
-      await createPayment(paymentMethod, total, tip, order.id, userId, branchId)
-    }
-    // const updateUser =
 
     EVENTS.ISSUE_CHANGED(tableId, `userPaid ${userName}`)
-
     return redirect(redirectTo)
   }
 

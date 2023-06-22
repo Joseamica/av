@@ -20,12 +20,14 @@ import {getMenu} from '~/models/menu.server'
 import {getOrder} from '~/models/order.server'
 import {getPaidUsers} from '~/models/user.server'
 import {validateRedirect} from '~/redirect.server'
-import {getUserId} from '~/session.server'
+import {getUserId, getUsername} from '~/session.server'
 import {getAmountLeftToPay, getCurrency} from '~/utils'
 import type {Order, PaymentMethod, User} from '@prisma/client'
 import {EVENTS} from '~/events'
 import {useLiveLoader} from '~/use-live-loader'
 import {createPayment} from '~/models/payments.server'
+import {SendWhatsApp} from '~/twilio.server'
+import {getStripeSession, getDomainUrl} from '~/utils/stripe.server'
 
 type LoaderData = {
   amountLeft: number
@@ -82,6 +84,7 @@ export async function action({request, params}: ActionArgs) {
 
   const order = await getOrder(tableId)
   invariant(order, 'No se encontró la orden')
+  invariant(branchId, 'No se encontró la sucursal')
 
   const redirectTo = validateRedirect(request.redirect, `/table/${tableId}`)
 
@@ -102,19 +105,7 @@ export async function action({request, params}: ActionArgs) {
   const tip = amountLeft * Number(tipPercentage / 100)
 
   if (proceed) {
-    await prisma.payments.create({
-      data: {
-        createdAt: new Date(),
-        method: paymentMethod,
-        amount: amountLeft,
-        tip: Number(tip),
-        total: amountLeft + tip,
-        branchId,
-        orderId: order?.id,
-      },
-    })
-
-    // const updateTotal =
+    const userName = await getUsername(request)
     await prisma.order.update({
       where: {tableId: tableId},
       data: {
@@ -125,13 +116,45 @@ export async function action({request, params}: ActionArgs) {
             data: {
               paid: total,
               tip: tip,
-
               total: tip + total,
             },
           },
         },
       },
     })
+    // NOTE - esto va aqui porque si el metodo de pago es otro que no sea tarjeta, entonces que cree el pago directo, sin stripe (ya que stripe tiene su propio create payment en el webhook)
+    if (paymentMethod === 'card') {
+      const stripeRedirectUrl = await getStripeSession(
+        amountLeft * 100 + tip * 100,
+        getDomainUrl(request),
+        tableId,
+        // FIX aqui tiene que tener congruencia con el currency del database, ya que stripe solo acepta ciertas monedas, puedo hacer una condicion o cambiar db a "eur"
+        'eur',
+        tip,
+        order.id,
+        paymentMethod,
+        userId,
+        branchId,
+      )
+      return redirect(stripeRedirectUrl)
+    } else if (paymentMethod === 'cash') {
+      await prisma.payments.create({
+        data: {
+          createdAt: new Date(),
+          method: paymentMethod,
+          amount: amountLeft,
+          tip: Number(tip),
+          total: amountLeft + tip,
+          branchId,
+          orderId: order?.id,
+        },
+      })
+      SendWhatsApp(
+        '14155238886',
+        `5215512956265`,
+        `El usuario ${userName} ha pagado quiere pagar en efectivo propina ${tip} y total ${amountLeft}`,
+      )
+    }
     EVENTS.ISSUE_CHANGED(tableId)
     return redirect(redirectTo)
   }

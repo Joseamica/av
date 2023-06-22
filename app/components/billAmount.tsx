@@ -27,6 +27,7 @@ export function BillAmount({
 }) {
   // const data = useLoaderData()
   const MotionLink = motion(Link)
+  console.log('paidUsers', paidUsers)
 
   const [showDetails, setShowDetails] = useState(false)
   return (

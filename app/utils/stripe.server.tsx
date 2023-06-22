@@ -23,40 +23,34 @@ export const getStripeSession = async (
   userId: User['id'],
   branchId: Branch['id'],
 ): Promise<string> => {
-  console.log(tip, orderId, paymentMethod, userId, branchId)
-  try {
-    const stripe = initStripe(process.env.STRIPE_SECRET_KEY)
-    const lineItems = [
-      {
-        price_data: {
-          currency: currency,
-          product_data: {
-            name: 'Tu cuenta',
-            // Add more product data if needed
-          },
-          unit_amount: amount,
+  const stripe = initStripe(process.env.STRIPE_SECRET_KEY)
+  const lineItems = [
+    {
+      price_data: {
+        currency: currency,
+        product_data: {
+          name: 'Tu cuenta',
+          // Add more product data if needed
         },
-        quantity: 1,
+        unit_amount: amount,
       },
-    ]
-    const session = await stripe.checkout.sessions.create({
-      mode: 'payment',
-      payment_method_types: ['card'],
-      line_items: lineItems,
-      metadata: {
-        tip,
-        orderId,
-        paymentMethod,
-        userId,
-        branchId,
-        sseURL,
-      },
-      success_url: `${domainUrl}/payment/success`,
-      cancel_url: `${domainUrl}/payment/cancelled`,
-    })
-    return session.url
-  } catch (error) {
-    console.error('Error creating Stripe session:', error)
-    throw new Error('Failed to create payment session.')
-  }
+      quantity: 1,
+    },
+  ]
+  const session = await stripe.checkout.sessions.create({
+    mode: 'payment',
+    payment_method_types: ['card'],
+    line_items: lineItems,
+    metadata: {
+      tip,
+      orderId,
+      paymentMethod,
+      userId,
+      branchId,
+      sseURL,
+    },
+    success_url: `${domainUrl}/payment/success`,
+    cancel_url: `${domainUrl}/payment/cancelled`,
+  })
+  return session.url
 }

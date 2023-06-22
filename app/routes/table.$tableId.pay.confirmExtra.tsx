@@ -13,6 +13,7 @@ import invariant from 'tiny-invariant'
 import {BillAmount, Button, H1, H2, H3, H5, Payment, Spacer} from '~/components'
 import {Modal} from '~/components/modal'
 import {prisma} from '~/db.server'
+import {EVENTS} from '~/events'
 import {
   getBranchId,
   getPaymentMethods,
@@ -22,9 +23,11 @@ import {getMenu} from '~/models/menu.server'
 import {createPayment} from '~/models/payments.server'
 import {getPaidUsers} from '~/models/user.server'
 import {validateRedirect} from '~/redirect.server'
-import {getUserId} from '~/session.server'
+import {getUserId, getUsername} from '~/session.server'
+import {SendWhatsApp} from '~/twilio.server'
 import {useLiveLoader} from '~/use-live-loader'
 import {formatCurrency, getAmountLeftToPay, getCurrency} from '~/utils'
+import {getDomainUrl, getStripeSession} from '~/utils/stripe.server'
 
 export async function action({request, params}: ActionArgs) {
   const {tableId} = params
@@ -37,11 +40,13 @@ export async function action({request, params}: ActionArgs) {
   const tip = formData.get('tip') as string
   const paymentMethod = formData.get('paymentMethod') as PaymentMethod
   const branchId = await getBranchId(tableId)
+  const userName = await getUsername(request)
 
   const order = await prisma.order.findFirst({
     where: {tableId},
   })
   invariant(order, 'No se encontró la orden, o aun no ha sido creada.')
+  invariant(branchId, 'No se encontró la sucursal')
 
   const url = new URL(request.url)
   const searchParams = new URLSearchParams(url.search)
@@ -51,14 +56,6 @@ export async function action({request, params}: ActionArgs) {
   if (proceed) {
     const amountLeft = (await getAmountLeftToPay(tableId)) || 0
     const userId = await getUserId(request)
-    await createPayment(
-      paymentMethod,
-      amountLeft,
-      Number(tip),
-      order.id,
-      userId,
-      branchId,
-    )
 
     const userPrevPaidData = await prisma.user.findFirst({
       where: {id: userId},
@@ -73,6 +70,39 @@ export async function action({request, params}: ActionArgs) {
           Number(userPrevPaidData?.total) + Number(amountLeft) + Number(tip),
       },
     })
+    // NOTE - esto va aqui porque si el metodo de pago es otro que no sea tarjeta, entonces que cree el pago directo, sin stripe (ya que stripe tiene su propio create payment en el webhook)
+    if (paymentMethod === 'card') {
+      const stripeRedirectUrl = await getStripeSession(
+        amountLeft * 100 + Number(tip) * 100,
+        getDomainUrl(request),
+        tableId,
+        // FIX aqui tiene que tener congruencia con el currency del database, ya que stripe solo acepta ciertas monedas, puedo hacer una condicion o cambiar db a "eur"
+        'eur',
+        Number(tip),
+        order.id,
+        paymentMethod,
+        userId,
+        branchId,
+      )
+      return redirect(stripeRedirectUrl)
+    } else if (paymentMethod === 'cash') {
+      await createPayment(
+        paymentMethod,
+        amountLeft,
+        Number(tip),
+        order.id,
+        userId,
+        branchId,
+      )
+      SendWhatsApp(
+        '14155238886',
+        `5215512956265`,
+        `El usuario ${userName} ha pagado quiere pagar en efectivo propina ${tip} y total ${amountLeft}`,
+      )
+    }
+    //Create event to reload to all users
+    EVENTS.ISSUE_CHANGED(tableId)
+
     return redirect(redirectTo)
   }
 
