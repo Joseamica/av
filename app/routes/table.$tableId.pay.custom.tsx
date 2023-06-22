@@ -21,6 +21,7 @@ import {
   getTipsPercentages,
 } from '~/models/branch.server'
 import {createPayment} from '~/models/payments.server'
+import {assignUserNewPayments} from '~/models/user.server'
 import {validateRedirect} from '~/redirect.server'
 import {getUserId, getUsername} from '~/session.server'
 import {SendWhatsApp} from '~/twilio.server'
@@ -83,10 +84,6 @@ export async function action({request, params}: ActionArgs) {
     }
 
     const userId = await getUserId(request)
-    const userPrevPaidData = await prisma.user.findFirst({
-      where: {id: userId},
-      select: {paid: true, tip: true, total: true},
-    })
 
     switch (paymentMethod) {
       case 'card':
@@ -118,6 +115,7 @@ export async function action({request, params}: ActionArgs) {
           userId,
           branchId,
         )
+        await assignUserNewPayments(userId, total, tip)
 
         SendWhatsApp(
           '14155238886',
@@ -130,14 +128,6 @@ export async function action({request, params}: ActionArgs) {
     // Add other payment methods similarly
 
     // Update user's payment records in the database, this will run regardless of the payment method
-    await prisma.user.update({
-      where: {id: userId},
-      data: {
-        paid: Number(userPrevPaidData?.paid) + total,
-        tip: Number(userPrevPaidData?.tip) + tip,
-        total: Number(userPrevPaidData?.total) + total + tip,
-      },
-    })
 
     EVENTS.ISSUE_CHANGED(tableId, `userPaid ${userName}`)
     return redirect(redirectTo)

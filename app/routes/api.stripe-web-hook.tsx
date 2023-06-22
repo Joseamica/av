@@ -4,6 +4,7 @@ import {json} from '@remix-run/node'
 import Stripe from 'stripe'
 import {prisma} from '~/db.server'
 import {EVENTS} from '~/events'
+import {assignUserNewPayments} from '~/models/user.server'
 // import { getUserId } from "~/session.server";
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
@@ -33,33 +34,39 @@ export const action = async ({request}: ActionArgs) => {
     if (event.type === 'checkout.session.completed') {
       console.log('✅ se ha registrado un pago')
     }
-    if (event.type === 'checkout.session.completed') {
-      console.log('✅ se ha registrado un pago')
+    if (event.type === 'checkout.session.expired') {
+      console.log('❌ se ha expirado la sesión de pago')
     }
   } catch (err: any) {
     console.log(err)
     throw json({errors: [{message: err.message}]}, 400)
   }
+
   console.log('event', event)
 
   const session = event.data.object as Stripe.Checkout.Session
   const metadata = session.metadata ?? ({} as Metadata)
+  const paymentIntentId = session.payment_intent as string
+  const paymentIntent = await stripe.paymentIntents.retrieve(paymentIntentId)
 
-  if (session.payment_status === 'paid') {
-    console.time('Creating...')
+  if (paymentIntent.status === 'succeeded') {
     try {
-      const paymentIntentId = session.payment_intent as string
-      const paymentIntent = await stripe.paymentIntents.retrieve(
-        paymentIntentId,
-      )
-      console.log('paymentIntent', paymentIntent)
+      const amount = Number(session.amount_total) / 100 - Number(metadata.tip)
+      const tip = Number(metadata.tip)
+      const total = Number(session.amount_total) / 100
+
+      //NOTE - get and update user tip,paid,total
+      await assignUserNewPayments(metadata.userId, amount, tip)
+
+      console.time('Creating...')
+
       await prisma.payments.create({
         data: {
-          amount: Number(session.amount_total) / 100 - Number(metadata.tip),
-          method: metadata.paymentMethod,
+          amount: amount,
+          method: metadata.paymentMethod as PaymentMethod,
           orderId: metadata.orderId,
-          tip: Number(metadata.tip),
-          total: Number(session.amount_total) / 100,
+          tip: tip,
+          total: total,
           branchId: metadata.branchId,
           userId: metadata.userId,
         },

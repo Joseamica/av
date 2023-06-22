@@ -111,3 +111,33 @@ export function getUsersOnTable(tableId: Table['id']) {
     },
   })
 }
+
+interface UserPrevPaidData {
+  total: number | null
+  tip: number | null
+  paid: number | null
+}
+
+export async function assignUserNewPayments(
+  userId: User['id'],
+  amount: number,
+  tip: number,
+) {
+  const userPrevPaidData = (await prisma.user.findUnique({
+    where: {id: userId},
+    select: {
+      total: true,
+      tip: true,
+      paid: true,
+    },
+  })) as UserPrevPaidData
+
+  return prisma.user.update({
+    where: {id: userId},
+    data: {
+      paid: Number(userPrevPaidData?.paid) + amount,
+      tip: Number(userPrevPaidData?.tip) + tip,
+      total: Number(userPrevPaidData?.total) + amount + tip,
+    },
+  })
+}
