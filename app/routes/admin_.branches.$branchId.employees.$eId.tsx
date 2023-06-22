@@ -17,7 +17,6 @@ export async function action({request, params}: ActionArgs) {
   const role = formData.get('role') as string
   const image = formData.get('image') as string
   const isAdmin = formData.get('isAdmin') === 'on' ? 'admin' : null
-  console.log('isAdmin', isAdmin)
 
   await prisma.employee.update({
     where: {id: eId},

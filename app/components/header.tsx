@@ -15,7 +15,6 @@ export function Header({user, isAdmin}: HeaderProps) {
   // const params = useParams()
   const location = useLocation()
   const isTablePathOnly = location.pathname.split('/').length <= 3
-  // console.log('user', user)
 
   return (
     <nav

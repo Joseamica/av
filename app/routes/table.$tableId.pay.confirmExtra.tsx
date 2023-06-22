@@ -159,7 +159,6 @@ export default function EqualParts() {
   const tip = Number(searchParams.get('tip')) as number
   const total = Number(searchParams.get('total')) as number
   const paymentMethod = searchParams.get('pMethod') as PaymentMethod
-  console.log('paymentMethod', paymentMethod)
 
   const submit = useSubmit()
   function handleChange(event: React.FormEvent<HTMLFormElement>) {

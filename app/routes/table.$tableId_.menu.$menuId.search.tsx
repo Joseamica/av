@@ -241,7 +241,7 @@ export default function Search() {
                                 whileHover={{scale: 1}}
                                 whileTap={{scale: 0.8}}
                                 src={dish.image ? dish.image : ''}
-                                onError={() => console.log('image error')}
+                                // onError={() => console.log('image error')}
                                 className="dark:bg-secondaryDark max-h-24 w-24 shrink-0 rounded-lg bg-white object-cover"
                                 loading="lazy"
                               />

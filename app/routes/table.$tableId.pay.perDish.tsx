@@ -93,6 +93,61 @@ export async function loader({request, params}: LoaderArgs) {
   })
 }
 
+const getItemsAndTotalFromFormData = (formData: FormData) => {
+  const entries = formData.entries()
+  const items = [...entries].filter(([key]) => key.startsWith('item-'))
+  const prices = [...formData.entries()].filter(([key]) =>
+    key.startsWith('price-'),
+  )
+
+  const itemData = items.map(([key, value]) => {
+    const itemId = key.split('-')[1]
+    const price = prices.find(
+      ([priceKey]) => priceKey === `price-${itemId}`,
+    )?.[1] as string
+    return {itemId, price}
+  })
+
+  const total = itemData.reduce((acc, item) => {
+    return acc + parseFloat(item.price)
+  }, 0)
+
+  return {itemData, total}
+}
+
+const updatePaidItemsAndUserData = async (
+  itemData: {itemId: string; price: string}[],
+  total: number,
+  tip: number,
+  userName: string,
+  userId: string,
+) => {
+  // Loop through items and update price and paid
+  for (const {itemId} of itemData) {
+    const cartItem = await prisma.cartItem.findUnique({where: {id: itemId}})
+    if (cartItem) {
+      await prisma.cartItem.update({
+        where: {id: itemId},
+        data: {paid: true, paidBy: userName},
+      })
+    }
+  }
+
+  const userPrevPaidData = await prisma.user.findFirst({
+    where: {id: userId},
+    select: {paid: true, tip: true, total: true},
+  })
+
+  await prisma.user.update({
+    where: {id: userId},
+    data: {
+      paid: Number(userPrevPaidData?.paid) + total,
+      tip: Number(userPrevPaidData?.tip) + tip,
+      total: Number(userPrevPaidData?.total) + total + tip,
+    },
+  })
+}
+
 export async function action({request, params}: ActionArgs) {
   const {tableId} = params
   invariant(tableId, 'No se encontró mesa')
@@ -111,23 +166,7 @@ export async function action({request, params}: ActionArgs) {
   const proceed = formData.get('_action') === 'proceed'
   const tipPercentage = formData.get('tipPercentage') as string
 
-  const entries = formData.entries()
-  const items = [...entries].filter(([key]) => key.startsWith('item-'))
-  const prices = [...formData.entries()].filter(([key]) =>
-    key.startsWith('price-'),
-  )
-
-  const itemData = items.map(([key, value]) => {
-    const itemId = key.split('-')[1]
-    const price = prices.find(
-      ([priceKey]) => priceKey === `price-${itemId}`,
-    )?.[1] as string
-    return {itemId, price}
-  })
-
-  const total = itemData.reduce((acc, item) => {
-    return acc + parseFloat(item.price)
-  }, 0)
+  const {itemData, total} = getItemsAndTotalFromFormData(formData)
 
   if (!total) {
     return json({error: 'No se ha seleccionado ningún platillo'}, {status: 400})
@@ -157,33 +196,7 @@ export async function action({request, params}: ActionArgs) {
     const userId = await getUserId(request)
     const userName = await getUsername(request)
 
-    //loop through items and update price and paid
-    for (const {itemId} of itemData) {
-      const cartItem = await prisma.cartItem.findUnique({
-        where: {id: itemId},
-      })
-
-      if (cartItem) {
-        await prisma.cartItem.update({
-          where: {id: itemId},
-          data: {paid: true, paidBy: userName},
-        })
-      }
-    }
-    const userPrevPaidData = await prisma.user.findFirst({
-      where: {id: userId},
-      select: {paid: true, tip: true, total: true},
-    })
-
-    // const updateUser =
-    await prisma.user.update({
-      where: {id: userId},
-      data: {
-        paid: Number(userPrevPaidData?.paid) + total,
-        tip: Number(userPrevPaidData?.tip) + tip,
-        total: Number(userPrevPaidData?.total) + total + tip,
-      },
-    })
+    await updatePaidItemsAndUserData(itemData, total, tip, userName, userId)
     // NOTE - esto va aqui porque si el metodo de pago es otro que no sea tarjeta, entonces que cree el pago directo, sin stripe (ya que stripe tiene su propio create payment en el webhook)
     if (paymentMethod === 'card') {
       const stripeRedirectUrl = await getStripeSession(

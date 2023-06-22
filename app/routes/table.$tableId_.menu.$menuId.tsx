@@ -256,7 +256,7 @@ export default function Menu() {
                             src={
                               dish.image ? dish.image : data.branch.ppt_image
                             }
-                            onError={() => console.log('image error')}
+                            // onError={() => console.log('image error')}
                             className="dark:bg-secondaryDark h-28 max-h-28 w-28 shrink-0 rounded-lg bg-white object-cover"
                             loading="lazy"
                             width="112"

@@ -134,7 +134,6 @@ export function getDateTime() {
   const minutes = String(now.getMinutes()).padStart(2, '0')
 
   const timeNow = `${day}/${month}:${hours}.${minutes}`
-  console.log('timeNow', timeNow)
   return timeNow
 }
 

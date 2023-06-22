@@ -15,7 +15,7 @@ export async function loader({request, params}: LoaderArgs) {
 
 export default function AdminTables() {
   const data = useLoaderData()
-  console.log('data', data)
+
   return (
     <div>
       <H1>Table {data.table.table_number}</H1>
