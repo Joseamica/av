@@ -33,6 +33,9 @@ export const action = async ({request}: ActionArgs) => {
     if (event.type === 'checkout.session.completed') {
       console.log('✅ se ha registrado un pago')
     }
+    if (event.type === 'checkout.session.completed') {
+      console.log('✅ se ha registrado un pago')
+    }
   } catch (err: any) {
     console.log(err)
     throw json({errors: [{message: err.message}]}, 400)
@@ -45,6 +48,11 @@ export const action = async ({request}: ActionArgs) => {
   if (session.payment_status === 'paid') {
     console.time('Creating...')
     try {
+      const paymentIntentId = session.payment_intent as string
+      const paymentIntent = await stripe.paymentIntents.retrieve(
+        paymentIntentId,
+      )
+      console.log('paymentIntent', paymentIntent)
       await prisma.payments.create({
         data: {
           amount: Number(session.amount_total) / 100 - Number(metadata.tip),
@@ -53,7 +61,6 @@ export const action = async ({request}: ActionArgs) => {
           tip: Number(metadata.tip),
           total: Number(session.amount_total) / 100,
           branchId: metadata.branchId,
-          user: {},
           userId: metadata.userId,
         },
       })

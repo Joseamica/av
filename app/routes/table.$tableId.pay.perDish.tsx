@@ -4,26 +4,14 @@ import {json, redirect} from '@remix-run/node'
 import {
   Form,
   useActionData,
-  useLoaderData,
   useNavigate,
   useSearchParams,
   useSubmit,
 } from '@remix-run/react'
 import clsx from 'clsx'
-import {motion} from 'framer-motion'
 import React from 'react'
 import invariant from 'tiny-invariant'
-import {
-  FlexRow,
-  H1,
-  H2,
-  H3,
-  H4,
-  H5,
-  H6,
-  Payment,
-  SectionContainer,
-} from '~/components'
+import {FlexRow, H3, H4, H5, H6, Payment} from '~/components'
 import {ItemContainer} from '~/components/containers/itemContainer'
 import {Modal} from '~/components/modal'
 import {prisma} from '~/db.server'
@@ -35,12 +23,7 @@ import {
 } from '~/models/branch.server'
 import {createPayment} from '~/models/payments.server'
 import {validateRedirect} from '~/redirect.server'
-import {
-  getSession,
-  getUserId,
-  getUsername,
-  sessionStorage,
-} from '~/session.server'
+import {getSession, getUserId, getUsername} from '~/session.server'
 import {SendWhatsApp} from '~/twilio.server'
 import {useLiveLoader} from '~/use-live-loader'
 import {formatCurrency, getAmountLeftToPay, getCurrency} from '~/utils'
@@ -62,7 +45,6 @@ export async function loader({request, params}: LoaderArgs) {
   const tipsPercentages = await getTipsPercentages(tableId)
   const paymentMethods = await getPaymentMethods(tableId)
   const session = await getSession(request)
-  const username = session.get('username')
   const order = await prisma.order.findFirst({
     where: {tableId},
   })
@@ -201,7 +183,7 @@ export async function action({request, params}: ActionArgs) {
     if (paymentMethod === 'card') {
       const stripeRedirectUrl = await getStripeSession(
         total * 100 + tip * 100,
-        getDomainUrl(request),
+        getDomainUrl(request) + `/table/${tableId}`,
         tableId,
         // FIX aqui tiene que tener congruencia con el currency del database, ya que stripe solo acepta ciertas monedas, puedo hacer una condicion o cambiar db a "eur"
         'eur',
@@ -210,7 +192,9 @@ export async function action({request, params}: ActionArgs) {
         paymentMethod,
         userId,
         branchId,
+        'perUser',
       )
+
       return redirect(stripeRedirectUrl)
     } else if (paymentMethod === 'cash') {
       await createPayment(paymentMethod, total, tip, order.id, userId, branchId)
@@ -237,7 +221,7 @@ export default function PerDish() {
     submit(event.currentTarget, {replace: true})
   }
 
-  const [searchParams] = useSearchParams()
+  // const [searchParams] = useSearchParams()
   return (
     <Modal
       onClose={() => navigate('..', {replace: true})}

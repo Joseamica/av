@@ -22,6 +22,7 @@ export const getStripeSession = async (
   paymentMethod: PaymentMethod,
   userId: User['id'],
   branchId: Branch['id'],
+  typeOfPayment?: string,
 ): Promise<string> => {
   const stripe = initStripe(process.env.STRIPE_SECRET_KEY)
   const lineItems = [
@@ -37,6 +38,9 @@ export const getStripeSession = async (
       quantity: 1,
     },
   ]
+  // switch (typeOfPayment){
+  //   case: "perDish":
+  // }
   const session = await stripe.checkout.sessions.create({
     mode: 'payment',
     payment_method_types: ['card'],
@@ -48,9 +52,11 @@ export const getStripeSession = async (
       userId,
       branchId,
       sseURL,
+      typeOfPayment,
     },
-    success_url: `${domainUrl}/payment/success`,
-    cancel_url: `${domainUrl}/payment/cancelled`,
+    success_url: `${domainUrl}/loader/processPay?paymentSuccess=true&typeOfPayment=${typeOfPayment}`,
+    cancel_url: `${domainUrl}/loader/processPay?paymentSuccess=false&typeOfPayment=${typeOfPayment}`,
   })
+  console.log('session', session)
   return session.url
 }
