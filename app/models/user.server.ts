@@ -99,22 +99,10 @@ export function getPaidUsers(orderId: Order['id']) {
       paid: true,
       tip: true,
       total: true,
-      payments: true,
+      payments: {where: {orderId}},
     },
   })
 }
-// return prisma.payments.findMany({
-//   where: {
-//     orderId,
-//   },
-//   select: {
-//     id: true,
-//     user: true,
-//     amount: true,
-//     tip: true,
-//     total: true,
-//   },
-// })
 
 export function getUsersOnTable(tableId: Table['id']) {
   return prisma.user.findMany({

@@ -131,6 +131,7 @@ export async function loader({request, params}: LoaderArgs) {
     include: {
       cartItems: {include: {user: true}},
       users: {include: {cartItems: true}},
+      payments: true,
     },
   })
 
@@ -139,7 +140,6 @@ export async function loader({request, params}: LoaderArgs) {
 
   if (order) {
     paidUsers = await getPaidUsers(order.id)
-
     amountLeft = await getAmountLeftToPay(tableId)
   }
 
@@ -200,9 +200,9 @@ interface CartItemDetailsProps extends CartItem {
 export default function Table() {
   // const data = useLoaderData()
   const data = useLiveLoader<LoaderData>()
+
   const [selectedUsers, setSelectedUsers] = useState<string[]>([])
   const [filterPerUser, setFilterPerUser] = useState(false)
-  const [isUserPaid, setIsUserPaid] = useState('')
 
   const handleToggleUser = (userId: string) => {
     setSelectedUsers((prevSelected: string[]) =>
@@ -225,16 +225,13 @@ export default function Table() {
   if (data.total > 0) {
     return (
       <motion.main className="no-scrollbar">
-        <div className="fixed inset-x-0 top-0 z-50 w-full bg-button-successBg text-success">
-          {isUserPaid ? isUserPaid : ''}
-        </div>
+        <div className="fixed inset-x-0 top-0 z-50 w-full bg-button-successBg text-success"></div>
         <RestaurantInfoCard />
         <Spacer spaceY="4" />
         <h3 className="text-secondaryTextDark flex shrink-0 justify-center text-sm">
           {`Mesa ${data.table.table_number}`}
         </h3>
         <Spacer spaceY="2" />
-        {/* <h1>TODO: SESSIONS EXPIRATION & STRIPE INTEGRATION & WHATSAPP MSG</h1> */}
         <Help />
         <BillAmount
           amountLeft={data.amountLeft}
@@ -258,10 +255,12 @@ export default function Table() {
         </div>
         {/* <Spacer spaceY="1" /> */}
         <Spacer className="py-[2px]" />
+        {/* FIX */}
         {filterPerUser ? (
           <AnimatePresence>
             <div className="space-y-2">
               {data.order.users.map((user: UserWithCart) => {
+                const userPaid = Number(user.paid)
                 return (
                   <SectionContainer key={user.id} as="div">
                     <FlexRow justify="between" className="rounded-xl px-1 ">
@@ -275,9 +274,31 @@ export default function Table() {
                             <H3>{user.name}</H3>
                             <H6>
                               {Number(user.paid) > 0
-                                ? `Pagado: $${Number(user.paid)}`
+                                ? `Pagado: $${formatCurrency(
+                                    data.currency,
+                                    userPaid,
+                                  )}`
                                 : 'No ha pagado'}
                             </H6>
+                            <FlexRow>
+                              <H6>
+                                {user.cartItems?.length === 1
+                                  ? `${user.cartItems?.length} platillo ordenado`
+                                  : `${user.cartItems?.length} platillos ordenado` ||
+                                    0}
+                              </H6>
+                              <H6>
+                                (
+                                {formatCurrency(
+                                  data.currency,
+                                  user.cartItems.reduce(
+                                    (sum, item) => sum + item.price,
+                                    0,
+                                  ),
+                                )}
+                                )
+                              </H6>
+                            </FlexRow>
                           </div>
                         </FlexRow>
                       </Spacer>
@@ -295,7 +316,6 @@ export default function Table() {
                         <ChevronDownIcon className={clsx('h-3 w-3 ', {})} />
                       </button>
                     </FlexRow>
-                    <hr />
                     <AnimatePresence>
                       {selectedUsers.includes(user.id) && (
                         <motion.div
@@ -312,6 +332,7 @@ export default function Table() {
                             height: {duration: 0.4},
                           }}
                         >
+                          <hr />
                           {user.cartItems.length > 0 ? (
                             <motion.div>
                               {user.cartItems.map(
@@ -334,23 +355,7 @@ export default function Table() {
                       )}
                     </AnimatePresence>
 
-                    <hr />
-                    <div className="flex justify-between px-2 py-2">
-                      <H6>
-                        {user.cartItems?.length === 1
-                          ? `${user.cartItems?.length} platillo ordenado`
-                          : `${user.cartItems?.length} platillos ordenado` || 0}
-                      </H6>
-                      <H5>
-                        {formatCurrency(
-                          data.currency,
-                          user.cartItems.reduce(
-                            (sum, item) => sum + item.price,
-                            0,
-                          ),
-                        )}
-                      </H5>
-                    </div>
+                    {/* <hr /> */}
                   </SectionContainer>
                 )
               })}

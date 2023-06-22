@@ -1,5 +1,5 @@
 import type {Table, User} from '@prisma/client'
-import {ActionArgs, json} from '@remix-run/node'
+import {ActionArgs, json, redirect} from '@remix-run/node'
 import type {LoaderArgs} from '@remix-run/node'
 import React from 'react'
 import {Form, Link, useLoaderData, useSearchParams} from '@remix-run/react'
@@ -17,7 +17,6 @@ export async function action({request, params}: ActionArgs) {
   const role = formData.get('role') as string
   const _action = formData.get('_action') as string
   const isAdmin = formData.get('isAdmin') === 'on' ? 'admin' : null
-  console.log('isAdmin', isAdmin)
 
   if (_action === 'deleteUser') {
     await prisma.user.delete({
@@ -35,7 +34,7 @@ export async function action({request, params}: ActionArgs) {
     })
   }
 
-  return json({success: true})
+  return json({message: 'ok'})
 }
 
 export async function loader({request, params}: LoaderArgs) {
@@ -113,7 +112,13 @@ export default function AdminUserId() {
             {/* )} */}
           </div>
           <Spacer spaceY="2" />
-          <Button type="submit" fullWith={true} name="_action" value="proceed">
+          <Button
+            onClick={onClose}
+            type="submit"
+            fullWith={true}
+            name="_action"
+            value="updateUser"
+          >
             Submit
           </Button>
         </Form>

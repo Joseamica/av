@@ -61,6 +61,8 @@ export async function loader({request, params}: LoaderArgs) {
   invariant(tableId, 'No se encontró mesa')
   const tipsPercentages = await getTipsPercentages(tableId)
   const paymentMethods = await getPaymentMethods(tableId)
+  const session = await getSession(request)
+  const username = session.get('username')
   const order = await prisma.order.findFirst({
     where: {tableId},
   })
@@ -91,28 +93,6 @@ export async function loader({request, params}: LoaderArgs) {
   })
 }
 
-const getItemsAndTotalFromFormData = (formData: FormData) => {
-  const entries = formData.entries()
-  const items = [...entries].filter(([key]) => key.startsWith('item-'))
-  const prices = [...formData.entries()].filter(([key]) =>
-    key.startsWith('price-'),
-  )
-
-  const itemData = items.map(([key, value]) => {
-    const itemId = key.split('-')[1]
-    const price = prices.find(
-      ([priceKey]) => priceKey === `price-${itemId}`,
-    )?.[1] as string
-    return {itemId, price}
-  })
-
-  const total = itemData.reduce((acc, item) => {
-    return acc + parseFloat(item.price)
-  }, 0)
-
-  return {itemData, total}
-}
-
 export async function action({request, params}: ActionArgs) {
   const {tableId} = params
   invariant(tableId, 'No se encontró mesa')
@@ -131,8 +111,23 @@ export async function action({request, params}: ActionArgs) {
   const proceed = formData.get('_action') === 'proceed'
   const tipPercentage = formData.get('tipPercentage') as string
 
-  //get items and total
-  const {itemData, total} = getItemsAndTotalFromFormData(formData)
+  const entries = formData.entries()
+  const items = [...entries].filter(([key]) => key.startsWith('item-'))
+  const prices = [...formData.entries()].filter(([key]) =>
+    key.startsWith('price-'),
+  )
+
+  const itemData = items.map(([key, value]) => {
+    const itemId = key.split('-')[1]
+    const price = prices.find(
+      ([priceKey]) => priceKey === `price-${itemId}`,
+    )?.[1] as string
+    return {itemId, price}
+  })
+
+  const total = itemData.reduce((acc, item) => {
+    return acc + parseFloat(item.price)
+  }, 0)
 
   if (!total) {
     return json({error: 'No se ha seleccionado ningún platillo'}, {status: 400})
