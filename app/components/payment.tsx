@@ -224,7 +224,7 @@ export function Payment({
           </FlexRow>
           <Button
             onClick={() => setShowAddTip(false)}
-            type="button"
+            // type="button"
             fullWith={true}
           >
             Asignar

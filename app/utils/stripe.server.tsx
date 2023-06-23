@@ -23,14 +23,20 @@ export const getStripeSession = async (
   userId: User['id'],
   branchId: Branch['id'],
   typeOfPayment?: string,
+  extraData?: any,
 ): Promise<string> => {
+  // const encodedExtraData = encodeURIComponent(JSON.stringify(extraData))
+
+  // const e = JSON.parse(decodeURIComponent(encodedExtraData))
+  // console.log('e', extraData)
+
   const stripe = initStripe(process.env.STRIPE_SECRET_KEY)
   const lineItems = [
     {
       price_data: {
         currency: currency,
         product_data: {
-          name: 'Tu cuenta',
+          name: 'Tu pago',
           // Add more product data if needed
         },
         unit_amount: amount,
@@ -53,9 +59,10 @@ export const getStripeSession = async (
       branchId,
       sseURL,
       typeOfPayment,
+      extraData: extraData ? JSON.stringify(extraData) : undefined,
     },
-    success_url: `${domainUrl}/loader/processPay?paymentSuccess=true&typeOfPayment=${typeOfPayment}`,
-    cancel_url: `${domainUrl}/loader/processPay?paymentSuccess=false&typeOfPayment=${typeOfPayment}`,
+    success_url: `${domainUrl}`,
+    cancel_url: `${domainUrl}`,
   })
   console.log('session', session)
   return session.url

@@ -179,7 +179,8 @@ export async function action({request, params}: ActionArgs) {
         paymentMethod,
         userId,
         branchId,
-        'perUser',
+        'perDish',
+        itemData,
       )
       return redirect(stripeRedirectUrl)
     } else if (paymentMethod === 'cash') {

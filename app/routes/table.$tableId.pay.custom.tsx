@@ -98,6 +98,8 @@ export async function action({request, params}: ActionArgs) {
             paymentMethod,
             userId,
             branchId,
+            'custom',
+            {tip},
           )
 
           return redirect(stripeRedirectUrl)

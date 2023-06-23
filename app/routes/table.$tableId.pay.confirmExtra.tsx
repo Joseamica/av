@@ -21,7 +21,7 @@ import {
 } from '~/models/branch.server'
 import {getMenu} from '~/models/menu.server'
 import {createPayment} from '~/models/payments.server'
-import {getPaidUsers} from '~/models/user.server'
+import {assignUserNewPayments, getPaidUsers} from '~/models/user.server'
 import {validateRedirect} from '~/redirect.server'
 import {getUserId, getUsername} from '~/session.server'
 import {SendWhatsApp} from '~/twilio.server'
@@ -57,19 +57,6 @@ export async function action({request, params}: ActionArgs) {
     const amountLeft = (await getAmountLeftToPay(tableId)) || 0
     const userId = await getUserId(request)
 
-    const userPrevPaidData = await prisma.user.findFirst({
-      where: {id: userId},
-      select: {paid: true, tip: true, total: true},
-    })
-    const updateUser = await prisma.user.update({
-      where: {id: userId},
-      data: {
-        paid: Number(userPrevPaidData?.paid) + Number(amountLeft),
-        tip: Number(userPrevPaidData?.tip) + Number(tip),
-        total:
-          Number(userPrevPaidData?.total) + Number(amountLeft) + Number(tip),
-      },
-    })
     // NOTE - esto va aqui porque si el metodo de pago es otro que no sea tarjeta, entonces que cree el pago directo, sin stripe (ya que stripe tiene su propio create payment en el webhook)
     if (paymentMethod === 'card') {
       const stripeRedirectUrl = await getStripeSession(
@@ -94,6 +81,8 @@ export async function action({request, params}: ActionArgs) {
         userId,
         branchId,
       )
+      await assignUserNewPayments(userId, amountLeft, Number(tip))
+
       SendWhatsApp(
         '14155238886',
         `5215512956265`,

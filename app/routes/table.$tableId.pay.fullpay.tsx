@@ -99,29 +99,32 @@ export async function action({request, params}: ActionArgs) {
   })
 
   const amountLeft = (await getAmountLeftToPay(tableId)) || 0
+  console.log('amountLeft', amountLeft)
   const total = Number(amountLeft) + Number(userPrevPaid?.paid)
+  console.log(total)
   //FIX this \/
   //@ts-expect-error
   const tip = amountLeft * Number(tipPercentage / 100)
+  console.log('tip', tip)
 
   if (proceed) {
     const userName = await getUsername(request)
-    await prisma.order.update({
-      where: {tableId: tableId},
-      data: {
-        paid: true,
-        users: {
-          update: {
-            where: {id: userId},
-            data: {
-              paid: total,
-              tip: tip,
-              total: tip + total,
-            },
-          },
-        },
-      },
-    })
+    // await prisma.order.update({
+    //   where: {tableId: tableId},
+    //   data: {
+    //     paid: true,
+    //     users: {
+    //       update: {
+    //         where: {id: userId},
+    //         data: {
+    //           paid: total,
+    //           tip: tip,
+    //           total: tip + total,
+    //         },
+    //       },
+    //     },
+    //   },
+    // })
     // NOTE - esto va aqui porque si el metodo de pago es otro que no sea tarjeta, entonces que cree el pago directo, sin stripe (ya que stripe tiene su propio create payment en el webhook)
     if (paymentMethod === 'card') {
       const stripeRedirectUrl = await getStripeSession(
@@ -135,20 +138,22 @@ export async function action({request, params}: ActionArgs) {
         paymentMethod,
         userId,
         branchId,
+        'fullpay',
+        tableId,
       )
       return redirect(stripeRedirectUrl)
     } else if (paymentMethod === 'cash') {
-      await prisma.payments.create({
-        data: {
-          createdAt: new Date(),
-          method: paymentMethod,
-          amount: amountLeft,
-          tip: Number(tip),
-          total: amountLeft + tip,
-          branchId,
-          orderId: order?.id,
-        },
-      })
+      // await prisma.payments.create({
+      //   data: {
+      //     createdAt: new Date(),
+      //     method: paymentMethod,
+      //     amount: amountLeft,
+      //     tip: Number(tip),
+      //     total: amountLeft + tip,
+      //     branchId,
+      //     orderId: order?.id,
+      //   },
+      // })
       SendWhatsApp(
         '14155238886',
         `5215512956265`,
@@ -167,9 +172,9 @@ export default function FullPay() {
   const actionData = useActionData()
   const navigate = useNavigate()
   const submit = useSubmit()
-  function handleChange(event: React.FormEvent<HTMLFormElement>) {
-    submit(event.currentTarget, {replace: true})
-  }
+  // function handleChange(event: React.FormEvent<HTMLFormElement>) {
+  //   submit(event.currentTarget, {replace: true})
+  // }
 
   return (
     <Modal
@@ -186,7 +191,8 @@ export default function FullPay() {
           userId={data.userId}
         />
         <Spacer spaceY="2" />
-        <Form method="POST" preventScrollReset onChange={handleChange}>
+        <Form method="POST" preventScrollReset>
+          {/* onChange={handleChange} */}
           <Payment
             total={data.amountLeft}
             tip={actionData?.tip}

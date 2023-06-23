@@ -1,10 +1,11 @@
-import type {PaymentMethod} from '@prisma/client'
+import type {PaymentMethod, User} from '@prisma/client'
 import type {ActionArgs} from '@remix-run/node'
 import {json} from '@remix-run/node'
 import Stripe from 'stripe'
 import {prisma} from '~/db.server'
 import {EVENTS} from '~/events'
 import {assignUserNewPayments} from '~/models/user.server'
+import {getSession, getUsername} from '~/session.server'
 // import { getUserId } from "~/session.server";
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
@@ -18,6 +19,8 @@ interface Metadata {
   branchId: string
   userId: string
   sseURL: string
+  typeOfPayment: string
+  extraData: string
 }
 
 // [credit @kiliman to get this webhook working](https://github.com/remix-run/remix/discussions/1978)
@@ -44,16 +47,18 @@ export const action = async ({request}: ActionArgs) => {
 
   console.log('event', event)
 
-  const session = event.data.object as Stripe.Checkout.Session
-  const metadata = session.metadata ?? ({} as Metadata)
-  const paymentIntentId = session.payment_intent as string
+  const stripeSession = event.data.object as Stripe.Checkout.Session
+  const metadata = stripeSession.metadata ?? ({} as Metadata)
+  const extraData = metadata.extraData ? JSON.parse(metadata.extraData) : null
+  const paymentIntentId = stripeSession.payment_intent as string
   const paymentIntent = await stripe.paymentIntents.retrieve(paymentIntentId)
 
   if (paymentIntent.status === 'succeeded') {
     try {
-      const amount = Number(session.amount_total) / 100 - Number(metadata.tip)
+      const amount =
+        Number(stripeSession.amount_total) / 100 - Number(metadata.tip)
       const tip = Number(metadata.tip)
-      const total = Number(session.amount_total) / 100
+      const total = Number(stripeSession.amount_total) / 100
 
       //NOTE - get and update user tip,paid,total
       await assignUserNewPayments(metadata.userId, amount, tip)
@@ -71,6 +76,15 @@ export const action = async ({request}: ActionArgs) => {
           userId: metadata.userId,
         },
       })
+      if (metadata.typeOfPayment === 'perDish') {
+        const user = await prisma.user.findUnique({
+          where: {id: metadata.userId},
+        })
+        const userName = user?.name
+        const itemData = extraData
+        await updatePaidItemsAndUserData(itemData, userName || '')
+      }
+
       EVENTS.ISSUE_CHANGED(metadata.sseURL)
       console.timeEnd('Creating...')
     } catch (err) {
@@ -82,4 +96,20 @@ export const action = async ({request}: ActionArgs) => {
     }
   }
   return new Response(null, {status: 200})
+}
+
+const updatePaidItemsAndUserData = async (
+  itemData: {itemId: string; price: string}[],
+  userName: string,
+) => {
+  // Loop through items and update price and paid
+  for (const {itemId} of itemData) {
+    const cartItem = await prisma.cartItem.findUnique({where: {id: itemId}})
+    if (cartItem) {
+      await prisma.cartItem.update({
+        where: {id: itemId},
+        data: {paid: true, paidBy: userName},
+      })
+    }
+  }
 }

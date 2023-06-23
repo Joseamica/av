@@ -22,6 +22,7 @@ import {
   getTipsPercentages,
 } from '~/models/branch.server'
 import {createPayment} from '~/models/payments.server'
+import {assignUserNewPayments} from '~/models/user.server'
 import {validateRedirect} from '~/redirect.server'
 import {getUserId, getUsername} from '~/session.server'
 import {SendWhatsApp} from '~/twilio.server'
@@ -59,6 +60,7 @@ export async function action({request, params}: ActionArgs) {
   }
 
   const payingTotal = Number(formData.get('payingTotal')) as number
+  console.log('payingTotal', payingTotal)
   const tip = Number(payingTotal) * (Number(tipPercentage) / 100)
   const amountLeft = (await getAmountLeftToPay(tableId)) || 0
 
@@ -70,28 +72,15 @@ export async function action({request, params}: ActionArgs) {
   //WHEN SUBMIT
   if (proceed) {
     const userName = await getUsername(request)
-    if (amountLeft < Number(total)) {
+    if (payingTotal > Number(total)) {
       return redirect(
-        `/table/${tableId}/pay/confirmExtra?total=${total}&tip=${
-          tip <= 0 ? Number(total) * 0.12 : tip
+        `/table/${tableId}/pay/confirmExtra?total=${payingTotal}&tip=${
+          tip <= 0 ? Number(payingTotal) * 0.12 : tip
         }&pMethod=${paymentMethod}`,
       )
     }
     const userId = await getUserId(request)
-    const userPrevPaidData = await prisma.user.findFirst({
-      where: {id: userId},
-      select: {paid: true, tip: true, total: true},
-    })
 
-    // const updateUser =
-    await prisma.user.update({
-      where: {id: userId},
-      data: {
-        paid: Number(userPrevPaidData?.paid) + payingTotal,
-        tip: Number(userPrevPaidData?.tip) + tip,
-        total: Number(userPrevPaidData?.total) + payingTotal + tip,
-      },
-    })
     // NOTE - esto va aqui porque si el metodo de pago es otro que no sea tarjeta, entonces que cree el pago directo, sin stripe (ya que stripe tiene su propio create payment en el webhook)
     if (paymentMethod === 'card') {
       const stripeRedirectUrl = await getStripeSession(
@@ -116,6 +105,8 @@ export async function action({request, params}: ActionArgs) {
         userId,
         branchId,
       )
+      await assignUserNewPayments(userId, payingTotal, tip)
+
       SendWhatsApp(
         '14155238886',
         `5215512956265`,
