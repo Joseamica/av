@@ -60,7 +60,6 @@ export async function action({request, params}: ActionArgs) {
   }
 
   const payingTotal = Number(formData.get('payingTotal')) as number
-  console.log('payingTotal', payingTotal)
   const tip = Number(payingTotal) * (Number(tipPercentage) / 100)
   const amountLeft = (await getAmountLeftToPay(tableId)) || 0
 
