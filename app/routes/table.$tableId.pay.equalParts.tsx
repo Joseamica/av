@@ -1,14 +1,7 @@
 import {PaymentMethod} from '@prisma/client'
 import type {ActionArgs, LoaderArgs} from '@remix-run/node'
 import {json, redirect} from '@remix-run/node'
-import {
-  Form,
-  useActionData,
-  useLoaderData,
-  useNavigate,
-  useSubmit,
-} from '@remix-run/react'
-import {Loader} from 'esbuild'
+import {Form, useActionData, useNavigate, useSubmit} from '@remix-run/react'
 import {AnimatePresence, motion} from 'framer-motion'
 import React from 'react'
 import invariant from 'tiny-invariant'
@@ -28,7 +21,7 @@ import {getUserId, getUsername} from '~/session.server'
 import {SendWhatsApp} from '~/twilio.server'
 import {useLiveLoader} from '~/use-live-loader'
 import {formatCurrency, getAmountLeftToPay, getCurrency} from '~/utils'
-import {getStripeSession, getDomainUrl} from '~/utils/stripe.server'
+import {getDomainUrl, getStripeSession} from '~/utils/stripe.server'
 
 export async function action({request, params}: ActionArgs) {
   const {tableId} = params
@@ -60,6 +53,7 @@ export async function action({request, params}: ActionArgs) {
   }
 
   const payingTotal = Number(formData.get('payingTotal')) as number
+  console.log('payingTotal', payingTotal, total)
   const tip = Number(payingTotal) * (Number(tipPercentage) / 100)
   const amountLeft = (await getAmountLeftToPay(tableId)) || 0
 
@@ -71,7 +65,7 @@ export async function action({request, params}: ActionArgs) {
   //WHEN SUBMIT
   if (proceed) {
     const userName = await getUsername(request)
-    if (payingTotal > Number(total)) {
+    if (payingTotal > Number(amountLeft)) {
       return redirect(
         `/table/${tableId}/pay/confirmExtra?total=${payingTotal}&tip=${
           tip <= 0 ? Number(payingTotal) * 0.12 : tip

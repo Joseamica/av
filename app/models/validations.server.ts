@@ -53,3 +53,52 @@ export async function validateUserIntegration(
     return json({success: true})
   }
 }
+
+//CUSTOMPAY
+function isValidAmount(amount: number) {
+  return amount > 0 && !isNaN(amount)
+}
+
+function isValidTip(tip: number) {
+  return tip >= 0
+}
+
+function isValidPaymentMethod(paymentMethod: string) {
+  return paymentMethod !== undefined
+}
+
+export function validateCustom(input: any) {
+  let validationErrors = {} as any
+
+  if (!isValidAmount(input.amountToPay)) {
+    validationErrors.amountToPay = 'El monto debe ser mayor a 0'
+  }
+
+  if (!isValidTip(input.tipPercentage)) {
+    validationErrors.tipPercentage = 'La propina debe ser mayor o igual a 0'
+  }
+
+  if (!isValidPaymentMethod(input.paymentMethod)) {
+    validationErrors.paymentMethod = 'Selecciona un método de pago'
+  }
+
+  if (Object.keys(validationErrors).length > 0) {
+    throw validationErrors
+  }
+}
+
+export function validateFullPay(input: any) {
+  let validationErrors = {} as any
+
+  if (!isValidTip(input.tipPercentage)) {
+    validationErrors.tipPercentage = 'La propina debe ser mayor o igual a 0'
+  }
+
+  if (!isValidPaymentMethod(input.paymentMethod)) {
+    validationErrors.paymentMethod = 'Selecciona un método de pago'
+  }
+
+  if (Object.keys(validationErrors).length > 0) {
+    throw validationErrors
+  }
+}

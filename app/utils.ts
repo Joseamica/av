@@ -9,6 +9,7 @@ import {getMenu} from './models/menu.server'
 import {getBranchId} from './models/branch.server'
 import invariant from 'tiny-invariant'
 import clsx from 'clsx'
+import {getOrder} from './models/order.server'
 
 const DEFAULT_REDIRECT = '/'
 
@@ -104,14 +105,16 @@ export async function getCurrency(tableId: Table['id']) {
   }
   invariant(branchId, 'branchId should be defined')
 
-  const currency = await getMenu(branchId).then(menu => menu?.currency || 'mxn')
+  const currency = await getMenu(branchId).then(
+    (menu: Menu) => menu?.currency || 'mxn',
+  )
 
   switch (currency) {
     case 'mxn':
       return '$'
     case 'usd':
       return '$'
-    case 'euro':
+    case 'eur':
       return '€'
     default:
       return '$'
@@ -141,7 +144,7 @@ export async function getAmountLeftToPay(
   tableId: Table['id'],
   // orderId?: Order[`id`],
 ) {
-  const order = await prisma.order.findFirst({where: {tableId, active: true}})
+  const order = await getOrder(tableId)
   if (order) {
     const payments = await prisma.payments.aggregate({
       where: {orderId: order.id},
@@ -156,13 +159,7 @@ export async function getAmountLeftToPay(
     const totalBill = Number(getTotalBill._sum.total)
     return Number(totalBill - totalPayments)
   }
-  return null
 }
-
-// export function setModal(state, setState, changeState){
-//   setState({...state, })
-
-// }
 
 export function getRandomColor() {
   let color = '#'

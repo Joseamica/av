@@ -84,6 +84,15 @@ export const action = async ({request}: ActionArgs) => {
         const itemData = extraData
         await updatePaidItemsAndUserData(itemData, userName || '')
       }
+      if (metadata.typeOfPayment === 'fullpay') {
+        await prisma.order.update({
+          where: {id: metadata.orderId},
+          data: {
+            active: false,
+            paid: true,
+          },
+        })
+      }
 
       EVENTS.ISSUE_CHANGED(metadata.sseURL)
       console.timeEnd('Creating...')
