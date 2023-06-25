@@ -1,49 +1,30 @@
+import {ChevronRightIcon, ChevronUpIcon} from '@heroicons/react/outline'
+import type {PaymentMethod} from '@prisma/client'
 import type {ActionArgs, LoaderArgs} from '@remix-run/node'
 import {json, redirect} from '@remix-run/node'
-import {
-  Form,
-  useActionData,
-  useLoaderData,
-  useNavigate,
-  useNavigation,
-  useSubmit,
-} from '@remix-run/react'
+import {Form, useLoaderData, useNavigate, useNavigation} from '@remix-run/react'
+import clsx from 'clsx'
+import {AnimatePresence, motion} from 'framer-motion'
+import React from 'react'
 import invariant from 'tiny-invariant'
-import {
-  BillAmount,
-  Button,
-  FlexRow,
-  H3,
-  H4,
-  H5,
-  H6,
-  Payment,
-  Spacer,
-} from '~/components'
+import {BillAmount, Button, FlexRow, H3, H4, H5, H6, Spacer} from '~/components'
 import {Modal, SubModal} from '~/components/modal'
 import {prisma} from '~/db.server'
+import {EVENTS} from '~/events'
 import {
   getBranchId,
   getPaymentMethods,
   getTipsPercentages,
 } from '~/models/branch.server'
-import {getMenu} from '~/models/menu.server'
 import {getOrder} from '~/models/order.server'
 import {getPaidUsers} from '~/models/user.server'
+import {validateFullPay} from '~/models/validations.server'
 import {validateRedirect} from '~/redirect.server'
 import {getUserId, getUsername} from '~/session.server'
-import {formatCurrency, getAmountLeftToPay, getCurrency} from '~/utils'
-import type {Order, PaymentMethod, User} from '@prisma/client'
-import {EVENTS} from '~/events'
-import {useLiveLoader} from '~/use-live-loader'
-import {createPayment} from '~/models/payments.server'
 import {SendWhatsApp} from '~/twilio.server'
-import {getStripeSession, getDomainUrl} from '~/utils/stripe.server'
-import React from 'react'
-import {ChevronUpIcon, ChevronRightIcon} from '@heroicons/react/outline'
-import {AnimatePresence, motion} from 'framer-motion'
-import {validateCustom, validateFullPay} from '~/models/validations.server'
-import clsx from 'clsx'
+import {useLiveLoader} from '~/use-live-loader'
+import {formatCurrency, getAmountLeftToPay, getCurrency} from '~/utils'
+import {getDomainUrl, getStripeSession} from '~/utils/stripe.server'
 
 type LoaderData = {
   amountLeft: number
@@ -125,23 +106,6 @@ export async function action({request, params}: ActionArgs) {
   //@ts-expect-error
   const tip = amountLeft * Number(tipPercentage / 100)
 
-  const userName = await getUsername(request)
-  await prisma.order.update({
-    where: {tableId: tableId},
-    data: {
-      paid: true,
-      users: {
-        update: {
-          where: {id: userId},
-          data: {
-            paid: total,
-            tip: tip,
-            total: tip + total,
-          },
-        },
-      },
-    },
-  })
   // NOTE - esto va aqui porque si el metodo de pago es otro que no sea tarjeta, entonces que cree el pago directo, sin stripe (ya que stripe tiene su propio create payment en el webhook)
   if (paymentMethod === 'card') {
     const stripeRedirectUrl = await getStripeSession(
@@ -159,6 +123,23 @@ export async function action({request, params}: ActionArgs) {
     )
     return redirect(stripeRedirectUrl)
   } else if (paymentMethod === 'cash') {
+    const userName = await getUsername(request)
+    await prisma.order.update({
+      where: {tableId: tableId},
+      data: {
+        paid: true,
+        users: {
+          update: {
+            where: {id: userId},
+            data: {
+              paid: total,
+              tip: tip,
+              total: tip + total,
+            },
+          },
+        },
+      },
+    })
     await prisma.payments.create({
       data: {
         createdAt: new Date(),
@@ -168,6 +149,7 @@ export async function action({request, params}: ActionArgs) {
         total: amountLeft + tip,
         branchId,
         orderId: order?.id,
+        userId,
       },
     })
     SendWhatsApp(

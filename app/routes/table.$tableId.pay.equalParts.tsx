@@ -7,6 +7,7 @@ import React from 'react'
 import invariant from 'tiny-invariant'
 import {H5, Payment, QuantityManagerButton} from '~/components'
 import {Modal} from '~/components/modal'
+import {P} from '~/components/payment'
 import {prisma} from '~/db.server'
 import {EVENTS} from '~/events'
 import {
@@ -14,6 +15,7 @@ import {
   getPaymentMethods,
   getTipsPercentages,
 } from '~/models/branch.server'
+import {getOrder} from '~/models/order.server'
 import {createPayment} from '~/models/payments.server'
 import {assignUserNewPayments} from '~/models/user.server'
 import {validateRedirect} from '~/redirect.server'
@@ -31,109 +33,85 @@ export async function action({request, params}: ActionArgs) {
 
   const redirectTo = validateRedirect(request.redirect, `/table/${tableId}`)
 
-  const proceed = formData.get('_action') === 'proceed'
   const tipPercentage = formData.get('tipPercentage') as string
   const paymentMethod = formData.get('paymentMethod') as PaymentMethod
 
-  const order = await prisma.order.findFirst({
-    where: {tableId},
-  })
+  const order = await getOrder(tableId)
   invariant(order, 'No se encontró la orden, o aun no ha sido creada.')
   invariant(branchId, 'No se encontró la sucursal')
 
-  const total = await prisma.order
-    .aggregate({
-      where: {id: order.id},
-      _sum: {total: true},
-    })
-    .then(res => res._sum.total)
+  const total = order.total
 
   if (!total) {
     return json({error: 'No se ha seleccionado ningún platillo'}, {status: 400})
   }
 
   const payingTotal = Number(formData.get('payingTotal')) as number
-  console.log('payingTotal', payingTotal, total)
   const tip = Number(payingTotal) * (Number(tipPercentage) / 100)
   const amountLeft = (await getAmountLeftToPay(tableId)) || 0
+  const userName = await getUsername(request)
 
-  //ERROR HANDLING
-  let error = ''
-  if (amountLeft < Number(total)) {
-    error = 'Estas pagando de mas...'
+  if (payingTotal > Number(amountLeft)) {
+    return redirect(
+      `/table/${tableId}/pay/confirmExtra?total=${payingTotal}&tip=${
+        tip <= 0 ? Number(payingTotal) * 0.12 : tip
+      }&pMethod=${paymentMethod}`,
+    )
   }
-  //WHEN SUBMIT
-  if (proceed) {
-    const userName = await getUsername(request)
-    if (payingTotal > Number(amountLeft)) {
-      return redirect(
-        `/table/${tableId}/pay/confirmExtra?total=${payingTotal}&tip=${
-          tip <= 0 ? Number(payingTotal) * 0.12 : tip
-        }&pMethod=${paymentMethod}`,
-      )
-    }
-    const userId = await getUserId(request)
+  const userId = await getUserId(request)
 
-    // NOTE - esto va aqui porque si el metodo de pago es otro que no sea tarjeta, entonces que cree el pago directo, sin stripe (ya que stripe tiene su propio create payment en el webhook)
-    if (paymentMethod === 'card') {
-      const stripeRedirectUrl = await getStripeSession(
-        payingTotal * 100 + tip * 100,
-        getDomainUrl(request),
-        tableId,
-        // FIX aqui tiene que tener congruencia con el currency del database, ya que stripe solo acepta ciertas monedas, puedo hacer una condicion o cambiar db a "eur"
-        'eur',
-        tip,
-        order.id,
-        paymentMethod,
-        userId,
-        branchId,
-      )
-      return redirect(stripeRedirectUrl)
-    } else if (paymentMethod === 'cash') {
-      await createPayment(
-        paymentMethod,
-        payingTotal,
-        tip,
-        order.id,
-        userId,
-        branchId,
-      )
-      await assignUserNewPayments(userId, payingTotal, tip)
+  // NOTE - esto va aqui porque si el metodo de pago es otro que no sea tarjeta, entonces que cree el pago directo, sin stripe (ya que stripe tiene su propio create payment en el webhook)
+  if (paymentMethod === 'card') {
+    const stripeRedirectUrl = await getStripeSession(
+      payingTotal * 100 + tip * 100,
+      getDomainUrl(request),
+      tableId,
+      // FIX aqui tiene que tener congruencia con el currency del database, ya que stripe solo acepta ciertas monedas, puedo hacer una condicion o cambiar db a "eur"
+      'eur',
+      tip,
+      order.id,
+      paymentMethod,
+      userId,
+      branchId,
+    )
+    return redirect(stripeRedirectUrl)
+  } else if (paymentMethod === 'cash') {
+    await createPayment(
+      paymentMethod,
+      payingTotal,
+      tip,
+      order.id,
+      userId,
+      branchId,
+    )
+    await assignUserNewPayments(userId, payingTotal, tip)
 
-      SendWhatsApp(
-        '14155238886',
-        `5215512956265`,
-        `El usuario ${userName} ha pagado quiere pagar en efectivo propina ${tip} y total ${payingTotal}`,
-      )
-    }
-    EVENTS.ISSUE_CHANGED(tableId)
-    return redirect(redirectTo)
+    SendWhatsApp(
+      '14155238886',
+      `5215512956265`,
+      `El usuario ${userName} ha pagado quiere pagar en efectivo propina ${tip} y total ${payingTotal}`,
+    )
   }
-
-  return json({total, tipPercentage, error, tip})
+  EVENTS.ISSUE_CHANGED(tableId)
+  return redirect(redirectTo)
 }
 
 export async function loader({request, params}: LoaderArgs) {
   const {tableId} = params
   invariant(tableId, 'No se encontró mesa')
 
-  const order = await prisma.order.findFirst({
-    where: {tableId},
-  })
+  const order = await getOrder(tableId)
+
   invariant(order, 'No se encontró la orden, o aun no ha sido creada.')
   const tipsPercentages = await getTipsPercentages(tableId)
   const paymentMethods = await getPaymentMethods(tableId)
+
   const cartItems = await prisma.cartItem.findMany({
     // FIX
     where: {orderId: order.id, activeOnOrder: true},
     include: {menuItem: true, user: true},
   })
-  const total = await prisma.order
-    .aggregate({
-      where: {id: order.id},
-      _sum: {total: true},
-    })
-    .then(res => res._sum.total)
+  const total = order.total
 
   const currency = await getCurrency(tableId)
   const amountLeft = await getAmountLeftToPay(tableId)
@@ -150,17 +128,15 @@ export async function loader({request, params}: LoaderArgs) {
 
 export default function EqualParts() {
   const navigate = useNavigate()
-  const data = useLiveLoader()
-  const actionData = useActionData()
-  const submit = useSubmit()
+  const data = useLiveLoader<typeof loader>()
 
   const [personQuantity, setPersonQuantity] = React.useState(2)
   const [activate, setActivate] = React.useState(false)
-  const [perPerson, setPerPerson] = React.useState(data.total)
+  const [perPerson, setPerPerson] = React.useState(Number(data.total))
   const [payingFor, setPayingFor] = React.useState(1)
 
   React.useEffect(() => {
-    let amountPerPerson = data.total / personQuantity
+    let amountPerPerson = Number(data.total) / personQuantity
     let perPerson = amountPerPerson * payingFor
     setPerPerson(perPerson)
 
@@ -171,9 +147,9 @@ export default function EqualParts() {
     }
   }, [personQuantity, payingFor])
 
-  function handleChange(event: React.FormEvent<HTMLFormElement>) {
-    submit(event.currentTarget, {replace: true})
-  }
+  // function handleChange(event: React.FormEvent<HTMLFormElement>) {
+  //   submit(event.currentTarget, {replace: true})
+  // }
 
   let pathSize = 100
   let gapSize = 2
@@ -190,7 +166,7 @@ export default function EqualParts() {
       <Form
         method="POST"
         preventScrollReset
-        onChange={handleChange}
+        // onChange={handleChange}
         className=""
       >
         <H5 variant="secondary" className="mr-2 text-end xs:text-sm">
@@ -271,7 +247,7 @@ export default function EqualParts() {
             </div>
           </div>
         </div>
-        <Payment
+        {/* <Payment
           total={perPerson}
           tip={actionData?.tip}
           amountLeft={data.amountLeft}
@@ -286,6 +262,13 @@ export default function EqualParts() {
                 )} de mas`
               : undefined
           }
+        /> */}
+        <P
+          amountLeft={data.amountLeft}
+          amountToPayState={perPerson}
+          currency={data.currency}
+          paymentMethods={data.paymentMethods}
+          tipsPercentages={data.tipsPercentages}
         />
         <input type="hidden" name="payingTotal" value={perPerson} />
       </Form>
