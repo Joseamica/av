@@ -89,11 +89,11 @@ const variants = {
 //         </FlexRow>
 //         <Spacer spaceY="1" />
 //         <AnimatePresence initial={false}>
-//           {total > 0 && (
+//           {showPayContent&& (
 //             <motion.div
 //               variants={variants}
 //               initial="hidden"
-//               animate={total > 0 ? 'visible' : 'hidden'}
+//               animate={showPayContent? 'visible' : 'hidden'}
 //               exit="hidden"
 //               className="flex flex-col"
 //             >
@@ -298,21 +298,31 @@ export function Payment({
 
   const tipPercentages = [...Object.values(tipsPercentages), '0']
 
+  const showPayContent = total > 0
+
   return (
     <>
-      <div className="dark:bg-night-bg_principal dark:text-night-text_principal sticky inset-x-0 bottom-0 flex flex-col justify-center rounded-t-xl border-4 bg-day-bg_principal px-3">
+      <div className="dark:bg-night-bg_principal dark:text-night-text_principal sticky inset-x-0 bottom-0 flex flex-col justify-center rounded-t-xl border-2 border-button-outline border-opacity-30 bg-day-bg_principal px-3">
         <Spacer spaceY="2" />
-        <FlexRow justify="between">
-          <H5>Queda por pagar:</H5>
-          <H3>{formatCurrency(currency, amountLeft ? amountLeft : total)}</H3>
+        <FlexRow justify="between" className={clsx({'py-2': !showPayContent})}>
+          {showPayContent ? (
+            <H5>Queda por pagar:</H5>
+          ) : (
+            <H3>Queda por pagar:</H3>
+          )}
+          {showPayContent ? (
+            <H3>{formatCurrency(currency, amountLeft ? amountLeft : total)}</H3>
+          ) : (
+            <H2>{formatCurrency(currency, amountLeft ? amountLeft : total)}</H2>
+          )}
         </FlexRow>
         <Spacer spaceY="1" />
         <AnimatePresence initial={false}>
-          {total > 0 && (
+          {showPayContent && (
             <motion.div
               variants={variants}
               initial="hidden"
-              animate={total > 0 ? 'visible' : 'hidden'}
+              animate={showPayContent ? 'visible' : 'hidden'}
               exit="hidden"
               className="flex flex-col"
             >

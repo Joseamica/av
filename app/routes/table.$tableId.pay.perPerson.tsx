@@ -26,7 +26,7 @@ import {
 import {getOrder} from '~/models/order.server'
 import {createPayment} from '~/models/payments.server'
 import {assignUserNewPayments} from '~/models/user.server'
-import {redirectToConfirmExtra, validateRedirect} from '~/redirect.server'
+import {validateRedirect} from '~/redirect.server'
 import {getUserId, getUsername} from '~/session.server'
 import {SendWhatsApp} from '~/twilio.server'
 import {useLiveLoader} from '~/use-live-loader'
@@ -283,13 +283,13 @@ const UserItemContainer = ({
         </FlexRow>
       </ItemContainer>
     </FlexRow>
-    {collapsedSections[user.user.id] ? null : (
+    {collapsedSections[user.user.id] ? (
       <SectionContainer divider={true} className="rounded-t-none">
         {user.cartItems.map((item: CartItem) => (
           <CartItemComponent key={item.id} {...{item, data}} />
         ))}
       </SectionContainer>
-    )}
+    ) : null}
   </div>
 )
 
