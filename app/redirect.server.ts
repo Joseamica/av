@@ -1,3 +1,5 @@
+import {redirect} from '@remix-run/server-runtime'
+
 export function validateRedirect(
   redirect: string | null | undefined,
   defaultRediret: string,

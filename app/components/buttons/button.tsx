@@ -13,6 +13,7 @@ interface ButtonProps {
 }
 
 interface LinkProps {
+  fullWith?: boolean
   variant?: 'primary' | 'secondary' | 'danger' | 'icon'
   size?: 'small' | 'medium' | 'large' | 'icon'
   children: React.ReactNode | React.ReactNode[]
@@ -93,6 +94,7 @@ function Button({
 
 function LinkButton({
   children,
+  fullWith,
   variant = 'primary',
   size = 'large',
   className,
@@ -104,7 +106,7 @@ function LinkButton({
       onClick={onClick}
       to={to}
       preventScrollReset
-      className={getClassName({className})}
+      className={getClassName({className, fullWith})}
     >
       <ButtonInner variant={variant} size={size}>
         {children}

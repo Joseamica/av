@@ -157,9 +157,11 @@ export async function action({request, params}: ActionArgs) {
       `5215512956265`,
       `El usuario ${userName} ha pagado quiere pagar en efectivo propina ${tip} y total ${amountLeft}`,
     )
+    EVENTS.ISSUE_CHANGED(tableId)
+    return redirect(redirectTo)
   }
-  EVENTS.ISSUE_CHANGED(tableId)
-  return redirect(redirectTo)
+
+  return json({success: true})
 }
 
 export default function FullPay() {

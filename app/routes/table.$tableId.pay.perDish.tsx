@@ -14,6 +14,7 @@ import invariant from 'tiny-invariant'
 import {FlexRow, H3, H4, H5, H6, Payment} from '~/components'
 import {ItemContainer} from '~/components/containers/itemContainer'
 import {Modal} from '~/components/modal'
+import {P} from '~/components/payment'
 import {prisma} from '~/db.server'
 import {EVENTS} from '~/events'
 import {
@@ -21,6 +22,7 @@ import {
   getPaymentMethods,
   getTipsPercentages,
 } from '~/models/branch.server'
+import {getOrder} from '~/models/order.server'
 import {createPayment} from '~/models/payments.server'
 import {assignUserNewPayments} from '~/models/user.server'
 import {validateRedirect} from '~/redirect.server'
@@ -121,53 +123,51 @@ const updatePaidItemsAndUserData = async (
 export async function action({request, params}: ActionArgs) {
   const {tableId} = params
   invariant(tableId, 'No se encontró mesa')
-  const formData = await request.formData()
 
   const branchId = await getBranchId(tableId)
-  const order = await prisma.order.findFirst({
-    where: {tableId},
-  })
+  const order = await getOrder(tableId)
   invariant(order, 'No se encontró la orden, o aun no ha sido creada.')
   invariant(branchId, 'No se encontró la sucursal')
-  const paymentMethod = formData.get('paymentMethod') as PaymentMethod
+  const formData = await request.formData()
+  const data = Object.fromEntries(formData)
 
   const redirectTo = validateRedirect(request.redirect, `/table/${tableId}`)
 
-  const proceed = formData.get('_action') === 'proceed'
-  const tipPercentage = formData.get('tipPercentage') as string
-
   const {itemData, total} = getItemsAndTotalFromFormData(formData)
 
-  if (!total) {
-    return json({error: 'No se ha seleccionado ningún platillo'}, {status: 400})
-  }
+  // if (!total) {
+  //   return json({error: 'No se ha seleccionado ningún platillo'}, {status: 400})
+  // }
 
-  const tip = total * (Number(tipPercentage) / 100)
+  const tip = total * (Number(data.tipPercentage) / 100)
   const currency = await getCurrency(tableId)
   const amountLeft = (await getAmountLeftToPay(tableId)) || 0
 
   //ERROR HANDLING
-  let error = ''
+
   if (amountLeft < total) {
-    error = `Estas pagando ${formatCurrency(
+    const error = `Estas pagando ${formatCurrency(
       currency,
       total - amountLeft,
     )} de más....`
+    return json({error}, {status: 400})
   }
 
-  if (proceed) {
-    if (amountLeft < total) {
-      return redirect(
-        `/table/${tableId}/pay/confirmExtra?total=${total}&tip=${
-          tip <= 0 ? total * 0.12 : tip
-        }&pMethod=${paymentMethod}`,
-      )
-    }
-    const userId = await getUserId(request)
-    const userName = await getUsername(request)
+  if (amountLeft < total) {
+    const url = new URL(request.url)
+    const pathname = url.pathname
+    return redirect(
+      `/table/${tableId}/pay/confirmExtra?total=${total}&tip=${
+        tip <= 0 ? total * 0.12 : tip
+      }&pMethod=${data.paymentMethod}&redirectTo=${pathname}`,
+    )
+  }
+  const userId = await getUserId(request)
+  const userName = await getUsername(request)
 
-    // NOTE - esto va aqui porque si el metodo de pago es otro que no sea tarjeta, entonces que cree el pago directo, sin stripe (ya que stripe tiene su propio create payment en el webhook)
-    if (paymentMethod === 'card') {
+  // NOTE - esto va aqui porque si el metodo de pago es otro que no sea tarjeta, entonces que cree el pago directo, sin stripe (ya que stripe tiene su propio create payment en el webhook)
+  switch (data.paymentMethod) {
+    case 'card':
       const stripeRedirectUrl = await getStripeSession(
         total * 100 + tip * 100,
         getDomainUrl(request) + `/table/${tableId}`,
@@ -176,15 +176,22 @@ export async function action({request, params}: ActionArgs) {
         'eur',
         tip,
         order.id,
-        paymentMethod,
+        data.paymentMethod,
         userId,
         branchId,
         'perDish',
         itemData,
       )
       return redirect(stripeRedirectUrl)
-    } else if (paymentMethod === 'cash') {
-      await createPayment(paymentMethod, total, tip, order.id, userId, branchId)
+    case 'cash': {
+      await createPayment(
+        data.paymentMethod,
+        total,
+        tip,
+        order.id,
+        userId,
+        branchId,
+      )
       await updatePaidItemsAndUserData(itemData, total, tip, userName, userId)
 
       SendWhatsApp(
@@ -192,21 +199,28 @@ export async function action({request, params}: ActionArgs) {
         `5215512956265`,
         `El usuario ${userName} ha pagado quiere pagar en efectivo propina ${tip} y total ${total}`,
       )
+      EVENTS.ISSUE_CHANGED(tableId, `userPaid ${userName}`)
+      return redirect(redirectTo)
     }
-    EVENTS.ISSUE_CHANGED(tableId, `userPaid ${userName}`)
-
-    return redirect(redirectTo)
   }
-  return json({total, tip, error})
+  return json({success: true})
 }
 
 export default function PerDish() {
   const navigate = useNavigate()
   const data = useLiveLoader<LoaderData>()
-  const actionData = useActionData()
-  const submit = useSubmit()
-  function handleChange(event: React.FormEvent<HTMLFormElement>) {
-    submit(event.currentTarget, {replace: true})
+
+  const [amountToPay, setAmountToPay] = React.useState(0)
+
+  const handleAmountChange = (
+    event: React.ChangeEvent<HTMLInputElement>,
+    amount: number,
+  ) => {
+    if (event.target.checked) {
+      setAmountToPay(amountToPay + amount)
+    } else {
+      setAmountToPay(amountToPay - amount)
+    }
   }
 
   // const [searchParams] = useSearchParams()
@@ -216,7 +230,7 @@ export default function PerDish() {
       // fullScreen={true}
       title="Dividir por platillo"
     >
-      <Form method="POST" preventScrollReset onChange={handleChange}>
+      <Form method="POST" preventScrollReset>
         <H5 className="px-2 text-end">
           Selecciona los platillos que deseas pagar
         </H5>
@@ -242,6 +256,7 @@ export default function PerDish() {
                   ) : (
                     <input
                       type="checkbox"
+                      onChange={event => handleAmountChange(event, item.price)}
                       name={`item-${item.id}`}
                       className="h-5 w-5"
                     />
@@ -256,15 +271,13 @@ export default function PerDish() {
             )
           })}
         </div>
-        {/* {actionData?.total && ( */}
+
         <Payment
-          total={actionData?.total}
-          tip={actionData?.tip}
-          tipsPercentages={data.tipsPercentages}
-          paymentMethods={data.paymentMethods}
-          currency={data.currency}
-          error={actionData?.error}
           amountLeft={data.amountLeft}
+          amountToPayState={amountToPay}
+          currency={data.currency}
+          paymentMethods={data.paymentMethods}
+          tipsPercentages={data.tipsPercentages}
         />
         {/* )} */}
       </Form>

@@ -4,13 +4,24 @@ import {json, redirect} from '@remix-run/node'
 import {
   Form,
   useLoaderData,
+  useLocation,
   useNavigate,
   useSearchParams,
   useSubmit,
 } from '@remix-run/react'
 import React from 'react'
 import invariant from 'tiny-invariant'
-import {BillAmount, Button, H1, H2, H3, H5, Payment, Spacer} from '~/components'
+import {
+  BillAmount,
+  Button,
+  H1,
+  H2,
+  H3,
+  H5,
+  LinkButton,
+  Payment,
+  Spacer,
+} from '~/components'
 import {Modal} from '~/components/modal'
 import {prisma} from '~/db.server'
 import {EVENTS} from '~/events'
@@ -20,6 +31,7 @@ import {
   getTipsPercentages,
 } from '~/models/branch.server'
 import {getMenu} from '~/models/menu.server'
+import {getOrder} from '~/models/order.server'
 import {createPayment} from '~/models/payments.server'
 import {assignUserNewPayments, getPaidUsers} from '~/models/user.server'
 import {validateRedirect} from '~/redirect.server'
@@ -32,64 +44,62 @@ import {getDomainUrl, getStripeSession} from '~/utils/stripe.server'
 export async function action({request, params}: ActionArgs) {
   const {tableId} = params
   invariant(tableId, 'No se encontró mesa')
+
+  const branchId = await getBranchId(tableId)
+  const order = await getOrder(tableId)
+  invariant(order, 'No se encontró la orden, o aun no ha sido creada.')
+  invariant(branchId, 'No se encontró la sucursal')
+
   const formData = await request.formData()
 
   const redirectTo = validateRedirect(request.redirect, `/table/${tableId}`)
 
-  const proceed = formData.get('_action') === 'proceed'
-  const tip = formData.get('tip') as string
   const paymentMethod = formData.get('paymentMethod') as PaymentMethod
-  const branchId = await getBranchId(tableId)
   const userName = await getUsername(request)
-
-  const order = await prisma.order.findFirst({
-    where: {tableId},
-  })
-  invariant(order, 'No se encontró la orden, o aun no ha sido creada.')
-  invariant(branchId, 'No se encontró la sucursal')
+  const action = formData.get('_action') as string
 
   const url = new URL(request.url)
   const searchParams = new URLSearchParams(url.search)
-  // const tip = Number(searchParams.get('tip')) as number
+  const restAllToTip = formData.get('tip') as string
+  const tip = Number(searchParams.get('tip')) as number
+  console.log('tip, restAllToTip', tip, restAllToTip)
 
   //WHEN SUBMIT
-  if (proceed) {
-    const amountLeft = (await getAmountLeftToPay(tableId)) || 0
-    const userId = await getUserId(request)
 
-    // NOTE - esto va aqui porque si el metodo de pago es otro que no sea tarjeta, entonces que cree el pago directo, sin stripe (ya que stripe tiene su propio create payment en el webhook)
-    if (paymentMethod === 'card') {
-      const stripeRedirectUrl = await getStripeSession(
-        amountLeft * 100 + Number(tip) * 100,
-        getDomainUrl(request),
-        tableId,
-        // FIX aqui tiene que tener congruencia con el currency del database, ya que stripe solo acepta ciertas monedas, puedo hacer una condicion o cambiar db a "eur"
-        'eur',
-        Number(tip),
-        order.id,
-        paymentMethod,
-        userId,
-        branchId,
-      )
-      return redirect(stripeRedirectUrl)
-    } else if (paymentMethod === 'cash') {
-      await createPayment(
-        paymentMethod,
-        amountLeft,
-        Number(tip),
-        order.id,
-        userId,
-        branchId,
-      )
-      await assignUserNewPayments(userId, amountLeft, Number(tip))
+  const amountLeft = (await getAmountLeftToPay(tableId)) || 0
+  const userId = await getUserId(request)
 
-      SendWhatsApp(
-        '14155238886',
-        `5215512956265`,
-        `El usuario ${userName} ha pagado quiere pagar en efectivo propina ${tip} y total ${amountLeft}`,
-      )
-    }
-    //Create event to reload to all users
+  // NOTE - esto va aqui porque si el metodo de pago es otro que no sea tarjeta, entonces que cree el pago directo, sin stripe (ya que stripe tiene su propio create payment en el webhook)
+  if (paymentMethod === 'card') {
+    const stripeRedirectUrl = await getStripeSession(
+      amountLeft * 100 + Number(tip) * 100,
+      getDomainUrl(request),
+      tableId,
+      // FIX aqui tiene que tener congruencia con el currency del database, ya que stripe solo acepta ciertas monedas, puedo hacer una condicion o cambiar db a "eur"
+      'eur',
+      action === 'normal' ? Number(tip) : Number(restAllToTip),
+      order.id,
+      paymentMethod,
+      userId,
+      branchId,
+    )
+    return redirect(stripeRedirectUrl)
+  } else if (paymentMethod === 'cash') {
+    await createPayment(
+      paymentMethod,
+      amountLeft,
+      action === 'normal' ? Number(tip) : Number(restAllToTip),
+      order.id,
+      userId,
+      branchId,
+    )
+    await assignUserNewPayments(userId, amountLeft, Number(tip))
+
+    SendWhatsApp(
+      '14155238886',
+      `5215512956265`,
+      `El usuario ${userName} ha pagado quiere pagar en efectivo propina ${tip} y total ${amountLeft}`,
+    )
     EVENTS.ISSUE_CHANGED(tableId)
 
     return redirect(redirectTo)
@@ -102,17 +112,17 @@ export async function loader({request, params}: LoaderArgs) {
   const {tableId} = params
   invariant(tableId, 'No se encontró mesa')
 
-  const order = await prisma.order.findFirst({
-    where: {tableId},
-  })
+  const order = await getOrder(tableId)
   invariant(order, 'No se encontró la orden, o aun no ha sido creada.')
   const tipsPercentages = await getTipsPercentages(tableId)
   const paymentMethods = await getPaymentMethods(tableId)
+
   const cartItems = await prisma.cartItem.findMany({
     // FIX
     where: {orderId: order.id, activeOnOrder: true},
     include: {menuItem: true, user: true},
   })
+
   const userId = await getUserId(request)
   const amountLeft = await getAmountLeftToPay(tableId)
   const currency = await getCurrency(tableId)
@@ -121,12 +131,7 @@ export async function loader({request, params}: LoaderArgs) {
   if (order) {
     paidUsers = await getPaidUsers(order.id)
   }
-  const total = await prisma.order
-    .aggregate({
-      where: {id: order.id},
-      _sum: {total: true},
-    })
-    .then(res => res._sum.total)
+  const total = order.total
 
   return json({
     cartItems,
@@ -142,17 +147,18 @@ export async function loader({request, params}: LoaderArgs) {
 
 export default function EqualParts() {
   const navigate = useNavigate()
-  const data = useLiveLoader()
+  const data = useLiveLoader<typeof loader>()
 
-  const [searchParams] = useSearchParams()
+  const [searchParams, setSearchParams] = useSearchParams()
+  const redirectTo = searchParams.get('redirectTo')
   const tip = Number(searchParams.get('tip')) as number
   const total = Number(searchParams.get('total')) as number
   const paymentMethod = searchParams.get('pMethod') as PaymentMethod
 
-  const submit = useSubmit()
-  function handleChange(event: React.FormEvent<HTMLFormElement>) {
-    submit(event.currentTarget, {replace: true})
-  }
+  // const submit = useSubmit()
+  // function handleChange(event: React.FormEvent<HTMLFormElement>) {
+  //   submit(event.currentTarget, {replace: true})
+  // }
 
   return (
     <Modal
@@ -163,7 +169,7 @@ export default function EqualParts() {
       <Form
         method="POST"
         preventScrollReset
-        onChange={handleChange}
+        // onChange={handleChange}
         className="p-2"
       >
         <BillAmount
@@ -177,27 +183,38 @@ export default function EqualParts() {
         <div className="flex flex-col items-center justify-center rounded-lg bg-white p-2 shadow-lg">
           <H5>Quieres pagar</H5>
           <H1 className="text-3xl">{formatCurrency(data.currency, total)}</H1>
+          <H5>Estas pagando de mas</H5>
+          <H1 className="text-3xl">
+            {formatCurrency(
+              data.currency,
+              Number(total) - Number(data.amountLeft),
+            )}
+          </H1>
         </div>
         <Spacer spaceY="2" />
+        <div className="space-y-2">
+          <Button name="_action" value="normal" fullWith={true}>
+            <H5>
+              Pagar{' '}
+              {formatCurrency(data.currency, Number(data.amountLeft || 0))} y da{' '}
+              {formatCurrency(data.currency, tip)} de propina
+            </H5>
+          </Button>
+          <Button fullWith={true} name="_action" value="restInTip">
+            <H5>
+              Da{' '}
+              {formatCurrency(
+                data.currency,
+                Number(total) - Number(data.amountLeft),
+              )}{' '}
+              de propina y paga el resto
+            </H5>
+          </Button>
 
-        {/* <div>
-          <H1>Total: {formatCurrency(data.currency, data.amountLeft)}</H1>
-          <H1>Propina: {formatCurrency(data.currency, tip)}</H1>
-        </div> */}
-        <Button name="_action" value="proceed" fullWith={true}>
-          Da{' '}
-          {formatCurrency(
-            data.currency,
-            Number(total || 0) - Number(data.amountLeft || 0),
-          )}{' '}
-          como propina y paga{' '}
-          {formatCurrency(data.currency, +Number(data.amountLeft || 0))}
-        </Button>
-        <input
-          type="hidden"
-          name="tip"
-          value={Number(total || 0) - Number(data.amountLeft || 0)}
-        />
+          <LinkButton variant="danger" fullWith={true} to={redirectTo || '..'}>
+            Cancelar
+          </LinkButton>
+        </div>
         <input type="hidden" name="paymentMethod" value={paymentMethod} />
         <Spacer spaceY="1" />
         {/* FIX MAKE IT WORK */}
@@ -212,6 +229,11 @@ export default function EqualParts() {
           paymentMethods={data.paymentMethods}
           currency={data.currency}
         /> */}
+        <input
+          type="hidden"
+          name="tip"
+          value={Number(total || 0) - Number(data.amountLeft || 0)}
+        />
       </Form>
     </Modal>
   )

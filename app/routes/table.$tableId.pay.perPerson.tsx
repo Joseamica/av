@@ -1,15 +1,9 @@
-import type {CartItem, PaymentMethod} from '@prisma/client'
+import type {CartItem} from '@prisma/client'
 import type {ActionArgs, LoaderArgs} from '@remix-run/node'
 import {json, redirect} from '@remix-run/node'
-import {
-  Form,
-  useActionData,
-  useLoaderData,
-  useNavigate,
-  useSubmit,
-} from '@remix-run/react'
+import {Form, useNavigate} from '@remix-run/react'
 import {clsx} from 'clsx'
-import {useEffect, useState} from 'react'
+import React, {useState} from 'react'
 import invariant from 'tiny-invariant'
 import {
   FlexRow,
@@ -17,10 +11,11 @@ import {
   H4,
   H5,
   ItemContainer,
+  Modal,
   Payment,
   SectionContainer,
-  Modal,
 } from '~/components'
+import {P} from '~/components/payment'
 import {prisma} from '~/db.server'
 import {EVENTS} from '~/events'
 import {
@@ -28,9 +23,10 @@ import {
   getPaymentMethods,
   getTipsPercentages,
 } from '~/models/branch.server'
+import {getOrder} from '~/models/order.server'
 import {createPayment} from '~/models/payments.server'
 import {assignUserNewPayments} from '~/models/user.server'
-import {validateRedirect} from '~/redirect.server'
+import {redirectToConfirmExtra, validateRedirect} from '~/redirect.server'
 import {getUserId, getUsername} from '~/session.server'
 import {SendWhatsApp} from '~/twilio.server'
 import {useLiveLoader} from '~/use-live-loader'
@@ -96,21 +92,28 @@ export async function loader({request, params}: LoaderArgs) {
       })
     })
   })
+  const amountLeft = await getAmountLeftToPay(tableId)
 
-  return json({userTotals, tableId, tipsPercentages, paymentMethods, currency})
+  return json({
+    userTotals,
+    tipsPercentages,
+    paymentMethods,
+    currency,
+    amountLeft,
+  })
 }
 
 export async function action({request, params}: ActionArgs) {
-  const formData = await request.formData()
   const {tableId} = params
   invariant(tableId, 'No se encontró mesa')
 
   const branchId = await getBranchId(tableId)
-  const order = await prisma.order.findFirst({
-    where: {tableId},
-  })
+  const order = await getOrder(tableId)
   invariant(order, 'No se encontró la orden')
   invariant(branchId, 'No se encontró la sucursal')
+
+  const formData = await request.formData()
+  const data = Object.fromEntries(formData)
 
   const selectedUsers = formData.getAll('selectedUsers')
 
@@ -123,39 +126,35 @@ export async function action({request, params}: ActionArgs) {
   if (total <= 0) {
     return json({error: 'No se puede pagar $0'}, {status: 400})
   }
-  const proceed = formData.get('_action') === 'proceed'
-  const tipPercentage = formData.get('tipPercentage') as string
-  const paymentMethod = formData.get('paymentMethod') as PaymentMethod
 
   const redirectTo = validateRedirect(request.redirect, `/table/${tableId}`)
   const userId = await getUserId(request)
-  const tip = total * (Number(tipPercentage) / 100)
+  const tip = total * (Number(data.tipPercentage) / 100)
 
   const amountLeft = (await getAmountLeftToPay(tableId)) || 0
-  const currency = await getCurrency(tableId)
 
-  let error = ''
+  // let error = ''
+  // if (amountLeft < total) {
+  //   error = `Estas pagando ${formatCurrency(
+  //     currency,
+  //     total - amountLeft,
+  //   )} de más....`
+  // }
+
+  const userName = await getUsername(request)
   if (amountLeft < total) {
-    error = `Estas pagando ${formatCurrency(
-      currency,
-      total - amountLeft,
-    )} de más....`
+    const url = new URL(request.url)
+    const pathname = url.pathname
+    return redirect(
+      `/table/${tableId}/pay/confirmExtra?total=${total}&tip=${
+        tip <= 0 ? total * 0.12 : tip
+      }&pMethod=${data.paymentMethod}&redirectTo=${pathname}`,
+    )
   }
 
-  if (proceed) {
-    const userName = await getUsername(request)
-    if (amountLeft < total) {
-      return redirect(
-        `/table/${tableId}/pay/confirmExtra?total=${total}&tip=${
-          tip <= 0 ? total * 0.12 : tip
-        }&pMethod=${paymentMethod}`,
-      )
-    }
-
-    // const updateUser =
-
-    // NOTE - esto va aqui porque si el metodo de pago es otro que no sea tarjeta, entonces que cree el pago directo, sin stripe (ya que stripe tiene su propio create payment en el webhook)
-    if (paymentMethod === 'card') {
+  // NOTE - esto va aqui porque si el metodo de pago es otro que no sea tarjeta, entonces que cree el pago directo, sin stripe (ya que stripe tiene su propio create payment en el webhook)
+  switch (data.paymentMethod) {
+    case 'card':
       const stripeRedirectUrl = await getStripeSession(
         total * 100 + tip * 100,
         getDomainUrl(request),
@@ -164,13 +163,21 @@ export async function action({request, params}: ActionArgs) {
         'eur',
         tip,
         order.id,
-        paymentMethod,
+        data.paymentMethod,
         userId,
         branchId,
       )
       return redirect(stripeRedirectUrl)
-    } else if (paymentMethod === 'cash') {
-      await createPayment(paymentMethod, total, tip, order.id, userId, branchId)
+
+    case 'cash':
+      await createPayment(
+        data.paymentMethod,
+        total,
+        tip,
+        order.id,
+        userId,
+        branchId,
+      )
       await assignUserNewPayments(userId, total, tip)
 
       SendWhatsApp(
@@ -178,13 +185,11 @@ export async function action({request, params}: ActionArgs) {
         `5215512956265`,
         `El usuario ${userName} ha pagado quiere pagar en efectivo propina ${tip} y total ${total}`,
       )
-    }
-    EVENTS.ISSUE_CHANGED(tableId)
-
-    return redirect(redirectTo)
+      EVENTS.ISSUE_CHANGED(tableId)
+      return redirect(redirectTo)
   }
 
-  return json({total, tip, error})
+  return json({success: true})
 }
 
 interface User {
@@ -195,13 +200,19 @@ interface User {
 
 export default function PerPerson() {
   const navigate = useNavigate()
-  const data = useLiveLoader()
-  const actionData = useActionData()
+  const data = useLiveLoader<typeof loader>()
+  const [amountToPay, setAmountToPay] = React.useState(0)
+  console.log('amountToPay', amountToPay)
 
-  const submit = useSubmit()
-
-  function handleChange(event: React.FormEvent<HTMLFormElement>) {
-    submit(event.currentTarget, {replace: true})
+  const handleAmountChange = (
+    event: React.ChangeEvent<HTMLInputElement>,
+    amount: number,
+  ) => {
+    if (event.target.checked) {
+      setAmountToPay(amountToPay + amount)
+    } else {
+      setAmountToPay(amountToPay - amount)
+    }
   }
 
   const [collapsedSections, setCollapsedSections] = useState({})
@@ -213,37 +224,28 @@ export default function PerPerson() {
       [userId]: !prev[userId],
     }))
   }
-  // useEffect(() => {
-  //   if (data.userTotals) {
-  //     const initialCollapsedSections = {}
-  //     Object.keys(data.userTotals).forEach(userId => {
-  //       initialCollapsedSections[userId] = true
-  //     })
-  //     setCollapsedSections(initialCollapsedSections)
-  //   }
-  // }, [data.userTotals])
 
   return (
     <Modal onClose={() => navigate('..')} title="Dividir por usuario">
       <H5 className="px-2 text-end">
         Selecciona a los usuarios que deseas pagar
       </H5>
-      <Form method="POST" preventScrollReset onChange={handleChange}>
+      <Form method="POST" preventScrollReset>
         {Object.values(data.userTotals).length > 0
           ? Object.values(data.userTotals).map(user => (
               <UserItemContainer
                 key={user.user.id}
+                handleAmountChange={handleAmountChange}
                 {...{user, handleCollapse, collapsedSections, data}}
               />
             ))
           : null}
         <Payment
-          total={actionData?.total}
-          tip={actionData?.tip}
-          tipsPercentages={data.tipsPercentages}
-          paymentMethods={data.paymentMethods}
+          amountLeft={data.amountLeft}
+          amountToPayState={amountToPay}
           currency={data.currency}
-          error={actionData?.error}
+          paymentMethods={data.paymentMethods}
+          tipsPercentages={data.tipsPercentages}
         />
       </Form>
     </Modal>
@@ -252,10 +254,11 @@ export default function PerPerson() {
 
 const UserItemContainer = ({
   user,
+  handleAmountChange,
   handleCollapse,
   collapsedSections,
   data,
-}: UserItemContainerProps) => (
+}) => (
   <div className="p-2" key={user.user.id}>
     <FlexRow>
       <ItemContainer
@@ -274,6 +277,7 @@ const UserItemContainer = ({
             name="selectedUsers"
             value={user.total}
             className="h-5 w-5"
+            onChange={e => handleAmountChange(e, user.total)}
             onClick={e => e.stopPropagation()} // Add this line
           />
         </FlexRow>
@@ -289,7 +293,7 @@ const UserItemContainer = ({
   </div>
 )
 
-const CartItemComponent = ({item, data}: CartItemComponentProps) => (
+const CartItemComponent = ({item, data}) => (
   <FlexRow key={item.id} className="p-2" justify="between">
     <FlexRow>
       <H5>{item.quantity}</H5>
@@ -301,47 +305,3 @@ const CartItemComponent = ({item, data}: CartItemComponentProps) => (
     </FlexRow>
   </FlexRow>
 )
-
-interface UserWithTotal {
-  user: {
-    id: number
-    name: string
-  }
-  cartItems: CartItem[]
-  total: number
-}
-
-interface UserTotalsData {
-  userTotals: Record<number, UserWithTotal>
-  tableId: string
-  tipsPercentages: number[]
-  paymentMethods: string[]
-  currency: string
-}
-
-interface PerPersonProps {
-  data: UserTotalsData
-}
-
-interface UserItemContainerProps {
-  user: UserWithTotal
-  handleCollapse: (userId: string) => (e: Event) => void
-  collapsedSections: Record<string, boolean>
-  data: UserTotalsData
-}
-
-interface ActionData {
-  total?: number
-  tip?: number
-  error?: string
-}
-
-interface PerPersonProps {
-  data: UserTotalsData
-  actionData: ActionData
-}
-
-interface CartItemComponentProps {
-  item: CartItem
-  data: UserTotalsData
-}

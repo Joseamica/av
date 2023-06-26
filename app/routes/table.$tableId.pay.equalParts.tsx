@@ -1,7 +1,13 @@
 import {PaymentMethod} from '@prisma/client'
 import type {ActionArgs, LoaderArgs} from '@remix-run/node'
 import {json, redirect} from '@remix-run/node'
-import {Form, useActionData, useNavigate, useSubmit} from '@remix-run/react'
+import {
+  Form,
+  useActionData,
+  useNavigate,
+  useSearchParams,
+  useSubmit,
+} from '@remix-run/react'
 import {AnimatePresence, motion} from 'framer-motion'
 import React from 'react'
 import invariant from 'tiny-invariant'
@@ -52,10 +58,12 @@ export async function action({request, params}: ActionArgs) {
   const userName = await getUsername(request)
 
   if (payingTotal > Number(amountLeft)) {
+    const url = new URL(request.url)
+    const pathname = url.pathname
     return redirect(
       `/table/${tableId}/pay/confirmExtra?total=${payingTotal}&tip=${
         tip <= 0 ? Number(payingTotal) * 0.12 : tip
-      }&pMethod=${paymentMethod}`,
+      }&pMethod=${paymentMethod}&redirectTo=${pathname}`,
     )
   }
   const userId = await getUserId(request)
@@ -211,7 +219,7 @@ export default function EqualParts() {
                 </svg>
                 <div className="absolute inset-0 flex items-center justify-center p-8 text-center md:text-xs xs:hidden ">
                   <p>
-                    pagando por {payingFor}{' '}
+                    Pagando por {payingFor}{' '}
                     {payingFor > 1 ? 'personas' : 'persona'}
                   </p>
                 </div>
@@ -247,27 +255,11 @@ export default function EqualParts() {
             </div>
           </div>
         </div>
-        {/* <Payment
-          total={perPerson}
-          tip={actionData?.tip}
-          amountLeft={data.amountLeft}
-          tipsPercentages={data.tipsPercentages}
-          paymentMethods={data.paymentMethods}
-          currency={data.currency}
-          error={
-            perPerson > data.amountLeft
-              ? `Estas pagando ${formatCurrency(
-                  data.currency,
-                  perPerson - data.amountLeft,
-                )} de mas`
-              : undefined
-          }
-        /> */}
-        <P
+        <Payment
           amountLeft={data.amountLeft}
           amountToPayState={perPerson}
           currency={data.currency}
-          paymentMethods={data.paymentMethods}
+          paymentMethods={data.paymentMethods as any}
           tipsPercentages={data.tipsPercentages}
         />
         <input type="hidden" name="payingTotal" value={perPerson} />

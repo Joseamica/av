@@ -3,9 +3,9 @@ import {Form, useActionData, useLoaderData, useNavigate} from '@remix-run/react'
 import clsx from 'clsx'
 import React from 'react'
 import invariant from 'tiny-invariant'
-import {Spacer} from '~/components'
+import {Payment, Spacer} from '~/components'
 import {Modal} from '~/components/modal'
-import {P} from '~/components/payment'
+
 import {EVENTS} from '~/events'
 import useSessionTimeout from '~/hooks/use-session-timeout'
 import {
@@ -68,13 +68,14 @@ export async function action({request, params}: ActionArgs) {
     return error
   }
 
-  const redirectTo = validateRedirect(request.redirect, `/table/${tableId}`)
   const [order, branchId] = await Promise.all([
     getOrder(tableId),
     getBranchId(tableId),
   ])
   invariant(order, 'No se encontró orden')
   invariant(branchId, 'No se encontró sucursal')
+
+  const redirectTo = validateRedirect(request.redirect, `/table/${tableId}`)
 
   const [amountLeft, currency, username] = await Promise.all([
     getAmountLeftToPay(tableId),
@@ -85,10 +86,12 @@ export async function action({request, params}: ActionArgs) {
   const tip = Number(total) * (Number(data.tipPercentage) / 100)
 
   if (amountLeft && amountLeft < Number(total)) {
+    const url = new URL(request.url)
+    const pathname = url.pathname
     return redirect(
       `/table/${tableId}/pay/confirmExtra?total=${total}&tip=${
         tip <= 0 ? total * 0.12 : tip
-      }&pMethod=${data.paymentMethod}`,
+      }&pMethod=${data.paymentMethod}&redirectTo=${pathname}`,
     )
   }
   const userId = await getUserId(request)
@@ -189,7 +192,7 @@ export default function CustomPay() {
           />
         </div>
         <Spacer spaceY="1" />
-        <P
+        <Payment
           amountLeft={data.amountLeft}
           amountToPayState={amountToPay}
           currency={data.currency}
