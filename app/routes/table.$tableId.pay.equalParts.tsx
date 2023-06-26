@@ -68,10 +68,13 @@ export async function action({request, params}: ActionArgs) {
   }
   const userId = await getUserId(request)
 
+  const isOrderAmountFullPaid = amountLeft <= payingTotal
+
   // NOTE - esto va aqui porque si el metodo de pago es otro que no sea tarjeta, entonces que cree el pago directo, sin stripe (ya que stripe tiene su propio create payment en el webhook)
   if (paymentMethod === 'card') {
     const stripeRedirectUrl = await getStripeSession(
       payingTotal * 100 + tip * 100,
+      isOrderAmountFullPaid,
       getDomainUrl(request),
       tableId,
       // FIX aqui tiene que tener congruencia con el currency del database, ya que stripe solo acepta ciertas monedas, puedo hacer una condicion o cambiar db a "eur"

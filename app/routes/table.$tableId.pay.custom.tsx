@@ -51,9 +51,9 @@ export async function loader({request, params}: LoaderArgs) {
   // Set the date to "2018-09-01T16:01:36.386Z"
 
   // Obtain a Date instance that will render the equivalent Berlin time for the UTC date
-  const dateNow = await getDateTimeTz(tableId)
-  const date = new Date()
-  console.log('dateNow', dateNow, date)
+  // const dateNow = await getDateTimeTz(tableId)
+  // const date = new Date()
+  // console.log('dateNow', dateNow, date)
 
   return json({paymentMethods, tipsPercentages, currency, amountLeft})
 }
@@ -102,6 +102,7 @@ export async function action({request, params}: ActionArgs) {
     )
   }
   const userId = await getUserId(request)
+  const isOrderAmountFullPaid = amountLeft <= total
 
   switch (data.paymentMethod) {
     case 'card':
@@ -109,6 +110,7 @@ export async function action({request, params}: ActionArgs) {
         // TODO assignexpirationandvaluestoOrder lo tengo que implementar en stripe.
         const stripeRedirectUrl = await getStripeSession(
           total * 100 + tip * 100,
+          isOrderAmountFullPaid,
           getDomainUrl(request),
           tableId,
           'eur',

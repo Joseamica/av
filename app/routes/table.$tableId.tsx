@@ -1,5 +1,6 @@
 import type {
   Branch,
+  CartItem,
   Menu,
   Order,
   Table as TableProps,
@@ -54,7 +55,7 @@ import {
 } from '~/utils'
 
 type LoaderData = {
-  order: Order & {cartItems: CartItemDetailsProps[]; users: UserWithCart[]}
+  order: Order & any
   table: TableProps
   total: number
   currency: string
@@ -294,7 +295,7 @@ export default function Table() {
         {filterPerUser ? (
           <AnimatePresence>
             <div className="space-y-2">
-              {data.order.users.map((user: any) => {
+              {data.order?.users.map((user: any) => {
                 const userPaid = Number(user.paid)
                 return (
                   <SectionContainer key={user.id} as="div">
@@ -397,7 +398,7 @@ export default function Table() {
         ) : (
           <SectionContainer
             divider={true}
-            showCollapse={data.order.cartItems.length > 4 ? true : false}
+            showCollapse={data.order?.cartItems.length > 4 ? true : false}
             collapse={collapse}
             collapseTitle={
               collapse ? (
@@ -410,9 +411,9 @@ export default function Table() {
           >
             <AnimatePresence initial={false}>
               {(collapse
-                ? data.order.cartItems.slice(0, 4)
-                : data.order.cartItems
-              ).map(cartItem => {
+                ? data.order?.cartItems.slice(0, 4)
+                : data.order?.cartItems
+              ).map((cartItem: CartItem) => {
                 return (
                   <motion.div
                     className="flex flex-col"

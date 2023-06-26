@@ -14,6 +14,7 @@ export function getDomainUrl(request: Request) {
 
 export const getStripeSession = async (
   amount: number, // Amount in cents (or the smallest currency unit)
+  isOrderAmountFullPaid: boolean,
   domainUrl: string,
   sseURL: string,
   currency: string = 'usd', // Default to USD
@@ -52,6 +53,7 @@ export const getStripeSession = async (
     payment_method_types: ['card'],
     line_items: lineItems,
     metadata: {
+      isOrderAmountFullPaid,
       tip,
       orderId,
       paymentMethod,

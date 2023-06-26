@@ -67,8 +67,11 @@ export async function assignExpirationAndValuesToOrder(
   amountLeft: number,
   tip: number,
   total: number,
-  order: Order,
+  order: Order | null,
 ) {
+  if (!order) {
+    return null
+  }
   console.time('⏲️Expiration begins and order is updated')
   if (amountLeft <= total) {
     await prisma.order.update({
