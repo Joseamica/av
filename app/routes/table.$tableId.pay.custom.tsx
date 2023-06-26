@@ -143,7 +143,7 @@ export async function action({request, params}: ActionArgs) {
 }
 
 export default function CustomPay() {
-  useSessionTimeout()
+  // useSessionTimeout()
   const data = useLoaderData()
   const actionData = useActionData()
   const [amountToPay, setAmountToPay] = React.useState(0)

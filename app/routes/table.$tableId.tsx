@@ -15,7 +15,15 @@ import {
   UserCircleIcon,
   UsersIcon,
 } from '@heroicons/react/solid'
-import {Form, Link, Outlet, useLoaderData} from '@remix-run/react'
+import {
+  Form,
+  Link,
+  Outlet,
+  useLoaderData,
+  useLocation,
+  useNavigation,
+  useSubmit,
+} from '@remix-run/react'
 import clsx from 'clsx'
 import {AnimatePresence, motion} from 'framer-motion'
 import {useState} from 'react'
@@ -47,6 +55,8 @@ import {validateUserIntegration} from '~/models/validations.server'
 import {getSession} from '~/session.server'
 import {useLiveLoader} from '~/use-live-loader'
 import {formatCurrency, getAmountLeftToPay, getCurrency} from '~/utils'
+import {useOrderDelete} from '~/hooks/use-session-timeout'
+import React from 'react'
 
 type LoaderData = {
   order: Order & {cartItems: CartItemDetailsProps[]; users: UserWithCart[]}
@@ -188,17 +198,33 @@ export async function action({request, params}: ActionArgs) {
   return json({success: true})
 }
 
-interface UserWithCart extends User {
-  cartItems: CartItemDetailsProps[]
-}
+// interface UserWithCart extends User {
+//   cartItems: CartItemDetailsProps[]
+// }
 
-interface CartItemDetailsProps extends CartItem {
-  user: User[]
-}
+// interface CartItemDetailsProps extends CartItem {
+//   user: User[]
+// }
 
 export default function Table() {
   // const data = useLoaderData()
   const data = useLiveLoader<LoaderData>()
+
+  const submit = useSubmit()
+  const navigation = useNavigation()
+
+  React.useEffect(() => {
+    if (data.order && data.amountLeft <= 0) {
+      const timeout = setTimeout(() => {
+        submit(null, {
+          method: 'POST',
+          action: `processes/endOrder`,
+        })
+      }, 10000)
+      console.log(timeout)
+      return () => clearTimeout(timeout)
+    }
+  }, [submit, navigation, data.amountLeft])
 
   const [selectedUsers, setSelectedUsers] = useState<string[]>([])
   const [filterPerUser, setFilterPerUser] = useState(false)
@@ -334,14 +360,12 @@ export default function Table() {
                           <hr />
                           {user.cartItems.length > 0 ? (
                             <motion.div>
-                              {user.cartItems.map(
-                                (cartItem: CartItemDetailsProps) => (
-                                  <CartItemDetails
-                                    key={cartItem.id}
-                                    cartItem={cartItem}
-                                  />
-                                ),
-                              )}
+                              {user.cartItems.map((cartItem: any) => (
+                                <CartItemDetails
+                                  key={cartItem.id}
+                                  cartItem={cartItem}
+                                />
+                              ))}
                             </motion.div>
                           ) : (
                             <Spacer spaceY="2" className="px-2">

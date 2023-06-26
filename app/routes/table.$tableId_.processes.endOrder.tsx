@@ -1,8 +1,16 @@
-import {LoaderArgs, redirect} from '@remix-run/node'
+import {ActionArgs, LoaderArgs, redirect, json} from '@remix-run/node'
 import invariant from 'tiny-invariant'
 import {H4} from '~/components'
 import {prisma} from '~/db.server'
+import {EVENTS} from '~/events'
 import {getSession, sessionStorage} from '~/session.server'
+
+export const action = async ({request, params}: ActionArgs) => {
+  const {tableId} = params
+  invariant(tableId, 'No se encontró mesa')
+  EVENTS.ISSUE_CHANGED(tableId, 'endOrder')
+  return json({success: true})
+}
 export async function loader({request, params}: LoaderArgs) {
   const {tableId} = params
   invariant(tableId, 'Mesa no encontrada!')

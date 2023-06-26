@@ -201,6 +201,8 @@ export default function Report() {
         onChange={handleChange}
         className="flex w-full flex-col space-y-2 p-2"
       >
+        <p className="text-center">Los reportes son totalmente anónimos </p>
+
         {by === 'waiter' ? (
           <div className="space-y-2">
             {data.waiters.map((waiter: CartItem) => (

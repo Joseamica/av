@@ -85,6 +85,9 @@ export default function Help() {
             />
           </ItemContainer>
         ))}
+        {data.waiters?.length === 0 && (
+          <p className="text-center">Esta mesa no tiene meseros asignados</p>
+        )}
         {/* <Spacer spaceY="2" /> */}
         <Button className="w-full">Llamar al mesero</Button>
       </Form>

@@ -74,6 +74,9 @@ export default function Help() {
             />
           </ItemContainer>
         ))}
+        {data.managers?.length === 0 && (
+          <p className="text-center">Esta mesa no tiene gerentes asignados</p>
+        )}
         {/* <Spacer spaceY="2" /> */}
         <Button className="w-full">Llamar al gerente</Button>
       </Form>

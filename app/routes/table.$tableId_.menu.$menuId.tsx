@@ -386,9 +386,7 @@ export default function Menu() {
               </div>
               <SendComments />
             </div>
-            {/* <Button name="submittedItemId" value={data.dish.id} className="m-2">
-            Agregar {data.dish.name}
-          </Button> */}
+
             <Button
               name="_action"
               value="proceed"
@@ -401,7 +399,6 @@ export default function Menu() {
             <input type="hidden" name="quantity" value={quantity} />
           </Modal>
         )}
-        {/* <input type="hidden" name="isSticky" value={isSticky ? 'isSticky' : ''} /> */}
       </fetcher.Form>
       <Outlet />
     </>

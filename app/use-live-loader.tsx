@@ -14,8 +14,10 @@ export function useLiveLoader<T>() {
   const {revalidate} = useRevalidator()
 
   useEffect(() => {
-    if (data === 'endOrder') {
-      navigate('loader/endOrder')
+    switch (data) {
+      case 'endOrder':
+        navigate('processes/endOrder')
+        break
     }
 
     revalidate()
