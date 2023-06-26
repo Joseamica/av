@@ -21,7 +21,7 @@ import {
   getPaymentMethods,
   getTipsPercentages,
 } from '~/models/branch.server'
-import {getOrder} from '~/models/order.server'
+import {assignExpirationAndValuesToOrder, getOrder} from '~/models/order.server'
 import {createPayment} from '~/models/payments.server'
 import {assignUserNewPayments} from '~/models/user.server'
 import {validateRedirect} from '~/redirect.server'
@@ -93,7 +93,7 @@ export async function action({request, params}: ActionArgs) {
       branchId,
     )
     await assignUserNewPayments(userId, payingTotal, tip)
-
+    await assignExpirationAndValuesToOrder(amountLeft, tip, payingTotal, order)
     SendWhatsApp(
       '14155238886',
       `5215512956265`,

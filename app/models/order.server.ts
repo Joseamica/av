@@ -62,3 +62,24 @@ export function getOrderTotal(orderId: Order['id']) {
     select: {total: true},
   })
 }
+
+export async function assignExpirationAndValuesToOrder(
+  amountLeft: number,
+  tip: number,
+  total: number,
+  order: Order,
+) {
+  console.time('⏲️Expiration begins and order is updated')
+  if (amountLeft <= total) {
+    await prisma.order.update({
+      where: {id: order.id},
+      data: {
+        paid: true,
+        paidDate: new Date(),
+        tip: Number(order?.tip) + tip,
+      },
+    })
+
+    return console.log('⏲️Expiration begins and order is updated')
+  }
+}

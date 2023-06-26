@@ -31,7 +31,7 @@ import {
   getTipsPercentages,
 } from '~/models/branch.server'
 import {getMenu} from '~/models/menu.server'
-import {getOrder} from '~/models/order.server'
+import {assignExpirationAndValuesToOrder, getOrder} from '~/models/order.server'
 import {createPayment} from '~/models/payments.server'
 import {assignUserNewPayments, getPaidUsers} from '~/models/user.server'
 import {validateRedirect} from '~/redirect.server'
@@ -62,7 +62,8 @@ export async function action({request, params}: ActionArgs) {
   const searchParams = new URLSearchParams(url.search)
   const restAllToTip = formData.get('tip') as string
   const tip = Number(searchParams.get('tip')) as number
-  console.log('tip, restAllToTip', tip, restAllToTip)
+
+  const selectedTip = action === 'normal' ? Number(tip) : Number(restAllToTip)
 
   //WHEN SUBMIT
 
@@ -77,7 +78,7 @@ export async function action({request, params}: ActionArgs) {
       tableId,
       // FIX aqui tiene que tener congruencia con el currency del database, ya que stripe solo acepta ciertas monedas, puedo hacer una condicion o cambiar db a "eur"
       'eur',
-      action === 'normal' ? Number(tip) : Number(restAllToTip),
+      selectedTip,
       order.id,
       paymentMethod,
       userId,
@@ -88,17 +89,23 @@ export async function action({request, params}: ActionArgs) {
     await createPayment(
       paymentMethod,
       amountLeft,
-      action === 'normal' ? Number(tip) : Number(restAllToTip),
+      selectedTip,
       order.id,
       userId,
       branchId,
     )
-    await assignUserNewPayments(userId, amountLeft, Number(tip))
+    await assignUserNewPayments(userId, amountLeft, Number(selectedTip))
+    await assignExpirationAndValuesToOrder(
+      amountLeft,
+      selectedTip,
+      amountLeft,
+      order,
+    )
 
     SendWhatsApp(
       '14155238886',
       `5215512956265`,
-      `El usuario ${userName} ha pagado quiere pagar en efectivo propina ${tip} y total ${amountLeft}`,
+      `El usuario ${userName} ha pagado quiere pagar en efectivo propina ${selectedTip} y total ${amountLeft}`,
     )
     EVENTS.ISSUE_CHANGED(tableId)
 

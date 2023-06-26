@@ -1,6 +1,5 @@
 import type {
   Branch,
-  CartItem,
   Menu,
   Order,
   Table as TableProps,
@@ -15,15 +14,7 @@ import {
   UserCircleIcon,
   UsersIcon,
 } from '@heroicons/react/solid'
-import {
-  Form,
-  Link,
-  Outlet,
-  useLoaderData,
-  useLocation,
-  useNavigation,
-  useSubmit,
-} from '@remix-run/react'
+import {Form, Link, Outlet, useLoaderData} from '@remix-run/react'
 import clsx from 'clsx'
 import {AnimatePresence, motion} from 'framer-motion'
 import {useState} from 'react'
@@ -47,6 +38,7 @@ import {
 import {Modal as ModalPortal} from '~/components/modals'
 import {prisma} from '~/db.server'
 import {EVENTS} from '~/events'
+import {useSessionTimeout} from '~/hooks/use-session-timeout'
 import {getBranch} from '~/models/branch.server'
 import {getMenu} from '~/models/menu.server'
 import {getTable} from '~/models/table.server'
@@ -60,8 +52,6 @@ import {
   getCurrency,
   isOrderExpired,
 } from '~/utils'
-import {useOrderDelete} from '~/hooks/use-session-timeout'
-import React from 'react'
 
 type LoaderData = {
   order: Order & {cartItems: CartItemDetailsProps[]; users: UserWithCart[]}
@@ -173,16 +163,9 @@ export async function loader({request, params}: LoaderArgs) {
 
   const currency = await getCurrency(tableId)
 
-  // if (order && amountLeft <= 0) {
-  //   new Promise(
-  //     resolve =>
-  //       setTimeout(() => {
-  //         resolve(EVENTS.ISSUE_CHANGED(tableId, 'endOrder'))
-  //       }, 10000), // 2 seconds delay
-  //   )
-  // }
-
   if (order && isExpired) {
+    // todo  TAMBIEN USAR EXPIRACION EN MENUID Y CART (mejor en root)
+
     for (let user of order.users) {
       await prisma.user.update({
         where: {
@@ -204,7 +187,7 @@ export async function loader({request, params}: LoaderArgs) {
       where: {id: order.id},
       data: {active: false, table: {disconnect: true}, users: {set: []}},
     })
-    //TODO Redirect to a process which deletes the order and makes the user arrive to the main table
+
     console.log('Order expired...')
   }
 
@@ -232,7 +215,6 @@ export async function action({request, params}: ActionArgs) {
 
   switch (_action) {
     case 'endOrder':
-      // TODO REDIRECT ALL TO ENDED ORDER
       // EVENTS.ISSUE_CHANGED(tableId)
       EVENTS.ISSUE_CHANGED(tableId, 'endOrder')
   }
@@ -250,23 +232,9 @@ export async function action({request, params}: ActionArgs) {
 
 export default function Table() {
   // const data = useLoaderData()
+  useSessionTimeout()
+
   const data = useLiveLoader<LoaderData>()
-
-  const submit = useSubmit()
-  const navigation = useNavigation()
-
-  // React.useEffect(() => {
-  //   if (data.order && data.amountLeft <= 0) {
-  //     const timeout = setTimeout(() => {
-  //       submit(null, {
-  //         method: 'POST',
-  //         action: `processes/endOrder`,
-  //       })
-  //     }, 10000)
-  //     console.log(timeout)
-  //     return () => clearTimeout(timeout)
-  //   }
-  // }, [submit, navigation, data.amountLeft])
 
   const [selectedUsers, setSelectedUsers] = useState<string[]>([])
   const [filterPerUser, setFilterPerUser] = useState(false)

@@ -1,22 +1,19 @@
 import {ActionArgs, LoaderArgs, json, redirect} from '@remix-run/node'
 import {Form, useActionData, useLoaderData, useNavigate} from '@remix-run/react'
 import clsx from 'clsx'
-import {format, getDate} from 'date-fns'
-import {utcToZonedTime, zonedTimeToUtc} from 'date-fns-tz'
 import React from 'react'
 import invariant from 'tiny-invariant'
 import {Payment, Spacer} from '~/components'
 import {Modal} from '~/components/modal'
-import {prisma} from '~/db.server'
 
 import {EVENTS} from '~/events'
-import useSessionTimeout from '~/hooks/use-session-timeout'
+
 import {
   getBranchId,
   getPaymentMethods,
   getTipsPercentages,
 } from '~/models/branch.server'
-import {getOrder} from '~/models/order.server'
+import {assignExpirationAndValuesToOrder, getOrder} from '~/models/order.server'
 import {createPayment} from '~/models/payments.server'
 import {assignUserNewPayments} from '~/models/user.server'
 import {validateCustom} from '~/models/validations.server'
@@ -109,6 +106,7 @@ export async function action({request, params}: ActionArgs) {
   switch (data.paymentMethod) {
     case 'card':
       try {
+        // TODO assignexpirationandvaluestoOrder lo tengo que implementar en stripe.
         const stripeRedirectUrl = await getStripeSession(
           total * 100 + tip * 100,
           getDomainUrl(request),
@@ -139,26 +137,7 @@ export async function action({request, params}: ActionArgs) {
         branchId,
       )
       await assignUserNewPayments(userId, total, tip)
-      if (amountLeft >= total) {
-        // const date = new Date()
-        // const timeZone = 'America/Mexico_City' // replace this with the user's time zone
-
-        // const zonedDate = utcToZonedTime(date, timeZone)
-        // console.log('zonedDate', zonedDate)
-        await prisma.order.update({
-          where: {id: order.id},
-          data: {
-            paid: true,
-            paidDate: new Date(),
-            tip: Number(order?.tip) + tip,
-          },
-        })
-        //TODO EXPIRATION
-        //poner orden como paid
-        // registrar hora de pago cuando esta en 0
-        // esto no va aqui = pero en el loader verificar si la hora actual es mayor a la hora de pago, si es asi, poner la orden como expired
-        console.log('Expiration begins')
-      }
+      await assignExpirationAndValuesToOrder(amountLeft, tip, total, order)
       SendWhatsApp(
         '14155238886',
         `5215512956265`,
@@ -172,7 +151,6 @@ export async function action({request, params}: ActionArgs) {
 }
 
 export default function CustomPay() {
-  // useSessionTimeout()
   const data = useLoaderData()
   const actionData = useActionData()
   const [amountToPay, setAmountToPay] = React.useState(0)
