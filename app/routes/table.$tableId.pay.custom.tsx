@@ -1,10 +1,13 @@
 import {ActionArgs, LoaderArgs, json, redirect} from '@remix-run/node'
 import {Form, useActionData, useLoaderData, useNavigate} from '@remix-run/react'
 import clsx from 'clsx'
+import {format, getDate} from 'date-fns'
+import {utcToZonedTime, zonedTimeToUtc} from 'date-fns-tz'
 import React from 'react'
 import invariant from 'tiny-invariant'
 import {Payment, Spacer} from '~/components'
 import {Modal} from '~/components/modal'
+import {prisma} from '~/db.server'
 
 import {EVENTS} from '~/events'
 import useSessionTimeout from '~/hooks/use-session-timeout'
@@ -20,7 +23,7 @@ import {validateCustom} from '~/models/validations.server'
 import {validateRedirect} from '~/redirect.server'
 import {getUserId, getUsername} from '~/session.server'
 import {SendWhatsApp} from '~/twilio.server'
-import {getAmountLeftToPay, getCurrency} from '~/utils'
+import {getAmountLeftToPay, getCurrency, getDateTimeTz} from '~/utils'
 import {getDomainUrl, getStripeSession} from '~/utils/stripe.server'
 
 const variants = {
@@ -48,11 +51,18 @@ export async function loader({request, params}: LoaderArgs) {
   const paymentMethods = await getPaymentMethods(tableId)
   const currency = await getCurrency(tableId)
   const amountLeft = await getAmountLeftToPay(tableId)
+  // Set the date to "2018-09-01T16:01:36.386Z"
+
+  // Obtain a Date instance that will render the equivalent Berlin time for the UTC date
+  const dateNow = await getDateTimeTz(tableId)
+  const date = new Date()
+  console.log('dateNow', dateNow, date)
 
   return json({paymentMethods, tipsPercentages, currency, amountLeft})
 }
 
 export async function action({request, params}: ActionArgs) {
+  //TODO VERIFICAR QUE LA ORDEN NO ESTE 100% PAGADA, SI ESTA, ENTONCS PONER UNA HORA DE PAGO, Y SI OTRO USUARIO SE METE Y PASO 2 HORAS, ELIMINARA LA ORDEN
   const {tableId} = params
   invariant(tableId, 'No se encontró mesa')
 
@@ -129,7 +139,22 @@ export async function action({request, params}: ActionArgs) {
         branchId,
       )
       await assignUserNewPayments(userId, total, tip)
+      if (amountLeft >= total) {
+        // const date = new Date()
+        // const timeZone = 'America/Mexico_City' // replace this with the user's time zone
 
+        // const zonedDate = utcToZonedTime(date, timeZone)
+        // console.log('zonedDate', zonedDate)
+        await prisma.order.update({
+          where: {id: order.id},
+          data: {paid: true, paidDate: new Date()},
+        })
+        //TODO EXPIRATION
+        //poner orden como paid
+        // registrar hora de pago cuando esta en 0
+        // esto no va aqui = pero en el loader verificar si la hora actual es mayor a la hora de pago, si es asi, poner la orden como expired
+        console.log('Expiration begins')
+      }
       SendWhatsApp(
         '14155238886',
         `5215512956265`,

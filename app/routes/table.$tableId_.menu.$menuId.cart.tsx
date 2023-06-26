@@ -169,6 +169,8 @@ export async function action({request, params}: ActionArgs) {
           where: {id: order.id},
           data: {
             total: Number(orderTotal.total) + Number(cartItemsTotal),
+            paid: false,
+            paidDate: null,
           },
         })
         // Connect user if not connected

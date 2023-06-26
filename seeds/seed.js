@@ -58,7 +58,7 @@ async function seed() {
     const branch = await prisma.branch.create({
         data: {
             name: 'La Bikina',
-            ppt_image: 'https://firebasestorage.googleapis.com/v0/b/avoqado-d0a24.appspot.com/o/bikina%2Fven-a-disfrutar-de-nuestra.jpeg?alt=media&token=12440861-bdd0-435f-8ad7-0c29c8103f1e',
+            ppt_image: 'https://firebasestorage.googleapis.com/v0/b/avoqado-d0a24.appspot.com/o/kuikku%2FKUIKKU%20(2)%20(1)%20copy.png?alt=media&token=158e8d1b-d24b-406b-85e7-a507b29d84fc',
             email: 'branch1@madrecafe.com',
             phone: '8885551212',
             wifiName: '1A2B3C4D5e%6789',
@@ -115,7 +115,7 @@ async function seed() {
             name: 'DESAYUNO',
             type: 'breakfast',
             branchId: branch.id,
-            image: 'https://firebasestorage.googleapis.com/v0/b/avoqado-d0a24.appspot.com/o/bikina%2Fven-a-disfrutar-de-nuestra.jpeg?alt=media&token=12440861-bdd0-435f-8ad7-0c29c8103f1e',
+            image: 'https://firebasestorage.googleapis.com/v0/b/avoqado-d0a24.appspot.com/o/kuikku%2FKuikku%20General.JPG?alt=media&token=e585a90e-59dd-499d-97b6-b059a031ff8b',
             allday: true,
             currency: 'euro',
         },
@@ -147,7 +147,7 @@ async function seed() {
     const menuItems = await Promise.all(bikinaMenuCategories.flatMap((category, i) => range(1, 1).map(j => prisma.menuItem.create({
         data: {
             name: `${category.name} Item #${j}`,
-            image: 'https://firebasestorage.googleapis.com/v0/b/avoqado-d0a24.appspot.com/o/Id_001.png?alt=media&token=884c7d94-0f8e-40c2-800d-ea62b888b1d9',
+            image: 'https://firebasestorage.googleapis.com/v0/b/avoqado-d0a24.appspot.com/o/kuikku%2F3.%20TEMAKI%20(HANDROLL)%2FTEMAKI%20NEGITORO.jpg?alt=media&token=08782db0-22ef-49f6-8ac0-4c9c92e59645',
             description: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit.',
             price: getRandom(100, 520),
             available: true,

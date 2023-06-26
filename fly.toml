@@ -51,13 +51,13 @@ soft_limit = 20
 
 [[services.tcp_checks]]
 interval = "15s"
-timeout = "2s"
+timeout = "4s"
 grace_period = "15s"
 restart_limit = 0
 
 [[services.http_checks]]
 interval = "10s"
-timeout = "2s"
+timeout = "4s"
 grace_period = "5s"
 method = "get"
 path = "/healthcheck"

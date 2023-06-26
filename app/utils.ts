@@ -1,3 +1,4 @@
+import {getDate} from 'date-fns'
 import {Branch, Order, Table} from '@prisma/client'
 import {Decimal} from '@prisma/client/runtime'
 import {useMatches} from '@remix-run/react'
@@ -10,6 +11,7 @@ import {getBranchId} from './models/branch.server'
 import invariant from 'tiny-invariant'
 import clsx from 'clsx'
 import {getOrder} from './models/order.server'
+import {format, utcToZonedTime} from 'date-fns-tz'
 
 const DEFAULT_REDIRECT = '/'
 
@@ -145,20 +147,20 @@ export async function getAmountLeftToPay(
   // orderId?: Order[`id`],
 ) {
   const order = await getOrder(tableId)
-  if (order) {
-    const payments = await prisma.payments.aggregate({
-      where: {orderId: order.id},
-      _sum: {amount: true},
-    })
+  invariant(order, 'order should be defined')
 
-    const totalPayments = Number(payments._sum.amount)
-    const getTotalBill = await prisma.order.aggregate({
-      _sum: {total: true},
-      where: {id: order.id},
-    })
-    const totalBill = Number(getTotalBill._sum.total)
-    return Number(totalBill - totalPayments)
-  }
+  const payments = await prisma.payments.aggregate({
+    where: {orderId: order.id},
+    _sum: {amount: true},
+  })
+
+  const totalPayments = Number(payments._sum.amount)
+  const getTotalBill = await prisma.order.aggregate({
+    _sum: {total: true},
+    where: {id: order.id},
+  })
+  const totalBill = Number(getTotalBill._sum.total)
+  return Number(totalBill - totalPayments)
 }
 
 export function getRandomColor() {
@@ -168,4 +170,31 @@ export function getRandomColor() {
     color += value.toString(16)
   }
   return color
+}
+
+export async function getDateTimeTz(tableId: string) {
+  const branchId = await getBranchId(tableId)
+  const dateOfPayment = await prisma.payments.findFirst({})
+  const timeZone = await prisma.branch
+    .findUnique({
+      where: {id: branchId},
+      select: {timezone: true},
+    })
+    .then(branch => branch?.timezone)
+
+  if (!timeZone) {
+    return null
+  }
+
+  const date = new Date()
+
+  const zonedDate = utcToZonedTime(date, timeZone)
+  // zonedDate could be used to initialize a date picker or display the formatted local date/time
+
+  // Set the output to "1.9.2018 18:01:36.386 GMT+02:00 (CEST)"
+  const pattern = "d.M.yyyy HH:mm:ss.SSS 'GMT' XXX (z)"
+  const output = format(zonedDate, pattern, {timeZone: 'America/Mexico_City'})
+  const d = new Date(output)
+  console.log('d', d)
+  return output
 }

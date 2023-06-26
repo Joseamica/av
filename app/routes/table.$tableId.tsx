@@ -166,6 +166,15 @@ export async function loader({request, params}: LoaderArgs) {
 
   const currency = await getCurrency(tableId)
 
+  // if (order && amountLeft <= 0) {
+  //   new Promise(
+  //     resolve =>
+  //       setTimeout(() => {
+  //         resolve(EVENTS.ISSUE_CHANGED(tableId, 'endOrder'))
+  //       }, 10000), // 2 seconds delay
+  //   )
+  // }
+
   return json({
     table,
     branch,
@@ -213,18 +222,18 @@ export default function Table() {
   const submit = useSubmit()
   const navigation = useNavigation()
 
-  React.useEffect(() => {
-    if (data.order && data.amountLeft <= 0) {
-      const timeout = setTimeout(() => {
-        submit(null, {
-          method: 'POST',
-          action: `processes/endOrder`,
-        })
-      }, 10000)
-      console.log(timeout)
-      return () => clearTimeout(timeout)
-    }
-  }, [submit, navigation, data.amountLeft])
+  // React.useEffect(() => {
+  //   if (data.order && data.amountLeft <= 0) {
+  //     const timeout = setTimeout(() => {
+  //       submit(null, {
+  //         method: 'POST',
+  //         action: `processes/endOrder`,
+  //       })
+  //     }, 10000)
+  //     console.log(timeout)
+  //     return () => clearTimeout(timeout)
+  //   }
+  // }, [submit, navigation, data.amountLeft])
 
   const [selectedUsers, setSelectedUsers] = useState<string[]>([])
   const [filterPerUser, setFilterPerUser] = useState(false)
