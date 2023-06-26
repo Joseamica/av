@@ -389,7 +389,12 @@ export default function Menu() {
             {/* <Button name="submittedItemId" value={data.dish.id} className="m-2">
             Agregar {data.dish.name}
           </Button> */}
-            <Button name="_action" value="proceed" className="m-2">
+            <Button
+              name="_action"
+              value="proceed"
+              className="m-2"
+              disabled={isSubmitting}
+            >
               Agregar {data.dish.name}
             </Button>
             <input type="hidden" name="submittedItemId" value={data.dish.id} />

@@ -15,7 +15,6 @@ import {
   Payment,
   SectionContainer,
 } from '~/components'
-import {P} from '~/components/payment'
 import {prisma} from '~/db.server'
 import {EVENTS} from '~/events'
 import {
@@ -202,7 +201,6 @@ export default function PerPerson() {
   const navigate = useNavigate()
   const data = useLiveLoader<typeof loader>()
   const [amountToPay, setAmountToPay] = React.useState(0)
-  console.log('amountToPay', amountToPay)
 
   const handleAmountChange = (
     event: React.ChangeEvent<HTMLInputElement>,

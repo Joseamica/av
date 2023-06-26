@@ -45,7 +45,7 @@ export const action = async ({request}: ActionArgs) => {
     throw json({errors: [{message: err.message}]}, 400)
   }
 
-  console.log('event', event)
+  // console.log('event', event)
 
   const stripeSession = event.data.object as Stripe.Checkout.Session
   const metadata = stripeSession.metadata ?? ({} as Metadata)

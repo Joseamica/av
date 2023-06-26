@@ -1,17 +1,15 @@
 import {ChevronRightIcon} from '@heroicons/react/outline'
 import {ChevronUpIcon} from '@heroicons/react/solid'
+import {useNavigation} from '@remix-run/react'
+import clsx from 'clsx'
 import {AnimatePresence, motion} from 'framer-motion'
-import React, {useEffect, useState} from 'react'
+import React from 'react'
 import {formatCurrency} from '~/utils'
 import {Button} from './buttons/button'
-import {RadioInputButton} from './buttons/input'
+import {SubModal} from './modal'
 import {FlexRow} from './util/flexrow'
 import {Spacer} from './util/spacer'
 import {H2, H3, H4, H5, H6} from './util/typography'
-import {Modal, SubModal} from './modal'
-import {Form, useNavigation} from '@remix-run/react'
-import clsx from 'clsx'
-import {PaymentMethod} from '@prisma/client'
 
 const variants = {
   hidden: {

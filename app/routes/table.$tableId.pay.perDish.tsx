@@ -249,14 +249,16 @@ export default function PerDish() {
 
                 <FlexRow>
                   <H4 className={clsx({' line-through ': item.paid})}>
-                    {formatCurrency(data.currency, item.price)}
+                    {formatCurrency(data.currency, item.price * item.quantity)}
                   </H4>
                   {item.paid ? (
                     <H6 className="rounded-full p-1 text-success">{`Pagado ${item.paidBy}`}</H6>
                   ) : (
                     <input
                       type="checkbox"
-                      onChange={event => handleAmountChange(event, item.price)}
+                      onChange={event =>
+                        handleAmountChange(event, item.price * item.quantity)
+                      }
                       name={`item-${item.id}`}
                       className="h-5 w-5"
                     />
@@ -264,7 +266,7 @@ export default function PerDish() {
                   <input
                     type="hidden"
                     name={`price-${item.id}`}
-                    value={item.price}
+                    value={item.price * item.quantity}
                   />
                 </FlexRow>
               </ItemContainer>
