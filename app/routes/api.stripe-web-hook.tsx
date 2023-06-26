@@ -90,6 +90,7 @@ export const action = async ({request}: ActionArgs) => {
           data: {
             active: false,
             paid: true,
+            paidDate: new Date(),
           },
         })
       }

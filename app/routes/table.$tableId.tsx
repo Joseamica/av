@@ -54,7 +54,12 @@ import {getPaidUsers, getUsersOnTable} from '~/models/user.server'
 import {validateUserIntegration} from '~/models/validations.server'
 import {getSession} from '~/session.server'
 import {useLiveLoader} from '~/use-live-loader'
-import {formatCurrency, getAmountLeftToPay, getCurrency} from '~/utils'
+import {
+  formatCurrency,
+  getAmountLeftToPay,
+  getCurrency,
+  isOrderExpired,
+} from '~/utils'
 import {useOrderDelete} from '~/hooks/use-session-timeout'
 import React from 'react'
 
@@ -146,10 +151,12 @@ export async function loader({request, params}: LoaderArgs) {
 
   let paidUsers = null
   let amountLeft = null
+  let isExpired = null
 
   if (order) {
     paidUsers = await getPaidUsers(order.id)
     amountLeft = await getAmountLeftToPay(tableId)
+    isExpired = isOrderExpired(order.paidDate)
   }
 
   const total = Number(order?.total)
@@ -174,6 +181,32 @@ export async function loader({request, params}: LoaderArgs) {
   //       }, 10000), // 2 seconds delay
   //   )
   // }
+
+  if (order && isExpired) {
+    for (let user of order.users) {
+      await prisma.user.update({
+        where: {
+          id: user.id,
+        },
+        data: {
+          tip: 0,
+          paid: 0,
+          total: 0,
+          orders: {disconnect: true},
+          cartItems: {set: []},
+
+          // tableId: null,
+          // tables: {disconnect: true},
+        },
+      })
+    }
+    await prisma.order.update({
+      where: {id: order.id},
+      data: {active: false, table: {disconnect: true}, users: {set: []}},
+    })
+    //TODO Redirect to a process which deletes the order and makes the user arrive to the main table
+    console.log('Order expired...')
+  }
 
   return json({
     table,

@@ -147,7 +147,11 @@ export async function action({request, params}: ActionArgs) {
         // console.log('zonedDate', zonedDate)
         await prisma.order.update({
           where: {id: order.id},
-          data: {paid: true, paidDate: new Date()},
+          data: {
+            paid: true,
+            paidDate: new Date(),
+            tip: Number(order?.tip) + tip,
+          },
         })
         //TODO EXPIRATION
         //poner orden como paid

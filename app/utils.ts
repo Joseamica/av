@@ -198,3 +198,16 @@ export async function getDateTimeTz(tableId: string) {
   console.log('d', d)
   return output
 }
+
+export function isOrderExpired(orderPaidDate: Date | null, hoursToExpire = 2) {
+  if (!orderPaidDate) {
+    return null
+  }
+  const MILLISECONDS_IN_AN_HOUR = 3600000
+  const currentDate = new Date()
+  const expiryDate = new Date(
+    orderPaidDate.getTime() + hoursToExpire * MILLISECONDS_IN_AN_HOUR,
+  )
+
+  return currentDate.getTime() >= expiryDate.getTime()
+}
