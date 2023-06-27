@@ -1,17 +1,15 @@
-import {getDate} from 'date-fns'
-import {Branch, Order, Table} from '@prisma/client'
-import {Decimal} from '@prisma/client/runtime'
+import type {Decimal} from '@prisma/client/runtime'
+import type {Order, Table} from '@prisma/client'
 import {useMatches} from '@remix-run/react'
 import {useMemo} from 'react'
 
+import {format, utcToZonedTime} from 'date-fns-tz'
+import invariant from 'tiny-invariant'
 import type {User} from '~/models/user.server'
 import {prisma} from './db.server'
-import {getMenu} from './models/menu.server'
 import {getBranchId} from './models/branch.server'
-import invariant from 'tiny-invariant'
-import clsx from 'clsx'
+import {getMenu} from './models/menu.server'
 import {getOrder} from './models/order.server'
-import {format, utcToZonedTime} from 'date-fns-tz'
 
 const DEFAULT_REDIRECT = '/'
 
@@ -108,7 +106,7 @@ export async function getCurrency(tableId: Table['id']) {
   invariant(branchId, 'branchId should be defined')
 
   const currency = await getMenu(branchId).then(
-    (menu: Menu) => menu?.currency || 'mxn',
+    (menu: any) => menu?.currency || 'mxn',
   )
 
   switch (currency) {
@@ -174,7 +172,7 @@ export function getRandomColor() {
 
 export async function getDateTimeTz(tableId: string) {
   const branchId = await getBranchId(tableId)
-  const dateOfPayment = await prisma.payments.findFirst({})
+
   const timeZone = await prisma.branch
     .findUnique({
       where: {id: branchId},

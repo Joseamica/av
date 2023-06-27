@@ -59,7 +59,6 @@ export async function loader({request, params}: LoaderArgs) {
 }
 
 export async function action({request, params}: ActionArgs) {
-  //TODO VERIFICAR QUE LA ORDEN NO ESTE 100% PAGADA, SI ESTA, ENTONCS PONER UNA HORA DE PAGO, Y SI OTRO USUARIO SE METE Y PASO 2 HORAS, ELIMINARA LA ORDEN
   const {tableId} = params
   invariant(tableId, 'No se encontró mesa')
 
