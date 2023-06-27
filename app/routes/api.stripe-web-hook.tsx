@@ -1,13 +1,10 @@
-import type {PaymentMethod, User} from '@prisma/client'
+import type {PaymentMethod} from '@prisma/client'
 import type {ActionArgs} from '@remix-run/node'
 import {json} from '@remix-run/node'
 import Stripe from 'stripe'
-import invariant from 'tiny-invariant'
 import {prisma} from '~/db.server'
 import {EVENTS} from '~/events'
-import {assignExpirationAndValuesToOrder} from '~/models/order.server'
 import {assignUserNewPayments} from '~/models/user.server'
-import {getSession, getUsername} from '~/session.server'
 // import { getUserId } from "~/session.server";
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {

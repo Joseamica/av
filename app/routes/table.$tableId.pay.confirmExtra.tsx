@@ -1,27 +1,9 @@
-import {PaymentMethod} from '@prisma/client'
+import type {PaymentMethod} from '@prisma/client'
 import type {ActionArgs, LoaderArgs} from '@remix-run/node'
 import {json, redirect} from '@remix-run/node'
-import {
-  Form,
-  useLoaderData,
-  useLocation,
-  useNavigate,
-  useSearchParams,
-  useSubmit,
-} from '@remix-run/react'
-import React from 'react'
+import {Form, useNavigate, useSearchParams} from '@remix-run/react'
 import invariant from 'tiny-invariant'
-import {
-  BillAmount,
-  Button,
-  H1,
-  H2,
-  H3,
-  H5,
-  LinkButton,
-  Payment,
-  Spacer,
-} from '~/components'
+import {BillAmount, Button, H1, H5, LinkButton, Spacer} from '~/components'
 import {Modal} from '~/components/modal'
 import {prisma} from '~/db.server'
 import {EVENTS} from '~/events'
@@ -30,7 +12,6 @@ import {
   getPaymentMethods,
   getTipsPercentages,
 } from '~/models/branch.server'
-import {getMenu} from '~/models/menu.server'
 import {assignExpirationAndValuesToOrder, getOrder} from '~/models/order.server'
 import {createPayment} from '~/models/payments.server'
 import {assignUserNewPayments, getPaidUsers} from '~/models/user.server'
@@ -65,12 +46,9 @@ export async function action({request, params}: ActionArgs) {
 
   const selectedTip = action === 'normal' ? Number(tip) : Number(restAllToTip)
 
-  //WHEN SUBMIT
-
   const amountLeft = (await getAmountLeftToPay(tableId)) || 0
   const userId = await getUserId(request)
 
-  // NOTE - esto va aqui porque si el metodo de pago es otro que no sea tarjeta, entonces que cree el pago directo, sin stripe (ya que stripe tiene su propio create payment en el webhook)
   if (paymentMethod === 'card') {
     const stripeRedirectUrl = await getStripeSession(
       amountLeft * 100 + Number(tip) * 100,
@@ -135,10 +113,8 @@ export async function loader({request, params}: LoaderArgs) {
   const amountLeft = await getAmountLeftToPay(tableId)
   const currency = await getCurrency(tableId)
 
-  let paidUsers = null
-  if (order) {
-    paidUsers = await getPaidUsers(order.id)
-  }
+  const paidUsers = await getPaidUsers(order.id)
+
   const total = order.total
 
   return json({
@@ -158,28 +134,15 @@ export default function EqualParts() {
   const data = useLiveLoader<typeof loader>()
 
   const [searchParams, setSearchParams] = useSearchParams()
+
   const redirectTo = searchParams.get('redirectTo')
   const tip = Number(searchParams.get('tip')) as number
   const total = Number(searchParams.get('total')) as number
   const paymentMethod = searchParams.get('pMethod') as PaymentMethod
 
-  // const submit = useSubmit()
-  // function handleChange(event: React.FormEvent<HTMLFormElement>) {
-  //   submit(event.currentTarget, {replace: true})
-  // }
-
   return (
-    <Modal
-      onClose={() => navigate('..')}
-      // fullScreen={true}
-      title="Estás siendo super generoso"
-    >
-      <Form
-        method="POST"
-        preventScrollReset
-        // onChange={handleChange}
-        className="p-2"
-      >
+    <Modal onClose={() => navigate('..')} title="Estás siendo super generoso">
+      <Form method="POST" preventScrollReset className="p-2">
         <BillAmount
           amountLeft={data.amountLeft}
           currency={data.currency}
@@ -226,17 +189,6 @@ export default function EqualParts() {
         <input type="hidden" name="paymentMethod" value={paymentMethod} />
         <Spacer spaceY="1" />
         {/* FIX MAKE IT WORK */}
-        {/* <Button name="_action" value="proceed" fullWith={true}>
-          Pagar {formatCurrency(data.currency, Number(total || 0))} y dejar{' '}
-          {formatCurrency(data.currency, +Number(tip || 0))} de propina
-        </Button> */}
-        {/* <Payment
-          total={data.amountLeft}
-          tip={tip}
-          tipsPercentages={data.tipsPercentages}
-          paymentMethods={data.paymentMethods}
-          currency={data.currency}
-        /> */}
         <input
           type="hidden"
           name="tip"

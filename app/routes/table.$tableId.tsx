@@ -99,6 +99,28 @@ export async function loader({request, params}: LoaderArgs) {
       branch.id,
     )
     const sessionId = session.get('sessionId')
+    // session.set('tableSession', tableId)
+
+    // const expiryTime = formatISO(addHours(new Date(), 4))
+    // session.set('expiryTime', expiryTime)
+    // const sessionExpiryTime = session.get('expiryTime')
+
+    // if (
+    //   sessionExpiryTime &&
+    //   compareAsc(new Date(sessionExpiryTime), new Date()) < 0
+    // ) {
+    //   // If the session has expired, delete it
+    //   // await prisma.session.delete({where: {id: sessionId}})
+    //   await prisma.user.update({
+    //     where: {id: userId},
+    //     data: {
+    //       orders: {disconnect: true},
+    //       tables: {disconnect: true},
+    //       sessions: {deleteMany: {}},
+    //     },
+    //   })
+    //   throw await logout(request, pathname)
+    // }
 
     if (!sessionId) {
       throw new Error('No se encontró el ID de la sesión')
