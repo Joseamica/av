@@ -310,7 +310,7 @@ export default function Table() {
                             <H3>{user.name}</H3>
                             <H6>
                               {Number(user.paid) > 0
-                                ? `Pagado: $${formatCurrency(
+                                ? `Pagado: ${formatCurrency(
                                     data.currency,
                                     userPaid,
                                   )}`

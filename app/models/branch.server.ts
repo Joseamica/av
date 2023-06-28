@@ -30,20 +30,26 @@ export async function getTipsPercentages(tableId: Table['id']) {
 
 export async function getPaymentMethods(tableId: Table['id']) {
   const branchId = await getBranchId(tableId)
-  return (
-    prisma.branch.findFirst({
-      where: {id: branchId},
-      select: {
-        firstPaymentMethod: true,
-        secondPaymentMethod: true,
-        thirdPaymentMethod: true,
-        fourthPaymentMethod: true,
-      },
-    }) || {
-      firstPaymentMethod: 'cash',
-      secondPaymentMethod: 'card',
-      thirdPaymentMethod: 'paypal',
-      fourthPaymentMethod: 'apple pay',
+  const result = await prisma.branch.findFirst({
+    where: {id: branchId},
+    select: {
+      firstPaymentMethod: true,
+      secondPaymentMethod: true,
+      thirdPaymentMethod: true,
+      fourthPaymentMethod: true,
+    },
+  })
+
+  // Remove null fields
+  if (result) {
+    const nonNullResults = {}
+    for (const [key, value] of Object.entries(result)) {
+      if (value !== null) {
+        nonNullResults[key] = value
+      }
     }
-  )
+    return nonNullResults
+  } else {
+    return null
+  }
 }

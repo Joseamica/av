@@ -1,10 +1,10 @@
 import {ChevronRightIcon} from '@heroicons/react/outline'
 import {ChevronUpIcon} from '@heroicons/react/solid'
-import {useNavigation} from '@remix-run/react'
+import {useMatches, useNavigation, useParams} from '@remix-run/react'
 import clsx from 'clsx'
 import {AnimatePresence, motion} from 'framer-motion'
-import React from 'react'
-import {formatCurrency} from '~/utils'
+import React, {useState} from 'react'
+import {formatCurrency, useMatchesData} from '~/utils'
 import {Button} from './buttons/button'
 import {SubModal} from './modal'
 import {FlexRow} from './util/flexrow'
@@ -283,7 +283,6 @@ export function Payment({
 
   const handleTipChange = e => {
     setTipRadio(Number(e.target.value))
-    // submit(e.target.form, {method: 'post'})
   }
   const handleMethodChange = e => {
     setPaymentRadio(e.target.value)
@@ -297,10 +296,16 @@ export function Payment({
   const tipPercentages = [...Object.values(tipsPercentages), '0']
 
   const showPayContent = total > 0
+  const params = useParams()
+  // const matches = useMatchesData(params.)
+  const matches = useMatches()
+  console.log('matches', matches)
+  const match = matches.find(match => match.id === 'routes/table.$tableId')
+  console.log('match', match)
 
   return (
     <>
-      <div className="dark:bg-night-bg_principal dark:text-night-text_principal sticky inset-x-0 bottom-0 flex flex-col justify-center rounded-t-xl border-2 border-button-outline border-opacity-30 bg-day-bg_principal px-3">
+      <div className="dark:bg-night-bg_principal dark:text-night-text_principal sticky inset-x-0 bottom-0 flex flex-col justify-center rounded-t-xl border-2 border-button-textNotSelected border-opacity-70 bg-day-bg_principal px-3">
         <Spacer spaceY="2" />
         <FlexRow justify="between" className={clsx({'py-2': !showPayContent})}>
           {showPayContent ? (
@@ -376,7 +381,7 @@ export function Payment({
               <hr />
               <Spacer spaceY="1" />
               <FlexRow justify="between">
-                <H5>Total por pagar:</H5>
+                <H5>Vas a pagar:</H5>
                 <div className="flex flex-col">
                   <H2>{formatCurrency(currency, total ? total : 0)}</H2>
                   <svg
@@ -446,7 +451,7 @@ export function AssignTipModal({
       onClose={() => setShowModal({...showModal, tip: false})}
       title="Asignar propina"
     >
-      <FlexRow justify="between">
+      <div className="space-y-2">
         {tipPercentages.map((tipPercentage: any) => (
           <label
             key={tipPercentage}
@@ -459,7 +464,7 @@ export function AssignTipModal({
             )}
           >
             <div>
-              <H3>{tipPercentage}%</H3>
+              <H2>{tipPercentage}%</H2>
               <H5>
                 {formatCurrency(
                   currency,
@@ -477,7 +482,7 @@ export function AssignTipModal({
             />
           </label>
         ))}
-      </FlexRow>
+      </div>
       <Spacer spaceY="2" />
       <Button
         fullWith={true}
@@ -502,28 +507,32 @@ export function AssignPaymentMethodModal({
       title="Asignar método de pago"
     >
       <div className="space-y-2">
-        {Object.values(paymentMethods).map((paymentMethod: any) => (
-          <label
-            key={paymentMethod}
-            className={clsx(
-              'flex w-full flex-row items-center justify-center space-x-2 rounded-lg border border-button-outline border-opacity-40 px-3 py-2 shadow-lg',
-              {
-                'text-2 rounded-full bg-button-primary px-2 py-1  text-white  ring-4   ring-button-outline':
-                  paymentRadio === paymentMethod,
-              },
-            )}
-          >
-            {paymentMethod}
-            <input
-              type="radio"
-              name="paymentMethod"
-              // defaultChecked={paymentMethod === 'cash'}
-              value={paymentMethod}
-              onChange={handleMethodChange}
-              className="sr-only"
-            />
-          </label>
-        ))}
+        {Object.values(paymentMethods).map((paymentMethod: any) => {
+          const translate = paymentMethod === 'cash' ? 'Efectivo' : 'Tarjeta'
+
+          return (
+            <label
+              key={paymentMethod}
+              className={clsx(
+                'flex w-full flex-row items-center justify-center space-x-2 rounded-lg border border-button-outline border-opacity-40 px-3 py-2 shadow-lg',
+                {
+                  'text-2 rounded-full bg-button-primary px-2 py-3  text-white  ring-4   ring-button-outline':
+                    paymentRadio === paymentMethod,
+                },
+              )}
+            >
+              {translate}
+              <input
+                type="radio"
+                name="paymentMethod"
+                // defaultChecked={paymentMethod === 'cash'}
+                value={paymentMethod}
+                onChange={handleMethodChange}
+                className="sr-only"
+              />
+            </label>
+          )
+        })}
         <Button
           fullWith={true}
           onClick={() => setShowModal({...showModal, payment: false})}
