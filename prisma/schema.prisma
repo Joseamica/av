@@ -60,6 +60,8 @@ model Branch {
 model Table {
   id                String     @id @default(cuid())
   table_number      Int
+  floorId           String?
+  seats             Int?
   order_in_progress Boolean
   branch            Branch     @relation(fields: [branchId], references: [id], onDelete: Cascade, onUpdate: Cascade)
   branchId          String

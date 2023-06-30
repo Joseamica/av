@@ -42,6 +42,7 @@ export async function action({request, params}: ActionArgs) {
   const {branchId, menuId} = params
   const formData = await request.formData()
   const data = Object.fromEntries(formData.entries())
+  console.log('data', data)
 
   const name = formData.get('name') as string
   const image = formData.get('image') as string
@@ -118,6 +119,45 @@ export async function action({request, params}: ActionArgs) {
     url.searchParams.delete('editItemId')
     return redirect(url.pathname + url.search)
   }
+  if (data._action === 'deleteMenu') {
+    await prisma.menu.delete({
+      where: {
+        id: menuId,
+      },
+    })
+    url.searchParams.delete('delMenu')
+    return redirect(url.pathname + url.search)
+  }
+  if (data._action === 'editMenu') {
+    const menuData = Object.fromEntries(
+      Object.entries(data).filter(([key, value]) => {
+        return (
+          typeof value === 'string' &&
+          value !== '' &&
+          key !== '_action' &&
+          !value.includes('[object')
+        )
+      }),
+    )
+
+    await prisma.menu.update({
+      where: {
+        id: menuId,
+      },
+      data: {
+        ...menuData,
+        allday: data.allday === 'on' ? true : false,
+      },
+    })
+  }
+  if (data._action === 'addCategory') {
+    await prisma.menuCategory.create({
+      data: {
+        name: data.name,
+        menuId: menuId,
+      },
+    })
+  }
 
   return json({success: true})
 }
@@ -160,29 +200,104 @@ export default function AdminMenuId() {
                 <LinkButton size="small" to={`?categoryId=${category.id}`}>
                   {category.name}
                 </LinkButton>
-                <Link to={`?categoryId=${data.menuCategory?.id}&editItemId=`}>
+                <Link to={`?categoryId=${category.id}&edit=true`}>
                   <AiFillEdit />
                 </Link>
-                <Link
-                  to={`?categoryId=${data.menuCategory?.id}&editItemId=&del=true`}
-                >
+                <Link to={`?categoryId=${category?.id}&del=true`}>
                   <AiFillDelete />
                 </Link>
               </FlexRow>
             ))}
           </div>
+          <Spacer spaceY="2" />
+          <LinkButton to="?addCategory=true">Add Category</LinkButton>
+          {searchParams.get('addCategory') && (
+            <Modal
+              onClose={() => {
+                searchParams.delete('addCategory')
+                setSearchParams(searchParams)
+              }}
+              title="Add category"
+            >
+              <div className="space-y-2 p-2">
+                <label>Name</label>
+                <input type="text" name="name" />
+                <Button
+                  name="_action"
+                  value="addCategory"
+                  fullWith={true}
+                  type="submit"
+                >
+                  Submit
+                </Button>
+              </div>
+            </Modal>
+          )}
           {searchParams.get('editMenu') && (
-            <Modal>
-              <Button name="asignImageMenu" value="true">
-                asign image to menu
-              </Button>
+            <Modal
+              onClose={() => {
+                searchParams.delete('editMenu')
+                setSearchParams(searchParams)
+              }}
+              title="Edit menu"
+            >
+              <div className="space-y-2 p-2">
+                {Object.entries(data.menu)
+                  .filter(
+                    ([key, value]) => key !== 'id' && key !== 'menuCategories',
+                  ) // Exclude 'id' from the keys
+                  .map(([key, value]) => {
+                    if (typeof value === 'boolean') {
+                      return (
+                        <FlexRow key={key}>
+                          <label>{key}</label>
+                          <input
+                            type="checkbox"
+                            name={key}
+                            defaultChecked={value}
+                            className="h-5 w-5"
+                          />
+                        </FlexRow>
+                      )
+                    } else {
+                      return (
+                        <FlexRow key={key}>
+                          <label className="capitalize">{key}</label>
+                          <input
+                            type="text"
+                            name={key}
+                            defaultValue={value}
+                            className="dark:bg-DARK_2 dark:ring-DARK_4 w-full rounded-full p-2 dark:ring-1"
+                          />
+                        </FlexRow>
+                      )
+                    }
+                  })}
+                <Button name="_action" value="editMenu" fullWith={true}>
+                  Edit menu
+                </Button>
+              </div>
             </Modal>
           )}
           {searchParams.get('delMenu') && (
-            <Modal>
-              <Button name="delMenu" value="true">
-                asign image to menu
-              </Button>
+            <Modal
+              onClose={() => {
+                searchParams.delete('delMenu')
+                setSearchParams(searchParams)
+              }}
+              title="Delete menu"
+            >
+              <div className="space-y-3 bg-white p-2">
+                <p>Are you sure you want to delete this menu?</p>
+                <Button
+                  variant="danger"
+                  name="_action"
+                  value="deleteMenu"
+                  fullWith={true}
+                >
+                  Eliminar
+                </Button>
+              </div>
             </Modal>
           )}
           {addMenu && (

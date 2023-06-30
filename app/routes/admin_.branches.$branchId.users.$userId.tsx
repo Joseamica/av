@@ -33,8 +33,9 @@ export async function action({request, params}: ActionArgs) {
       },
     })
   }
+  const url = new URL(request.url)
 
-  return json({message: 'ok'})
+  return redirect(`/admin/branches/${branchId}`)
 }
 
 export async function loader({request, params}: LoaderArgs) {
@@ -128,17 +129,19 @@ export default function AdminUserId() {
         title="Delete User"
         handleClose={onClose}
       >
-        <div className="space-y-3 bg-white p-2">
-          <p>Are you sure you want to delete this user?</p>
-          <Button
-            variant="danger"
-            name="_action"
-            value="deleteUser"
-            fullWith={true}
-          >
-            Eliminar
-          </Button>
-        </div>
+        <Form method="POST" className="bg-white p-2">
+          <div className="space-y-3 bg-white p-2">
+            <p>Are you sure you want to delete this user?</p>
+            <Button
+              variant="danger"
+              name="_action"
+              value="deleteUser"
+              fullWith={true}
+            >
+              Eliminar
+            </Button>
+          </div>
+        </Form>
       </Modal>
     </div>
   )

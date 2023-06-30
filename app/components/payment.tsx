@@ -275,6 +275,13 @@ export function Payment({
   amountLeft: number | undefined
   amountToPayState: number
 }) {
+  // const matches = useMatchesData(params.)
+  const matches = useMatches() as any
+
+  const matchData = matches.find(
+    match => match.id === 'routes/table.$tableId',
+  ).data
+
   const navigation = useNavigation()
 
   const [tipRadio, setTipRadio] = React.useState(12)
@@ -296,12 +303,6 @@ export function Payment({
   const tipPercentages = [...Object.values(tipsPercentages), '0']
 
   const showPayContent = total > 0
-  const params = useParams()
-  // const matches = useMatchesData(params.)
-  const matches = useMatches()
-  console.log('matches', matches)
-  const match = matches.find(match => match.id === 'routes/table.$tableId')
-  console.log('match', match)
 
   return (
     <>
@@ -314,9 +315,19 @@ export function Payment({
             <H3>Queda por pagar:</H3>
           )}
           {showPayContent ? (
-            <H3>{formatCurrency(currency, amountLeft ? amountLeft : total)}</H3>
+            <H3>
+              {formatCurrency(
+                matchData.currency,
+                matchData.amountLeft ? matchData.amountLeft : total,
+              )}
+            </H3>
           ) : (
-            <H2>{formatCurrency(currency, amountLeft ? amountLeft : total)}</H2>
+            <H2>
+              {formatCurrency(
+                matchData.currency,
+                matchData.amountLeft ? matchData.amountLeft : total,
+              )}
+            </H2>
           )}
         </FlexRow>
         <Spacer spaceY="1" />
@@ -340,7 +351,7 @@ export function Payment({
                 <FlexRow>
                   <FlexRow>
                     <H4 variant="secondary">{tipRadio}%</H4>
-                    <H3>{formatCurrency(currency, tip)}</H3>
+                    <H3>{formatCurrency(matchData.currency, tip)}</H3>
                   </FlexRow>
                   {showModal.tip ? (
                     <FlexRow className="rounded-full bg-gray_light px-2 py-1">
@@ -383,7 +394,9 @@ export function Payment({
               <FlexRow justify="between">
                 <H5>Vas a pagar:</H5>
                 <div className="flex flex-col">
-                  <H2>{formatCurrency(currency, total ? total : 0)}</H2>
+                  <H2>
+                    {formatCurrency(matchData.currency, total ? total : 0)}
+                  </H2>
                   <svg
                     viewBox="0 0 72 6"
                     fill="none"
@@ -403,7 +416,7 @@ export function Payment({
               <Button fullWith={true} disabled={isSubmitting}>
                 {isSubmitting ? 'Procesando...' : 'Pagar'}{' '}
                 {formatCurrency(
-                  currency,
+                  matchData.currency,
                   total, // Update the total amount
                 )}
               </Button>
@@ -414,7 +427,7 @@ export function Payment({
       {showModal.tip && (
         <AssignTipModal
           amountToPay={amountToPayState}
-          currency={currency}
+          currency={matchData.currency}
           handleTipChange={handleTipChange}
           setShowModal={setShowModal}
           showModal={showModal}

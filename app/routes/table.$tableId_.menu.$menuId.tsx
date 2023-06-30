@@ -193,7 +193,7 @@ export default function Menu() {
 
   const submit = useSubmit()
   function handleChange(event: React.FormEvent<HTMLFormElement>) {
-    submit(event.currentTarget, {replace: true})
+    fetcher.submit(event.currentTarget, {replace: true})
   }
 
   let isSubmitting =

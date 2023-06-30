@@ -1,6 +1,6 @@
 import type {Employee, Menu, Order, Table, User} from '@prisma/client'
 import type {ActionArgs, LoaderArgs} from '@remix-run/node'
-import {json} from '@remix-run/node'
+import {json, redirect} from '@remix-run/node'
 import {
   Form,
   Link,
@@ -28,7 +28,8 @@ export async function loader({request, params}: LoaderArgs) {
       restaurant: true,
       employees: true,
       // FIXME: quitar el method, ya que por ahora estoy viendo solo si sirve stripe
-      payments: {where: {method: 'card'}},
+      // payments: {where: {method: 'card'}},
+      payments: true,
     },
   })
   const menus = await prisma.menu.findMany({where: {branchId}})
@@ -38,7 +39,40 @@ export async function loader({request, params}: LoaderArgs) {
 export async function action({request, params}: ActionArgs) {
   const {branchId} = params
   const formData = await request.formData()
+  let data = Object.fromEntries(formData.entries())
+
   const url = new URL(request.url)
+
+  Object.keys(data).forEach(field => {
+    if (field !== 'phone') {
+      const value = data[field]
+      if (value === '') {
+        data[field] = null // Convert empty strings to null
+      } else if (!isNaN(value)) {
+        data[field] = Number(value) // Convert non-empty numeric strings to numbers
+      }
+    }
+  })
+
+  if (data._action === 'editBranch') {
+    const branchData = Object.fromEntries(
+      Object.entries(data).filter(([key, value]) => {
+        return (
+          ((typeof value === 'string' &&
+            value !== '' &&
+            !value.includes('[object')) ||
+            typeof value === 'number') &&
+          key !== '_action'
+        )
+      }),
+    )
+
+    await prisma.branch.update({
+      where: {id: branchId},
+      data: {...branchData},
+    })
+  }
+
   await prisma.branch.update({
     where: {id: branchId},
     data: {
@@ -47,11 +81,12 @@ export async function action({request, params}: ActionArgs) {
     },
   })
 
-  return json({success: true})
+  return redirect(url.pathname)
 }
 
 export default function AdminBranch() {
   const data = useLoaderData()
+
   const [show, setShow] = React.useState({
     table: false,
     user: false,
@@ -62,7 +97,8 @@ export default function AdminBranch() {
     payment: false,
   })
   const matches = useMatches()
-  const [searchParams] = useSearchParams()
+  const [searchParams, setSearchParams] = useSearchParams()
+
   return (
     <div>
       <Spacer spaceY="2" />
@@ -144,12 +180,12 @@ export default function AdminBranch() {
                       {menu.name}
                     </Link>
                     <div>
-                      <button>
+                      <Link to={`menus/${menu.id}?delMenu=true`}>
                         <AiFillDelete />
-                      </button>
-                      <button>
+                      </Link>
+                      <Link to={`menus/${menu.id}?editMenu=true`}>
                         <AiFillEdit />
-                      </button>
+                      </Link>
                     </div>
                   </FlexRow>
                 ))}
@@ -178,12 +214,12 @@ export default function AdminBranch() {
                       {order.id}
                     </Link>
                     <FlexRow>
-                      <button>
+                      <Link to={`orders/${order.id}?delUser=true`}>
                         <AiFillDelete />
-                      </button>
-                      <button>
+                      </Link>
+                      <Link to={`orders/${order.id}?editUser=true`}>
                         <AiFillEdit />
-                      </button>
+                      </Link>
                     </FlexRow>
                   </FlexRow>
                 ))}
@@ -213,12 +249,12 @@ export default function AdminBranch() {
                       {user.name}
                     </Link>
                     <FlexRow>
-                      <button>
+                      <Link to={`users/${user.id}?delUser=true`}>
                         <AiFillDelete />
-                      </button>
-                      <button>
+                      </Link>
+                      <Link to={`users/${user.id}?editUser=true`}>
                         <AiFillEdit />
-                      </button>
+                      </Link>
                     </FlexRow>
                   </FlexRow>
                 ))}
@@ -248,12 +284,12 @@ export default function AdminBranch() {
                       {employee.name}
                     </Link>
                     <FlexRow>
-                      <button>
+                      <Link to={`employees/${employee.id}?delEmployee=true`}>
                         <AiFillDelete />
-                      </button>
-                      <button>
+                      </Link>
+                      <Link to={`employees/${employee.id}?editEmployee=true`}>
                         <AiFillEdit />
-                      </button>
+                      </Link>
                     </FlexRow>
                   </FlexRow>
                 ))}
@@ -296,17 +332,72 @@ export default function AdminBranch() {
             )}
           </div>
         </div>
+        {searchParams.get('editBranch') && (
+          <Modal
+            onClose={() => {
+              searchParams.delete('editBranch')
+              setSearchParams(searchParams)
+            }}
+            title="Editar Sucursal"
+          >
+            <Form method="POST">
+              <div className="space-y-2 p-2">
+                {Object.entries(data.branch)
+                  .filter(
+                    ([key, value]) =>
+                      key !== 'id' && !String(value).includes('[object'),
+                  )
+
+                  .map(([key, value]) => {
+                    if (typeof value === 'boolean') {
+                      return (
+                        <FlexRow key={key}>
+                          <label>{key}</label>
+                          <input
+                            type="checkbox"
+                            name={key}
+                            defaultChecked={value}
+                            className="h-5 w-5"
+                          />
+                        </FlexRow>
+                      )
+                    } else if (typeof value === 'number') {
+                      return (
+                        <FlexRow key={key}>
+                          <label className="capitalize">{key}</label>
+                          <input
+                            type="number"
+                            name={key}
+                            defaultValue={Number(value)}
+                            className="dark:bg-DARK_2 dark:ring-DARK_4 w-full rounded-full p-2 dark:ring-1"
+                          />
+                        </FlexRow>
+                      )
+                    } else {
+                      return (
+                        <FlexRow key={key}>
+                          <label className="capitalize">{key}</label>
+                          <input
+                            type="text"
+                            name={key}
+                            defaultValue={value}
+                            className="dark:bg-DARK_2 dark:ring-DARK_4 w-full rounded-full p-2 dark:ring-1"
+                          />
+                        </FlexRow>
+                      )
+                    }
+                  })}
+                <Button name="_action" value="editBranch" fullWith={true}>
+                  Edit branch
+                </Button>
+              </div>
+            </Form>
+          </Modal>
+        )}
         <div className="col-span-3">
           <Outlet />
         </div>
       </div>
-      {searchParams.get('editBranch') && (
-        <Modal>
-          <Form method="post">
-            <Button>asign image</Button>
-          </Form>
-        </Modal>
-      )}
     </div>
   )
 }
