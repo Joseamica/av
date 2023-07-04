@@ -8,7 +8,7 @@ async function seed() {
   console.time(`🌱 Database has been seeded`)
 
   console.time('🧹 Cleaned up the database...')
-  await prisma.restaurant.deleteMany()
+  // await prisma.restaurant.deleteMany()
   await prisma.branch.deleteMany()
   await prisma.table.deleteMany()
   await prisma.employee.deleteMany()
@@ -54,15 +54,15 @@ async function seed() {
 
   // })
 
-  const restaurant = await prisma.restaurant.create({
-    data: {
-      name: 'Guavos',
-      logo: 'https://madre-cafe.com/wp-content/uploads/2021/11/logo-madre-cafe-header.svg',
-      email: 'info@madrecafe.com',
-      phone: '+525561412847',
-      adminEmail: 'joseamica@gmail.com',
-    },
-  })
+  // const restaurant = await prisma.restaurant.create({
+  //   data: {
+  //     name: 'Guavos',
+  //     logo: 'https://madre-cafe.com/wp-content/uploads/2021/11/logo-madre-cafe-header.svg',
+  //     email: 'info@madrecafe.com',
+  //     phone: '+525561412847',
+  //     adminEmail: 'joseamica@gmail.com',
+  //   },
+  // })
 
   const branch = await prisma.branch.create({
     data: {
@@ -82,7 +82,7 @@ async function seed() {
       cuisine: 'Mexicana',
       open: 7,
       close: 24,
-      restaurant: {connect: {id: restaurant.id}},
+      // restaurant: {connect: {id: restaurant.id}},
     },
   })
 

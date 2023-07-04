@@ -45,7 +45,7 @@ import {getMenu} from '~/models/menu.server'
 import {getTable} from '~/models/table.server'
 import {getPaidUsers, getUsersOnTable} from '~/models/user.server'
 import {validateUserIntegration} from '~/models/validations.server'
-import {getSession} from '~/session.server'
+import {getSession, getToken} from '~/session.server'
 import {useLiveLoader} from '~/use-live-loader'
 import {
   formatCurrency,
@@ -212,7 +212,6 @@ export async function action({request, params}: ActionArgs) {
   invariant(tableId, 'Mesa no encontrada!')
   const formData = await request.formData()
   const _action = formData.get('_action') as string
-  const session = await getSession(request)
 
   switch (_action) {
     case 'endOrder':
@@ -222,14 +221,6 @@ export async function action({request, params}: ActionArgs) {
 
   return json({success: true})
 }
-
-// interface UserWithCart extends User {
-//   cartItems: CartItemDetailsProps[]
-// }
-
-// interface CartItemDetailsProps extends CartItem {
-//   user: User[]
-// }
 
 export default function Table() {
   // const data = useLoaderData()
@@ -269,6 +260,16 @@ export default function Table() {
         </h3>
         <Spacer spaceY="2" />
         <Help />
+        <Form method="POST" action="/oauth/token">
+          <button>Assign Token</button>
+        </Form>
+        <Form method="GET" action="/oauth/token">
+          <button>Get Token</button>
+        </Form>
+        <Form method="POST" action="/api/createOrder">
+          <button>createOrder</button>
+        </Form>
+
         <BillAmount
           amountLeft={data.amountLeft}
           currency={data.currency}

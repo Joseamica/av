@@ -7,17 +7,17 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-model Restaurant {
-  id         String   @id @default(cuid())
-  name       String
-  logo       String
-  email      String
-  phone      String
-  adminEmail String
-  branches   Branch[]
-  user       User[]
-  userId     String?
-}
+// model Restaurant {
+//   id         String   @id @default(cuid())
+//   name       String
+//   logo       String?
+//   email      String?
+//   phone      String?
+//   adminEmail String?
+//   branches   Branch[]
+//   user       User[]
+//   userId     String?
+// }
 
 model Branch {
   id                  String     @id @default(cuid())
@@ -31,7 +31,8 @@ model Branch {
   rating              Float?
   rating_quantity     Int?
   cuisine             String
-  restaurantId        String
+  // restaurantId        String
+  deliverectToken     String?
   timezone            String?
   wifiName            String?
   wifipwd             String?
@@ -39,7 +40,7 @@ model Branch {
   facebook            String?
   twitter             String?
   open                Int?
-  close               Int
+  close               Int?
   firstTip            Decimal?   @default(10)
   secondTip           Decimal?   @default(12)
   thirdTip            Decimal?   @default(15)
@@ -47,7 +48,7 @@ model Branch {
   secondPaymentMethod String?    @default("card")
   thirdPaymentMethod  String?    @default("paypal")
   fourthPaymentMethod String?    @default("apple_pay")
-  restaurant          Restaurant @relation(fields: [restaurantId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  // restaurant          Restaurant @relation(fields: [restaurantId], references: [id], onDelete: Cascade, onUpdate: Cascade)
   menus               Menu[]
   table               Table[]
   orders              Order[]
@@ -61,6 +62,7 @@ model Table {
   id                String     @id @default(cuid())
   table_number      Int
   floorId           String?
+  locationId        String?
   seats             Int?
   order_in_progress Boolean
   branch            Branch     @relation(fields: [branchId], references: [id], onDelete: Cascade, onUpdate: Cascade)
@@ -97,13 +99,26 @@ model Menu {
 //   allDay     Boolean
 //   menus      Menu[]
 // }
+model Availabilities {
+  id             String        @id @default(cuid())
+  dayOfWeek      Int?
+  startTime      String?
+  endTime        String?
+  menuCategory   MenuCategory? @relation(fields: [menuCategoryId], references: [id])
+  menuCategoryId String?
+}
 
 model MenuCategory {
-  id        String     @id @default(cuid())
-  name      String
-  menuId    String
-  menu      Menu       @relation(fields: [menuId], references: [id], onDelete: Cascade, onUpdate: Cascade)
-  menuItems MenuItem[]
+  id                      String           @id @default(cuid())
+  accountId               String?
+  name                    String
+  nameTranslations        Json?
+  description             String?
+  descriptionTranslations Json?
+  availabilities          Availabilities[]
+  menuId                  String
+  menu                    Menu             @relation(fields: [menuId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  menuItems               MenuItem[]
 }
 
 model MenuItem {
@@ -141,6 +156,7 @@ model Order {
 
 model CartItem {
   id    String  @id @default(cuid())
+  plu   String?
   name  String?
   image String?
 
@@ -194,28 +210,29 @@ model ModifierGroup {
 }
 
 model User {
-  id           String       @id @default(cuid())
+  id           String    @id @default(cuid())
   name         String?
-  email        String?      @unique
-  creationDate DateTime     @default(now())
+  email        String?   @unique
+  creationDate DateTime  @default(now())
   password     Password?
   color        String?
   tip          Decimal?
   paid         Decimal?
   total        Decimal?
   orderId      String?
-  orders       Order?       @relation(fields: [orderId], references: [id])
+  orders       Order?    @relation(fields: [orderId], references: [id])
   role         Role?
-  branch       Branch?      @relation(fields: [branchId], references: [id])
+  branch       Branch?   @relation(fields: [branchId], references: [id])
   branchId     String?
-  restaurant   Restaurant[]
-  restaurantId String?
-  cartItems    CartItem[]
-  tables       Table?       @relation(fields: [tableId], references: [id])
-  tableId      String?
-  feedbacks    Feedback[]
-  sessions     Session[]
-  payments     Payments[]
+
+  // restaurant   Restaurant[]
+  // restaurantId String?
+  cartItems CartItem[]
+  tables    Table?     @relation(fields: [tableId], references: [id])
+  tableId   String?
+  feedbacks Feedback[]
+  sessions  Session[]
+  payments  Payments[]
 }
 
 model Password {

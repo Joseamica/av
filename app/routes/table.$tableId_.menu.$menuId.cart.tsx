@@ -1,4 +1,4 @@
-import type {CartItem, Order, User} from '@prisma/client'
+import type {CartItem, Order, Table, User} from '@prisma/client'
 import {json, redirect} from '@remix-run/node'
 import {
   useFetcher,
@@ -25,6 +25,8 @@ import {EVENTS} from '~/events'
 import {getBranch, getBranchId} from '~/models/branch.server'
 import {getCartItems} from '~/models/cart.server'
 import {getOrderTotal} from '~/models/order.server'
+import {getTable} from '~/models/table.server'
+
 import {validateRedirect} from '~/redirect.server'
 import {getSession, sessionStorage, updateCartItem} from '~/session.server'
 
@@ -216,6 +218,46 @@ export async function action({request, params}: ActionArgs) {
           }),
         ),
       )
+
+      let adjustedItems = cartItems.map(item => {
+        return {
+          plu: item.id,
+          price: Number(item.price) * 100,
+          quantity: item.quantity,
+          remark: item.comments ?? 'No remarks',
+          name: item.name,
+        }
+      })
+
+      console.log(adjustedItems)
+      const table = await getTable(tableId)
+
+      const url =
+        'https://api.staging.deliverect.com/joseantonioamieva/order/649c4d38770ee8288c5a8729'
+      const options = {
+        method: 'POST',
+        headers: {
+          accept: 'application/json',
+          'content-type': 'application/json',
+          authorization:
+            'Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiIsImtpZCI6ImdDN25CdHNHQmVFRzZlRXIifQ.eyJpc3MiOiJodHRwczovL2FwaS5zdGFnaW5nLmRlbGl2ZXJlY3QuY29tIiwiYXVkIjoiaHR0cHM6Ly9hcGkuZGVsaXZlcmVjdC5jb20iLCJleHAiOjE2ODg0MTk1NzgsImlhdCI6MTY4ODMzMzE3OCwic3ViIjoiMHM1WDhUdTd3SFJvOUtPQUBjbGllbnRzIiwiYXpwIjoiMHM1WDhUdTd3SFJvOUtPQSIsInNjb3BlIjoiZ2VuZXJpY0NoYW5uZWw6am9zZWFudG9uaW9hbWlldmEifQ.sI2pLfIEMAIrb1GQ9v1R2vE0KwjIH5O3vkg5YhrenLCqdUxpf2Cm7zspyWPNrTxqYBEusG90seN4ErfVz86ObV69oYTQxlH2G1VDSkBTaeuwXS_wYxj18SQsdR4X9x0cUMvS5Wu4eZCnZNsTXEfUv3ypu_R3l_QFqN1tPgIiKyo-_ld1Z1_pSkR4sOp3RLO7ZdHL4Oi2O71nR1_NsXoO_tDMl2hYec46nJHulq0GTErAMTxyL6tI7_ZO_miJTyxwdcniPO82YRmksKiIQTTkAVwoAZhH2DGzjHIzTtz6Qrxs8-AjVzzUqiNGpfIoWBW9KDDu61BxKoayENH0ZLQ7Rw',
+        },
+        body: JSON.stringify({
+          customer: {name: 'John '},
+          orderIsAlreadyPaid: false,
+          payment: {amount: cartItemsTotal, type: 0},
+          items: adjustedItems,
+          decimalDigits: 2,
+          channelOrderId: 'AVwe4Oaesf' + order.id,
+          channelOrderDisplayId: 'tsefsas44ewt',
+          orderType: 3,
+          table: String(table.table_number),
+        }),
+      }
+      fetch(url, options)
+        .then(res => res.json())
+        .then(json => console.log(json))
+        .catch(err => console.error('error:' + err))
 
       session.unset('cart')
       EVENTS.ISSUE_CHANGED(tableId)

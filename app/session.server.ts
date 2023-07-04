@@ -186,3 +186,28 @@ export function updateCartItem(
   }
   return cart
 }
+
+const TOKEN_SESSION_KEY = 'token'
+
+export async function getToken(request: Request): Promise<string | null> {
+  const session = await getSession(request)
+  return session.get(TOKEN_SESSION_KEY)
+}
+
+export async function setToken(session: any, token: string) {
+  console.time('settingToken...')
+  const isToken = session.get(TOKEN_SESSION_KEY)
+  if (isToken) {
+    return
+  }
+  session.set(TOKEN_SESSION_KEY, token)
+  console.timeEnd('settingToken...')
+
+  return 'token set'
+}
+
+export async function clearToken(request: Request) {
+  const session = await getSession(request)
+  session.unset(TOKEN_SESSION_KEY)
+  return sessionStorage.commitSession(session)
+}

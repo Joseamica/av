@@ -25,7 +25,7 @@ export async function loader({request, params}: LoaderArgs) {
       orders: {where: {active: true}},
       users: true,
       feedbacks: true,
-      restaurant: true,
+      // restaurant: true,
       employees: true,
       // FIXME: quitar el method, ya que por ahora estoy viendo solo si sirve stripe
       // payments: {where: {method: 'card'}},

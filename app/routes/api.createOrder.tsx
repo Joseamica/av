@@ -55,48 +55,41 @@ export const loader = async ({request}: LoaderArgs) => {
 }
 
 export const action = async ({request}: ActionArgs) => {
-  const rawData = await request.text()
-  const [menu] = JSON.parse(rawData)
-  const channelLinkId = menu.channelLinkId
-  const menuId = menu.menuId
-  const currency = menu.currency
-  const modifierGroups = menu.modifierGroups
-  const modifiers = menu.modifiers
-  const menuTranslations = menu.menuTranslations
-  const products = menu.products
-  const allergies = menu.productTags
-  const availabilities = menu.availabilities
+  const url =
+    'https://api.staging.deliverect.com/joseantonioamieva/order/649c4d38770ee8288c5a8729'
+  const options = {
+    method: 'POST',
+    headers: {
+      accept: 'application/json',
+      'content-type': 'application/json',
+      authorization:
+        'Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiIsImtpZCI6ImdDN25CdHNHQmVFRzZlRXIifQ.eyJpc3MiOiJodHRwczovL2FwaS5zdGFnaW5nLmRlbGl2ZXJlY3QuY29tIiwiYXVkIjoiaHR0cHM6Ly9hcGkuZGVsaXZlcmVjdC5jb20iLCJleHAiOjE2ODg0MTk1NzgsImlhdCI6MTY4ODMzMzE3OCwic3ViIjoiMHM1WDhUdTd3SFJvOUtPQUBjbGllbnRzIiwiYXpwIjoiMHM1WDhUdTd3SFJvOUtPQSIsInNjb3BlIjoiZ2VuZXJpY0NoYW5uZWw6am9zZWFudG9uaW9hbWlldmEifQ.sI2pLfIEMAIrb1GQ9v1R2vE0KwjIH5O3vkg5YhrenLCqdUxpf2Cm7zspyWPNrTxqYBEusG90seN4ErfVz86ObV69oYTQxlH2G1VDSkBTaeuwXS_wYxj18SQsdR4X9x0cUMvS5Wu4eZCnZNsTXEfUv3ypu_R3l_QFqN1tPgIiKyo-_ld1Z1_pSkR4sOp3RLO7ZdHL4Oi2O71nR1_NsXoO_tDMl2hYec46nJHulq0GTErAMTxyL6tI7_ZO_miJTyxwdcniPO82YRmksKiIQTTkAVwoAZhH2DGzjHIzTtz6Qrxs8-AjVzzUqiNGpfIoWBW9KDDu61BxKoayENH0ZLQ7Rw',
+    },
+    body: JSON.stringify({
+      customer: {name: 'John '},
+      orderIsAlreadyPaid: false,
+      payment: {amount: 120, type: 0},
+      items: [
+        {
+          plu: '35181718',
+          price: 296,
+          quantity: 1,
+          remark: 'extra cold',
+          name: 'Pasta',
+        },
+      ],
+      decimalDigits: 2,
+      channelOrderId: 'AV1234',
+      channelOrderDisplayId: '12311',
+      orderType: 3,
+    }),
+  }
 
-  // await prisma.menu.upsert({
-  //   where: {id: menuId},
-  //   update: {
-  //     id: menuId,
-  //   },
-  //   create: {
-  //     id: menuId,
-
-  //   },
-  // })
-
-  // for (const availability of availabilities) {
-  //   const {dayOfWeek, endTime, startTime} = availability
-  //   const data = {
-  //     dayOfWeek,
-  //     endTime,
-  //     startTime,
-  //   }
-
-  //   await prisma.availabilities.create({
-  //     data,
-  //   })
-  // }
-
-  const categories = menu.categories
-  // console.log('menu', menu)
-  // const body: any = { query };
-
-  // if (variables) body.variables = variables;
-  return redirect('')
+  fetch(url, options)
+    .then(res => res.json())
+    .then(json => console.log(json))
+    .catch(err => console.error('error:' + err))
+  return redirect('/')
 }
 
 // export default function apI() {
