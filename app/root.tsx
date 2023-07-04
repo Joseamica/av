@@ -12,6 +12,8 @@ import {
   ScrollRestoration,
   useActionData,
   useLoaderData,
+  useLocation,
+  useMatches,
   useSearchParams,
   useSubmit,
 } from '@remix-run/react'
@@ -61,6 +63,14 @@ export const loader = async ({request}: LoaderArgs) => {
 
   const url = new URL(request.url)
   const pathname = url.pathname
+  let segments = pathname.split('/')
+  let tableIndex = segments.indexOf('table')
+  let tableId = segments[tableIndex + 1]
+
+  if (!session.has('tableId') && tableId) {
+    session.set('tableId', tableId)
+    console.log('✅ assigning tableId to session...')
+  }
 
   return json(
     {username, pathname, user, isAdmin},

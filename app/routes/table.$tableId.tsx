@@ -15,10 +15,10 @@ import {
   UserCircleIcon,
   UsersIcon,
 } from '@heroicons/react/solid'
-import {Form, Link, Outlet, useLoaderData} from '@remix-run/react'
+import {Form, Link, Outlet, useLoaderData, useSubmit} from '@remix-run/react'
 import clsx from 'clsx'
 import {AnimatePresence, motion} from 'framer-motion'
-import {useState} from 'react'
+import {useEffect, useState} from 'react'
 import {IoFastFood} from 'react-icons/io5'
 import invariant from 'tiny-invariant'
 import {Button, LinkButton} from '~/components/buttons/button'
@@ -191,7 +191,7 @@ export async function loader({request, params}: LoaderArgs) {
 
     console.log('Order expired...')
   }
-
+  console.log(session.get('tableId'))
   return json({
     table,
     branch,
@@ -227,6 +227,15 @@ export default function Table() {
   useSessionTimeout()
 
   const data = useLiveLoader<LoaderData>()
+  const submit = useSubmit()
+
+  // useEffect(() => {
+  //   submit(null, {
+  //     method: 'POST',
+  //     action: '/api/dvct/oauth/token',
+  //     replace: true,
+  //   })
+  // }, [submit])
 
   const [selectedUsers, setSelectedUsers] = useState<string[]>([])
   const [filterPerUser, setFilterPerUser] = useState(false)
