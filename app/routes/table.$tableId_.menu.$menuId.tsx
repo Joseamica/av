@@ -33,7 +33,6 @@ import {
   MenuInfo,
   Modal,
   QuantityButton,
-  QuantityManagerButton,
   SectionContainer,
   SendComments,
   Spacer,

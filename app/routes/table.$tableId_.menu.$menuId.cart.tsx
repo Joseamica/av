@@ -240,7 +240,7 @@ export async function action({request, params}: ActionArgs) {
           accept: 'application/json',
           'content-type': 'application/json',
           authorization:
-            'Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiIsImtpZCI6ImdDN25CdHNHQmVFRzZlRXIifQ.eyJpc3MiOiJodHRwczovL2FwaS5zdGFnaW5nLmRlbGl2ZXJlY3QuY29tIiwiYXVkIjoiaHR0cHM6Ly9hcGkuZGVsaXZlcmVjdC5jb20iLCJleHAiOjE2ODg0MTk1NzgsImlhdCI6MTY4ODMzMzE3OCwic3ViIjoiMHM1WDhUdTd3SFJvOUtPQUBjbGllbnRzIiwiYXpwIjoiMHM1WDhUdTd3SFJvOUtPQSIsInNjb3BlIjoiZ2VuZXJpY0NoYW5uZWw6am9zZWFudG9uaW9hbWlldmEifQ.sI2pLfIEMAIrb1GQ9v1R2vE0KwjIH5O3vkg5YhrenLCqdUxpf2Cm7zspyWPNrTxqYBEusG90seN4ErfVz86ObV69oYTQxlH2G1VDSkBTaeuwXS_wYxj18SQsdR4X9x0cUMvS5Wu4eZCnZNsTXEfUv3ypu_R3l_QFqN1tPgIiKyo-_ld1Z1_pSkR4sOp3RLO7ZdHL4Oi2O71nR1_NsXoO_tDMl2hYec46nJHulq0GTErAMTxyL6tI7_ZO_miJTyxwdcniPO82YRmksKiIQTTkAVwoAZhH2DGzjHIzTtz6Qrxs8-AjVzzUqiNGpfIoWBW9KDDu61BxKoayENH0ZLQ7Rw',
+            'Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiIsImtpZCI6ImdDN25CdHNHQmVFRzZlRXIifQ.eyJpc3MiOiJodHRwczovL2FwaS5zdGFnaW5nLmRlbGl2ZXJlY3QuY29tIiwiYXVkIjoiaHR0cHM6Ly9hcGkuZGVsaXZlcmVjdC5jb20iLCJleHAiOjE2ODg1MDgyMjksImlhdCI6MTY4ODQyMTgyOSwic3ViIjoiMHM1WDhUdTd3SFJvOUtPQUBjbGllbnRzIiwiYXpwIjoiMHM1WDhUdTd3SFJvOUtPQSIsInNjb3BlIjoiZ2VuZXJpY0NoYW5uZWw6am9zZWFudG9uaW9hbWlldmEifQ.h7HtJg46inBGrrdADR2IUEoL8utjWNuyea9QsUSO8ZHOxsTVQx2KX9tHsNYlidgNRFJGF6BI3nCzsxNwAh1t0mbGY61ghuCJsjt-czWAntxCk9K3zuaAySqFB3SH_OQOqTHkJRdSKabYHxu6NqEi0qYISXPciN6rCQHvvRMXR3t4bVB8w22ReSujG9LkbZQP9i6x4JgQV1ZAVhYEQ7GF8aWmsHrazT1ubM48e_FnIZLPZ01tosTYtXKRjLFyzSc-HG2wr64tH5w3dEQgTyjLTH6bsPDsj363dn_b2kdaW2pyx0ZGhygIJaK_aaMWrE99afNXzmzUZtYVHQhzOdokdg',
         },
         body: JSON.stringify({
           customer: {name: 'John '},
@@ -248,8 +248,8 @@ export async function action({request, params}: ActionArgs) {
           payment: {amount: cartItemsTotal, type: 0},
           items: adjustedItems,
           decimalDigits: 2,
-          channelOrderId: 'AVwe4Oaesf' + order.id,
-          channelOrderDisplayId: 'tsefsas44ewt',
+          channelOrderId: '3',
+          channelOrderDisplayId: order.id,
           orderType: 3,
           table: String(table.table_number),
         }),

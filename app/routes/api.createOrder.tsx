@@ -79,8 +79,8 @@ export const action = async ({request}: ActionArgs) => {
         },
       ],
       decimalDigits: 2,
-      channelOrderId: 'AV1234',
-      channelOrderDisplayId: '12311',
+      channelOrderId: 'AV21234',
+      channelOrderDisplayId: '123211',
       orderType: 3,
     }),
   }

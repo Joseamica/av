@@ -20,19 +20,19 @@ datasource db {
 // }
 
 model Branch {
-  id                  String     @id @default(cuid())
-  name                String
-  ppt_image           String
-  email               String
-  phone               String?
-  city                String
-  address             String
-  extraAddress        String
-  rating              Float?
-  rating_quantity     Int?
-  cuisine             String
+  id              String  @id @default(cuid())
+  name            String
+  ppt_image       String
+  email           String
+  phone           String?
+  city            String
+  address         String
+  extraAddress    String
+  rating          Float?
+  rating_quantity Int?
+  cuisine         String
   // restaurantId        String
-  deliverectToken     String?
+
   timezone            String?
   wifiName            String?
   wifipwd             String?
@@ -61,6 +61,7 @@ model Branch {
 model Table {
   id                String     @id @default(cuid())
   table_number      Int
+  deliverectToken   String?
   floorId           String?
   locationId        String?
   seats             Int?

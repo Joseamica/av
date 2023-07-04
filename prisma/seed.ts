@@ -82,6 +82,7 @@ async function seed() {
       cuisine: 'Mexicana',
       open: 7,
       close: 24,
+
       // restaurant: {connect: {id: restaurant.id}},
     },
   })
