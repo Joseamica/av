@@ -35,6 +35,9 @@ export async function loader({request, params}: LoaderArgs) {
 
     return json({menu, menuCategory, menuItem})
   }
+  const rawData = await request.text()
+  const [dvctMenu] = JSON.parse(rawData)
+  console.log('dvctMenu', dvctMenu)
 
   return json({menu})
 }
@@ -42,7 +45,6 @@ export async function action({request, params}: ActionArgs) {
   const {branchId, menuId} = params
   const formData = await request.formData()
   const data = Object.fromEntries(formData.entries())
-  console.log('data', data)
 
   const name = formData.get('name') as string
   const image = formData.get('image') as string

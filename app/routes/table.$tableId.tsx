@@ -45,7 +45,7 @@ import {getMenu} from '~/models/menu.server'
 import {getTable} from '~/models/table.server'
 import {getPaidUsers, getUsersOnTable} from '~/models/user.server'
 import {validateUserIntegration} from '~/models/validations.server'
-import {getSession, getToken} from '~/session.server'
+import {getSession} from '~/session.server'
 import {useLiveLoader} from '~/use-live-loader'
 import {
   formatCurrency,
@@ -66,6 +66,7 @@ type LoaderData = {
   amountLeft: number
   paidUsers: any
   userId: string
+  isDeliverectToken: boolean
 }
 
 export async function loader({request, params}: LoaderArgs) {
@@ -122,11 +123,11 @@ export async function loader({request, params}: LoaderArgs) {
     //   throw await logout(request, pathname)
     // }
 
-    if (!sessionId) {
-      throw new Error('No se encontró el ID de la sesión')
-    }
+    // if (!sessionId) {
+    //   throw new Error('No se encontró el ID de la sesión')
+    // }
     if (!userValidations) {
-      return redirect(``)
+      throw new Error('No se encontró el usuario')
     }
     // return json({user, tables}) // return json({success: true})
   }
@@ -191,7 +192,7 @@ export async function loader({request, params}: LoaderArgs) {
 
     console.log('Order expired...')
   }
-  console.log(session.get('tableId'))
+
   return json({
     table,
     branch,
@@ -226,16 +227,8 @@ export default function Table() {
   // const data = useLoaderData()
   useSessionTimeout()
 
-  const data = useLiveLoader<LoaderData>()
-  const submit = useSubmit()
-
-  // useEffect(() => {
-  //   submit(null, {
-  //     method: 'POST',
-  //     action: '/api/dvct/oauth/token',
-  //     replace: true,
-  //   })
-  // }, [submit])
+  // const data = useLiveLoader<LoaderData>()
+  const data = useLoaderData<LoaderData>()
 
   const [selectedUsers, setSelectedUsers] = useState<string[]>([])
   const [filterPerUser, setFilterPerUser] = useState(false)

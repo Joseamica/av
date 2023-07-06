@@ -209,3 +209,10 @@ export function isOrderExpired(orderPaidDate: Date | null, hoursToExpire = 2) {
 
   return currentDate.getTime() >= expiryDate.getTime()
 }
+
+export function getTableIdFromUrl(pathname: string) {
+  let segments = pathname.split('/')
+  let tableIndex = segments.indexOf('table')
+  let tableId = segments[tableIndex + 1]
+  return tableId
+}

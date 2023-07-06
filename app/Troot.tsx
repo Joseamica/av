@@ -12,6 +12,8 @@ import {
   ScrollRestoration,
   useActionData,
   useLoaderData,
+  useLocation,
+  useMatches,
   useSearchParams,
   useSubmit,
 } from '@remix-run/react'
@@ -31,8 +33,9 @@ import {validateRedirect} from './redirect.server'
 import appStylesheetUrl from './styles/app.css'
 import {Modal} from './components/modals'
 import React, {useState} from 'react'
-import {getRandomColor} from './utils'
+import {getRandomColor, getTableIdFromUrl} from './utils'
 import {get} from 'http'
+import {getDvctAccounts} from './models/deliverect.server'
 
 export const links: LinksFunction = () => [
   {rel: 'stylesheet', href: tailwindStylesheetUrl},
@@ -42,11 +45,40 @@ export const links: LinksFunction = () => [
 
 export const loader = async ({request}: LoaderArgs) => {
   const userId = await getUserId(request)
-
   const session = await getSession(request)
-  session.set('userId', userId)
+  const url = new URL(request.url)
+  const pathname = url.pathname
+  const tableId = getTableIdFromUrl(pathname)
 
-  //ADMIN PURPOSES
+  //NOTE: if session doesnt have userId, set it
+  if (!session.has('userId')) {
+    session.set('userId', userId)
+  }
+
+  if (!session.has('tableId') && tableId) {
+    session.set('tableId', tableId)
+    console.log('✅ assigning tableId to session...')
+  } else if (session.has('tableId')) {
+    console.log('user already has tableId on session', session.get('tableId'))
+  } else {
+    console.log('❌ no tableId on session...')
+  }
+
+  //DVCT TOKEN
+  const deliverect = await prisma.deliverect.findFirst({})
+  const dvctExpiration = deliverect?.deliverectExpiration
+  const dvctToken = deliverect?.deliverectToken
+  const currentTime = Math.floor(Date.now() / 1000) // Get the current time in Unix timestamp
+  const isTokenExpired =
+    deliverect && dvctExpiration <= currentTime ? true : false
+
+  //ACCOUNTS (RESTAURANTS)
+  if (!isTokenExpired) {
+    const accounts = await getDvctAccounts(dvctToken)
+  }
+
+  const username = await getUsername(request)
+  const user = await findOrCreateUser(userId, username)
   const isAdmin = await prisma.user.findFirst({
     where: {
       id: userId,
@@ -54,107 +86,32 @@ export const loader = async ({request}: LoaderArgs) => {
     },
   })
 
-  const username = await getUsername(request)
-
-  //Verify if user is on the database or create
-  const user = await findOrCreateUser(userId, username)
-
-  const url = new URL(request.url)
-  const pathname = url.pathname
-
   return json(
-    {username, pathname, user, isAdmin},
+    {username, pathname, user, isAdmin, isTokenExpired},
     {headers: {'Set-Cookie': await sessionStorage.commitSession(session)}},
   )
-}
-const SESSION_EXPIRATION_TIME = 1000 * 60 * 60 * 24 * 30
-
-export const action = async ({request, params}: ActionArgs) => {
-  let [body, session] = await Promise.all([request.text(), getSession(request)])
-  let formData = new URLSearchParams(body)
-
-  const name = formData.get('name') as string
-  const color = formData.get('color') as string
-  const url = formData.get('url') as string
-  const proceed = formData.get('_action') === 'proceed'
-
-  let redirectTo = validateRedirect(formData.get('redirect'), url)
-
-  const userId = session.get('userId')
-  const searchParams = new URLSearchParams(request.url)
-
-  if (!name) {
-    return redirect(redirectTo + '?error=Debes ingresar un nombre...')
-  }
-
-  if (name && proceed) {
-    console.time(`✅ Creating session and user with name... ${name}`)
-    searchParams.set('error', '')
-    const sessionId = await prisma.session.create({
-      data: {
-        expirationDate: new Date(Date.now() + SESSION_EXPIRATION_TIME),
-        user: {
-          create: {
-            id: userId,
-            name: name,
-            color: color ? color : '#000000',
-          },
-        },
-      },
-      // select: {id: !0, expirationDate: !0},
-    })
-    session.set('sessionId', sessionId.id)
-
-    // Set expiry time 4 hours from now
-    const expiryTime = formatISO(addHours(new Date(), 4))
-    session.set('expiryTime', expiryTime)
-    session.set('username', name)
-
-    console.timeEnd(`✅ Creating session and user with name... ${name}`)
-    return redirect(redirectTo, {
-      headers: {'Set-Cookie': await sessionStorage.commitSession(session)},
-    })
-  }
-
-  return null
 }
 
 export default function App() {
   const data = useLoaderData()
+  const submit = useSubmit()
 
-  if (!data.username) {
-    return <UserForm />
-  }
-  return (
-    <html lang="en" className="h-screen">
-      <head>
-        <meta charSet="utf-8" />
-        <meta name="viewport" content="width=device-width,initial-scale=1" />
-        <Meta />
-        <Links />
-      </head>
-      <body className="hide-scrollbar no-scrollbar relative mx-auto h-full max-w-md bg-[#F3F4F6] px-2 pt-16">
-        {/* <RemixSseProvider> */}
-        <div id="modal-root" />
-        <Header user={data.user} isAdmin={data.isAdmin} />
-
-        <Outlet />
-        {/* </RemixSseProvider> */}
-        <ScrollRestoration />
-        <Scripts />
-        <LiveReload />
-      </body>
-    </html>
-  )
-}
-
-function UserForm() {
-  const data = useLoaderData()
   const [searchParams] = useSearchParams()
   const error = searchParams.get('error')
 
   const errorClass = error ? 'animate-pulse placeholder:text-warning' : ''
 
+  React.useEffect(() => {
+    if (data.isTokenExpired) {
+      console.log('❌token expired')
+      submit(null, {
+        method: 'POST',
+        action: '/api/dvct/oauth/token',
+        replace: true,
+      })
+    }
+  }, [submit, data.isTokenExpired])
+
   return (
     <html lang="en" className="h-screen">
       <head>
@@ -165,18 +122,22 @@ function UserForm() {
       </head>
       <body className="hide-scrollbar no-scrollbar relative mx-auto h-full max-w-md bg-[#F3F4F6] px-2 pt-16">
         <div id="modal-root" />
-        <Modal
-          handleClose={() => null}
-          title="Registro de usuario"
-          isOpen={true}
-        >
-          <FormContent
-            errorClass={errorClass}
-            error={error || ''}
-            pathname={data.pathname}
-          />
-        </Modal>
+        {data.username && <Header user={data.user} isAdmin={data.isAdmin} />}
+        {!data.username && (
+          <Modal
+            handleClose={() => null}
+            title="Registro de usuario"
+            isOpen={true}
+          >
+            <FormContent
+              errorClass={errorClass}
+              error={error || ''}
+              pathname={data.pathname}
+            />
+          </Modal>
+        )}
         <Outlet />
+
         <ScrollRestoration />
         <Scripts />
         <LiveReload />
@@ -184,6 +145,51 @@ function UserForm() {
     </html>
   )
 }
+
+export function formatRestaurant(dvctLocation) {
+  return {
+    id: dvctLocation._id,
+    name: dvctLocation.name,
+    updated: dvctLocation._updated,
+    storeTimezone: dvctLocation.storeTimezone,
+  }
+}
+// function UserForm() {
+//   const data = useLoaderData()
+//   const [searchParams] = useSearchParams()
+//   const error = searchParams.get('error')
+
+//   const errorClass = error ? 'animate-pulse placeholder:text-warning' : ''
+
+//   return (
+//     <html lang="en" className="h-screen">
+//       <head>
+//         <meta charSet="utf-8" />
+//         <meta name="viewport" content="width=device-width,initial-scale=1" />
+//         <Meta />
+//         <Links />
+//       </head>
+//       <body className="hide-scrollbar no-scrollbar relative mx-auto h-full max-w-md bg-[#F3F4F6] px-2 pt-16">
+//         <div id="modal-root" />
+//         <Modal
+//           handleClose={() => null}
+//           title="Registro de usuario"
+//           isOpen={true}
+//         >
+//           <FormContent
+//             errorClass={errorClass}
+//             error={error || ''}
+//             pathname={data.pathname}
+//           />
+//         </Modal>
+//         <Outlet />
+//         <ScrollRestoration />
+//         <Scripts />
+//         <LiveReload />
+//       </body>
+//     </html>
+//   )
+// }
 
 function FormContent({
   errorClass,
@@ -195,6 +201,7 @@ function FormContent({
   pathname: string
 }) {
   const [name, setName] = useState('')
+  console.log('name', name.length)
 
   const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     setName(event.currentTarget.value)
@@ -206,7 +213,8 @@ function FormContent({
 
   return (
     <Form
-      method="post"
+      method="POST"
+      action={'/actions/setUser'}
       className="space-y-2 bg-day-bg_principal"
       // onChange={handleChange}
     >
@@ -235,7 +243,7 @@ function FormContent({
         </H4>
       )}
 
-      <input type="hidden" name="url" value={pathname} />
+      <input type="hidden" name="pathname" value={pathname} />
 
       <div className="flex flex-col items-start justify-start p-4">
         <FlexRow>
@@ -253,9 +261,7 @@ function FormContent({
           </div>
         </FlexRow>
         <Spacer spaceY="4" />
-        <Button fullWith={true} name="_action" value="proceed">
-          Continuar a la mesa
-        </Button>
+        <Button fullWith={true}>Continuar a la mesa</Button>
       </div>
     </Form>
   )
