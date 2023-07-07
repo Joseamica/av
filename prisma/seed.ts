@@ -54,19 +54,21 @@ async function seed() {
 
   // })
 
-  // const restaurant = await prisma.restaurant.create({
-  //   data: {
-  //     name: 'Guavos',
-  //     logo: 'https://madre-cafe.com/wp-content/uploads/2021/11/logo-madre-cafe-header.svg',
-  //     email: 'info@madrecafe.com',
-  //     phone: '+525561412847',
-  //     adminEmail: 'joseamica@gmail.com',
-  //   },
-  // })
+  const restaurant = await prisma.restaurant.create({
+    data: {
+      name: 'Guavos',
+      logo: 'https://madre-cafe.com/wp-content/uploads/2021/11/logo-madre-cafe-header.svg',
+      email: 'info@madrecafe.com',
+      phone: '+525561412847',
+      adminEmail: 'joseamica@gmail.com',
+    },
+  })
 
   const branch = await prisma.branch.create({
     data: {
       name: 'La Bikina',
+      created: new Date().toISOString(),
+      updated: new Date().toISOString(),
       ppt_image:
         'https://firebasestorage.googleapis.com/v0/b/avoqado-d0a24.appspot.com/o/kuikku%2FKUIKKU%20(2)%20(1)%20copy.png?alt=media&token=158e8d1b-d24b-406b-85e7-a507b29d84fc',
       email: 'branch1@madrecafe.com',
@@ -83,7 +85,7 @@ async function seed() {
       open: 7,
       close: 24,
 
-      // restaurant: {connect: {id: restaurant.id}},
+      restaurant: {connect: {id: restaurant.id}},
     },
   })
 
