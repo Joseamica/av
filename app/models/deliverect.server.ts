@@ -56,3 +56,7 @@ export async function isTokenExpired() {
     deliverect && dvctExpiration <= currentTime ? true : false
   return isTokenExpired
 }
+
+export function getDvctToken() {
+  return prisma.deliverect.findFirst({}).then(res => res?.deliverectToken)
+}

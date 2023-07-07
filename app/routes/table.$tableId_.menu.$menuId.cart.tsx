@@ -24,6 +24,7 @@ import {prisma} from '~/db.server'
 import {EVENTS} from '~/events'
 import {getBranch, getBranchId} from '~/models/branch.server'
 import {getCartItems} from '~/models/cart.server'
+import {getDvctToken} from '~/models/deliverect.server'
 import {getOrderTotal} from '~/models/order.server'
 import {getTable} from '~/models/table.server'
 
@@ -229,18 +230,18 @@ export async function action({request, params}: ActionArgs) {
         }
       })
 
-      console.log(adjustedItems)
+      const token = await getDvctToken()
       const table = await getTable(tableId)
 
       const url =
+        //TODO: cambiar el channelname y channelLinkId agarrandolos de la base de datos o api
         'https://api.staging.deliverect.com/joseantonioamieva/order/649c4d38770ee8288c5a8729'
       const options = {
         method: 'POST',
         headers: {
           accept: 'application/json',
           'content-type': 'application/json',
-          authorization:
-            'Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiIsImtpZCI6ImdDN25CdHNHQmVFRzZlRXIifQ.eyJpc3MiOiJodHRwczovL2FwaS5zdGFnaW5nLmRlbGl2ZXJlY3QuY29tIiwiYXVkIjoiaHR0cHM6Ly9hcGkuZGVsaXZlcmVjdC5jb20iLCJleHAiOjE2ODg1MDgyMjksImlhdCI6MTY4ODQyMTgyOSwic3ViIjoiMHM1WDhUdTd3SFJvOUtPQUBjbGllbnRzIiwiYXpwIjoiMHM1WDhUdTd3SFJvOUtPQSIsInNjb3BlIjoiZ2VuZXJpY0NoYW5uZWw6am9zZWFudG9uaW9hbWlldmEifQ.h7HtJg46inBGrrdADR2IUEoL8utjWNuyea9QsUSO8ZHOxsTVQx2KX9tHsNYlidgNRFJGF6BI3nCzsxNwAh1t0mbGY61ghuCJsjt-czWAntxCk9K3zuaAySqFB3SH_OQOqTHkJRdSKabYHxu6NqEi0qYISXPciN6rCQHvvRMXR3t4bVB8w22ReSujG9LkbZQP9i6x4JgQV1ZAVhYEQ7GF8aWmsHrazT1ubM48e_FnIZLPZ01tosTYtXKRjLFyzSc-HG2wr64tH5w3dEQgTyjLTH6bsPDsj363dn_b2kdaW2pyx0ZGhygIJaK_aaMWrE99afNXzmzUZtYVHQhzOdokdg',
+          authorization: 'Bearer ' + token,
         },
         body: JSON.stringify({
           customer: {name: 'John '},
