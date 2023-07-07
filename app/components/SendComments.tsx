@@ -1,4 +1,4 @@
-import React from 'react'
+import React from "react";
 
 export function SendComments() {
   return (
@@ -9,5 +9,5 @@ export function SendComments() {
       name="sendComments"
       defaultValue=""
     />
-  )
+  );
 }
