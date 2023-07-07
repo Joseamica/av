@@ -444,7 +444,7 @@ export async function loader({ request, params }: LoaderArgs) {
   });
 }
 
-//payment ACTION
+// * CUANDO EL USUARIO AGREGAR SU NOMBRE SERIA BUENO CONECTARLO A LA MESA DIRECTAMENTE.
 export async function action({ request, params }: ActionArgs) {
   const { tableId } = params;
   invariant(tableId, "Mesa no encontrada!");
