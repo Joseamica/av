@@ -81,7 +81,7 @@ model Table {
 }
 
 model Menu {
-  id              String         @id @default(cuid())
+  id              String           @id @default(cuid())
   name            String?
   type            String?
   currency        String?
@@ -89,12 +89,13 @@ model Menu {
   toHour          Decimal?
   allday          Boolean?
   branchId        String
-  branch          Branch         @relation(fields: [branchId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  branch          Branch           @relation(fields: [branchId], references: [id], onDelete: Cascade, onUpdate: Cascade)
   menuCategories  MenuCategory[]
-  personalizeMenu Boolean?       @default(false)
+  personalizeMenu Boolean?         @default(false)
   image           String?
   // ShowingHours    ShowingHours?  @relation(fields: [showingHoursId], references: [id])
   // showingHoursId  String?
+  availabilities  Availabilities[]
 }
 
 // model ShowingHours {
@@ -111,8 +112,12 @@ model Availabilities {
   dayOfWeek      Int?
   startTime      String?
   endTime        String?
+  menuId         String
+  menu           Menu          @relation(fields: [menuId], references: [id], onDelete: Cascade, onUpdate: Cascade)
   menuCategory   MenuCategory? @relation(fields: [menuCategoryId], references: [id])
   menuCategoryId String?
+
+  @@unique([dayOfWeek, startTime, endTime, menuId])
 }
 
 model MenuCategory {
