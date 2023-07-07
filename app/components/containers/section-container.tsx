@@ -1,9 +1,9 @@
 import {ChevronDownIcon, ChevronUpIcon} from '@heroicons/react/solid'
 import clsx from 'clsx'
 import {motion} from 'framer-motion'
-import React, {LegacyRef, Ref} from 'react'
-import {H1, H2, H3, H4} from '../util/typography'
+import React from 'react'
 import {Spacer} from '..'
+import {H1} from '../util/typography'
 
 interface SectionContainerProps {
   id?: string

@@ -78,8 +78,8 @@ export async function findOrCreateUser(userId: User['id'], username: string) {
   return user
 }
 
-export function getPaidUsers(orderId: Order['id']) {
-  return prisma.user.findMany({
+export async function getPaidUsers(orderId: Order['id']) {
+  const users = await prisma.user.findMany({
     where: {
       orderId,
       // tip: {
@@ -102,6 +102,7 @@ export function getPaidUsers(orderId: Order['id']) {
       payments: {where: {orderId}},
     },
   })
+  return users.length > 0 ? users : null
 }
 
 export async function getUsersOnTable(tableId: Table['id']) {

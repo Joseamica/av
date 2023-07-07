@@ -1,15 +1,13 @@
 import {BookOpenIcon} from '@heroicons/react/outline'
 import {Link} from '@remix-run/react'
 
-import type {Branch, Menu} from '@prisma/client'
-
 export function RestaurantInfoCard({
   branch,
   menu,
   error,
 }: {
-  branch: Branch
-  menu: Menu
+  branch: any
+  menu: any
   error: string
 }) {
   return (

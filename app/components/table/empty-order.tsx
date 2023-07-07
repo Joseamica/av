@@ -1,24 +1,30 @@
 import {Link} from '@remix-run/react'
 // * MODELS
-import type {User} from '@prisma/client'
+
 // * CUSTOM COMPONENTS
-import {SectionContainer} from '../containers/SectionContainer'
-import {RestaurantInfoCard} from '../RestaurantInfoCard'
+import {SectionContainer} from '../containers/section-container'
+import {RestaurantInfoCard} from '../restaurant-info-card'
 import {UserButton} from '../ui/buttons/UserButton'
 import {FlexRow} from '../util/flexrow'
 import {Spacer} from '../util/spacer'
 import {H4, H5} from '../util/typography'
 
 export function EmptyOrder({
+  branch,
+  menu,
+  error,
   tableNumber,
   usersInTable,
 }: {
+  branch: any
+  menu: any
+  error: string
   tableNumber: number
-  usersInTable: User[] | null
+  usersInTable: any
 }) {
   return (
     <main>
-      <RestaurantInfoCard />
+      <RestaurantInfoCard branch={branch} menu={menu} error={error} />
       {/* <div className="flex items-center justify-center w-10 h-10 rounded-full shadow-sm dark:bg-secondaryDark dark:bg-night-bg_principal bg-day-bg_principal ">
       <ChevronDoubleUpIcon className="w-5 h-5 motion-safe:animate-bounce" />
     </div>*/}

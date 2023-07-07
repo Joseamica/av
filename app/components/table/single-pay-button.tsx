@@ -1,13 +1,13 @@
-import { Button } from "../ui/buttons/button";
-import { Modal as ModalPortal } from "~/components/modals";
-import { PayButtons } from "./PayButtons";
+import {Button} from '../ui/buttons/button'
+import {Modal as ModalPortal} from '~/components/modals'
+import {PayButtons} from './pay-buttons'
 
 export function SinglePayButton({
   showPaymentOptions,
   setShowPaymentOptions,
 }: {
-  showPaymentOptions: boolean;
-  setShowPaymentOptions: (value: boolean) => void;
+  showPaymentOptions: boolean
+  setShowPaymentOptions: (value: boolean) => void
 }) {
   return (
     <div className="sticky bottom-2">
@@ -30,5 +30,5 @@ export function SinglePayButton({
         </div>
       </ModalPortal>
     </div>
-  );
+  )
 }

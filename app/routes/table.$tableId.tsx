@@ -19,7 +19,7 @@ import {getBranch} from '~/models/branch.server'
 import {getMenu} from '~/models/menu.server'
 import {getTable} from '~/models/table.server'
 import {getPaidUsers, getUsersOnTable} from '~/models/user.server'
-import {validateUserIntegration} from '~/models/validations.server'
+
 import {getSession} from '~/session.server'
 import {
   formatCurrency,
@@ -54,9 +54,9 @@ import {
 import {Button} from '~/components/ui/buttons/button'
 import {SwitchButton} from '~/components/ui/buttons/switch' // Assuming SwitchButton is in the same directory
 
-import {RestaurantInfoCard} from '~/components/RestaurantInfoCard'
-import {EmptyOrder} from '~/components/table/EmptyOrder'
-import {SinglePayButton} from '~/components/table/SinglePayButton'
+import {RestaurantInfoCard} from '~/components/restaurant-info-card'
+import {EmptyOrder} from '~/components/table/empty-order'
+import {SinglePayButton} from '~/components/table/single-pay-button'
 
 type LoaderData = {
   order: Order & any
@@ -74,10 +74,10 @@ type LoaderData = {
 }
 
 export default function Table() {
-  const data = useLoaderData()
+  // const data = useLoaderData()
   useSessionTimeout()
 
-  // const data = useLiveLoader<LoaderData>();
+  const data = useLiveLoader<LoaderData>()
   // const data = useLiveLoader<LoaderData>()
 
   const [selectedUsers, setSelectedUsers] = useState<string[]>([])
@@ -134,7 +134,8 @@ export default function Table() {
           userId={data.userId}
         />
         <Spacer spaceY="2" />
-        {/* SWITCH BUTTON */}
+
+        {/* NOTE: SWITCH BUTTON */}
         <div className="flex  w-full justify-end">
           <SwitchButton
             state={filterPerUser}
@@ -152,104 +153,105 @@ export default function Table() {
         {filterPerUser ? (
           <AnimatePresence>
             <div className="space-y-2">
-              {data.order?.users.map((user: any) => {
-                const userPaid = Number(user.paid)
-                return (
-                  <SectionContainer key={user.id} as="div">
-                    <FlexRow justify="between" className="rounded-xl px-1 ">
-                      <Spacer spaceY="2">
-                        <FlexRow className="items-center space-x-2">
-                          <UserCircleIcon
-                            fill={user.color || '#000'}
-                            className=" min-h-10 min-w-10 h-8 w-8"
-                          />
-                          <div className="flex flex-col">
-                            <H3>{user.name}</H3>
-                            <H6>
-                              {Number(user.paid) > 0
-                                ? `Pagado: ${formatCurrency(
+              {data.order.users &&
+                data.order.users.map((user: any) => {
+                  const userPaid = Number(user.paid)
+                  return (
+                    <SectionContainer key={user.id} as="div">
+                      <FlexRow justify="between" className="rounded-xl px-1 ">
+                        <Spacer spaceY="2">
+                          <FlexRow className="items-center space-x-2">
+                            <UserCircleIcon
+                              fill={user.color || '#000'}
+                              className=" min-h-10 min-w-10 h-8 w-8"
+                            />
+                            <div className="flex flex-col">
+                              <H3>{user.name}</H3>
+                              <H6>
+                                {Number(user.paid) > 0
+                                  ? `Pagado: ${formatCurrency(
+                                      data.currency,
+                                      userPaid,
+                                    )}`
+                                  : 'No ha pagado'}
+                              </H6>
+                              <FlexRow>
+                                <H6>
+                                  {user.cartItems?.length === 1
+                                    ? `${user.cartItems?.length} platillo ordenado`
+                                    : `${user.cartItems?.length} platillos ordenado` ||
+                                      0}
+                                </H6>
+                                <H6>
+                                  (
+                                  {formatCurrency(
                                     data.currency,
-                                    userPaid,
-                                  )}`
-                                : 'No ha pagado'}
-                            </H6>
-                            <FlexRow>
-                              <H6>
-                                {user.cartItems?.length === 1
-                                  ? `${user.cartItems?.length} platillo ordenado`
-                                  : `${user.cartItems?.length} platillos ordenado` ||
-                                    0}
-                              </H6>
-                              <H6>
-                                (
-                                {formatCurrency(
-                                  data.currency,
-                                  user.cartItems.reduce(
-                                    (sum, item) => sum + item.price,
-                                    0,
-                                  ),
-                                )}
-                                )
-                              </H6>
-                            </FlexRow>
-                          </div>
-                        </FlexRow>
-                      </Spacer>
-                      <button
-                        onClick={() => handleToggleUser(user.id)}
-                        className={clsx(
-                          'flex items-center justify-center rounded-lg  border border-button-outline px-1   py-1 text-xs',
-                          {
-                            'bg-button-primary text-white':
-                              selectedUsers.includes(user.id),
-                          },
-                        )}
-                      >
-                        Detalles
-                        <ChevronDownIcon className={clsx('h-3 w-3 ', {})} />
-                      </button>
-                    </FlexRow>
-                    <AnimatePresence>
-                      {selectedUsers.includes(user.id) && (
-                        <motion.div
-                          className="flex flex-col"
-                          key={user.id}
-                          initial={{opacity: 0, height: '0'}}
-                          animate={{opacity: 1, height: 'auto'}}
-                          exit={{opacity: 0, height: '0'}}
-                          transition={{
-                            opacity: {
-                              duration: 0.2,
-                              ease: [0.04, 0.62, 0.23, 0.98],
+                                    user.cartItems.reduce(
+                                      (sum, item) => sum + item.price,
+                                      0,
+                                    ),
+                                  )}
+                                  )
+                                </H6>
+                              </FlexRow>
+                            </div>
+                          </FlexRow>
+                        </Spacer>
+                        <button
+                          onClick={() => handleToggleUser(user.id)}
+                          className={clsx(
+                            'flex items-center justify-center rounded-lg  border border-button-outline px-1   py-1 text-xs',
+                            {
+                              'bg-button-primary text-white':
+                                selectedUsers.includes(user.id),
                             },
-                            height: {duration: 0.4},
-                          }}
-                        >
-                          <hr />
-                          {user.cartItems.length > 0 ? (
-                            <motion.div>
-                              {user.cartItems.map((cartItem: any) => (
-                                <CartItemDetails
-                                  key={cartItem.id}
-                                  cartItem={cartItem}
-                                />
-                              ))}
-                            </motion.div>
-                          ) : (
-                            <Spacer spaceY="2" className="px-2">
-                              <H6 variant="secondary">
-                                Usuario no cuenta con platillos ordenados
-                              </H6>
-                            </Spacer>
                           )}
-                        </motion.div>
-                      )}
-                    </AnimatePresence>
+                        >
+                          Detalles
+                          <ChevronDownIcon className={clsx('h-3 w-3 ', {})} />
+                        </button>
+                      </FlexRow>
+                      <AnimatePresence>
+                        {selectedUsers.includes(user.id) && (
+                          <motion.div
+                            className="flex flex-col"
+                            key={user.id}
+                            initial={{opacity: 0, height: '0'}}
+                            animate={{opacity: 1, height: 'auto'}}
+                            exit={{opacity: 0, height: '0'}}
+                            transition={{
+                              opacity: {
+                                duration: 0.2,
+                                ease: [0.04, 0.62, 0.23, 0.98],
+                              },
+                              height: {duration: 0.4},
+                            }}
+                          >
+                            <hr />
+                            {user.cartItems.length > 0 ? (
+                              <motion.div>
+                                {user.cartItems.map((cartItem: any) => (
+                                  <CartItemDetails
+                                    key={cartItem.id}
+                                    cartItem={cartItem}
+                                  />
+                                ))}
+                              </motion.div>
+                            ) : (
+                              <Spacer spaceY="2" className="px-2">
+                                <H6 variant="secondary">
+                                  Usuario no cuenta con platillos ordenados
+                                </H6>
+                              </Spacer>
+                            )}
+                          </motion.div>
+                        )}
+                      </AnimatePresence>
 
-                    {/* <hr /> */}
-                  </SectionContainer>
-                )
-              })}
+                      {/* <hr /> */}
+                    </SectionContainer>
+                  )
+                })}
             </div>
           </AnimatePresence>
         ) : (
@@ -326,6 +328,9 @@ export default function Table() {
   } else {
     return (
       <EmptyOrder
+        branch={data.branch}
+        menu={data.menu}
+        error={data.error}
         tableNumber={data.table.table_number}
         usersInTable={data.usersInTable}
       />
@@ -358,6 +363,7 @@ export async function loader({request, params}: LoaderArgs) {
     },
   })
   const total = Number(order?.total)
+  const menu = await getMenu(branch.id)
 
   //NOTE - USER CONNECT TO TABLE AND ORDER
   if (userId && username) {
@@ -379,7 +385,7 @@ export async function loader({request, params}: LoaderArgs) {
             branchId: branch.id,
           },
         })
-        // EVENTS.ISSUE_CHANGED(tableId)
+        EVENTS.ISSUE_CHANGED(tableId)
         console.log(`✅ Connected '${username}' to the table`)
       } catch (error) {
         console.log(
@@ -400,7 +406,7 @@ export async function loader({request, params}: LoaderArgs) {
           where: {id: order?.id},
           data: {users: {connect: {id: userId}}},
         })
-        // EVENTS.ISSUE_CHANGED(tableId)
+        EVENTS.ISSUE_CHANGED(tableId)
         console.log(`✅ Connected '${username}' to the order`)
       } catch (error) {
         console.log(
@@ -422,8 +428,6 @@ export async function loader({request, params}: LoaderArgs) {
     amountLeft = await getAmountLeftToPay(tableId)
     isExpired = isOrderExpired(order.paidDate)
   }
-
-  const menu = await getMenu(branch.id)
 
   let error = {}
   if (!menu) {

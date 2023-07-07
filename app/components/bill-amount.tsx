@@ -1,14 +1,14 @@
 import {ChevronDownIcon, ChevronUpIcon} from '@heroicons/react/outline'
-import type {Payments, User} from '@prisma/client'
-import {Link, useLoaderData} from '@remix-run/react'
+import {UserCircleIcon} from '@heroicons/react/solid'
+import type {User} from '@prisma/client'
+import {Link} from '@remix-run/react'
 import clsx from 'clsx'
 import {AnimatePresence, motion} from 'framer-motion'
-import {useEffect, useState} from 'react'
+import {useState} from 'react'
+import {SectionContainer} from '~/components'
 import {formatCurrency} from '~/utils'
 import {FlexRow} from './util/flexrow'
 import {H2, H4, H5} from './util/typography'
-import {SectionContainer} from '~/components'
-import {UserCircleIcon} from '@heroicons/react/solid'
 
 export function BillAmount({
   userIsPaying,
@@ -26,7 +26,6 @@ export function BillAmount({
   userId: string
 }) {
   // const data = useLoaderData()
-  const MotionLink = motion(Link)
 
   const [showDetails, setShowDetails] = useState(false)
   return (

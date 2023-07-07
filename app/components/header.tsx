@@ -24,7 +24,7 @@ export function Header({user, isAdmin}: HeaderProps) {
         <>
           {!isTablePathOnly ? (
             <Link
-              to={`table/${location.pathname.split('/')[2]}`}
+              to={`${location.pathname.split('/')[2]}`}
               className="flex h-7 w-7 items-center justify-center rounded-full shadow-md"
             >
               <IoChevronBack />
@@ -57,7 +57,7 @@ export function Header({user, isAdmin}: HeaderProps) {
             </FlexRow>
           ) : (
             <LinkButton
-              to={`table/${location.pathname.split('/')[2]}/user/${user.id}`}
+              to={`${location.pathname.split('/')[2]}/user/${user.id}`}
               size="small"
             >
               <i>

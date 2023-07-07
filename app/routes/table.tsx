@@ -1,35 +1,34 @@
-import type { LoaderArgs, ActionArgs } from "@remix-run/node";
-import { json, redirect } from "@remix-run/node";
+import type {LoaderArgs, ActionArgs} from '@remix-run/node'
+import {json, redirect} from '@remix-run/node'
 import {
   Outlet,
   useLoaderData,
   useRouteError,
   isRouteErrorResponse,
   Link,
-} from "@remix-run/react";
+} from '@remix-run/react'
 // * UTILS, DB
 import {
   getSession,
   getUserId,
   getUsername,
   sessionStorage,
-} from "~/session.server";
-import { findOrCreateUser } from "~/models/user.server";
-import { prisma } from "~/db.server";
-import { validateRedirect } from "~/redirect.server";
+} from '~/session.server'
+import {findOrCreateUser} from '~/models/user.server'
+import {prisma} from '~/db.server'
+import {validateRedirect} from '~/redirect.server'
 // * COMPONENTS
-import { addHours, formatISO } from "date-fns";
+import {addHours, formatISO} from 'date-fns'
 // * CUSTOM COMPONENTS
-import { Header } from "~/components";
-import { UserForm } from "~/components/UserForm";
+import {Header, UserForm} from '~/components'
 
-const SESSION_EXPIRATION_TIME = 1000 * 60 * 60 * 24 * 30;
+const SESSION_EXPIRATION_TIME = 1000 * 60 * 60 * 24 * 30
 
 export default function TableLayoutPath() {
-  const data = useLoaderData();
+  const data = useLoaderData()
 
   if (!data.username) {
-    return <UserForm />;
+    return <UserForm />
   }
 
   return (
@@ -37,61 +36,58 @@ export default function TableLayoutPath() {
       <Header user={data.user} isAdmin={data.isAdmin} />
       <Outlet></Outlet>
     </>
-  );
+  )
 }
 
-export const loader = async ({ request }: LoaderArgs) => {
-  const userId = await getUserId(request);
+export const loader = async ({request}: LoaderArgs) => {
+  const userId = await getUserId(request)
 
-  const session = await getSession(request);
-  session.set("userId", userId);
+  const session = await getSession(request)
+  session.set('userId', userId)
 
   //ADMIN PURPOSES
   const isAdmin = await prisma.user.findFirst({
     where: {
       id: userId,
-      role: "admin",
+      role: 'admin',
     },
-  });
+  })
 
-  const username = await getUsername(request);
+  const username = await getUsername(request)
 
   //Verify if user is on the database or create
-  const user = await findOrCreateUser(userId, username);
+  const user = await findOrCreateUser(userId, username)
 
-  const url = new URL(request.url);
-  const pathname = url.pathname;
+  const url = new URL(request.url)
+  const pathname = url.pathname
 
   return json(
-    { username, pathname, user, isAdmin },
-    { headers: { "Set-Cookie": await sessionStorage.commitSession(session) } }
-  );
-};
+    {username, pathname, user, isAdmin},
+    {headers: {'Set-Cookie': await sessionStorage.commitSession(session)}},
+  )
+}
 
-export const action = async ({ request, params }: ActionArgs) => {
-  let [body, session] = await Promise.all([
-    request.text(),
-    getSession(request),
-  ]);
-  let formData = new URLSearchParams(body);
+export const action = async ({request, params}: ActionArgs) => {
+  let [body, session] = await Promise.all([request.text(), getSession(request)])
+  let formData = new URLSearchParams(body)
 
-  const name = formData.get("name") as string;
-  const color = formData.get("color") as string;
-  const url = formData.get("url") as string;
-  const proceed = formData.get("_action") === "proceed";
+  const name = formData.get('name') as string
+  const color = formData.get('color') as string
+  const url = formData.get('url') as string
+  const proceed = formData.get('_action') === 'proceed'
 
-  let redirectTo = validateRedirect(formData.get("redirect"), url);
+  let redirectTo = validateRedirect(formData.get('redirect'), url)
 
-  const userId = session.get("userId");
-  const searchParams = new URLSearchParams(request.url);
+  const userId = session.get('userId')
+  const searchParams = new URLSearchParams(request.url)
 
   if (!name) {
-    return redirect(redirectTo + "?error=Debes ingresar un nombre...");
+    return redirect(redirectTo + '?error=Debes ingresar un nombre...')
   }
 
   if (name && proceed) {
-    console.time(`✅ Creating session and user with name... ${name}`);
-    searchParams.set("error", "");
+    console.time(`✅ Creating session and user with name... ${name}`)
+    searchParams.set('error', '')
     const sessionId = await prisma.session.create({
       data: {
         expirationDate: new Date(Date.now() + SESSION_EXPIRATION_TIME),
@@ -99,30 +95,30 @@ export const action = async ({ request, params }: ActionArgs) => {
           create: {
             id: userId,
             name: name,
-            color: color ? color : "#000000",
+            color: color ? color : '#000000',
           },
         },
       },
       // select: {id: !0, expirationDate: !0},
-    });
-    session.set("sessionId", sessionId.id);
+    })
+    session.set('sessionId', sessionId.id)
 
     // Set expiry time 4 hours from now
-    const expiryTime = formatISO(addHours(new Date(), 4));
-    session.set("expiryTime", expiryTime);
-    session.set("username", name);
+    const expiryTime = formatISO(addHours(new Date(), 4))
+    session.set('expiryTime', expiryTime)
+    session.set('username', name)
 
-    console.timeEnd(`✅ Creating session and user with name... ${name}`);
+    console.timeEnd(`✅ Creating session and user with name... ${name}`)
     return redirect(redirectTo, {
-      headers: { "Set-Cookie": await sessionStorage.commitSession(session) },
-    });
+      headers: {'Set-Cookie': await sessionStorage.commitSession(session)},
+    })
   }
 
-  return null;
-};
+  return null
+}
 
 export const ErrorBoundary = () => {
-  const error = useRouteError();
+  const error = useRouteError()
 
   if (isRouteErrorResponse(error)) {
     return (
@@ -131,7 +127,7 @@ export const ErrorBoundary = () => {
         <p>Status: {error.status}</p>
         <p>{error?.data.message}</p>
       </main>
-    );
+    )
   }
 
   return (
@@ -139,8 +135,8 @@ export const ErrorBoundary = () => {
       <h1>An error ocurred in new note :c!</h1>
       <p>{error?.message}</p>
       <button className="bg-red-500 text-black">
-        Back to <Link to={"/table"}> safety! </Link>
+        Back to <Link to={'/table'}> safety! </Link>
       </button>
     </main>
-  );
-};
+  )
+}
