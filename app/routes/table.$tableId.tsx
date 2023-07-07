@@ -345,6 +345,17 @@ export async function loader({request, params}: LoaderArgs) {
   const userId = session.get('userId')
   const username = session.get('username')
 
+  const order = await prisma.order.findFirst({
+    where: {tableId, active: true},
+    include: {
+      cartItems: {include: {user: true}},
+      users: {include: {cartItems: true}},
+      payments: true,
+    },
+  })
+  const total = Number(order?.total)
+
+  //NOTE - USER CONNECT TO TABLE AND ORDER
   if (userId && username) {
     const isUserInTable = await prisma.user.findFirst({
       where: {
@@ -354,8 +365,9 @@ export async function loader({request, params}: LoaderArgs) {
     })
 
     if (!isUserInTable) {
-      console.log(`🔌 Connecting '${username}' to the table`)
       try {
+        console.log(`🔌 Connecting '${username}' to the table`)
+
         await prisma.user.update({
           where: {id: userId},
           data: {
@@ -363,18 +375,39 @@ export async function loader({request, params}: LoaderArgs) {
             branchId: branch.id,
           },
         })
+        // EVENTS.ISSUE_CHANGED(tableId)
+        console.log(`✅ Connected '${username}' to the table`)
       } catch (error) {
         console.log(
           '%cerror table.$tableId.tsx line:361 ',
           'color: red; display: block; width: 100%;',
           error,
         )
-        throw new Error('No se pudo conectar al usuario con la mesa')
+        throw new Error(`No se pudo conectar al usuario con la mesa ${error}`)
       }
-
-      console.log(`✅ Connected '${username}' to the table`)
-      // EVENTS.ISSUE_CHANGED(tableId)
     }
+    const isUserInOrder = await prisma.user.findFirst({
+      where: {id: userId, orderId: order?.id},
+    })
+    if (!isUserInOrder && order) {
+      try {
+        console.log(`🔌 Connecting '${username}' to the order`)
+        await prisma.order.update({
+          where: {id: order?.id},
+          data: {users: {connect: {id: userId}}},
+        })
+        // EVENTS.ISSUE_CHANGED(tableId)
+        console.log(`✅ Connected '${username}' to the order`)
+      } catch (error) {
+        console.log(
+          '%cerror table.$tableId.tsx line:361 ',
+          'color: red; display: block; width: 100%;',
+          error,
+        )
+        throw new Error(`No se pudo conectar al usuario con la orden ${error}`)
+      }
+    }
+
     // const userValidations = await validateUserIntegration(
     //   userId,
     //   tableId,
@@ -397,15 +430,6 @@ export async function loader({request, params}: LoaderArgs) {
     // }
   }
 
-  const order = await prisma.order.findFirst({
-    where: {tableId, active: true},
-    include: {
-      cartItems: {include: {user: true}},
-      users: {include: {cartItems: true}},
-      payments: true,
-    },
-  })
-
   let paidUsers = null
   let amountLeft = null
   let isExpired = null
@@ -415,8 +439,6 @@ export async function loader({request, params}: LoaderArgs) {
     amountLeft = await getAmountLeftToPay(tableId)
     isExpired = isOrderExpired(order.paidDate)
   }
-
-  const total = Number(order?.total)
 
   const menu = await getMenu(branch.id)
 
