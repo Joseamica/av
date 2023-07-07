@@ -1,6 +1,6 @@
-import type {CartItem} from '@prisma/client'
-import {json, redirect} from '@remix-run/node'
-import type {ActionArgs, LoaderArgs} from '@remix-run/node'
+import type { CartItem } from "@prisma/client";
+import { json, redirect } from "@remix-run/node";
+import type { ActionArgs, LoaderArgs } from "@remix-run/node";
 import {
   Form,
   useActionData,
@@ -9,9 +9,9 @@ import {
   useNavigate,
   useSearchParams,
   useSubmit,
-} from '@remix-run/react'
-import React from 'react'
-import invariant from 'tiny-invariant'
+} from "@remix-run/react";
+import React from "react";
+import invariant from "tiny-invariant";
 import {
   Button,
   FlexRow,
@@ -22,48 +22,48 @@ import {
   Modal,
   SendComments,
   Spacer,
-} from '~/components'
-import {LinkButton} from '~/components/buttons/button'
-import {prisma} from '~/db.server'
-import {validateRedirect} from '~/redirect.server'
-import {getUserId} from '~/session.server'
+} from "~/components";
+import { LinkButton } from "~/components/ui/buttons/button";
+import { prisma } from "~/db.server";
+import { validateRedirect } from "~/redirect.server";
+import { getUserId } from "~/session.server";
 
-export async function action({request, params}: ActionArgs) {
-  const {tableId} = params
-  invariant(tableId, 'tableId is required')
-  const formData = await request.formData()
-  const redirectTo = validateRedirect(request.redirect, `/table/${tableId}`)
+export async function action({ request, params }: ActionArgs) {
+  const { tableId } = params;
+  invariant(tableId, "tableId is required");
+  const formData = await request.formData();
+  const redirectTo = validateRedirect(request.redirect, `/table/${tableId}`);
 
-  const userId = await getUserId(request)
+  const userId = await getUserId(request);
 
-  const comments = formData.get('sendComments') as string
-  const subject = formData.get('subject') as string
-  const reportType = formData.get('reportType') as string
-  const proceed = formData.get('_action') === 'proceed'
+  const comments = formData.get("sendComments") as string;
+  const subject = formData.get("subject") as string;
+  const reportType = formData.get("reportType") as string;
+  const proceed = formData.get("_action") === "proceed";
 
-  const selected = formData.getAll('selected') as string[]
+  const selected = formData.getAll("selected") as string[];
 
   if (
     selected.length === 0 &&
-    reportType !== 'other' &&
-    reportType !== 'place'
+    reportType !== "other" &&
+    reportType !== "place"
   ) {
     return json(
-      {error: 'Debes seleccionar al menos un elemento para reportar'},
-      {status: 400},
-    )
+      { error: "Debes seleccionar al menos un elemento para reportar" },
+      { status: 400 }
+    );
   }
 
-  if (!subject && reportType !== 'other') {
+  if (!subject && reportType !== "other") {
     return json(
-      {error: 'Debes seleccionar cual fue el problema'},
-      {status: 400},
-    )
+      { error: "Debes seleccionar cual fue el problema" },
+      { status: 400 }
+    );
   }
 
   if (subject && reportType && proceed) {
     switch (reportType) {
-      case 'food':
+      case "food":
         // const foodFeedback =
         await prisma.feedback.create({
           data: {
@@ -71,11 +71,11 @@ export async function action({request, params}: ActionArgs) {
             type: `${reportType}-${comments}`,
             tableId: tableId,
             userId: userId,
-            cartItems: {connect: selected.map(id => ({id}))},
+            cartItems: { connect: selected.map((id) => ({ id })) },
           },
-        })
-        break
-      case 'waiter':
+        });
+        break;
+      case "waiter":
         // const waiterFeedback =
         await prisma.feedback.create({
           data: {
@@ -83,11 +83,11 @@ export async function action({request, params}: ActionArgs) {
             type: `${reportType}-${comments}`,
             tableId: tableId,
             userId: userId,
-            employees: {connect: selected.map(id => ({id}))},
+            employees: { connect: selected.map((id) => ({ id })) },
           },
-        })
-        break
-      case 'place':
+        });
+        break;
+      case "place":
         // const placeFeedback =
         await prisma.feedback.create({
           data: {
@@ -96,9 +96,9 @@ export async function action({request, params}: ActionArgs) {
             tableId: tableId,
             userId: userId,
           },
-        })
-        break
-      case 'other':
+        });
+        break;
+      case "other":
         // const otherFeedback =
         await prisma.feedback.create({
           data: {
@@ -107,92 +107,92 @@ export async function action({request, params}: ActionArgs) {
             tableId: tableId,
             userId: userId,
           },
-        })
-        break
+        });
+        break;
     }
     //COnnect if waiter then connect to a employee id, if dish then connect to a dish id
 
-    return redirect(redirectTo)
+    return redirect(redirectTo);
   }
 
-  return json({subject, comments})
+  return json({ subject, comments });
 }
 
-export async function loader({request, params}: LoaderArgs) {
-  const {tableId} = params
-  invariant(tableId, 'tableId is required')
-  const userId = await getUserId(request)
+export async function loader({ request, params }: LoaderArgs) {
+  const { tableId } = params;
+  invariant(tableId, "tableId is required");
+  const userId = await getUserId(request);
 
   const cartItemsByUser = await prisma.cartItem.findMany({
-    where: {user: {some: {id: userId}}},
-  })
+    where: { user: { some: { id: userId } } },
+  });
 
   const waiters = await prisma.employee.findMany({
-    where: {role: 'waiter', tables: {some: {id: tableId}}},
-  })
+    where: { role: "waiter", tables: { some: { id: tableId } } },
+  });
 
   const managers = await prisma.employee.findMany({
-    where: {role: 'manager', tables: {some: {id: tableId}}},
-  })
+    where: { role: "manager", tables: { some: { id: tableId } } },
+  });
 
-  return json({waiters, managers, cartItemsByUser})
+  return json({ waiters, managers, cartItemsByUser });
 }
 
 export const FOOD_REPORT_SUBJECTS = {
-  1: 'Sabor',
-  2: 'Presentación',
-  3: 'Demora',
-}
+  1: "Sabor",
+  2: "Presentación",
+  3: "Demora",
+};
 
 const WAITER_REPORT_SUBJECTS = {
-  1: 'Servicio',
-  2: 'Actitud',
-  3: 'Demora',
-}
+  1: "Servicio",
+  2: "Actitud",
+  3: "Demora",
+};
 
 const PLACE_REPORT_SUBJECTS = {
-  1: 'Limpieza',
-  2: 'Atención',
-  3: 'Ruido',
-}
+  1: "Limpieza",
+  2: "Atención",
+  3: "Ruido",
+};
 
 export default function Report() {
-  const data = useLoaderData()
-  const actionData = useActionData()
-  const navigate = useNavigate()
-  const fetcher = useFetcher()
+  const data = useLoaderData();
+  const actionData = useActionData();
+  const navigate = useNavigate();
+  const fetcher = useFetcher();
 
   let isSubmitting =
-    fetcher.state === 'submitting' || fetcher.state === 'loading'
-  const submitButton = isSubmitting ? 'Enviando...' : 'Enviar reporte'
+    fetcher.state === "submitting" || fetcher.state === "loading";
+  const submitButton = isSubmitting ? "Enviando..." : "Enviar reporte";
 
   const onClose = () => {
-    navigate('..')
-  }
-  const submit = useSubmit()
+    navigate("..");
+  };
+  const submit = useSubmit();
   function handleChange(event: React.FormEvent<HTMLFormElement>) {
-    submit(event.currentTarget, {replace: true})
+    submit(event.currentTarget, { replace: true });
   }
 
-  const [searchParams] = useSearchParams()
-  const by = searchParams.get('by') || 'No especificado'
-  const subject = searchParams.get('subject') || undefined
+  const [searchParams] = useSearchParams();
+  const by = searchParams.get("by") || "No especificado";
+  const subject = searchParams.get("subject") || undefined;
 
-  let title = ''
-  if (by === 'waiter') {
-    title = 'Reportar a un mesero'
-  } else if (by === 'food') {
-    title = 'Reportar un platillo'
-  } else if (by === 'place') {
-    title = 'Reportar el lugar'
-  } else if (by === 'other') {
-    title = 'Reportar otro suceso'
+  let title = "";
+  if (by === "waiter") {
+    title = "Reportar a un mesero";
+  } else if (by === "food") {
+    title = "Reportar un platillo";
+  } else if (by === "place") {
+    title = "Reportar el lugar";
+  } else if (by === "other") {
+    title = "Reportar otro suceso";
   }
   return (
     <Modal
-      title={by === 'No especificado' ? 'Reportar algún suceso' : title}
+      title={by === "No especificado" ? "Reportar algún suceso" : title}
       onClose={onClose}
-      goBack={by === 'No especificado' ? false : true}
+      goBack={by === "No especificado" ? false : true}
     >
       {/* <Spacer spaceY="2" /> */}
 
@@ -203,7 +203,7 @@ export default function Report() {
       >
         <p className="text-center">Los reportes son totalmente anónimos </p>
 
-        {by === 'waiter' ? (
+        {by === "waiter" ? (
           <div className="space-y-2">
             {data.waiters.map((waiter: CartItem) => (
               <ItemContainer key={waiter.id}>
@@ -226,7 +226,7 @@ export default function Report() {
                 size="small"
                 to={`?by=waiter&subject=${value}`}
                 key={key}
-                variant={subject === value ? 'primary' : 'secondary'}
+                variant={subject === value ? "primary" : "secondary"}
                 className="mx-1"
               >
                 {value}
@@ -242,7 +242,7 @@ export default function Report() {
               {submitButton}
             </Button>
           </div>
-        ) : by === 'food' ? (
+        ) : by === "food" ? (
           <div className="space-y-2">
             {data.cartItemsByUser.map((cartItem: CartItem) => (
               <ItemContainer key={cartItem.id}>
@@ -265,7 +265,7 @@ export default function Report() {
                 key={key}
                 size="small"
                 className="mx-1"
-                variant={subject === value ? 'primary' : 'secondary'}
+                variant={subject === value ? "primary" : "secondary"}
               >
                 {value}
               </LinkButton>
@@ -280,7 +280,7 @@ export default function Report() {
               {submitButton}
             </Button>
           </div>
-        ) : by === 'place' ? (
+        ) : by === "place" ? (
           <div className="space-y-2">
             <FlexRow>
               <H1>Selecciona cual fue el problema</H1>
@@ -291,7 +291,7 @@ export default function Report() {
                 key={key}
                 size="small"
                 className="mx-1"
-                variant={subject === value ? 'primary' : 'secondary'}
+                variant={subject === value ? "primary" : "secondary"}
               >
                 {value}
               </LinkButton>
@@ -306,7 +306,7 @@ export default function Report() {
               {submitButton}
             </Button>
           </div>
-        ) : by === 'other' ? (
+        ) : by === "other" ? (
           <div className="space-y-2">
             <SendComments />
             <Button
@@ -342,8 +342,8 @@ export default function Report() {
         {/* <SendComments /> */}
 
         <input type="hidden" name="reportType" value={by} />
-        <input type="hidden" name="subject" value={subject || ''} />
+        <input type="hidden" name="subject" value={subject || ""} />
       </Form>
     </Modal>
-  )
+  );
 }

@@ -1,16 +1,16 @@
-import type {Table} from '@prisma/client'
-import type {LoaderArgs} from '@remix-run/node'
-import {json} from '@remix-run/node'
-import {Link, Outlet, useLoaderData} from '@remix-run/react'
-import {prisma} from '~/db.server'
+import type { Table } from "@prisma/client";
+import type { LoaderArgs } from "@remix-run/node";
+import { json } from "@remix-run/node";
+import { Link, Outlet, useLoaderData } from "@remix-run/react";
+import { prisma } from "~/db.server";
 
-export async function loader({request, params}: LoaderArgs) {
-  const tables = await prisma.table.findMany({})
-  return json({tables})
+export async function loader({ request, params }: LoaderArgs) {
+  const tables = await prisma.table.findMany({});
+  return json({ tables });
 }
 
 export default function TableIndex() {
-  const data = useLoaderData()
+  const data = useLoaderData();
   return (
     <div>
       {data.tables.map((table: Table) => (
@@ -23,5 +23,5 @@ export default function TableIndex() {
         </Link>
       ))}
     </div>
-  )
+  );
 }

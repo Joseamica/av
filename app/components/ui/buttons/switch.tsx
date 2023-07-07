@@ -1,11 +1,11 @@
-import {motion} from 'framer-motion'
-import {H4} from '../util/typography'
+import { motion } from "framer-motion";
+import { H4 } from "../../util/typography";
 
 const sizes = {
-  small: 'w-1/4',
-  medium: 'w-3/4',
-  large: 'w-full',
-}
+  small: "w-1/4",
+  medium: "w-3/4",
+  large: "w-full",
+};
 
 export function SwitchButton({
   state,
@@ -15,30 +15,30 @@ export function SwitchButton({
   leftIcon,
   rightIcon,
   stretch,
-  size = 'large',
+  size = "large",
 }: {
-  state: boolean
-  setToggle: (boolean: boolean) => void
-  leftText?: string
-  rightText?: string
-  leftIcon?: any
-  rightIcon?: any
-  stretch?: boolean
-  size?: 'small' | 'medium' | 'large'
+  state: boolean;
+  setToggle: (boolean: boolean) => void;
+  leftText?: string;
+  rightText?: string;
+  leftIcon?: any;
+  rightIcon?: any;
+  stretch?: boolean;
+  size?: "small" | "medium" | "large";
 }) {
   const toggleSwitch = () => {
-    if (typeof state === 'string') {
-      return
+    if (typeof state === "string") {
+      return;
     } else {
-      setToggle(!state)
+      setToggle(!state);
     }
-  }
+  };
   return (
     <motion.button
       className={`flex  ${
         sizes[size]
       } cursor-pointer items-center rounded-full bg-button-notSelected p-1 shadow-inner hover:cursor-pointer ${
-        state && 'place-content-end'
+        state && "place-content-end"
       }`}
       onClick={toggleSwitch}
     >
@@ -52,9 +52,9 @@ export function SwitchButton({
       <motion.div
         layout
         onClick={toggleSwitch}
-        transition={{type: 'spring', stiffness: 700, damping: 25}}
+        transition={{ type: "spring", stiffness: 700, damping: 25 }}
         className={`bg-principal flex h-7 w-1/2 items-center justify-center rounded-full ${
-          state ? 'bg-button-primary' : 'bg-button-primary'
+          state ? "bg-button-primary" : "bg-button-primary"
         }`}
       >
         {/* ACTIVATED BUTTON */}
@@ -81,5 +81,5 @@ export function SwitchButton({
         </div>
       )}
     </motion.button>
-  )
+  );
 }

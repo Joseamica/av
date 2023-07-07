@@ -1,10 +1,8 @@
-import {motion} from 'framer-motion'
-
 const justifyContent = {
-  between: 'justify-between',
-  center: 'justify-center ',
-  start: 'justify-start',
-}
+  between: "justify-between",
+  center: "justify-center ",
+  start: "justify-start",
+};
 
 /**
  *
@@ -23,17 +21,17 @@ const justifyContent = {
  */
 
 export function FlexRow({
-  justify = 'start',
+  justify = "start",
   className,
   children,
-  spaceX = '2',
+  spaceX = "2",
   ...rest
 }: {
-  justify?: 'between' | 'center' | 'start'
-  children: React.ReactNode | React.ReactNode[]
-  space?: string
-  className?: string
-  [x: string]: any
+  justify?: "between" | "center" | "start";
+  children: React.ReactNode | React.ReactNode[];
+  space?: string;
+  className?: string;
+  [x: string]: any;
 }) {
   return (
     <div
@@ -42,5 +40,5 @@ export function FlexRow({
     >
       {children}
     </div>
-  )
+  );
 }
