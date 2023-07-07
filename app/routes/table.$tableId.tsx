@@ -5,102 +5,101 @@ import type {
   Order,
   Table as TableProps,
   User,
-} from "@prisma/client";
-import type { ActionArgs, LoaderArgs } from "@remix-run/node";
+} from '@prisma/client'
+import type {ActionArgs, LoaderArgs} from '@remix-run/node'
 
-import { useState } from "react";
-import { Form, Outlet, useLoaderData } from "@remix-run/react";
-import { json } from "@remix-run/node";
+import {json} from '@remix-run/node'
+import {Form, Outlet, useLoaderData} from '@remix-run/react'
+import {useState} from 'react'
 // * UTILS, MODELS, DB, HOOKS
+import {prisma} from '~/db.server'
+import {EVENTS} from '~/events'
+import {useSessionTimeout} from '~/hooks/use-session-timeout'
+import {getBranch} from '~/models/branch.server'
+import {getMenu} from '~/models/menu.server'
+import {getTable} from '~/models/table.server'
+import {getPaidUsers, getUsersOnTable} from '~/models/user.server'
+import {validateUserIntegration} from '~/models/validations.server'
+import {getSession} from '~/session.server'
 import {
   formatCurrency,
   getAmountLeftToPay,
   getCurrency,
   isOrderExpired,
-} from "~/utils";
-import { prisma } from "~/db.server";
-import { EVENTS } from "~/events";
-import { useSessionTimeout } from "~/hooks/use-session-timeout";
-import { getSession } from "~/session.server";
-import { getBranch } from "~/models/branch.server";
-import { getMenu } from "~/models/menu.server";
-import { getTable } from "~/models/table.server";
-import { getPaidUsers, getUsersOnTable } from "~/models/user.server";
-import { validateUserIntegration } from "~/models/validations.server";
+} from '~/utils'
 // * COMPONENTS
-// import { useLiveLoader } from "~/use-live-loader";
-import clsx from "clsx";
-import invariant from "tiny-invariant";
-import { AnimatePresence, motion } from "framer-motion";
+import {useLiveLoader} from '~/use-live-loader'
 import {
   ChevronDownIcon,
   UserCircleIcon,
   UsersIcon,
-} from "@heroicons/react/solid";
+} from '@heroicons/react/solid'
+import clsx from 'clsx'
+import {AnimatePresence, motion} from 'framer-motion'
+import invariant from 'tiny-invariant'
 // TODO React icons or heroicons ? :angry
-import { IoFastFood } from "react-icons/io5";
+import {IoFastFood} from 'react-icons/io5'
 // * CUSTOM COMPONENTS
-import { SwitchButton } from "~/components/ui/buttons/switch"; // Assuming SwitchButton is in the same directory
-import { Button } from "~/components/ui/buttons/button";
 import {
   BillAmount,
   CartItemDetails,
   FlexRow,
   H3,
-  H4,
   H5,
   H6,
   Help,
   SectionContainer,
   Spacer,
-} from "~/components/index";
+} from '~/components/index'
+import {Button} from '~/components/ui/buttons/button'
+import {SwitchButton} from '~/components/ui/buttons/switch' // Assuming SwitchButton is in the same directory
 
-import { EmptyOrder } from "~/components/table/EmptyOrder";
-import { SinglePayButton } from "~/components/table/SinglePayButton";
-import { RestaurantInfoCard } from "~/components/RestaurantInfoCard";
+import {RestaurantInfoCard} from '~/components/RestaurantInfoCard'
+import {EmptyOrder} from '~/components/table/EmptyOrder'
+import {SinglePayButton} from '~/components/table/SinglePayButton'
 
 type LoaderData = {
-  order: Order & any;
-  table: TableProps;
-  total: number;
-  currency: string;
-  usersInTable: User[];
-  user: User;
-  branch: Branch;
-  menu: Menu;
-  amountLeft: number;
-  paidUsers: any;
-  userId: string;
-  isDeliverectToken: boolean;
-};
+  order: Order & any
+  table: TableProps
+  total: number
+  currency: string
+  usersInTable: User[]
+  user: User
+  branch: Branch
+  menu: Menu
+  amountLeft: number
+  paidUsers: any
+  userId: string
+  isDeliverectToken: boolean
+}
 
 export default function Table() {
-  // const data = useLoaderData()
-  useSessionTimeout();
+  const data = useLoaderData()
+  useSessionTimeout()
 
   // const data = useLiveLoader<LoaderData>();
-  const data = useLoaderData<LoaderData>();
+  // const data = useLiveLoader<LoaderData>()
 
-  const [selectedUsers, setSelectedUsers] = useState<string[]>([]);
-  const [filterPerUser, setFilterPerUser] = useState(false);
+  const [selectedUsers, setSelectedUsers] = useState<string[]>([])
+  const [filterPerUser, setFilterPerUser] = useState(false)
 
   const handleToggleUser = (userId: string) => {
     setSelectedUsers((prevSelected: string[]) =>
       prevSelected.includes(userId)
-        ? prevSelected.filter((id) => id !== userId)
-        : [...prevSelected, userId]
-    );
-  };
+        ? prevSelected.filter(id => id !== userId)
+        : [...prevSelected, userId],
+    )
+  }
 
-  const [collapse, setCollapse] = useState(false);
+  const [collapse, setCollapse] = useState(false)
   const handleCollapse = () => {
-    setCollapse(!collapse);
-  };
+    setCollapse(!collapse)
+  }
 
   const handleToggle = () => {
-    setFilterPerUser(!filterPerUser);
-  };
-  const [showPaymentOptions, setShowPaymentOptions] = useState(false);
+    setFilterPerUser(!filterPerUser)
+  }
+  const [showPaymentOptions, setShowPaymentOptions] = useState(false)
 
   if (data.total > 0) {
     return (
@@ -113,7 +112,7 @@ export default function Table() {
         </h3>
         <Spacer spaceY="2" />
         <Help />
-        <Form method="POST" action="/oauth/token">
+        {/* <Form method="POST" action="/oauth/token">
           <button>Assign Token</button>
         </Form>
         <Form method="GET" action="/oauth/token">
@@ -121,7 +120,7 @@ export default function Table() {
         </Form>
         <Form method="POST" action="/api/createOrder">
           <button>createOrder</button>
-        </Form>
+        </Form> */}
 
         <BillAmount
           amountLeft={data.amountLeft}
@@ -150,14 +149,14 @@ export default function Table() {
           <AnimatePresence>
             <div className="space-y-2">
               {data.order?.users.map((user: any) => {
-                const userPaid = Number(user.paid);
+                const userPaid = Number(user.paid)
                 return (
                   <SectionContainer key={user.id} as="div">
                     <FlexRow justify="between" className="rounded-xl px-1 ">
                       <Spacer spaceY="2">
                         <FlexRow className="items-center space-x-2">
                           <UserCircleIcon
-                            fill={user.color || "#000"}
+                            fill={user.color || '#000'}
                             className=" min-h-10 min-w-10 h-8 w-8"
                           />
                           <div className="flex flex-col">
@@ -166,9 +165,9 @@ export default function Table() {
                               {Number(user.paid) > 0
                                 ? `Pagado: ${formatCurrency(
                                     data.currency,
-                                    userPaid
+                                    userPaid,
                                   )}`
-                                : "No ha pagado"}
+                                : 'No ha pagado'}
                             </H6>
                             <FlexRow>
                               <H6>
@@ -183,8 +182,8 @@ export default function Table() {
                                   data.currency,
                                   user.cartItems.reduce(
                                     (sum, item) => sum + item.price,
-                                    0
-                                  )
+                                    0,
+                                  ),
                                 )}
                                 )
                               </H6>
@@ -195,15 +194,15 @@ export default function Table() {
                       <button
                         onClick={() => handleToggleUser(user.id)}
                         className={clsx(
-                          "flex items-center justify-center rounded-lg  border border-button-outline px-1   py-1 text-xs",
+                          'flex items-center justify-center rounded-lg  border border-button-outline px-1   py-1 text-xs',
                           {
-                            "bg-button-primary text-white":
+                            'bg-button-primary text-white':
                               selectedUsers.includes(user.id),
-                          }
+                          },
                         )}
                       >
                         Detalles
-                        <ChevronDownIcon className={clsx("h-3 w-3 ", {})} />
+                        <ChevronDownIcon className={clsx('h-3 w-3 ', {})} />
                       </button>
                     </FlexRow>
                     <AnimatePresence>
@@ -211,15 +210,15 @@ export default function Table() {
                         <motion.div
                           className="flex flex-col"
                           key={user.id}
-                          initial={{ opacity: 0, height: "0" }}
-                          animate={{ opacity: 1, height: "auto" }}
-                          exit={{ opacity: 0, height: "0" }}
+                          initial={{opacity: 0, height: '0'}}
+                          animate={{opacity: 1, height: 'auto'}}
+                          exit={{opacity: 0, height: '0'}}
                           transition={{
                             opacity: {
                               duration: 0.2,
                               ease: [0.04, 0.62, 0.23, 0.98],
                             },
-                            height: { duration: 0.4 },
+                            height: {duration: 0.4},
                           }}
                         >
                           <hr />
@@ -245,7 +244,7 @@ export default function Table() {
 
                     {/* <hr /> */}
                   </SectionContainer>
-                );
+                )
               })}
             </div>
           </AnimatePresence>
@@ -272,20 +271,20 @@ export default function Table() {
                   <motion.div
                     className="flex flex-col"
                     key={cartItem.id}
-                    initial={{ opacity: 0, height: "0" }}
-                    animate={{ opacity: 1, height: "auto" }}
-                    exit={{ opacity: 0, height: "0" }}
+                    initial={{opacity: 0, height: '0'}}
+                    animate={{opacity: 1, height: 'auto'}}
+                    exit={{opacity: 0, height: '0'}}
                     transition={{
                       opacity: {
                         duration: 0.2,
                         ease: [0.04, 0.62, 0.23, 0.98],
                       },
-                      height: { duration: 0.4 },
+                      height: {duration: 0.4},
                     }}
                   >
                     <CartItemDetails cartItem={cartItem} />
                   </motion.div>
-                );
+                )
               })}
             </AnimatePresence>
           </SectionContainer>
@@ -319,88 +318,117 @@ export default function Table() {
 
         <Outlet />
       </motion.main>
-    );
+    )
   } else {
     return (
       <EmptyOrder
         tableNumber={data.table.table_number}
         usersInTable={data.usersInTable}
       />
-    );
+    )
   }
 }
 
-export async function loader({ request, params }: LoaderArgs) {
-  const { tableId } = params;
-  invariant(tableId, "No se encontró el ID de la mesa");
+export async function loader({request, params}: LoaderArgs) {
+  const {tableId} = params
+  invariant(tableId, 'No se encontró el ID de la mesa')
 
-  const branch = await getBranch(tableId);
-  invariant(branch, "No se encontró la sucursal");
+  const branch = await getBranch(tableId)
+  invariant(branch, 'No se encontró la sucursal')
 
   const [table, usersInTable] = await Promise.all([
     getTable(tableId),
     getUsersOnTable(tableId),
-  ]);
+  ])
 
-  const session = await getSession(request);
-  const userId = session.get("userId");
-  const username = session.get("username");
+  const session = await getSession(request)
+  const userId = session.get('userId')
+  const username = session.get('username')
 
   if (userId && username) {
-    const userValidations = await validateUserIntegration(
-      userId,
-      tableId,
-      username,
-      branch.id
-    );
+    const isUserInTable = await prisma.user.findFirst({
+      where: {
+        id: userId, // userId is the id of the user you want to check
+        tableId: tableId, // tableId is the id of the table you want to check
+      },
+    })
 
-    console.log(
-      "userValidations",
-      userValidations,
-      userId,
-      tableId,
-      username,
-      branch.id
-    );
+    if (!isUserInTable) {
+      console.log(`🔌 Connecting '${username}' to the table`)
+      try {
+        await prisma.user.update({
+          where: {id: userId},
+          data: {
+            tableId: tableId,
+            branchId: branch.id,
+          },
+        })
+      } catch (error) {
+        console.log(
+          '%cerror table.$tableId.tsx line:361 ',
+          'color: red; display: block; width: 100%;',
+          error,
+        )
+        throw new Error('No se pudo conectar al usuario con la mesa')
+      }
+
+      console.log(`✅ Connected '${username}' to the table`)
+      // EVENTS.ISSUE_CHANGED(tableId)
+    }
+    // const userValidations = await validateUserIntegration(
+    //   userId,
+    //   tableId,
+    //   username,
+    //   branch.id,
+    // )
+
+    // console.log(
+    //   'userValidations',
+    //   userValidations,
+    //   userId,
+    //   tableId,
+    //   username,
+    //   branch.id,
+    // )
 
     // ANCHOR no se encontró el usuario
-    if (!userValidations) {
-      throw new Error("No se encontró el usuario");
-    }
+    // if (!userValidations) {
+    //   throw new Error('No se encontró el usuario')
+    // }
   }
 
   const order = await prisma.order.findFirst({
-    where: { tableId, active: true },
+    where: {tableId, active: true},
     include: {
-      cartItems: { include: { user: true } },
-      users: { include: { cartItems: true } },
+      cartItems: {include: {user: true}},
+      users: {include: {cartItems: true}},
       payments: true,
     },
-  });
+  })
 
-  let paidUsers = null;
-  let amountLeft = null;
-  let isExpired = null;
+  let paidUsers = null
+  let amountLeft = null
+  let isExpired = null
 
   if (order) {
-    paidUsers = await getPaidUsers(order.id);
-    amountLeft = await getAmountLeftToPay(tableId);
-    isExpired = isOrderExpired(order.paidDate);
+    paidUsers = await getPaidUsers(order.id)
+    amountLeft = await getAmountLeftToPay(tableId)
+    isExpired = isOrderExpired(order.paidDate)
   }
 
-  const total = Number(order?.total);
+  const total = Number(order?.total)
 
-  const menu = await getMenu(branch.id);
+  const menu = await getMenu(branch.id)
 
-  let error = {};
+  let error = {}
   if (!menu) {
     error = {
       body: null,
       title: `${branch?.name} no cuenta con un menu abierto en este horario.`,
-    };
+    }
   }
 
-  const currency = await getCurrency(tableId);
+  const currency = await getCurrency(tableId)
 
   if (order && isExpired) {
     // todo  TAMBIEN USAR EXPIRACION EN MENUID Y CART (mejor en root)
@@ -414,20 +442,20 @@ export async function loader({ request, params }: LoaderArgs) {
           tip: 0,
           paid: 0,
           total: 0,
-          orders: { disconnect: true },
-          cartItems: { set: [] },
+          orders: {disconnect: true},
+          cartItems: {set: []},
 
           // tableId: null,
           // tables: {disconnect: true},
         },
-      });
+      })
     }
     await prisma.order.update({
-      where: { id: order.id },
-      data: { active: false, table: { disconnect: true }, users: { set: [] } },
-    });
+      where: {id: order.id},
+      data: {active: false, table: {disconnect: true}, users: {set: []}},
+    })
 
-    console.log("Order expired...");
+    console.log('Order expired...')
   }
 
   return json({
@@ -441,21 +469,21 @@ export async function loader({ request, params }: LoaderArgs) {
     paidUsers,
     error,
     usersInTable,
-  });
+  })
 }
 
 // * CUANDO EL USUARIO AGREGAR SU NOMBRE SERIA BUENO CONECTARLO A LA MESA DIRECTAMENTE.
-export async function action({ request, params }: ActionArgs) {
-  const { tableId } = params;
-  invariant(tableId, "Mesa no encontrada!");
-  const formData = await request.formData();
-  const _action = formData.get("_action") as string;
+export async function action({request, params}: ActionArgs) {
+  const {tableId} = params
+  invariant(tableId, 'Mesa no encontrada!')
+  const formData = await request.formData()
+  const _action = formData.get('_action') as string
 
   switch (_action) {
-    case "endOrder":
+    case 'endOrder':
       // EVENTS.ISSUE_CHANGED(tableId)
-      EVENTS.ISSUE_CHANGED(tableId, "endOrder");
+      EVENTS.ISSUE_CHANGED(tableId, 'endOrder')
   }
 
-  return json({ success: true });
+  return json({success: true})
 }

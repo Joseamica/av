@@ -13,6 +13,7 @@ export function useLiveLoader<T>() {
   const navigate = useNavigate()
   const {revalidate} = useRevalidator()
 
+  // FIXME- esto hace que cuando se hace save en vscode, se recarga la pagina multiples veces
   useEffect(() => {
     switch (data) {
       case 'endOrder':

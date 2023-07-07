@@ -1,20 +1,20 @@
-import type { User } from "@prisma/client";
-import { Link, useLocation, useMatches } from "@remix-run/react";
-import { IoChevronBack } from "react-icons/io5";
-import { LinkButton } from "./ui/buttons/button";
-import { H1, H4, H5 } from "./util/typography";
-import { FlexRow } from "./util/flexrow";
-import { SearchIcon } from "@heroicons/react/solid";
-import { UserCircleIcon } from "@heroicons/react/solid";
+import type {User} from '@prisma/client'
+import {Link, useLocation, useMatches} from '@remix-run/react'
+import {IoChevronBack} from 'react-icons/io5'
+import {LinkButton} from './ui/buttons/button'
+import {H1, H4, H5} from './util/typography'
+import {FlexRow} from './util/flexrow'
+import {SearchIcon} from '@heroicons/react/solid'
+import {UserCircleIcon} from '@heroicons/react/solid'
 interface HeaderProps {
-  user: User;
-  isAdmin: boolean;
+  user: User
+  isAdmin: boolean
 }
 
-export function Header({ user, isAdmin }: HeaderProps) {
+export function Header({user, isAdmin}: HeaderProps) {
   // const params = useParams()
-  const location = useLocation();
-  const isTablePathOnly = location.pathname.split("/").length <= 3;
+  const location = useLocation()
+  const isTablePathOnly = location.pathname.split('/').length <= 3
 
   return (
     <nav
@@ -24,7 +24,7 @@ export function Header({ user, isAdmin }: HeaderProps) {
         <>
           {!isTablePathOnly ? (
             <Link
-              to={`table/${location.pathname.split("/")[2]}`}
+              to={`table/${location.pathname.split('/')[2]}`}
               className="flex h-7 w-7 items-center justify-center rounded-full shadow-md"
             >
               <IoChevronBack />
@@ -34,16 +34,16 @@ export function Header({ user, isAdmin }: HeaderProps) {
               <H1>Avoqado</H1>
             </Link>
           )}
-          {location.pathname.includes("menu") ? (
+          {location.pathname.includes('menu') ? (
             <FlexRow className="space-x-4">
               <LinkButton
-                to={`table/${location.pathname.split("/")[2]}/user/${user.id}`}
+                to={`table/${location.pathname.split('/')[2]}/user/${user.id}`}
                 size="small"
               >
                 <i>
                   <UserCircleIcon
                     className="h-5 w-5"
-                    fill={user.color || "#fff"}
+                    fill={user.color || '#fff'}
                   />
                 </i>
                 <H5>{user.name}</H5>
@@ -57,13 +57,13 @@ export function Header({ user, isAdmin }: HeaderProps) {
             </FlexRow>
           ) : (
             <LinkButton
-              to={`table/${location.pathname.split("/")[2]}/user/${user.id}`}
+              to={`table/${location.pathname.split('/')[2]}/user/${user.id}`}
               size="small"
             >
               <i>
                 <UserCircleIcon
                   className="h-5 w-5"
-                  fill={user.color || "#fff"}
+                  fill={user.color || '#fff'}
                 />
               </i>
               <H5>{user.name}</H5>
@@ -81,5 +81,5 @@ export function Header({ user, isAdmin }: HeaderProps) {
         </FlexRow>
       )}
     </nav>
-  );
+  )
 }

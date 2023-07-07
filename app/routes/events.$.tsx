@@ -7,6 +7,7 @@ export const loader = ({request, params}: LoaderArgs) => {
 
   return eventStream(request.signal, send => {
     const handler = (message: string) => {
+      console.log('message', message)
       if (message) {
         send({event: 'message', data: message})
       } else {

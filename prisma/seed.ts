@@ -8,7 +8,7 @@ async function seed() {
   console.time(`🌱 Database has been seeded`)
 
   console.time('🧹 Cleaned up the database...')
-  // await prisma.restaurant.deleteMany()
+  await prisma.restaurant.deleteMany()
   await prisma.branch.deleteMany()
   await prisma.table.deleteMany()
   await prisma.employee.deleteMany()

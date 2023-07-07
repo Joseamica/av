@@ -104,12 +104,14 @@ export function getPaidUsers(orderId: Order['id']) {
   })
 }
 
-export function getUsersOnTable(tableId: Table['id']) {
-  return prisma.user.findMany({
+export async function getUsersOnTable(tableId: Table['id']) {
+  const users = await prisma.user.findMany({
     where: {
       tableId: tableId,
     },
   })
+
+  return users.length > 0 ? users : null
 }
 
 interface UserPrevPaidData {

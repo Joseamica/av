@@ -1,20 +1,20 @@
-import { Link } from "@remix-run/react";
+import {Link} from '@remix-run/react'
 // * MODELS
-import { User } from "@prisma/client";
+import type {User} from '@prisma/client'
 // * CUSTOM COMPONENTS
-import { SectionContainer } from "../containers/SectionContainer";
-import { RestaurantInfoCard } from "../RestaurantInfoCard";
-import { UserButton } from "../ui/buttons/UserButton";
-import { FlexRow } from "../util/flexrow";
-import { Spacer } from "../util/spacer";
-import { H4, H5 } from "../util/typography";
+import {SectionContainer} from '../containers/SectionContainer'
+import {RestaurantInfoCard} from '../RestaurantInfoCard'
+import {UserButton} from '../ui/buttons/UserButton'
+import {FlexRow} from '../util/flexrow'
+import {Spacer} from '../util/spacer'
+import {H4, H5} from '../util/typography'
 
 export function EmptyOrder({
   tableNumber,
   usersInTable,
 }: {
-  tableNumber: number;
-  usersInTable: User[];
+  tableNumber: number
+  usersInTable: User[] | null
 }) {
   return (
     <main>
@@ -36,27 +36,28 @@ export function EmptyOrder({
         <Spacer spaceY="2">
           <hr className="dark:border-DARK_OUTLINE border-LIGHT_DIVIDER" />
         </Spacer>
-        {usersInTable?.map((user, index: number) => (
-          <FlexRow
-            className="w-full items-center justify-between space-x-2 space-y-2"
-            key={user.id}
-          >
-            <FlexRow className="items-center space-x-2">
-              <UserButton userColor={user?.color} path={`user/${user?.id}`} />
-              {user?.name ? <H4>{user.name}</H4> : <H4>Desconectado</H4>}
+        {usersInTable &&
+          usersInTable.map((user, index: number) => (
+            <FlexRow
+              className="w-full items-center justify-between space-x-2 space-y-2"
+              key={user.id}
+            >
+              <FlexRow className="items-center space-x-2">
+                <UserButton userColor={user?.color} path={`user/${user?.id}`} />
+                {user?.name ? <H4>{user.name}</H4> : <H4>Desconectado</H4>}
+              </FlexRow>
+              <div>
+                <Link
+                  preventScrollReset
+                  to={`user/${user?.id}`}
+                  className="dark:bg-buttonBgDark bg-componentBg flex flex-row items-center justify-center rounded-full px-2 py-1 "
+                >
+                  Detalles
+                </Link>
+              </div>
             </FlexRow>
-            <div>
-              <Link
-                preventScrollReset
-                to={`user/${user?.id}`}
-                className="dark:bg-buttonBgDark bg-componentBg flex flex-row items-center justify-center rounded-full px-2 py-1 "
-              >
-                Detalles
-              </Link>
-            </div>
-          </FlexRow>
-        ))}
+          ))}
       </SectionContainer>
     </main>
-  );
+  )
 }
