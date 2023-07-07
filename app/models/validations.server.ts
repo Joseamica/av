@@ -9,10 +9,12 @@ export async function validateUserIntegration(
   username: string,
   branchId: Branch["id"]
 ) {
+  let isActive = false;
   // If user is not in table, then connect
   const isUserInTable = await prisma.user
     .findFirst({ where: { id: userId, tableId } })
     .then((user) => (user ? true : false));
+  isActive = isUserInTable;
 
   /**
    * * Connect user to the table
@@ -28,29 +30,35 @@ export async function validateUserIntegration(
         branchId,
       },
     });
+
     console.log(`✅ Connected '${username}' to the table`);
     EVENTS.ISSUE_CHANGED(tableId);
+    isActive = true;
   }
 
-  // * ANCHOR que hay aquí?
+  /**
+   * * BUSCAMOS UNA ORDEN ACTIVA EN LA MESA ACTUAL
+   * * PUEDE SER BODY EN CASO DE TENER ORDER O PUEDE SER NULL
+   */
   //If user is not in order, then connect
   const order = await prisma.order.findFirst({
     where: { tableId, active: true },
   });
 
-  // NULL
   console.log("******ORDER******", order);
 
-  const isUserInOrder = await prisma.user
-    .findFirst({
-      where: { id: userId, orderId: order?.id },
-    })
-    .then((user) => (user ? true : false));
+  /**
+   * TODO investigar esta parte
+   * Verifica si el usuario no está conectado a la orden la conecta
+   */
+  const isUserInOrder = await prisma.user.findFirst({
+    where: { id: userId, orderId: order?.id },
+  });
 
-  // TRUE
+  // NULL
   console.log("******isUserInOrder******", isUserInOrder);
 
-  if (!isUserInOrder) {
+  if (!isUserInOrder && order) {
     console.log(`🔌 Connecting '${username}' to the order`);
     await prisma.order.update({
       where: { id: order?.id },
@@ -59,13 +67,21 @@ export async function validateUserIntegration(
     console.log(`✅ Connected '${username}' to the order`);
   }
 
+  // ! TODO verificar que el usuario sea valido, ¿Qué es valido?
+  /**
+   * ESCENARIO 1 - SOLO TABLA
+   * ESCENARIO 2 - TABLA Y ORDER
+   */
   // When user is already in both table and order
-  if (isUserInTable && isUserInOrder) {
-    return json({ success: true });
-  }
+  // if (isUserInTable && isUserInOrder) {
+  //   return json({ success: true });
+  // }
   // else {
   //   return json({ success: false });
   // }
+  if (isActive) {
+    return json({ success: true });
+  }
 }
 
 //CUSTOMPAY
