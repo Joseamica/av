@@ -56,7 +56,6 @@
     "framer-motion": "^10.12.5",
     "isbot": "^3.6.8",
     "morgan": "^1.10.0",
-    "node-fetch": "^3.3.1",
     "prom-client": "^14.2.0",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",

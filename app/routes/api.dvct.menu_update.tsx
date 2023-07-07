@@ -101,7 +101,8 @@
 
 // }
 
-import type {ActionArgs} from '@remix-run/node'
+import {json, type ActionArgs} from '@remix-run/node'
+import cuid from 'cuid'
 import {prisma} from '~/db.server'
 import {getBranchId} from '~/models/branch.server'
 import {getSession} from '~/session.server'
@@ -196,6 +197,30 @@ export const action = async ({request}: ActionArgs) => {
     },
   })
 
+  for (const availability of menuData.availabilities) {
+    await prisma.availabilities.upsert({
+      where: {
+        dayOfWeek_startTime_endTime_menuId: {
+          dayOfWeek: Number(availability.dayOfWeek),
+          startTime: availability.startTime,
+          endTime: availability.endTime,
+          menuId: menu.id,
+        },
+      },
+      update: {
+        dayOfWeek: Number(availability.dayOfWeek),
+        startTime: availability.startTime,
+        endTime: availability.endTime,
+      },
+      create: {
+        id: cuid(),
+        dayOfWeek: Number(availability.dayOfWeek),
+        startTime: availability.startTime,
+        endTime: availability.endTime,
+        menuId: menu.id,
+      },
+    })
+  }
   for (const product of Object.values(menuData.products)) {
     await upsertMenuItem(product)
   }
@@ -203,4 +228,6 @@ export const action = async ({request}: ActionArgs) => {
   for (const category of menuData.categories) {
     await upsertCategory(category, menu)
   }
+
+  return json({success: 'true'})
 }
