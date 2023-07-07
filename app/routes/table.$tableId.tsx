@@ -105,7 +105,11 @@ export default function Table() {
     return (
       <motion.main className="no-scrollbar">
         <div className="fixed inset-x-0 top-0 z-50 w-full bg-button-successBg text-success"></div>
-        <RestaurantInfoCard />
+        <RestaurantInfoCard
+          branch={data.branch}
+          menu={data.menu}
+          error={data.error}
+        />
         <Spacer spaceY="4" />
         <h3 className="text-secondaryTextDark flex shrink-0 justify-center text-sm">
           {`Mesa ${data.table.table_number}`}
@@ -407,27 +411,6 @@ export async function loader({request, params}: LoaderArgs) {
         throw new Error(`No se pudo conectar al usuario con la orden ${error}`)
       }
     }
-
-    // const userValidations = await validateUserIntegration(
-    //   userId,
-    //   tableId,
-    //   username,
-    //   branch.id,
-    // )
-
-    // console.log(
-    //   'userValidations',
-    //   userValidations,
-    //   userId,
-    //   tableId,
-    //   username,
-    //   branch.id,
-    // )
-
-    // ANCHOR no se encontró el usuario
-    // if (!userValidations) {
-    //   throw new Error('No se encontró el usuario')
-    // }
   }
 
   let paidUsers = null
