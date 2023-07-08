@@ -1,8 +1,7 @@
-import {ActionArgs, LoaderArgs, redirect, json} from '@remix-run/node'
+import {redirect, type LoaderArgs} from '@remix-run/node'
 import invariant from 'tiny-invariant'
-import {H4} from '~/components'
 import {prisma} from '~/db.server'
-import {EVENTS} from '~/events'
+import {cleanUserData} from '~/models/user.server'
 import {getSession, sessionStorage} from '~/session.server'
 
 // export const action = async ({request, params}: ActionArgs) => {
@@ -29,21 +28,7 @@ export async function loader({request, params}: LoaderArgs) {
   invariant(order, 'Orden no existe')
   // Update each user to set `paid` to 0
   for (let user of order.users) {
-    await prisma.user.update({
-      where: {
-        id: user.id,
-      },
-      data: {
-        tip: 0,
-        paid: 0,
-        total: 0,
-        orders: {disconnect: true},
-        cartItems: {set: []},
-
-        // tableId: null,
-        // tables: {disconnect: true},
-      },
-    })
+    await cleanUserData(user.id)
   }
   await prisma.table.update({
     where: {

@@ -7,13 +7,13 @@
     "insertPragma": false,
     "jsxBracketSameLine": false,
     "jsxSingleQuote": false,
-    "printWidth": 80,
+    "printWidth": 50,
     "proseWrap": "always",
     "quoteProps": "as-needed",
     "requirePragma": false,
     "semi": false,
     "singleQuote": true,
-    "tabWidth": 2,
+    "tabWidth": 3,
     "trailingComma": "all",
     "useTabs": false
 

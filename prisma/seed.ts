@@ -1,63 +1,22 @@
 // const { PrismaClient } = require("@prisma/client");
 import {PrismaClient} from '@prisma/client'
 // import {createUsers} from './seed-utils'
+// import {createUsers} from './seed-utils'
 const prisma = new PrismaClient()
 
 async function seed() {
   console.log('🌱 Seeding...')
   console.time(`🌱 Database has been seeded`)
 
-  console.time('🧹 Cleaned up the database...')
-  await prisma.restaurant.deleteMany()
-  await prisma.branch.deleteMany()
-  await prisma.table.deleteMany()
-  await prisma.employee.deleteMany()
-  await prisma.menu.deleteMany()
-  await prisma.menuCategory.deleteMany()
-  await prisma.menuItem.deleteMany()
-  await prisma.modifierGroup.deleteMany()
-  await prisma.modifiers.deleteMany()
-  await prisma.cartItem.deleteMany()
-  await prisma.session.deleteMany()
-  await prisma.user.deleteMany()
-  await prisma.order.deleteMany()
-  await prisma.feedback.deleteMany()
-  await prisma.employee.deleteMany()
-  await prisma.deliverect.deleteMany()
-  console.timeEnd('🧹 Cleaned up the database...')
+  await cleanDatabase()
 
+  console.time("✚ created a 'deliverect' row...")
   await prisma.deliverect.create({
     data: {deliverectExpiration: null, deliverectToken: null},
   })
+  console.timeEnd("✚ created a 'deliverect' row...")
 
-  const totalUsers = 1
-  console.time(`👤 Created ${totalUsers} users...`)
-  const users = await Promise.all(
-    Array.from({length: totalUsers}).map(async (_, i) => {
-      // const userData = createUsers()
-
-      const user = await prisma.user.create({
-        data: {
-          // ...userData,
-          name: 'Jose',
-          role: 'admin',
-          email: 'joseamica@gmail.com',
-        },
-      })
-      return user
-    }),
-  )
-  console.timeEnd(`👤 Created ${totalUsers} users...`)
-
-  // const admin = await prisma.user.create({
-  //   data: {
-  //     name: 'Jose',
-  //     role: 'admin',
-  //     email: 'joseamica@gmail.com',
-
-  //   },
-
-  // })
+  await createUsers(1)
 
   const restaurant = await prisma.restaurant.create({
     data: {
@@ -79,7 +38,7 @@ async function seed() {
       email: 'branch1@madrecafe.com',
       phone: '8885551212',
       wifiName: '1A2B3C4D5e%6789',
-
+      wifipwd: '12345678',
       city: 'Cuernavaca',
       address:
         'Mexico-Acapulco KM. 87.5, Villas del Lago, 62370 Cuernavaca, Mor.',
@@ -198,6 +157,45 @@ async function seed() {
   )
 }
 
+async function cleanDatabase() {
+  console.time('🧹 Cleaned up the database...')
+  const tablesToClean = [
+    'restaurant',
+    'branch',
+    'table',
+    'employee',
+    'menu',
+    'menuCategory',
+    'menuItem',
+    'modifierGroup',
+    'modifiers',
+    'cartItem',
+    'session',
+    'user',
+    'order',
+    'feedback',
+    'employee',
+    'deliverect',
+  ]
+  for (const table of tablesToClean) {
+    await prisma[table].deleteMany()
+  }
+  console.timeEnd('🧹 Cleaned up the database...')
+}
+
+async function createUsers(totalUsers) {
+  console.time(`👤 Created ${totalUsers} users...`)
+  for (let i = 0; i < totalUsers; i++) {
+    await prisma.user.create({
+      data: {
+        name: 'Jose',
+        role: 'admin',
+        email: 'joseamica@gmail.com',
+      },
+    })
+  }
+  console.timeEnd(`👤 Created ${totalUsers} users...`)
+}
 seed()
 
 function getBikinaCategories() {

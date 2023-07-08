@@ -3,6 +3,7 @@ Object.defineProperty(exports, '__esModule', {value: true})
 // const { PrismaClient } = require("@prisma/client");
 const client_1 = require('@prisma/client')
 // import {createUsers} from './seed-utils'
+// import {createUsers} from './seed-utils'
 const prisma = new client_1.PrismaClient()
 async function seed() {
   console.log('🌱 Seeding...')
@@ -23,7 +24,15 @@ async function seed() {
   await prisma.order.deleteMany()
   await prisma.feedback.deleteMany()
   await prisma.employee.deleteMany()
+  await prisma.deliverect.deleteMany()
   console.timeEnd('🧹 Cleaned up the database...')
+
+  console.time("✚ created a 'deliverect' row...")
+  await prisma.deliverect.create({
+    data: {deliverectExpiration: null, deliverectToken: null},
+  })
+
+  console.timeEnd("✚ created a 'deliverect' row...")
   const totalUsers = 1
   console.time(`👤 Created ${totalUsers} users...`)
   const users = await Promise.all(
@@ -60,6 +69,8 @@ async function seed() {
   const branch = await prisma.branch.create({
     data: {
       name: 'La Bikina',
+      created: new Date().toISOString(),
+      updated: new Date().toISOString(),
       ppt_image:
         'https://firebasestorage.googleapis.com/v0/b/avoqado-d0a24.appspot.com/o/kuikku%2FKUIKKU%20(2)%20(1)%20copy.png?alt=media&token=158e8d1b-d24b-406b-85e7-a507b29d84fc',
       email: 'branch1@madrecafe.com',

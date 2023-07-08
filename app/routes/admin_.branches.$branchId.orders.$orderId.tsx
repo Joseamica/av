@@ -1,9 +1,8 @@
-import {CartItem} from '@prisma/client'
-import {ActionArgs, LoaderArgs, json} from '@remix-run/node'
+import type {CartItem} from '@prisma/client'
+import {json, type ActionArgs, type LoaderArgs} from '@remix-run/node'
 import {useLoaderData} from '@remix-run/react'
-import {CartItemDetails, H1, H2, H3, ItemContainer} from '~/components'
+import {CartItemDetails, H2, H3} from '~/components'
 import {prisma} from '~/db.server'
-import {getOrder} from '~/models/order.server'
 
 export async function loader({request, params}: LoaderArgs) {
   const {branchId, orderId} = params

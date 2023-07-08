@@ -19,8 +19,9 @@ model Restaurant {
   phone         String?
   adminEmail    String?
   branches      Branch[]
-  user          User[]
-  userId        String?
+  // user          User[]
+  // userId        String?
+  User          User[]
 }
 
 model Branch {

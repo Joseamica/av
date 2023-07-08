@@ -1,8 +1,7 @@
-import {redirect} from '@remix-run/node'
 import type {ActionArgs, LoaderArgs} from '@remix-run/node'
-import {Form} from '@remix-run/react'
-import {json} from '@remix-run/node'
-import {Button, H2} from '~/components'
+import {Form, useLoaderData} from '@remix-run/react'
+import {json, redirect} from '@remix-run/node'
+import {Button, H2, LinkButton} from '~/components'
 import {prisma} from '~/db.server'
 import {getSession} from '~/session.server'
 
@@ -23,7 +22,8 @@ export async function loader({request, params}: LoaderArgs) {
   if (isAdmin) {
     return redirect('/admin')
   }
-  return json({success: true})
+  const tables = await prisma.table.findMany({})
+  return json({tables})
 }
 
 export async function action({request, params}: ActionArgs) {
@@ -40,12 +40,20 @@ export async function action({request, params}: ActionArgs) {
 }
 
 export default function Secret() {
+  const data = useLoaderData()
   return (
-    <Form method="post">
-      {/* <label htmlFor="email">Email</label>
+    <>
+      {data.tables.map((table: Table) => (
+        <LinkButton size="small" key={table.id} to={`/table/${table.id}`}>
+          {table.table_number}
+        </LinkButton>
+      ))}
+      <Form method="post">
+        {/* <label htmlFor="email">Email</label>
       <input type="email" name="email" id="email" /> */}
-      <H2>MAKE ME ADMIN?</H2>
-      <Button type="submit">Submit</Button>
-    </Form>
+        <H2>MAKE ME ADMIN?</H2>
+        <Button type="submit">Submit</Button>
+      </Form>
+    </>
   )
 }

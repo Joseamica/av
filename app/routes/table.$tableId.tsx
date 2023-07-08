@@ -18,7 +18,11 @@ import {useSessionTimeout} from '~/hooks/use-session-timeout'
 import {getBranch} from '~/models/branch.server'
 import {getMenu} from '~/models/menu.server'
 import {getTable} from '~/models/table.server'
-import {getPaidUsers, getUsersOnTable} from '~/models/user.server'
+import {
+  cleanUserData,
+  getPaidUsers,
+  getUsersOnTable,
+} from '~/models/user.server'
 
 import {getSession} from '~/session.server'
 import {
@@ -430,13 +434,16 @@ export async function loader({request, params}: LoaderArgs) {
     isExpired = isOrderExpired(order.paidDate)
   }
 
-  let error = {}
-  if (!menu) {
-    error = {
-      body: null,
-      title: `${branch?.name} no cuenta con un menu abierto en este horario.`,
-    }
-  }
+  // let error = {}
+  // if (!menu) {
+  //   error = {
+  //     body: null,
+  //     title: `${branch?.name} no cuenta con un menu abierto en este horario.`,
+  //   }
+  // }
+  const error = !menu
+    ? `${branch?.name} no cuenta con un menu abierto en este horario.`
+    : null
 
   const currency = await getCurrency(tableId)
 
@@ -444,21 +451,7 @@ export async function loader({request, params}: LoaderArgs) {
     // todo  TAMBIEN USAR EXPIRACION EN MENUID Y CART (mejor en root)
 
     for (let user of order.users) {
-      await prisma.user.update({
-        where: {
-          id: user.id,
-        },
-        data: {
-          tip: 0,
-          paid: 0,
-          total: 0,
-          orders: {disconnect: true},
-          cartItems: {set: []},
-
-          // tableId: null,
-          // tables: {disconnect: true},
-        },
-      })
+      await cleanUserData(user.id)
     }
     await prisma.order.update({
       where: {id: order.id},

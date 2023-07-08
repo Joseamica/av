@@ -126,14 +126,14 @@ export async function assignUserNewPayments(
   amount: number,
   tip: number,
 ) {
-  const userPrevPaidData = (await prisma.user.findUnique({
+  const userPrevPaidData = await prisma.user.findUnique({
     where: {id: userId},
     select: {
       total: true,
       tip: true,
       paid: true,
     },
-  })) as UserPrevPaidData
+  })
 
   return prisma.user.update({
     where: {id: userId},
@@ -141,6 +141,24 @@ export async function assignUserNewPayments(
       paid: Number(userPrevPaidData?.paid) + amount,
       tip: Number(userPrevPaidData?.tip) + tip,
       total: Number(userPrevPaidData?.total) + amount + tip,
+    },
+  })
+}
+
+export function cleanUserData(userId: string) {
+  return prisma.user.update({
+    where: {
+      id: userId,
+    },
+    data: {
+      tip: 0,
+      paid: 0,
+      total: 0,
+      orders: {disconnect: true},
+      cartItems: {set: []},
+
+      // tableId: null,
+      // tables: {disconnect: true},
     },
   })
 }
