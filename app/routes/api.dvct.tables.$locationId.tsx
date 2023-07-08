@@ -14,7 +14,7 @@ export async function loader({request, params}: LoaderArgs) {
   const pathname = new URL(request.url).pathname
   const tableId = getTableIdFromUrl(pathname)
 
-  const url = 'https://api.staging.deliverect.com/tables/' + locationId
+  const url = `${process.env.DELIVERECT_API_URL}/tables/${locationId}`
   const options = {
     method: 'GET',
     headers: {

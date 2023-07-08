@@ -52,7 +52,7 @@ export function EmptyOrder({
                 <UserButton userColor={user?.color} path={`user/${user?.id}`} />
                 {user?.name ? <H4>{user.name}</H4> : <H4>Desconectado</H4>}
               </FlexRow>
-              <div>
+              {/* <div>
                 <Link
                   preventScrollReset
                   to={`user/${user?.id}`}
@@ -60,7 +60,7 @@ export function EmptyOrder({
                 >
                   Detalles
                 </Link>
-              </div>
+              </div> */}
             </FlexRow>
           ))}
       </SectionContainer>

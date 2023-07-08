@@ -23,7 +23,12 @@ async function seed() {
   await prisma.order.deleteMany()
   await prisma.feedback.deleteMany()
   await prisma.employee.deleteMany()
+  await prisma.deliverect.deleteMany()
   console.timeEnd('🧹 Cleaned up the database...')
+
+  await prisma.deliverect.create({
+    data: {deliverectExpiration: null, deliverectToken: null},
+  })
 
   const totalUsers = 1
   console.time(`👤 Created ${totalUsers} users...`)

@@ -71,6 +71,7 @@ type LoaderData = {
   paidUsers: any
   userId: string
   isDeliverectToken: boolean
+  error: string
 }
 
 export default function Table() {
