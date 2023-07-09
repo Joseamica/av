@@ -26,7 +26,11 @@
     "test:e2e:run": "cross-env PORT=8811 start-server-and-test start:mocks http://localhost:8811 \"npx cypress run\"",
     "typecheck": "tsc && tsc -p cypress",
     "validate": "run-p \"test -- --run\" lint typecheck test:e2e:run",
-    "seed:build": "tsc --project ./tsconfig.seed.json && tsc-alias -p ./tsconfig.seed.json"
+    "seed:build": "tsc --project ./tsconfig.seed.json && tsc-alias -p ./tsconfig.seed.json",
+    "lint:fix": "npm run lint -- --fix",
+    "prettier": "prettier app --check",
+    "prettier:fix": "prettier app --write",
+    "format-code": "npm run prettier:fix & npm run lint:fix"
   },
   "prettier": {},
   "eslintIgnore": [
@@ -55,6 +59,7 @@
     "date-fns-tz": "^2.0.0",
     "express": "^4.18.2",
     "framer-motion": "^10.12.5",
+    "intro.js": "^7.0.1",
     "isbot": "^3.6.8",
     "morgan": "^1.10.0",
     "prom-client": "^14.2.0",

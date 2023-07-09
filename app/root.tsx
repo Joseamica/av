@@ -1,13 +1,6 @@
 import {cssBundleHref} from '@remix-run/css-bundle'
 import type {LinksFunction} from '@remix-run/node'
-import {
-  Links,
-  LiveReload,
-  Meta,
-  Outlet,
-  Scripts,
-  ScrollRestoration,
-} from '@remix-run/react'
+import {Links, LiveReload, Meta, Outlet, Scripts, ScrollRestoration} from '@remix-run/react'
 // * STYLES
 import tailwindStylesheetUrl from '~/styles/tailwind.css'
 // * CUSTOM COMPONENTS
@@ -28,7 +21,7 @@ export default function App() {
         <Meta />
         <Links />
       </head>
-      <body className="hide-scrollbar no-scrollbar relative mx-auto h-full max-w-md bg-[#F3F4F6] px-2 pt-16">
+      <body className="hide-scrollbar no-scrollbar  mx-auto h-full max-w-md bg-[#F3F4F6] px-2 pt-16">
         {/* <RemixSseProvider> */}
         <div id="modal-root" />
 

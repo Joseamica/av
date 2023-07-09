@@ -1,22 +1,11 @@
 import type {ActionArgs, LoaderArgs} from '@remix-run/node'
 import {json, redirect} from '@remix-run/node'
-import {
-  Link,
-  Outlet,
-  isRouteErrorResponse,
-  useLoaderData,
-  useRouteError,
-} from '@remix-run/react'
+import {Link, Outlet, isRouteErrorResponse, useLoaderData, useRouteError} from '@remix-run/react'
 // * UTILS, DB
 import {prisma} from '~/db.server'
 import {findOrCreateUser} from '~/models/user.server'
 import {validateRedirect} from '~/redirect.server'
-import {
-  getSession,
-  getUserId,
-  getUsername,
-  sessionStorage,
-} from '~/session.server'
+import {getSession, getUserId, getUsername, sessionStorage} from '~/session.server'
 // * COMPONENTS
 // * CUSTOM COMPONENTS
 import {Header, UserForm} from '~/components'
@@ -64,9 +53,7 @@ export const loader = async ({request}: LoaderArgs) => {
   const tableId = getTableIdFromUrl(pathname)
 
   if (!tableId) {
-    throw new Error(
-      'Procura acceder por medio del código QR, u obtener el link con el id de la mesa.',
-    )
+    throw new Error('Procura acceder por medio del código QR, u obtener el link con el id de la mesa.')
   }
 
   return json(
@@ -124,6 +111,8 @@ export const action = async ({request, params}: ActionArgs) => {
       session.set('tableId', tableId)
     }
     session.set('username', name)
+    session.set('user_color', color)
+    session.set('tutorial', true)
     console.timeEnd(`✅ Creating session and user with name... ${name}`)
 
     return redirect(redirectTo, {

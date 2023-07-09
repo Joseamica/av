@@ -9,17 +9,17 @@ import {H5} from './util/typography'
 const REPORT_TYPES = {
   waiter: {
     name: 'waiter',
-    icon: <BellIcon className="h-4 w-4" />,
+    icon: <BellIcon className="h-5 w-5" />,
     es: 'Mesero',
   },
   manager: {
     name: 'manager',
-    icon: <IoIosPerson className="h-4 w-4" fontSize="small" />,
+    icon: <IoIosPerson className="h-5 w-5" fontSize="small" />,
     es: 'Gerente',
   },
   report: {
     name: 'report',
-    icon: <IoWarning />,
+    icon: <IoWarning className="h-5 w-5" fontSize="small" />,
     es: 'Reportar',
   },
   // car: {
@@ -34,7 +34,7 @@ const REPORT_TYPES = {
   // },
   wifi: {
     name: 'wifi',
-    icon: <WifiIcon fontSize="small" className="h-4 w-4 " />,
+    icon: <WifiIcon fontSize="small" className="h-5 w-5 " />,
     es: 'Wifi',
   },
 }

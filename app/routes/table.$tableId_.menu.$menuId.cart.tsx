@@ -229,7 +229,7 @@ export async function action({request, params}: ActionArgs) {
           name: item.name,
         }
       })
-
+      //TODO SI ESTA VENCIDO EL TOKEN, HACER UN REFRESH en donde???
       const token = await getDvctToken()
       const table = await getTable(tableId)
 
