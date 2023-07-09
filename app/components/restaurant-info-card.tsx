@@ -1,5 +1,6 @@
-import {BookOpenIcon} from '@heroicons/react/outline'
+import {BookOpenIcon, XCircleIcon} from '@heroicons/react/outline'
 import {Link} from '@remix-run/react'
+import {IoLockClosed, IoLogoClosedCaptioning, IoWarning} from 'react-icons/io5'
 
 export function RestaurantInfoCard({
   branch,
@@ -45,9 +46,10 @@ export function RestaurantInfoCard({
           <div />
         </Link>
       ) : (
-        <p className="rounded-full px-4 py-4 text-center text-sm ring-1">
-          {error}
-        </p>
+        <div className="dark:bg-mainDark dark:bg-night-bg_principal dark:text-night-text_principal flex flex-row items-center justify-between space-x-4  rounded-b-3xl border-2 px-6  py-4 text-sm drop-shadow-xl dark:text-button-textNotSelected">
+          <XCircleIcon className="h-6 w-6" />
+          <p>{error}</p>
+        </div>
       )}
     </main>
   )
