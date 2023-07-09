@@ -181,6 +181,7 @@ export const action = async ({request}: ActionArgs) => {
   const branchId = await getBranchId(tableId)
   const rawData = await request.text()
   const [menuData] = JSON.parse(rawData)
+  console.log('menuData', menuData)
 
   const menu = await prisma.menu.upsert({
     where: {id: menuData.menuId},
@@ -196,7 +197,12 @@ export const action = async ({request}: ActionArgs) => {
       branchId: branchId,
     },
   })
-
+  //NOTE - delete all availabilities and then upsert them to prevent duplicates
+  await prisma.availabilities.deleteMany({
+    where: {
+      menuId: menu.id,
+    },
+  })
   for (const availability of menuData.availabilities) {
     await prisma.availabilities.upsert({
       where: {

@@ -475,7 +475,7 @@ export async function loader({request, params}: LoaderArgs) {
   const currency = await getCurrency(tableId)
 
   if (order && isExpired) {
-    // todo  TAMBIEN USAR EXPIRACION EN MENUID Y CART (mejor en root)
+    // FIX  TAMBIEN USAR EXPIRACION EN las rutas MENUID Y CART (mejor en root)
 
     for (let user of order.users) {
       await cleanUserData(user.id)
