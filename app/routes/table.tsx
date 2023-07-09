@@ -1,24 +1,23 @@
-import type {LoaderArgs, ActionArgs} from '@remix-run/node'
+import type {ActionArgs, LoaderArgs} from '@remix-run/node'
 import {json, redirect} from '@remix-run/node'
 import {
+  Link,
   Outlet,
+  isRouteErrorResponse,
   useLoaderData,
   useRouteError,
-  isRouteErrorResponse,
-  Link,
 } from '@remix-run/react'
 // * UTILS, DB
+import {prisma} from '~/db.server'
+import {findOrCreateUser} from '~/models/user.server'
+import {validateRedirect} from '~/redirect.server'
 import {
   getSession,
   getUserId,
   getUsername,
   sessionStorage,
 } from '~/session.server'
-import {findOrCreateUser} from '~/models/user.server'
-import {prisma} from '~/db.server'
-import {validateRedirect} from '~/redirect.server'
 // * COMPONENTS
-import {addHours, formatISO} from 'date-fns'
 // * CUSTOM COMPONENTS
 import {Header, UserForm} from '~/components'
 
@@ -104,11 +103,11 @@ export const action = async ({request, params}: ActionArgs) => {
     session.set('sessionId', sessionId.id)
 
     // Set expiry time 4 hours from now
-    const expiryTime = formatISO(addHours(new Date(), 4))
-    session.set('expiryTime', expiryTime)
+    // const expiryTime = formatISO(addHours(new Date(), 4))
+    // session.set('expiryTime', expiryTime)
     session.set('username', name)
-
     console.timeEnd(`✅ Creating session and user with name... ${name}`)
+
     return redirect(redirectTo, {
       headers: {'Set-Cookie': await sessionStorage.commitSession(session)},
     })

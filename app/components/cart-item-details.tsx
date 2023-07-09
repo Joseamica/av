@@ -8,11 +8,7 @@ import {UserCircleIcon} from '@heroicons/react/solid'
 
 const MotionLink = motion(Link)
 
-interface CartItemDetailsProps extends CartItem {
-  user: User[]
-}
-
-export function CartItemDetails({cartItem}: {cartItem: CartItemDetailsProps}) {
+export function CartItemDetails({cartItem}: {cartItem: any}) {
   const data = useLoaderData()
   let cartTotalPrice = cartItem.price * cartItem.quantity
   let users = cartItem.user?.slice(0, 2).map(user => user.name)
