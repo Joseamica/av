@@ -391,7 +391,6 @@ export async function loader({request, params}: LoaderArgs) {
   })
   const total = Number(order?.total)
   const menu = await getMenu(branch.id)
-  console.log('menu', menu)
 
   //NOTE - USER CONNECT TO TABLE AND ORDER
   if (userId && username) {

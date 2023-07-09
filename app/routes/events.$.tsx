@@ -16,13 +16,13 @@ export const loader = ({request, params}: LoaderArgs) => {
 
     emitter.addListener(path, handler)
 
-    //added this to prevent timeouts on my app, but i dont know the implications
-    // const heartbeatInterval = setInterval(() => {
-    //   send({event: 'heartbeat', data: 'ping'})
-    // }, 30000)
+    // added this to prevent timeouts on my app, but i dont know the implications
+    const heartbeatInterval = setInterval(() => {
+      send({event: 'heartbeat', data: 'ping'})
+    }, 30000)
 
     return () => {
-      // clearInterval(heartbeatInterval)
+      clearInterval(heartbeatInterval)
       emitter.removeListener(path, handler)
     }
   })
