@@ -22,10 +22,10 @@ export function createRestaurant() {
   console.log('🏢 Created the restaurant...')
   return prisma.restaurant.create({
     data: {
-      name: 'Guavos',
-      logo: 'https://madre-cafe.com/wp-content/uploads/2021/11/logo-madre-cafe-header.svg',
+      name: faker.company.name(),
+      logo: faker.image.food(),
       email: 'info@madrecafe.com',
-      phone: '+525561412847',
+      phone: faker.phone.number(),
       adminEmail: 'joseamica@gmail.com',
     },
   })
@@ -35,15 +35,15 @@ export function createBranch(restaurantId: string) {
   console.log('🏢 Created the branch...')
   return prisma.branch.create({
     data: {
-      name: 'La Bikina',
+      name: faker.company.name(),
       created: new Date().toISOString(),
       updated: new Date().toISOString(),
       ppt_image:
         'https://firebasestorage.googleapis.com/v0/b/avoqado-d0a24.appspot.com/o/kuikku%2FKUIKKU%20(2)%20(1)%20copy.png?alt=media&token=158e8d1b-d24b-406b-85e7-a507b29d84fc',
-      email: 'branch1@madrecafe.com',
+      email: faker.internet.email(),
       phone: '8885551212',
-      wifiName: '1A2B3C4D5e%6789',
-      wifipwd: '12345678',
+      wifiName: faker.random.alphaNumeric(8),
+      wifipwd: faker.random.alphaNumeric(8),
       city: 'Cuernavaca',
       address: 'Mexico-Acapulco KM. 87.5, Villas del Lago, 62370 Cuernavaca, Mor.',
       extraAddress: 'Averanda',
@@ -52,7 +52,6 @@ export function createBranch(restaurantId: string) {
       cuisine: 'Mexicana',
       open: 7,
       close: 24,
-
       restaurant: {connect: {id: restaurantId}},
     },
   })
@@ -164,9 +163,8 @@ export async function createProductsAndModifiers(categories: any) {
             plu: `PLU-${category.name}-${j}`,
             image:
               'https://firebasestorage.googleapis.com/v0/b/avoqado-d0a24.appspot.com/o/kuikku%2F3.%20TEMAKI%20(HANDROLL)%2FTEMAKI%20NEGITORO.jpg?alt=media&token=08782db0-22ef-49f6-8ac0-4c9c92e59645',
-            description:
-              'Lorem ipsum dolor sit amet, consectetur adipiscing elit sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip',
-            price: getRandom(100, 520),
+            description: faker.commerce.productDescription(),
+            price: faker.commerce.price(100, 500),
             available: true,
             menuCategory: {connect: {id: category.id}},
             modifierGroups: {connect: {id: modifierGroup.id}},

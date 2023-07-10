@@ -12,7 +12,6 @@ import {
   createTables,
   createUsers,
 } from './seed-utils'
-import {prisma} from '~/db.server'
 
 async function seed() {
   console.log('🌱 Seeding...')
@@ -39,6 +38,6 @@ seed()
     process.exit(1)
   })
   .finally(async () => {
-    await prisma.$disconnect()
+    // await prisma.$disconnect()
     console.timeEnd(`🌱 Database has been seeded`)
   })
