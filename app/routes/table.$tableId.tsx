@@ -1,6 +1,5 @@
 import type {Branch, CartItem, Menu, Order, Table as TableProps, User} from '@prisma/client'
 import type {ActionArgs, LoaderArgs} from '@remix-run/node'
-
 import {json} from '@remix-run/node'
 import {Form, Outlet} from '@remix-run/react'
 import {useState} from 'react'
@@ -12,7 +11,6 @@ import {getBranch} from '~/models/branch.server'
 import {getMenu} from '~/models/menu.server'
 import {getTable} from '~/models/table.server'
 import {cleanUserData, getPaidUsers, getUsersOnTable} from '~/models/user.server'
-
 import {getSession} from '~/session.server'
 import {formatCurrency, getAmountLeftToPay, getCurrency, isOrderExpired} from '~/utils'
 // * COMPONENTS
@@ -24,9 +22,19 @@ import invariant from 'tiny-invariant'
 // TODO React icons or heroicons ? :angry
 import {IoFastFood} from 'react-icons/io5'
 // * CUSTOM COMPONENTS
-import {BillAmount, CartItemDetails, FlexRow, H3, H5, H6, Help, SectionContainer, Spacer} from '~/components/index'
-import {Button} from '~/components/ui/buttons/button'
-import {SwitchButton} from '~/components/ui/buttons/switch' // Assuming SwitchButton is in the same directory
+import {
+  BillAmount,
+  CartItemDetails,
+  FlexRow,
+  H3,
+  H5,
+  H6,
+  Help,
+  SectionContainer,
+  Spacer,
+  SwitchButton,
+  Button,
+} from '~/components/index'
 
 import {RestaurantInfoCard} from '~/components/restaurant-info-card'
 import {EmptyOrder} from '~/components/table/empty-order'
@@ -130,7 +138,7 @@ export default function Table() {
                       <FlexRow justify="between" className="rounded-xl px-1 ">
                         <Spacer spaceY="2">
                           <FlexRow className="items-center space-x-2">
-                            <UserCircleIcon fill={user.color || '#000'} className="min-h-10 min-w-10  h-8 w-8" />
+                            <UserCircleIcon fill={user.color || '#000'} className="min-h-10 min-w-10 h-8 w-8" />
                             <div className="flex flex-col">
                               <H3>{user.name}</H3>
                               <H6>

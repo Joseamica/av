@@ -5,7 +5,7 @@
     }
   ],
   "settings": {
-    "editor.fontSize": 15,
+    "editor.fontSize": 14,
     "terminal.integrated.fontSize": 14, // Change the number to your preferred terminal font size
 
     "workbench.colorCustomizations": {
@@ -28,6 +28,6 @@
       "titleBar.inactiveForeground": "#e7e7e799"
     },
     "peacock.color": "000",
-    "cSpell.words": ["Revalidator"]
+    "cSpell.words": ["AVOQADO", "Revalidator"]
   }
 }

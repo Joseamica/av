@@ -1,407 +1,44 @@
-// const { PrismaClient } = require("@prisma/client");
-import {PrismaClient} from '@prisma/client'
-// import {createUsers} from './seed-utils'
-// import {createUsers} from './seed-utils'
-const prisma = new PrismaClient()
+import {
+  cleanDatabase,
+  createAvailabilities,
+  createBranch,
+  createCategories,
+  createDeliverect,
+  createEmployees,
+  createMenu,
+  createProductsAndModifiers,
+  // createModifiers,
+  createRestaurant,
+  createTables,
+  createUsers,
+} from './seed-utils'
+import {prisma} from '~/db.server'
 
 async function seed() {
   console.log('🌱 Seeding...')
   console.time(`🌱 Database has been seeded`)
 
   await cleanDatabase()
-
-  console.time("✚ created a 'deliverect' row...")
-  await prisma.deliverect.create({
-    data: {deliverectExpiration: null, deliverectToken: null},
-  })
-  console.timeEnd("✚ created a 'deliverect' row...")
-
+  await createDeliverect()
   await createUsers(1)
+  const restaurant = await createRestaurant()
+  const branch = await createBranch(restaurant.id)
+  const tableIds = (await createTables(branch.id, 7)) as any
+  await createEmployees(branch.id, tableIds)
+  const menu = await createMenu(branch.id)
+  await createAvailabilities(menu.id)
+  const categories = await createCategories(menu.id)
+  await createProductsAndModifiers(categories)
 
-  const restaurant = await prisma.restaurant.create({
-    data: {
-      name: 'Guavos',
-      logo: 'https://madre-cafe.com/wp-content/uploads/2021/11/logo-madre-cafe-header.svg',
-      email: 'info@madrecafe.com',
-      phone: '+525561412847',
-      adminEmail: 'joseamica@gmail.com',
-    },
-  })
-
-  const branch = await prisma.branch.create({
-    data: {
-      name: 'La Bikina',
-      created: new Date().toISOString(),
-      updated: new Date().toISOString(),
-      ppt_image:
-        'https://firebasestorage.googleapis.com/v0/b/avoqado-d0a24.appspot.com/o/kuikku%2FKUIKKU%20(2)%20(1)%20copy.png?alt=media&token=158e8d1b-d24b-406b-85e7-a507b29d84fc',
-      email: 'branch1@madrecafe.com',
-      phone: '8885551212',
-      wifiName: '1A2B3C4D5e%6789',
-      wifipwd: '12345678',
-      city: 'Cuernavaca',
-      address:
-        'Mexico-Acapulco KM. 87.5, Villas del Lago, 62370 Cuernavaca, Mor.',
-      extraAddress: 'Averanda',
-      rating: 4.8,
-      rating_quantity: 400,
-      cuisine: 'Mexicana',
-      open: 7,
-      close: 24,
-
-      restaurant: {connect: {id: restaurant.id}},
-    },
-  })
-
-  const NUMBER_OF_TABLES = 4
-  for (let i = 1; i <= NUMBER_OF_TABLES; i++) {
-    const table = await prisma.table.create({
-      data: {
-        table_number: i,
-        order_in_progress: false,
-        branch: {connect: {id: branch.id}},
-        // employees: {
-        //   create: {
-        //     name: 'Victor',
-        //     rol: 'waiter',
-        //     email: 'bnlabla@gmaillcom',
-        //     image:
-        //       'https://images.unsplash.com/photo-1544723795-3fb6469f5b39?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=778&q=80',
-        //   },
-        // },
-      },
-    })
-  }
-
-  const tableId = await prisma.table.findFirst({where: {table_number: 1}})
-
-  const manager = await prisma.employee.create({
-    data: {
-      role: 'manager',
-      name: 'Daniel',
-      email: 'gerente',
-      branchId: branch.id,
-      image:
-        'https://images.unsplash.com/photo-1463453091185-61582044d556?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1170&q=80',
-      tables: {connect: {id: tableId?.id}},
-    },
-  })
-  // const waiter = await prisma.employee.create({
-  //   data:{
-  //     rol: "waiter",
-  //     name:"Enrique",
-  //     table: { connect: { id: table.id } }
-  //   }
-  // })
-
-  const menu = await prisma.menu.create({
-    data: {
-      name: 'DESAYUNO',
-      type: 'breakfast',
-      branchId: branch.id,
-      image:
-        'https://firebasestorage.googleapis.com/v0/b/avoqado-d0a24.appspot.com/o/kuikku%2FKuikku%20General.JPG?alt=media&token=e585a90e-59dd-499d-97b6-b059a031ff8b',
-      allday: true,
-      currency: 'euro',
-    },
-  })
-
-  const bikinaMenuCategories = await Promise.all(
-    getBikinaCategories().map(({name}) =>
-      prisma.menuCategory.create({
-        data: {
-          name,
-          menu: {connect: {id: menu.id}},
-        },
-      }),
-    ),
-  )
-
-  // await db.showingHours.create({
-  //   data: {
-  //     fromHour: 0,
-  //     toHour: 24,
-  //     allDay: false,
-  //     menus: { connect: { id: menu.id } },
-  //   },
-  // })
-
-  // const categories = await Promise.all(
-  //   getCategories().map(({ name }) =>
-  //     db.menuCategory.create({
-  //       data: {
-  //         name,
-  //         menu: { connect: { id: menu.id } },
-  //       },
-  //     })
-  //   )
-  // );
-
-  const menuItems = await Promise.all(
-    bikinaMenuCategories.flatMap((category, i) =>
-      range(1, 1).map(j =>
-        prisma.menuItem.create({
-          data: {
-            name: `${category.name} Item #${j}`,
-            image:
-              'https://firebasestorage.googleapis.com/v0/b/avoqado-d0a24.appspot.com/o/kuikku%2F3.%20TEMAKI%20(HANDROLL)%2FTEMAKI%20NEGITORO.jpg?alt=media&token=08782db0-22ef-49f6-8ac0-4c9c92e59645',
-            description:
-              'Lorem ipsum dolor sit amet, consectetur adipiscing elit.',
-            price: getRandom(100, 520),
-            available: true,
-            menuCategory: {connect: {id: category.id}},
-          },
-        }),
-      ),
-    ),
-  )
+  // await createModifiers(menu.id)
 }
 
-async function cleanDatabase() {
-  console.time('🧹 Cleaned up the database...')
-  const tablesToClean = [
-    'restaurant',
-    'branch',
-    'table',
-    'employee',
-    'menu',
-    'menuCategory',
-    'menuItem',
-    'modifierGroup',
-    'modifiers',
-    'cartItem',
-    'session',
-    'user',
-    'order',
-    'feedback',
-    'employee',
-    'deliverect',
-  ]
-  for (const table of tablesToClean) {
-    await prisma[table].deleteMany()
-  }
-  console.timeEnd('🧹 Cleaned up the database...')
-}
-
-async function createUsers(totalUsers) {
-  console.time(`👤 Created ${totalUsers} users...`)
-  for (let i = 0; i < totalUsers; i++) {
-    await prisma.user.create({
-      data: {
-        name: 'Jose',
-        role: 'admin',
-        email: 'joseamica@gmail.com',
-      },
-    })
-  }
-  console.timeEnd(`👤 Created ${totalUsers} users...`)
-}
 seed()
-
-function getBikinaCategories() {
-  return [
-    {
-      id: 1,
-      name: 'Entradas',
-    },
-    {
-      id: 2,
-      name: 'Sopas',
-    },
-    {
-      id: 3,
-      name: 'Ensaladas',
-    },
-    {
-      id: 4,
-      name: 'Platillos',
-    },
-    {
-      id: 5,
-      name: 'Tacos',
-    },
-    {
-      id: 6,
-      name: 'Quesos Fundidos',
-    },
-    {
-      id: 7,
-      name: 'Pastas',
-    },
-    {
-      id: 8,
-      name: 'Grill',
-    },
-    {
-      id: 9,
-      name: 'Guarniciones',
-    },
-    {
-      id: 10,
-      name: 'Pescados & Mariscos',
-    },
-    {
-      id: 11,
-      name: 'Extras',
-    },
-    {
-      id: 12,
-      name: 'Postres',
-    },
-  ]
-}
-
-function getCategories() {
-  return [
-    {
-      id: 1,
-      name: 'Hot Cakes',
-    },
-    {
-      id: 2,
-      name: 'Frutas',
-    },
-    {
-      id: 3,
-      name: 'Pan Francés',
-    },
-    {
-      id: 4,
-      name: 'Huevos',
-    },
-    {
-      id: 5,
-      name: 'Molletes',
-    },
-    {
-      id: 6,
-      name: 'Chilaquiles',
-    },
-    {
-      id: 7,
-      name: 'Toasts',
-    },
-    {
-      id: 8,
-      name: 'Especiales',
-    },
-    {
-      id: 9,
-      name: 'Jugos',
-    },
-  ]
-}
-
-function getDishes() {
-  return [
-    {
-      image: 'https://drive.google.com/uc?id=16Bju_Lz6Opkw0EtDLAkVXbqRQit0zi5a',
-      name: 'Hot Cakes de Nutella',
-      meal: 'desayuno',
-      description: 'Rellenos de nutella con compota de plátano.',
-      specs: ['vegano'],
-      price: 180,
-      menu: {
-        connect: {
-          id: 1,
-        },
-      },
-    },
-    {
-      image: 'https://drive.google.com/uc?id=1M5GRr1yoHzRHjCEPNNQevpIdRx9vuRp8',
-      name: 'Hot Cakes de Frutos Rojos',
-      meal: 'desayuno',
-      description: 'Con salsa de frutos rojos con mantequilla mascarpone.',
-      specs: ['vegano'],
-      price: 120,
-      menu: {
-        connect: {
-          id: 1,
-        },
-      },
-    },
-    {
-      image: 'https://drive.google.com/uc?id=1OXNDPb07iM56ECe9KUNnihcMRLQUfYmx',
-      name: 'Huevos Rotos',
-      meal: 'desayuno',
-      description:
-        'Huevos rotos con jamón serrano, papas confitadas y pimientos rojos',
-      specs: ['vegano'],
-      price: 178,
-      menu: {
-        connect: {
-          id: 1,
-        },
-      },
-    },
-    {
-      image: 'https://drive.google.com/uc?id=1DOBu7FBErMHJuqujOGah9xqXSQF5rr0X',
-      name: 'Toast de Aguacate',
-      meal: 'desayuno',
-      description:
-        'Pan campesino con guacamole hecho en casa, rabano, jitomate cherry y huevo pochado.',
-      specs: ['vegano'],
-      price: 185,
-      menu: {
-        connect: {
-          id: 1,
-        },
-      },
-    },
-    {
-      image: 'https://drive.google.com/uc?id=1dPdRyMJ_HiR6x57dxahiG9nbh3OFNpxP',
-      name: 'Omelette de Chilaquiles',
-      meal: 'desayuno',
-      description:
-        'Omellete relleno de chilaquiles bañado en salsa verde o roja con crema y queso.',
-      specs: ['vegano'],
-      price: 180,
-      menu: {
-        connect: {
-          id: 1,
-        },
-      },
-    },
-    {
-      image: 'https://drive.google.com/uc?id=1T6OuCY8pqppnSRjlQfAeoNGJwfepR1XU',
-      name: 'Chilaquiles',
-      meal: 'desayuno',
-      description: 'Verdes o rojos con pollo / huevo.',
-      specs: ['vegano'],
-      price: 198,
-      menu: {
-        connect: {
-          id: 1,
-        },
-      },
-    },
-  ]
-}
-
-function BikinaDishes() {
-  return [
-    {
-      image:
-        'https://www.queremoscomer.rest/img/editorial/recetas/MAYO2012/Azul_Condesa_11_2.jpg',
-      name: 'Panuchos de cochinita pibil (3pzas)',
-      description: 'Rellenos de nutella con compota de plátano.',
-      price: 140,
-      menuCatergory: {
-        connect: {
-          id: 1,
-        },
-      },
-    },
-  ]
-}
-
-function range(start: number, end: number, step = 1) {
-  return Array.from(
-    {length: (end - start + 1) / step},
-    (_, i) => start + i * step,
-  )
-}
-
-function getRandom(start: number, end: number) {
-  return Math.floor(Math.random() * (end - start)) + start
-}
+  .catch(e => {
+    console.error(e)
+    process.exit(1)
+  })
+  .finally(async () => {
+    await prisma.$disconnect()
+    console.timeEnd(`🌱 Database has been seeded`)
+  })

@@ -181,7 +181,8 @@ export const action = async ({request}: ActionArgs) => {
   const branchId = await getBranchId(tableId)
   const rawData = await request.text()
   const [menuData] = JSON.parse(rawData)
-  console.log('menuData', menuData)
+  console.log('\x1b[41m%s\x1b[0m', 'api.dvct.menu_update.tsx line:184 menuData', menuData)
+  console.log('ModifierGroups -> ', menuData.modifierGroups)
 
   const menu = await prisma.menu.upsert({
     where: {id: menuData.menuId},
@@ -229,6 +230,51 @@ export const action = async ({request}: ActionArgs) => {
   }
   for (const product of Object.values(menuData.products)) {
     await upsertMenuItem(product)
+  }
+
+  for (const modifierGroup of Object.values(menuData.modifierGroups)) {
+    await prisma.modifierGroup.upsert({
+      where: {
+        id: modifierGroup._id,
+      },
+      update: {
+        name: modifierGroup.name,
+        max: modifierGroup.max,
+        min: modifierGroup.min,
+        multiMax: modifierGroup.multiMax,
+        multiply: modifierGroup.multiply,
+        plu: modifierGroup.plu,
+        nameTranslations: modifierGroup.nameTranslations,
+      },
+      create: {
+        id: modifierGroup._id,
+        name: modifierGroup.name,
+        max: modifierGroup.max,
+        min: modifierGroup.min,
+        multiMax: modifierGroup.multiMax,
+        multiply: modifierGroup.multiply,
+        plu: modifierGroup.plu,
+        nameTranslations: modifierGroup.nameTranslations,
+      },
+    })
+    // for (const modifierItem of Object.values(modifier.modifiers)) {
+    //   await prisma.modifier.upsert({
+    //     where: {
+    //       id: modifierItem._id,
+    //     },
+    //     update: {
+    //       name: modifierItem.name,
+    //       price: modifierItem.price,
+    //       modifierGroupId: modifier._id,
+    //     },
+    //     create: {
+    //       id: modifierItem._id,
+    //       name: modifierItem.name,
+    //       price: modifierItem.price,
+    //       modifierGroupId: modifier._id,
+    //     },
+    //   })
+    // }
   }
 
   for (const category of menuData.categories) {
