@@ -5,7 +5,7 @@ import {H1, H2} from '~/components'
 import {prisma} from '~/db.server'
 
 export async function loader({request, params}: LoaderArgs) {
-  const {branchId, tableId} = params
+  const {tableId} = params
   const table = await prisma.table.findUnique({
     where: {id: tableId},
     include: {order: {include: {cartItems: true}}},

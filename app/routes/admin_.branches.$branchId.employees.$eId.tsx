@@ -1,12 +1,9 @@
-import type {Table, User} from '@prisma/client'
-import {ActionArgs, json} from '@remix-run/node'
-import type {LoaderArgs} from '@remix-run/node'
-import React from 'react'
+import {json, type ActionArgs, type LoaderArgs} from '@remix-run/node'
 import {Form, Link, useLoaderData, useSearchParams} from '@remix-run/react'
-import {Button, FlexRow, H1, H2, LinkButton, Spacer} from '~/components'
-import {prisma} from '~/db.server'
-import {AiFillEdit, AiFillDelete} from 'react-icons/ai'
+import {AiFillDelete, AiFillEdit} from 'react-icons/ai'
+import {Button, FlexRow, H1, H2, Spacer} from '~/components'
 import {Modal} from '~/components/modals'
+import {prisma} from '~/db.server'
 
 export async function action({request, params}: ActionArgs) {
   const {branchId, eId} = params
@@ -71,11 +68,7 @@ export default function AdminUserId() {
           {employee.name}
         </LinkButton>
       ))} */}
-      <Modal
-        isOpen={editEmployee === 'true'}
-        title="Edit employee"
-        handleClose={onClose}
-      >
+      <Modal isOpen={editEmployee === 'true'} title="Edit employee" handleClose={onClose}>
         <Form method="POST" className="bg-white p-2">
           <div className="flex flex-col space-y-2">
             <label htmlFor="name">Name</label>
@@ -112,19 +105,10 @@ export default function AdminUserId() {
           </Button>
         </Form>
       </Modal>
-      <Modal
-        isOpen={delEmployee === 'true'}
-        title="Delete employee"
-        handleClose={onClose}
-      >
+      <Modal isOpen={delEmployee === 'true'} title="Delete employee" handleClose={onClose}>
         <div className="space-y-3 bg-white p-2">
           <p>Are you sure you want to delete this employee?</p>
-          <Button
-            variant="danger"
-            name="_action"
-            value="deleteUser"
-            fullWith={true}
-          >
+          <Button variant="danger" name="_action" value="deleteUser" fullWith={true}>
             Eliminar
           </Button>
         </div>
