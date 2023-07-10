@@ -106,13 +106,13 @@ export const action = async ({request, params}: ActionArgs) => {
     // const expiryTime = formatISO(addHours(new Date(), 4))
     // session.set('expiryTime', expiryTime)
     if (tableId) {
-      console.log('\x1b[42m%s\x1b[0m', 'table.tsx line:115 SSE TRIGGER')
+      console.log('\x1b[42m%s\x1b[0m', 'table.tsx line:115 SSE TRIGGER because tableId exists and user entered name')
       EVENTS.ISSUE_CHANGED(tableId)
       session.set('tableId', tableId)
     }
     session.set('username', name)
     session.set('user_color', color)
-    session.set('tutorial', true)
+    // session.set('tutorial', true)
     console.timeEnd(`✅ Creating session and user with name... ${name}`)
 
     return redirect(redirectTo, {
@@ -137,7 +137,7 @@ export const ErrorBoundary = () => {
   }
 
   return (
-    <main className="bg-night-500">
+    <main className="bg-night-500 text-white">
       <h1>Rayos y centellas!</h1>
       <p>{error?.message}</p>
       <button className="bg-warning text-white">
