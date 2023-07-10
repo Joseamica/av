@@ -15,7 +15,7 @@ export const links: LinksFunction = () => [
 
 export default function App() {
   const navigation = useNavigation()
-  console.log('navigation', navigation)
+
   const showLoader = useSpinDelay(Boolean(navigation.state !== 'idle'), {
     delay: 0,
     minDuration: 500,

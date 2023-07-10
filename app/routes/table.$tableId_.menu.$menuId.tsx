@@ -293,6 +293,7 @@ export default function Menu() {
                       <div className="flex flex-col space-y-2">
                         {modifierGroup.modifiers.map((modifier: Modifiers) => {
                           const isChecked = actionData?.modifiers.find((id: Modifiers['id']) => id === modifier.id)
+                          // console.log('isChecked', isChecked)
                           return (
                             <label htmlFor={modifier.id} className="flex flex-row space-x-2" key={modifier.id}>
                               <span
