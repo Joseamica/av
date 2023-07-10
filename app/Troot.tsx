@@ -1,6 +1,6 @@
 import {cssBundleHref} from '@remix-run/css-bundle'
-import type {ActionArgs, LinksFunction, LoaderArgs} from '@remix-run/node'
-import {json, redirect} from '@remix-run/node'
+import type {LinksFunction, LoaderArgs} from '@remix-run/node'
+import {json} from '@remix-run/node'
 
 import {
   Form,
@@ -10,32 +10,21 @@ import {
   Outlet,
   Scripts,
   ScrollRestoration,
-  useActionData,
   useLoaderData,
-  useLocation,
-  useMatches,
   useSearchParams,
   useSubmit,
 } from '@remix-run/react'
 
-import {addHours, formatISO} from 'date-fns'
-import {
-  getSession,
-  getUserId,
-  getUsername,
-  sessionStorage,
-} from '~/session.server'
+import React, {useState} from 'react'
+import {getSession, getUserId, getUsername, sessionStorage} from '~/session.server'
 import tailwindStylesheetUrl from '~/styles/tailwind.css'
 import {Button, FlexRow, H4, Header, Spacer} from './components'
-import {prisma} from './db.server'
-import {findOrCreateUser} from './models/user.server'
-import {validateRedirect} from './redirect.server'
-import appStylesheetUrl from './styles/app.css'
 import {Modal} from './components/modals'
-import React, {useState} from 'react'
-import {getRandomColor, getTableIdFromUrl} from './utils'
-import {get} from 'http'
+import {prisma} from './db.server'
 import {getDvctAccounts} from './models/deliverect.server'
+import {findOrCreateUser} from './models/user.server'
+import appStylesheetUrl from './styles/app.css'
+import {getRandomColor, getTableIdFromUrl} from './utils'
 
 export const links: LinksFunction = () => [
   {rel: 'stylesheet', href: tailwindStylesheetUrl},
@@ -69,8 +58,7 @@ export const loader = async ({request}: LoaderArgs) => {
   const dvctExpiration = deliverect?.deliverectExpiration
   const dvctToken = deliverect?.deliverectToken
   const currentTime = Math.floor(Date.now() / 1000) // Get the current time in Unix timestamp
-  const isTokenExpired =
-    deliverect && dvctExpiration <= currentTime ? true : false
+  const isTokenExpired = deliverect && dvctExpiration <= currentTime ? true : false
 
   //ACCOUNTS (RESTAURANTS)
   if (!isTokenExpired) {
@@ -124,16 +112,8 @@ export default function App() {
         <div id="modal-root" />
         {data.username && <Header user={data.user} isAdmin={data.isAdmin} />}
         {!data.username && (
-          <Modal
-            handleClose={() => null}
-            title="Registro de usuario"
-            isOpen={true}
-          >
-            <FormContent
-              errorClass={errorClass}
-              error={error || ''}
-              pathname={data.pathname}
-            />
+          <Modal handleClose={() => null} title="Registro de usuario" isOpen={true}>
+            <FormContent errorClass={errorClass} error={error || ''} pathname={data.pathname} />
           </Modal>
         )}
         <Outlet />
@@ -191,15 +171,7 @@ export function formatRestaurant(dvctLocation) {
 //   )
 // }
 
-function FormContent({
-  errorClass,
-  error,
-  pathname,
-}: {
-  errorClass: string
-  error?: string
-  pathname: string
-}) {
+function FormContent({errorClass, error, pathname}: {errorClass: string; error?: string; pathname: string}) {
   const [name, setName] = useState('')
   console.log('name', name.length)
 
@@ -219,9 +191,9 @@ function FormContent({
       // onChange={handleChange}
     >
       <div
-        className={`flex w-full flex-row items-center bg-button-notSelected px-4 py-2 ${
-          !name && errorClass
-        } ${handleError && 'border-2 border-warning'}`}
+        className={`flex w-full flex-row items-center bg-button-notSelected px-4 py-2 ${!name && errorClass} ${
+          handleError && 'border-2 border-warning'
+        }`}
       >
         <input
           type="text"
@@ -251,13 +223,7 @@ function FormContent({
             Escoge tu color:
           </label>
           <div className="transparent h-10 w-10 overflow-hidden">
-            <input
-              type="color"
-              name="color"
-              id="color"
-              defaultValue={randomColor}
-              className="h-full w-full"
-            />
+            <input type="color" name="color" id="color" defaultValue={randomColor} className="h-full w-full" />
           </div>
         </FlexRow>
         <Spacer spaceY="4" />
