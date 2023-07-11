@@ -43,8 +43,6 @@ export default function TableLayoutPath() {
 
 export const loader = async ({ request }: LoaderArgs) => {
   const session = await getSession(request)
-  // const userId = await getUserId(session)
-  // const username = await getUsername(session)
   const userId = session.get('userId')
   const username = session.get('username')
   let user = null
@@ -58,7 +56,6 @@ export const loader = async ({ request }: LoaderArgs) => {
   })
 
   // * Verify if user is on the database or create
-  // * Que onda con usern name ._.)
   if (username) {
     user = await findOrCreateUser(userId, username)
   }
