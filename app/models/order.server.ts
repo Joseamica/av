@@ -10,11 +10,6 @@ import { prisma } from '~/db.server'
 export function getOrder(tableId: Table['id']) {
   return prisma.order.findFirst({
     where: { tableId, active: true },
-    include: {
-      cartItems: { include: { user: true } },
-      users: { include: { cartItems: true } },
-      payments: true,
-    },
   })
 }
 

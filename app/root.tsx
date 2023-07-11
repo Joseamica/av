@@ -1,21 +1,29 @@
-import {cssBundleHref} from '@remix-run/css-bundle'
-import type {LinksFunction} from '@remix-run/node'
-import {Links, LiveReload, Meta, Outlet, Scripts, ScrollRestoration, useNavigation} from '@remix-run/react'
+import { cssBundleHref } from '@remix-run/css-bundle'
+import type { LinksFunction } from '@remix-run/node'
+import {
+  Links,
+  LiveReload,
+  Meta,
+  Outlet,
+  Scripts,
+  ScrollRestoration,
+  useNavigation,
+} from '@remix-run/react'
 // * STYLES
 import tailwindStylesheetUrl from '~/styles/tailwind.css'
 // * CUSTOM COMPONENTS
 import appStylesheetUrl from './styles/app.css'
-import {useSpinDelay} from 'spin-delay'
+import { useSpinDelay } from 'spin-delay'
 
 export const links: LinksFunction = () => [
-  {rel: 'stylesheet', href: tailwindStylesheetUrl},
-  {rel: 'stylesheet', href: appStylesheetUrl},
-  ...(cssBundleHref ? [{rel: 'stylesheet', href: cssBundleHref}] : []),
+  { rel: 'stylesheet', href: tailwindStylesheetUrl },
+  { rel: 'stylesheet', href: appStylesheetUrl },
+  ...(cssBundleHref ? [{ rel: 'stylesheet', href: cssBundleHref }] : []),
 ]
 
 export default function App() {
   const navigation = useNavigation()
-  console.log('navigation', navigation)
+
   const showLoader = useSpinDelay(Boolean(navigation.state !== 'idle'), {
     delay: 0,
     minDuration: 500,

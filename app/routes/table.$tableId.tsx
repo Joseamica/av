@@ -88,6 +88,7 @@ export default function Table() {
   useSessionTimeout()
 
   const data = useLiveLoader<LoaderData>()
+
   // const data = useLiveLoader<LoaderData>()
 
   const [selectedUsers, setSelectedUsers] = useState<string[]>([])
@@ -111,7 +112,7 @@ export default function Table() {
   }
   const [showPaymentOptions, setShowPaymentOptions] = useState(false)
 
-  if (data.total > 0) {
+  if (data.order) {
     return (
       <motion.main className="no-scrollbar">
         <div className="fixed inset-x-0 top-0 z-50 w-full bg-button-successBg text-success"></div>
@@ -375,6 +376,7 @@ export async function loader({ request, params }: LoaderArgs) {
   const session = await getSession(request)
   const userId = session.get('userId')
   const username = session.get('username')
+  const user_color = session.get('user_color')
 
   const { tableId } = params
   invariant(tableId, 'No se encontró el ID de la mesa')
@@ -382,25 +384,23 @@ export async function loader({ request, params }: LoaderArgs) {
   const branch = await getBranch(tableId)
   invariant(branch, 'No se encontró la sucursal')
 
-  const [table, usersInTable, order] = await Promise.all([
-    getTable(tableId),
-    getUsersOnTable(tableId),
-    getOrder(tableId),
-  ])
+  const table = await getTable(tableId)
 
-  // const order = await prisma.order.findFirst({
-  //   where: { tableId, active: true },
-  //   include: {
-  //     cartItems: { include: { user: true } },
-  //     users: { include: { cartItems: true } },
-  //     payments: true,
-  //   },
-  // })
+  const order = await prisma.order.findFirst({
+    where: { tableId, active: true },
+    include: {
+      cartItems: { include: { user: true } },
+      users: { include: { cartItems: true } },
+      payments: true,
+    },
+  })
+
   const total = Number(order?.total)
   const menu = await getMenu(branch.id)
 
   //NOTE - USER CONNECT TO TABLE AND ORDER
   if (userId && username) {
+    // TODO CREATE MODEL
     const isUserInTable = await prisma.user.findFirst({
       where: {
         id: userId, // userId is the id of the user you want to check
@@ -431,9 +431,12 @@ export async function loader({ request, params }: LoaderArgs) {
         throw new Error(`No se pudo conectar al usuario con la mesa ${error}`)
       }
     }
+
     const isUserInOrder = await prisma.user.findFirst({
       where: { id: userId, orderId: order?.id },
     })
+
+    // * TODO por qué lo de la isUserInOrder
     if (!isUserInOrder && order) {
       try {
         console.log(`🔌 Connecting '${username}' to the order`)
@@ -455,6 +458,8 @@ export async function loader({ request, params }: LoaderArgs) {
       }
     }
   }
+
+  const usersInTable = await getUsersOnTable(tableId)
 
   let paidUsers = null
   let amountLeft = null
