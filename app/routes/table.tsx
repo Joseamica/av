@@ -1,5 +1,5 @@
-import type {LoaderArgs, ActionArgs} from '@remix-run/node'
-import {json, redirect} from '@remix-run/node'
+import type { LoaderArgs, ActionArgs } from '@remix-run/node'
+import { json, redirect } from '@remix-run/node'
 import {
   Outlet,
   useLoaderData,
@@ -14,13 +14,13 @@ import {
   getUsername,
   sessionStorage,
 } from '~/session.server'
-import {findOrCreateUser} from '~/models/user.server'
-import {prisma} from '~/db.server'
-import {validateRedirect} from '~/redirect.server'
+import { findOrCreateUser } from '~/models/user.server'
+import { prisma } from '~/db.server'
+import { validateRedirect } from '~/redirect.server'
 // * COMPONENTS
-import {addHours, formatISO} from 'date-fns'
+import { addHours, formatISO } from 'date-fns'
 // * CUSTOM COMPONENTS
-import {Header, UserForm} from '~/components'
+import { Header, UserForm } from '~/components'
 
 const SESSION_EXPIRATION_TIME = 1000 * 60 * 60 * 24 * 30
 
@@ -39,7 +39,8 @@ export default function TableLayoutPath() {
   )
 }
 
-export const loader = async ({request}: LoaderArgs) => {
+export const loader = async ({ request }: LoaderArgs) => {
+  console.log('****userId*****', request)
   const userId = await getUserId(request)
 
   const session = await getSession(request)
@@ -62,12 +63,12 @@ export const loader = async ({request}: LoaderArgs) => {
   const pathname = url.pathname
 
   return json(
-    {username, pathname, user, isAdmin},
-    {headers: {'Set-Cookie': await sessionStorage.commitSession(session)}},
+    { username, pathname, user, isAdmin },
+    { headers: { 'Set-Cookie': await sessionStorage.commitSession(session) } },
   )
 }
 
-export const action = async ({request, params}: ActionArgs) => {
+export const action = async ({ request, params }: ActionArgs) => {
   let [body, session] = await Promise.all([request.text(), getSession(request)])
   let formData = new URLSearchParams(body)
 
@@ -110,7 +111,7 @@ export const action = async ({request, params}: ActionArgs) => {
 
     console.timeEnd(`✅ Creating session and user with name... ${name}`)
     return redirect(redirectTo, {
-      headers: {'Set-Cookie': await sessionStorage.commitSession(session)},
+      headers: { 'Set-Cookie': await sessionStorage.commitSession(session) },
     })
   }
 

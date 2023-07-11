@@ -6,21 +6,26 @@ import type {
   Table as TableProps,
   User,
 } from '@prisma/client'
-import type {ActionArgs, LoaderArgs} from '@remix-run/node'
+import { ActionArgs, LoaderArgs, redirect } from '@remix-run/node'
 
-import {json} from '@remix-run/node'
-import {Form, Outlet, useLoaderData} from '@remix-run/react'
-import {useState} from 'react'
+import { json } from '@remix-run/node'
+import {
+  Form,
+  isRouteErrorResponse,
+  Outlet,
+  useRouteError,
+} from '@remix-run/react'
+import { useState } from 'react'
 // * UTILS, MODELS, DB, HOOKS
-import {prisma} from '~/db.server'
-import {EVENTS} from '~/events'
-import {useSessionTimeout} from '~/hooks/use-session-timeout'
-import {getBranch} from '~/models/branch.server'
-import {getMenu} from '~/models/menu.server'
-import {getTable} from '~/models/table.server'
-import {getPaidUsers, getUsersOnTable} from '~/models/user.server'
+import { prisma } from '~/db.server'
+import { EVENTS } from '~/events'
+import { useSessionTimeout } from '~/hooks/use-session-timeout'
+import { getBranch } from '~/models/branch.server'
+import { getMenu } from '~/models/menu.server'
+import { getTable } from '~/models/table.server'
+import { getPaidUsers, getUsersOnTable } from '~/models/user.server'
 
-import {getSession} from '~/session.server'
+import { getSession } from '~/session.server'
 import {
   formatCurrency,
   getAmountLeftToPay,
@@ -28,17 +33,17 @@ import {
   isOrderExpired,
 } from '~/utils'
 // * COMPONENTS
-import {useLiveLoader} from '~/use-live-loader'
+import { useLiveLoader } from '~/use-live-loader'
 import {
   ChevronDownIcon,
   UserCircleIcon,
   UsersIcon,
 } from '@heroicons/react/solid'
 import clsx from 'clsx'
-import {AnimatePresence, motion} from 'framer-motion'
+import { AnimatePresence, motion } from 'framer-motion'
 import invariant from 'tiny-invariant'
 // TODO React icons or heroicons ? :angry
-import {IoFastFood} from 'react-icons/io5'
+import { IoFastFood } from 'react-icons/io5'
 // * CUSTOM COMPONENTS
 import {
   BillAmount,
@@ -51,12 +56,12 @@ import {
   SectionContainer,
   Spacer,
 } from '~/components/index'
-import {Button} from '~/components/ui/buttons/button'
-import {SwitchButton} from '~/components/ui/buttons/switch' // Assuming SwitchButton is in the same directory
+import { Button } from '~/components/ui/buttons/button'
+import { SwitchButton } from '~/components/ui/buttons/switch' // Assuming SwitchButton is in the same directory
 
-import {RestaurantInfoCard} from '~/components/restaurant-info-card'
-import {EmptyOrder} from '~/components/table/empty-order'
-import {SinglePayButton} from '~/components/table/single-pay-button'
+import { RestaurantInfoCard } from '~/components/restaurant-info-card'
+import { EmptyOrder } from '~/components/table/empty-order'
+import { SinglePayButton } from '~/components/table/single-pay-button'
 
 type LoaderData = {
   order: Order & any
@@ -216,15 +221,15 @@ export default function Table() {
                           <motion.div
                             className="flex flex-col"
                             key={user.id}
-                            initial={{opacity: 0, height: '0'}}
-                            animate={{opacity: 1, height: 'auto'}}
-                            exit={{opacity: 0, height: '0'}}
+                            initial={{ opacity: 0, height: '0' }}
+                            animate={{ opacity: 1, height: 'auto' }}
+                            exit={{ opacity: 0, height: '0' }}
                             transition={{
                               opacity: {
                                 duration: 0.2,
                                 ease: [0.04, 0.62, 0.23, 0.98],
                               },
-                              height: {duration: 0.4},
+                              height: { duration: 0.4 },
                             }}
                           >
                             <hr />
@@ -277,15 +282,15 @@ export default function Table() {
                   <motion.div
                     className="flex flex-col"
                     key={cartItem.id}
-                    initial={{opacity: 0, height: '0'}}
-                    animate={{opacity: 1, height: 'auto'}}
-                    exit={{opacity: 0, height: '0'}}
+                    initial={{ opacity: 0, height: '0' }}
+                    animate={{ opacity: 1, height: 'auto' }}
+                    exit={{ opacity: 0, height: '0' }}
                     transition={{
                       opacity: {
                         duration: 0.2,
                         ease: [0.04, 0.62, 0.23, 0.98],
                       },
-                      height: {duration: 0.4},
+                      height: { duration: 0.4 },
                     }}
                   >
                     <CartItemDetails cartItem={cartItem} />
@@ -338,8 +343,8 @@ export default function Table() {
   }
 }
 
-export async function loader({request, params}: LoaderArgs) {
-  const {tableId} = params
+export async function loader({ request, params }: LoaderArgs) {
+  const { tableId } = params
   invariant(tableId, 'No se encontró el ID de la mesa')
 
   const branch = await getBranch(tableId)
@@ -355,10 +360,10 @@ export async function loader({request, params}: LoaderArgs) {
   const username = session.get('username')
 
   const order = await prisma.order.findFirst({
-    where: {tableId, active: true},
+    where: { tableId, active: true },
     include: {
-      cartItems: {include: {user: true}},
-      users: {include: {cartItems: true}},
+      cartItems: { include: { user: true } },
+      users: { include: { cartItems: true } },
       payments: true,
     },
   })
@@ -379,7 +384,7 @@ export async function loader({request, params}: LoaderArgs) {
         console.log(`🔌 Connecting '${username}' to the table`)
 
         await prisma.user.update({
-          where: {id: userId},
+          where: { id: userId },
           data: {
             tableId: tableId,
             branchId: branch.id,
@@ -397,14 +402,14 @@ export async function loader({request, params}: LoaderArgs) {
       }
     }
     const isUserInOrder = await prisma.user.findFirst({
-      where: {id: userId, orderId: order?.id},
+      where: { id: userId, orderId: order?.id },
     })
     if (!isUserInOrder && order) {
       try {
         console.log(`🔌 Connecting '${username}' to the order`)
         await prisma.order.update({
-          where: {id: order?.id},
-          data: {users: {connect: {id: userId}}},
+          where: { id: order?.id },
+          data: { users: { connect: { id: userId } } },
         })
         EVENTS.ISSUE_CHANGED(tableId)
         console.log(`✅ Connected '${username}' to the order`)
@@ -451,8 +456,8 @@ export async function loader({request, params}: LoaderArgs) {
           tip: 0,
           paid: 0,
           total: 0,
-          orders: {disconnect: true},
-          cartItems: {set: []},
+          orders: { disconnect: true },
+          cartItems: { set: [] },
 
           // tableId: null,
           // tables: {disconnect: true},
@@ -460,8 +465,8 @@ export async function loader({request, params}: LoaderArgs) {
       })
     }
     await prisma.order.update({
-      where: {id: order.id},
-      data: {active: false, table: {disconnect: true}, users: {set: []}},
+      where: { id: order.id },
+      data: { active: false, table: { disconnect: true }, users: { set: [] } },
     })
 
     console.log('Order expired...')
@@ -481,9 +486,8 @@ export async function loader({request, params}: LoaderArgs) {
   })
 }
 
-// * CUANDO EL USUARIO AGREGAR SU NOMBRE SERIA BUENO CONECTARLO A LA MESA DIRECTAMENTE.
-export async function action({request, params}: ActionArgs) {
-  const {tableId} = params
+export async function action({ request, params }: ActionArgs) {
+  const { tableId } = params
   invariant(tableId, 'Mesa no encontrada!')
   const formData = await request.formData()
   const _action = formData.get('_action') as string
@@ -494,5 +498,24 @@ export async function action({request, params}: ActionArgs) {
       EVENTS.ISSUE_CHANGED(tableId, 'endOrder')
   }
 
-  return json({success: true})
+  return json({ success: true })
+}
+
+export const ErrorBoundary = () => {
+  const error = useRouteError()
+
+  console.log('****error***', error)
+  console.log('isRouteErrorResponse', isRouteErrorResponse(error))
+
+  if (isRouteErrorResponse(error)) {
+    return (
+      <main>
+        <p>No information</p>
+        <p>Status: {error.status}</p>
+        <p>{error?.data.message}</p>
+      </main>
+    )
+  } else {
+    return redirect('/table')
+  }
 }
