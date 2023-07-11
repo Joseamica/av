@@ -1,26 +1,53 @@
-import type {Branch, CartItem, Menu, Order, Table as TableProps, User} from '@prisma/client'
-import type {ActionArgs, LoaderArgs} from '@remix-run/node'
-import {json} from '@remix-run/node'
-import {Form, Outlet} from '@remix-run/react'
-import {useState} from 'react'
+import type {
+  Branch,
+  CartItem,
+  Menu,
+  Order,
+  Table as TableProps,
+  User,
+} from '@prisma/client'
+import { ActionArgs, LoaderArgs, redirect } from '@remix-run/node'
+
+import { json } from '@remix-run/node'
+import {
+  Form,
+  isRouteErrorResponse,
+  Outlet,
+  useRouteError,
+} from '@remix-run/react'
+import { useState } from 'react'
 // * UTILS, MODELS, DB, HOOKS
-import {prisma} from '~/db.server'
-import {EVENTS} from '~/events'
-import {useSessionTimeout} from '~/hooks/use-session-timeout'
-import {getBranch} from '~/models/branch.server'
-import {getMenu} from '~/models/menu.server'
-import {getTable} from '~/models/table.server'
-import {cleanUserData, getPaidUsers, getUsersOnTable} from '~/models/user.server'
-import {getSession} from '~/session.server'
-import {formatCurrency, getAmountLeftToPay, getCurrency, isOrderExpired} from '~/utils'
+import { prisma } from '~/db.server'
+import { EVENTS } from '~/events'
+import { useSessionTimeout } from '~/hooks/use-session-timeout'
+import { getBranch } from '~/models/branch.server'
+import { getMenu } from '~/models/menu.server'
+import { getTable } from '~/models/table.server'
+import {
+  cleanUserData,
+  getPaidUsers,
+  getUsersOnTable,
+} from '~/models/user.server'
+import { getOrder } from '~/models/order.server'
+import { getSession } from '~/session.server'
+import {
+  formatCurrency,
+  getAmountLeftToPay,
+  getCurrency,
+  isOrderExpired,
+} from '~/utils'
 // * COMPONENTS
-import {useLiveLoader} from '~/use-live-loader'
-import {ChevronDownIcon, UserCircleIcon, UsersIcon} from '@heroicons/react/solid'
+import { useLiveLoader } from '~/use-live-loader'
+import {
+  ChevronDownIcon,
+  UserCircleIcon,
+  UsersIcon,
+} from '@heroicons/react/solid'
 import clsx from 'clsx'
-import {AnimatePresence, motion} from 'framer-motion'
+import { AnimatePresence, motion } from 'framer-motion'
 import invariant from 'tiny-invariant'
 // TODO React icons or heroicons ? :angry
-import {IoFastFood} from 'react-icons/io5'
+import { IoFastFood } from 'react-icons/io5'
 // * CUSTOM COMPONENTS
 import {
   BillAmount,
@@ -36,9 +63,9 @@ import {
   Button,
 } from '~/components/index'
 
-import {RestaurantInfoCard} from '~/components/restaurant-info-card'
-import {EmptyOrder} from '~/components/table/empty-order'
-import {SinglePayButton} from '~/components/table/single-pay-button'
+import { RestaurantInfoCard } from '~/components/restaurant-info-card'
+import { EmptyOrder } from '~/components/table/empty-order'
+import { SinglePayButton } from '~/components/table/single-pay-button'
 
 type LoaderData = {
   order: Order & any
@@ -61,6 +88,7 @@ export default function Table() {
   useSessionTimeout()
 
   const data = useLiveLoader<LoaderData>()
+
   // const data = useLiveLoader<LoaderData>()
 
   const [selectedUsers, setSelectedUsers] = useState<string[]>([])
@@ -68,7 +96,9 @@ export default function Table() {
 
   const handleToggleUser = (userId: string) => {
     setSelectedUsers((prevSelected: string[]) =>
-      prevSelected.includes(userId) ? prevSelected.filter(id => id !== userId) : [...prevSelected, userId],
+      prevSelected.includes(userId)
+        ? prevSelected.filter(id => id !== userId)
+        : [...prevSelected, userId],
     )
   }
 
@@ -82,11 +112,15 @@ export default function Table() {
   }
   const [showPaymentOptions, setShowPaymentOptions] = useState(false)
 
-  if (data.total > 0) {
+  if (data.order) {
     return (
       <motion.main className="no-scrollbar">
         <div className="fixed inset-x-0 top-0 z-50 w-full bg-button-successBg text-success"></div>
-        <RestaurantInfoCard branch={data.branch} menu={data.menu} error={data.error} />
+        <RestaurantInfoCard
+          branch={data.branch}
+          menu={data.menu}
+          error={data.error}
+        />
         <Spacer spaceY="4" />
         <h3 className="text-secondaryTextDark flex shrink-0 justify-center text-sm">
           {`Mesa ${data.table.table_number}`}
@@ -138,25 +172,35 @@ export default function Table() {
                       <FlexRow justify="between" className="rounded-xl px-1 ">
                         <Spacer spaceY="2">
                           <FlexRow className="items-center space-x-2">
-                            <UserCircleIcon fill={user.color || '#000'} className="min-h-10 min-w-10 h-8 w-8" />
+                            <UserCircleIcon
+                              fill={user.color || '#000'}
+                              className="min-h-10 min-w-10 h-8 w-8"
+                            />
                             <div className="flex flex-col">
                               <H3>{user.name}</H3>
                               <H6>
                                 {Number(user.paid) > 0
-                                  ? `Pagado: ${formatCurrency(data.currency, userPaid)}`
+                                  ? `Pagado: ${formatCurrency(
+                                      data.currency,
+                                      userPaid,
+                                    )}`
                                   : 'No ha pagado'}
                               </H6>
                               <FlexRow>
                                 <H6>
                                   {user.cartItems?.length === 1
                                     ? `${user.cartItems?.length} platillo ordenado`
-                                    : `${user.cartItems?.length} platillos ordenado` || 0}
+                                    : `${user.cartItems?.length} platillos ordenado` ||
+                                      0}
                                 </H6>
                                 <H6>
                                   (
                                   {formatCurrency(
                                     data.currency,
-                                    user.cartItems.reduce((sum, item) => sum + item.price, 0),
+                                    user.cartItems.reduce(
+                                      (sum, item) => sum + item.price,
+                                      0,
+                                    ),
                                   )}
                                   )
                                 </H6>
@@ -169,7 +213,8 @@ export default function Table() {
                           className={clsx(
                             'flex items-center justify-center rounded-lg  border border-button-outline px-1   py-1 text-xs',
                             {
-                              'bg-button-primary text-white': selectedUsers.includes(user.id),
+                              'bg-button-primary text-white':
+                                selectedUsers.includes(user.id),
                             },
                           )}
                         >
@@ -208,12 +253,17 @@ export default function Table() {
                             {user.cartItems.length > 0 ? (
                               <motion.div>
                                 {user.cartItems.map((cartItem: any) => (
-                                  <CartItemDetails key={cartItem.id} cartItem={cartItem} />
+                                  <CartItemDetails
+                                    key={cartItem.id}
+                                    cartItem={cartItem}
+                                  />
                                 ))}
                               </motion.div>
                             ) : (
                               <Spacer spaceY="2" className="px-2">
-                                <H6 variant="secondary">Usuario no cuenta con platillos ordenados</H6>
+                                <H6 variant="secondary">
+                                  Usuario no cuenta con platillos ordenados
+                                </H6>
                               </Spacer>
                             )}
                           </motion.div>
@@ -231,11 +281,20 @@ export default function Table() {
             divider={true}
             showCollapse={data.order?.cartItems.length > 4 ? true : false}
             collapse={collapse}
-            collapseTitle={collapse ? <H5>Ver más platillos</H5> : <H5>Ver menos platillos</H5>}
+            collapseTitle={
+              collapse ? (
+                <H5>Ver más platillos</H5>
+              ) : (
+                <H5>Ver menos platillos</H5>
+              )
+            }
             handleCollapse={handleCollapse}
           >
             <AnimatePresence initial={false}>
-              {(collapse ? data.order?.cartItems.slice(0, 4) : data.order?.cartItems).map((cartItem: CartItem) => {
+              {(collapse
+                ? data.order?.cartItems.slice(0, 4)
+                : data.order?.cartItems
+              ).map((cartItem: CartItem) => {
                 return (
                   <motion.div
                     className="flex flex-col"
@@ -279,7 +338,10 @@ export default function Table() {
           <PayButtons />
         )} */}
         {data.amountLeft > 0 ? (
-          <SinglePayButton showPaymentOptions={showPaymentOptions} setShowPaymentOptions={setShowPaymentOptions} />
+          <SinglePayButton
+            showPaymentOptions={showPaymentOptions}
+            setShowPaymentOptions={setShowPaymentOptions}
+          />
         ) : (
           <Form method="POST">
             <Button
@@ -310,33 +372,35 @@ export default function Table() {
   }
 }
 
-export async function loader({request, params}: LoaderArgs) {
-  const {tableId} = params
-  invariant(tableId, 'No se encontró el ID de la mesa')
-
-  const branch = await getBranch(tableId)
-  invariant(branch, 'No se encontró la sucursal')
-
-  const [table, usersInTable] = await Promise.all([getTable(tableId), getUsersOnTable(tableId)])
-
+export async function loader({ request, params }: LoaderArgs) {
   const session = await getSession(request)
   const userId = session.get('userId')
   const username = session.get('username')
   const user_color = session.get('user_color')
 
+  const { tableId } = params
+  invariant(tableId, 'No se encontró el ID de la mesa')
+
+  const branch = await getBranch(tableId)
+  invariant(branch, 'No se encontró la sucursal')
+
+  const table = await getTable(tableId)
+
   const order = await prisma.order.findFirst({
-    where: {tableId, active: true},
+    where: { tableId, active: true },
     include: {
-      cartItems: {include: {user: true}},
-      users: {include: {cartItems: true}},
+      cartItems: { include: { user: true } },
+      users: { include: { cartItems: true } },
       payments: true,
     },
   })
+
   const total = Number(order?.total)
   const menu = await getMenu(branch.id)
 
   //NOTE - USER CONNECT TO TABLE AND ORDER
   if (userId && username) {
+    // TODO CREATE MODEL
     const isUserInTable = await prisma.user.findFirst({
       where: {
         id: userId, // userId is the id of the user you want to check
@@ -349,7 +413,7 @@ export async function loader({request, params}: LoaderArgs) {
         console.log(`🔌 Connecting '${username}' to the table`)
 
         await prisma.user.update({
-          where: {id: userId},
+          where: { id: userId },
           data: {
             tableId: tableId,
             branchId: branch.id,
@@ -359,33 +423,43 @@ export async function loader({request, params}: LoaderArgs) {
         EVENTS.ISSUE_CHANGED(tableId)
         console.log(`✅ Connected '${username}' to the table`)
       } catch (error) {
-        console.log('%cerror table.$tableId.tsx line:361 ', 'color: red; display: block; width: 100%;', error)
+        console.log(
+          '%cerror table.$tableId.tsx line:361 ',
+          'color: red; display: block; width: 100%;',
+          error,
+        )
         throw new Error(`No se pudo conectar al usuario con la mesa ${error}`)
       }
     }
+
     const isUserInOrder = await prisma.user.findFirst({
-      where: {
-        id: userId,
-        orderId: order?.id,
-      },
+      where: { id: userId, orderId: order?.id },
     })
+
+    // * TODO por qué lo de la isUserInOrder
     if (!isUserInOrder && order) {
       try {
         console.log(`🔌 Connecting '${username}' to the order`)
         await prisma.order.update({
-          where: {id: order?.id},
+          where: { id: order?.id },
           data: {
-            users: {connect: {id: userId}},
+            users: { connect: { id: userId } },
           },
         })
         EVENTS.ISSUE_CHANGED(tableId)
         console.log(`✅ Connected '${username}' to the order`)
       } catch (error) {
-        console.log('%cerror table.$tableId.tsx line:361 ', 'color: red; display: block; width: 100%;', error)
+        console.log(
+          '%cerror table.$tableId.tsx line:361 ',
+          'color: red; display: block; width: 100%;',
+          error,
+        )
         throw new Error(`No se pudo conectar al usuario con la orden ${error}`)
       }
     }
   }
+
+  const usersInTable = await getUsersOnTable(tableId)
 
   let paidUsers = null
   let amountLeft = null
@@ -404,7 +478,9 @@ export async function loader({request, params}: LoaderArgs) {
   //     title: `${branch?.name} no cuenta con un menu abierto en este horario.`,
   //   }
   // }
-  const error = !menu ? `${branch?.name} no cuenta con un menu abierto en este horario.` : null
+  const error = !menu
+    ? `${branch?.name} no cuenta con un menu abierto en este horario.`
+    : null
 
   const currency = await getCurrency(tableId)
 
@@ -415,11 +491,11 @@ export async function loader({request, params}: LoaderArgs) {
       await cleanUserData(user.id)
     }
     await prisma.order.update({
-      where: {id: order.id},
+      where: { id: order.id },
       data: {
         active: false,
-        table: {disconnect: true},
-        users: {set: []},
+        table: { disconnect: true },
+        users: { set: [] },
       },
     })
 
@@ -440,9 +516,8 @@ export async function loader({request, params}: LoaderArgs) {
   })
 }
 
-// * CUANDO EL USUARIO AGREGAR SU NOMBRE SERIA BUENO CONECTARLO A LA MESA DIRECTAMENTE.
-export async function action({request, params}: ActionArgs) {
-  const {tableId} = params
+export async function action({ request, params }: ActionArgs) {
+  const { tableId } = params
   invariant(tableId, 'Mesa no encontrada!')
   const formData = await request.formData()
   const _action = formData.get('_action') as string
@@ -453,5 +528,36 @@ export async function action({request, params}: ActionArgs) {
       EVENTS.ISSUE_CHANGED(tableId, 'endOrder')
   }
 
-  return json({success: true})
+  return json({ success: true })
+}
+
+export const ErrorBoundary = () => {
+  const error = useRouteError()
+
+  console.log('****error***', error)
+  console.log('isRouteErrorResponse', isRouteErrorResponse(error))
+
+  if (isRouteErrorResponse(error)) {
+    return (
+      <main>
+        <p>No information</p>
+        <img
+          src="https://media1.giphy.com/media/EFXGvbDPhLoWs/giphy.gif?cid=ecf05e47e4j9c0wtau2ep4e46x7dk654cz4c2370l34t9kwc&ep=v1_gifs_search&rid=giphy.gif&ct=g"
+          alt="error page"
+        />
+        <p>Status: {error.status}</p>
+        <p>{error?.data.message}</p>
+      </main>
+    )
+  } else {
+    return (
+      <main>
+        <p>{error?.message}</p>
+        <img
+          src="https://media1.giphy.com/media/EFXGvbDPhLoWs/giphy.gif?cid=ecf05e47e4j9c0wtau2ep4e46x7dk654cz4c2370l34t9kwc&ep=v1_gifs_search&rid=giphy.gif&ct=g"
+          alt="error page"
+        />
+      </main>
+    )
+  }
 }

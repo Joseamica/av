@@ -1,16 +1,16 @@
-import type {Order, Password, Table, User} from '@prisma/client'
+import type { Order, Password, Table, User } from '@prisma/client'
 import bcrypt from 'bcryptjs'
 
-import {prisma} from '~/db.server'
+import { prisma } from '~/db.server'
 
-export type {User} from '@prisma/client'
+export type { User } from '@prisma/client'
 
 export async function getUserById(id: User['id']) {
-  return prisma.user.findUnique({where: {id}})
+  return prisma.user.findUnique({ where: { id } })
 }
 
 export async function getUserByEmail(email: User['email']) {
-  return prisma.user.findUnique({where: {email}})
+  return prisma.user.findUnique({ where: { email } })
 }
 
 export async function createUser(email: User['email'], password: string) {
@@ -29,7 +29,7 @@ export async function createUser(email: User['email'], password: string) {
 }
 
 export async function deleteUserByEmail(email: User['email']) {
-  return prisma.user.delete({where: {email}})
+  return prisma.user.delete({ where: { email } })
 }
 
 export async function verifyLogin(
@@ -37,7 +37,7 @@ export async function verifyLogin(
   password: Password['hash'],
 ) {
   const userWithPassword = await prisma.user.findUnique({
-    where: {email},
+    where: { email },
     include: {
       password: true,
     },
@@ -53,7 +53,7 @@ export async function verifyLogin(
     return null
   }
 
-  const {password: _password, ...userWithoutPassword} = userWithPassword
+  const { password: _password, ...userWithoutPassword } = userWithPassword
 
   return userWithoutPassword
 }
@@ -99,7 +99,7 @@ export async function getPaidUsers(orderId: Order['id']) {
       paid: true,
       tip: true,
       total: true,
-      payments: {where: {orderId}},
+      payments: { where: { orderId } },
     },
   })
   return users.length > 0 ? users : null
@@ -127,7 +127,7 @@ export async function assignUserNewPayments(
   tip: number,
 ) {
   const userPrevPaidData = await prisma.user.findUnique({
-    where: {id: userId},
+    where: { id: userId },
     select: {
       total: true,
       tip: true,
@@ -136,7 +136,7 @@ export async function assignUserNewPayments(
   })
 
   return prisma.user.update({
-    where: {id: userId},
+    where: { id: userId },
     data: {
       paid: Number(userPrevPaidData?.paid) + amount,
       tip: Number(userPrevPaidData?.tip) + tip,
@@ -154,8 +154,8 @@ export function cleanUserData(userId: string) {
       tip: 0,
       paid: 0,
       total: 0,
-      orders: {disconnect: true},
-      cartItems: {set: []},
+      orders: { disconnect: true },
+      cartItems: { set: [] },
 
       // tableId: null,
       // tables: {disconnect: true},

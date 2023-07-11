@@ -1,16 +1,28 @@
-import type {ActionArgs, LoaderArgs} from '@remix-run/node'
-import {json, redirect} from '@remix-run/node'
-import {Link, Outlet, isRouteErrorResponse, useLoaderData, useRouteError} from '@remix-run/react'
-// * UTILS, DB
-import {prisma} from '~/db.server'
-import {findOrCreateUser} from '~/models/user.server'
-import {validateRedirect} from '~/redirect.server'
-import {getSession, getUserId, getUsername, sessionStorage} from '~/session.server'
+import type { LoaderArgs, ActionArgs } from '@remix-run/node'
+import { json, redirect } from '@remix-run/node'
+import {
+  Outlet,
+  useLoaderData,
+  useRouteError,
+  isRouteErrorResponse,
+  Link,
+} from '@remix-run/react'
+// * UTILS, DB, EVENTS
+import { EVENTS } from '~/events'
+import { getTableIdFromUrl } from '~/utils'
+import {
+  getSession,
+  getUserId,
+  getUsername,
+  sessionStorage,
+} from '~/session.server'
+import { findOrCreateUser } from '~/models/user.server'
+import { prisma } from '~/db.server'
+import { validateRedirect } from '~/redirect.server'
 // * COMPONENTS
+import { addHours, formatISO } from 'date-fns'
 // * CUSTOM COMPONENTS
-import {Header, UserForm} from '~/components'
-import {getTableIdFromUrl} from '~/utils'
-import {EVENTS} from '~/events'
+import { Header, UserForm } from '~/components'
 
 const SESSION_EXPIRATION_TIME = 1000 * 60 * 60 * 24 * 30
 
@@ -29,11 +41,11 @@ export default function TableLayoutPath() {
   )
 }
 
-export const loader = async ({request}: LoaderArgs) => {
-  const userId = await getUserId(request)
-
+export const loader = async ({ request }: LoaderArgs) => {
   const session = await getSession(request)
-  session.set('userId', userId)
+  const userId = session.get('userId')
+  const username = session.get('username')
+  let user = null
 
   //ADMIN PURPOSES
   const isAdmin = await prisma.user.findFirst({
@@ -43,26 +55,28 @@ export const loader = async ({request}: LoaderArgs) => {
     },
   })
 
-  const username = await getUsername(request)
-
-  //Verify if user is on the database or create
-  const user = await findOrCreateUser(userId, username)
+  // * Verify if user is on the database or create
+  if (username) {
+    user = await findOrCreateUser(userId, username)
+  }
 
   const url = new URL(request.url)
   const pathname = url.pathname
   const tableId = getTableIdFromUrl(pathname)
 
   if (!tableId) {
-    throw new Error('Procura acceder por medio del código QR, u obtener el link con el id de la mesa.')
+    throw new Error(
+      'Procura acceder por medio del código QR, u obtener el link con el id de la mesa.',
+    )
   }
 
   return json(
-    {username, pathname, user, isAdmin},
-    {headers: {'Set-Cookie': await sessionStorage.commitSession(session)}},
+    { username, pathname, user, isAdmin },
+    { headers: { 'Set-Cookie': await sessionStorage.commitSession(session) } },
   )
 }
 
-export const action = async ({request, params}: ActionArgs) => {
+export const action = async ({ request, params }: ActionArgs) => {
   let [body, session] = await Promise.all([request.text(), getSession(request)])
   let formData = new URLSearchParams(body)
 
@@ -92,7 +106,7 @@ export const action = async ({request, params}: ActionArgs) => {
             id: userId,
             name: name,
             color: color ? color : '#000000',
-            tables: tableId ? {connect: {id: tableId}} : {},
+            tables: tableId ? { connect: { id: tableId } } : {},
           },
         },
       },
@@ -106,7 +120,10 @@ export const action = async ({request, params}: ActionArgs) => {
     // const expiryTime = formatISO(addHours(new Date(), 4))
     // session.set('expiryTime', expiryTime)
     if (tableId) {
-      console.log('\x1b[42m%s\x1b[0m', 'table.tsx line:115 SSE TRIGGER because tableId exists and user entered name')
+      console.log(
+        '\x1b[42m%s\x1b[0m',
+        'table.tsx line:115 SSE TRIGGER because tableId exists and user entered name',
+      )
       EVENTS.ISSUE_CHANGED(tableId)
       session.set('tableId', tableId)
     }
@@ -116,13 +133,14 @@ export const action = async ({request, params}: ActionArgs) => {
     console.timeEnd(`✅ Creating session and user with name... ${name}`)
 
     return redirect(redirectTo, {
-      headers: {'Set-Cookie': await sessionStorage.commitSession(session)},
+      headers: { 'Set-Cookie': await sessionStorage.commitSession(session) },
     })
   }
 
   return null
 }
 
+// TEST ERROR BONDARY
 export const ErrorBoundary = () => {
   const error = useRouteError() as Error
 

@@ -1,7 +1,7 @@
-import {prisma} from '~/db.server'
+import { prisma } from '~/db.server'
 
 export function getTable(tableId: string) {
   return prisma.table.findFirst({
-    where: {id: tableId},
+    where: { id: tableId },
   })
 }
