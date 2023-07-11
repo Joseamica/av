@@ -1,12 +1,11 @@
-import {Form} from '@remix-run/react'
-import {useState} from 'react'
+import { Form } from '@remix-run/react'
+import { useState } from 'react'
 // * UTILS
-import {getRandomColor} from '~/utils'
-// TODO Refactor code
-import {Button} from './ui/buttons/button'
-import {FlexRow} from './util/flexrow'
-import {Spacer} from './util/spacer'
-import {H4} from './util/typography'
+import { getRandomColor } from '~/utils'
+import { Button } from './ui/buttons/button'
+import { FlexRow } from './util/flexrow'
+import { Spacer } from './util/spacer'
+import { H4 } from './util/typography'
 
 export function ContentForm({
   errorClass,
