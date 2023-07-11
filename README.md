@@ -1,4 +1,4 @@
-# Remix Blues Stack
+# Avoqado
 
 <!-- ![The Remix Blues Stack](https://repository-images.githubusercontent.com/461012689/37d5bd8b-fa9c-4ab0-893c-f0a199d5012d) -->
 
