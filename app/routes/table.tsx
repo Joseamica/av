@@ -7,7 +7,9 @@ import {
   isRouteErrorResponse,
   Link,
 } from '@remix-run/react'
-// * UTILS, DB
+// * UTILS, DB, EVENTS
+import { EVENTS } from '~/events'
+import { getTableIdFromUrl } from '~/utils'
 import {
   getSession,
   getUserId,
@@ -63,6 +65,13 @@ export const loader = async ({ request }: LoaderArgs) => {
 
   const url = new URL(request.url)
   const pathname = url.pathname
+  const tableId = getTableIdFromUrl(pathname)
+
+  if (!tableId) {
+    throw new Error(
+      'Procura acceder por medio del código QR, u obtener el link con el id de la mesa.',
+    )
+  }
 
   return json(
     { username, pathname, user, isAdmin },
@@ -80,6 +89,7 @@ export const action = async ({ request, params }: ActionArgs) => {
   const proceed = formData.get('_action') === 'proceed'
 
   let redirectTo = validateRedirect(formData.get('redirect'), url)
+  const tableId = getTableIdFromUrl(url)
 
   const userId = session.get('userId')
   const searchParams = new URLSearchParams(request.url)
@@ -99,19 +109,32 @@ export const action = async ({ request, params }: ActionArgs) => {
             id: userId,
             name: name,
             color: color ? color : '#000000',
+            tables: tableId ? { connect: { id: tableId } } : {},
           },
         },
       },
       // select: {id: !0, expirationDate: !0},
     })
+    console.log('✅Connected user to table')
+
     session.set('sessionId', sessionId.id)
 
     // Set expiry time 4 hours from now
-    const expiryTime = formatISO(addHours(new Date(), 4))
-    session.set('expiryTime', expiryTime)
+    // const expiryTime = formatISO(addHours(new Date(), 4))
+    // session.set('expiryTime', expiryTime)
+    if (tableId) {
+      console.log(
+        '\x1b[42m%s\x1b[0m',
+        'table.tsx line:115 SSE TRIGGER because tableId exists and user entered name',
+      )
+      EVENTS.ISSUE_CHANGED(tableId)
+      session.set('tableId', tableId)
+    }
     session.set('username', name)
-
+    session.set('user_color', color)
+    // session.set('tutorial', true)
     console.timeEnd(`✅ Creating session and user with name... ${name}`)
+
     return redirect(redirectTo, {
       headers: { 'Set-Cookie': await sessionStorage.commitSession(session) },
     })
@@ -122,11 +145,11 @@ export const action = async ({ request, params }: ActionArgs) => {
 
 // TEST ERROR BONDARY
 export const ErrorBoundary = () => {
-  const error = useRouteError()
+  const error = useRouteError() as Error
 
   if (isRouteErrorResponse(error)) {
     return (
-      <main>
+      <main className="bg-night-600">
         <p>No information</p>
         <p>Status: {error.status}</p>
         <p>{error?.data.message}</p>
@@ -135,10 +158,10 @@ export const ErrorBoundary = () => {
   }
 
   return (
-    <main className="error">
-      <h1>An error ocurred in new note :c!</h1>
+    <main className="bg-night-500 text-white">
+      <h1>Rayos y centellas!</h1>
       <p>{error?.message}</p>
-      <button className="bg-red-500 text-black">
+      <button className="bg-warning text-white">
         Back to <Link to={'/table'}> safety! </Link>
       </button>
     </main>

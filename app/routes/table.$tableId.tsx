@@ -23,7 +23,11 @@ import { useSessionTimeout } from '~/hooks/use-session-timeout'
 import { getBranch } from '~/models/branch.server'
 import { getMenu } from '~/models/menu.server'
 import { getTable } from '~/models/table.server'
-import { getPaidUsers, getUsersOnTable } from '~/models/user.server'
+import {
+  cleanUserData,
+  getPaidUsers,
+  getUsersOnTable,
+} from '~/models/user.server'
 import { getOrder } from '~/models/order.server'
 import { getSession } from '~/session.server'
 import {
@@ -55,9 +59,9 @@ import {
   Help,
   SectionContainer,
   Spacer,
+  SwitchButton,
+  Button,
 } from '~/components/index'
-import { Button } from '~/components/ui/buttons/button'
-import { SwitchButton } from '~/components/ui/buttons/switch' // Assuming SwitchButton is in the same directory
 
 import { RestaurantInfoCard } from '~/components/restaurant-info-card'
 import { EmptyOrder } from '~/components/table/empty-order'
@@ -76,6 +80,7 @@ type LoaderData = {
   paidUsers: any
   userId: string
   isDeliverectToken: boolean
+  error: string
 }
 
 export default function Table() {
@@ -141,7 +146,7 @@ export default function Table() {
         <Spacer spaceY="2" />
 
         {/* NOTE: SWITCH BUTTON */}
-        <div className="flex  w-full justify-end">
+        <div className="flex w-full justify-end">
           <SwitchButton
             state={filterPerUser}
             setToggle={handleToggle}
@@ -168,7 +173,7 @@ export default function Table() {
                           <FlexRow className="items-center space-x-2">
                             <UserCircleIcon
                               fill={user.color || '#000'}
-                              className=" min-h-10 min-w-10 h-8 w-8"
+                              className="min-h-10 min-w-10 h-8 w-8"
                             />
                             <div className="flex flex-col">
                               <H3>{user.name}</H3>
@@ -221,15 +226,26 @@ export default function Table() {
                           <motion.div
                             className="flex flex-col"
                             key={user.id}
-                            initial={{ opacity: 0, height: '0' }}
-                            animate={{ opacity: 1, height: 'auto' }}
-                            exit={{ opacity: 0, height: '0' }}
+                            initial={{
+                              opacity: 0,
+                              height: '0',
+                            }}
+                            animate={{
+                              opacity: 1,
+                              height: 'auto',
+                            }}
+                            exit={{
+                              opacity: 0,
+                              height: '0',
+                            }}
                             transition={{
                               opacity: {
                                 duration: 0.2,
                                 ease: [0.04, 0.62, 0.23, 0.98],
                               },
-                              height: { duration: 0.4 },
+                              height: {
+                                duration: 0.4,
+                              },
                             }}
                           >
                             <hr />
@@ -282,15 +298,26 @@ export default function Table() {
                   <motion.div
                     className="flex flex-col"
                     key={cartItem.id}
-                    initial={{ opacity: 0, height: '0' }}
-                    animate={{ opacity: 1, height: 'auto' }}
-                    exit={{ opacity: 0, height: '0' }}
+                    initial={{
+                      opacity: 0,
+                      height: '0',
+                    }}
+                    animate={{
+                      opacity: 1,
+                      height: 'auto',
+                    }}
+                    exit={{
+                      opacity: 0,
+                      height: '0',
+                    }}
                     transition={{
                       opacity: {
                         duration: 0.2,
                         ease: [0.04, 0.62, 0.23, 0.98],
                       },
-                      height: { duration: 0.4 },
+                      height: {
+                        duration: 0.4,
+                      },
                     }}
                   >
                     <CartItemDetails cartItem={cartItem} />
@@ -338,6 +365,7 @@ export default function Table() {
         error={data.error}
         tableNumber={data.table.table_number}
         usersInTable={data.usersInTable}
+        isOrderActive={data.order?.active}
       />
     )
   }
@@ -389,6 +417,7 @@ export async function loader({ request, params }: LoaderArgs) {
           data: {
             tableId: tableId,
             branchId: branch.id,
+            color: user_color ? user_color : '#000',
           },
         })
         EVENTS.ISSUE_CHANGED(tableId)
@@ -410,7 +439,9 @@ export async function loader({ request, params }: LoaderArgs) {
         console.log(`🔌 Connecting '${username}' to the order`)
         await prisma.order.update({
           where: { id: order?.id },
-          data: { users: { connect: { id: userId } } },
+          data: {
+            users: { connect: { id: userId } },
+          },
         })
         EVENTS.ISSUE_CHANGED(tableId)
         console.log(`✅ Connected '${username}' to the order`)
@@ -435,39 +466,32 @@ export async function loader({ request, params }: LoaderArgs) {
     isExpired = isOrderExpired(order.paidDate)
   }
 
-  let error = {}
-  if (!menu) {
-    error = {
-      body: null,
-      title: `${branch?.name} no cuenta con un menu abierto en este horario.`,
-    }
-  }
+  // let error = {}
+  // if (!menu) {
+  //   error = {
+  //     body: null,
+  //     title: `${branch?.name} no cuenta con un menu abierto en este horario.`,
+  //   }
+  // }
+  const error = !menu
+    ? `${branch?.name} no cuenta con un menu abierto en este horario.`
+    : null
 
   const currency = await getCurrency(tableId)
 
   if (order && isExpired) {
-    // todo  TAMBIEN USAR EXPIRACION EN MENUID Y CART (mejor en root)
+    // FIX  TAMBIEN USAR EXPIRACION EN las rutas MENUID Y CART (mejor en root)
 
     for (let user of order.users) {
-      await prisma.user.update({
-        where: {
-          id: user.id,
-        },
-        data: {
-          tip: 0,
-          paid: 0,
-          total: 0,
-          orders: { disconnect: true },
-          cartItems: { set: [] },
-
-          // tableId: null,
-          // tables: {disconnect: true},
-        },
-      })
+      await cleanUserData(user.id)
     }
     await prisma.order.update({
       where: { id: order.id },
-      data: { active: false, table: { disconnect: true }, users: { set: [] } },
+      data: {
+        active: false,
+        table: { disconnect: true },
+        users: { set: [] },
+      },
     })
 
     console.log('Order expired...')

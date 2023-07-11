@@ -1,11 +1,9 @@
-import type {Menu, Table, User} from '@prisma/client'
-import {json} from '@remix-run/node'
+import type {Menu} from '@prisma/client'
 import type {LoaderArgs} from '@remix-run/node'
-import React from 'react'
-import {Link, Outlet, useLoaderData, useMatches} from '@remix-run/react'
+import {json} from '@remix-run/node'
+import {Link, useLoaderData} from '@remix-run/react'
 import {FlexRow, H1, LinkButton, Spacer} from '~/components'
 import {prisma} from '~/db.server'
-import {IoChevronBack} from 'react-icons/io5'
 
 export async function loader({request, params}: LoaderArgs) {
   const {branchId} = params

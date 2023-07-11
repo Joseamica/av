@@ -229,13 +229,14 @@ export async function action({request, params}: ActionArgs) {
           name: item.name,
         }
       })
-
+      //TODO SI ESTA VENCIDO EL TOKEN, HACER UN REFRESH en donde???
       const token = await getDvctToken()
       const table = await getTable(tableId)
 
+      //TODO: cambiar el channelname y channelLinkId agarrandolos de la base de datos o api
       const url =
-        //TODO: cambiar el channelname y channelLinkId agarrandolos de la base de datos o api
-        'https://api.staging.deliverect.com/joseantonioamieva/order/649c4d38770ee8288c5a8729'
+        process.env.DELIVERECT_API_URL +
+        '/joseantonioamieva/order/649c4d38770ee8288c5a8729'
       const options = {
         method: 'POST',
         headers: {

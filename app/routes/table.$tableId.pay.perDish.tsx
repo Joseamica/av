@@ -1,20 +1,14 @@
-import type {CartItem, PaymentMethod} from '@prisma/client'
+import type {CartItem} from '@prisma/client'
 import type {ActionArgs, LoaderArgs} from '@remix-run/node'
 import {json, redirect} from '@remix-run/node'
-import {
-  Form,
-  useActionData,
-  useNavigate,
-  useSearchParams,
-  useSubmit,
-} from '@remix-run/react'
+import {Form, useNavigate} from '@remix-run/react'
 import clsx from 'clsx'
 import React from 'react'
 import invariant from 'tiny-invariant'
 import {FlexRow, H3, H4, H5, H6, Payment} from '~/components'
 import {ItemContainer} from '~/components/containers/item-container'
 import {Modal} from '~/components/modal'
-import {P} from '~/components/payment'
+
 import {prisma} from '~/db.server'
 import {EVENTS} from '~/events'
 import {

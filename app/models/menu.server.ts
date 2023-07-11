@@ -1,90 +1,84 @@
 import {prisma} from '~/db.server'
-import {getHour} from '~/utils'
 
-// export function getMenu(branchId: string | undefined) {
-//   const timeNow = getHour()
+export function getHour() {
+   const now = new Date()
+   const hours = now.getHours()
+   const minutes = now.getMinutes()
 
-//   return prisma.menu.findFirst({
-//     where: {
-//       branchId,
-//       OR: [
-//         {
-//           allday: true,
-//         },
-//         {
-//           AND: [
-//             {
-//               fromHour: {
-//                 lte: timeNow,
-//               },
-//             },
-//             {
-//               toHour: {
-//                 gte: timeNow,
-//               },
-//             },
-//           ],
-//         },
-//       ],
-//     },
-//   })
-// }
-
-function getDayOfWeek() {
-  const date = new Date()
-  let day = date.getDay()
-
-  // Adjust day number to match your database format
-  if (day === 0) {
-    // if it's Sunday
-    day = 7 // make it 7
-  }
-
-  return day
+   // Returns a string in the "HH:MM" format
+   return `${String(hours).padStart(
+      2,
+      '0',
+   )}:${String(minutes).padStart(2, '0')}`
 }
 
-export function getMenu(branchId: string | undefined) {
-  const timeNow = getHour()
-  const dayOfWeekNow = getDayOfWeek()
+function getDayOfWeek() {
+   const date = new Date()
+   let day = date.getDay()
 
-  return prisma.menu.findFirst({
-    where: {
-      branchId,
-      OR: [
-        {
-          allday: true,
-        },
-        {
-          AND: [
-            {
-              fromHour: {
-                lte: timeNow,
-              },
-            },
-            {
-              toHour: {
-                gte: timeNow,
-              },
-            },
-            {
-              availabilities: {
-                some: {
-                  dayOfWeek: dayOfWeekNow,
-                  startTime: {
-                    lte: String(timeNow),
+   if (day === 0) {
+      // if it's Sunday
+      day = 7 // make it 7
+   }
+
+   return day
+}
+
+export function getMenu(
+   branchId: string | undefined,
+) {
+   const timeNow = getHour()
+   const dayOfWeekNow = getDayOfWeek()
+
+   return prisma.menu.findFirst({
+      where: {
+         branchId,
+         availabilities: {
+            some: {
+               dayOfWeek: dayOfWeekNow,
+               OR: [
+                  {
+                     AND: [
+                        {
+                           startTime: {
+                              lte: String(
+                                 timeNow,
+                              ),
+                           },
+                        },
+                        {
+                           endTime: {
+                              gte: String(
+                                 timeNow,
+                              ),
+                           },
+                        },
+                     ],
                   },
-                  endTime: {
-                    gte: String(timeNow),
+                  {
+                     AND: [
+                        {
+                           startTime: {
+                              lte: String(
+                                 timeNow,
+                              ),
+                           },
+                        },
+                        {
+                           endTime: {
+                              gte: String(
+                                 timeNow,
+                              ),
+                           },
+                        },
+                     ],
                   },
-                },
-              },
+               ],
             },
-          ],
-        },
-      ],
-    },
-    include: {
-      availabilities: true,
-    },
-  })
+         },
+      },
+      include: {
+         availabilities: true,
+      },
+   })
 }

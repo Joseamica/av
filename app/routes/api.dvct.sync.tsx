@@ -21,12 +21,12 @@ export async function loader({request, params}: ActionArgs) {
   }
   invariant(deliverect, 'deliverect not found')
 
-  const url = 'https://api.staging.deliverect.com/oauth/token'
+  const url = `${process.env.DELIVERECT_API_URL}/oauth/token`
   const options = {
     method: 'POST',
     headers: {accept: 'application/json', 'content-type': 'application/json'},
     body: JSON.stringify({
-      audience: 'https://api.staging.deliverect.com',
+      audience: process.env.DELIVERECT_API_URL,
       grant_type: 'token',
       client_id: clientId,
       client_secret: secret,

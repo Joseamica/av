@@ -19,8 +19,9 @@ model Restaurant {
   phone         String?
   adminEmail    String?
   branches      Branch[]
-  user          User[]
-  userId        String?
+  // user          User[]
+  // userId        String?
+  User          User[]
 }
 
 model Branch {
@@ -110,6 +111,7 @@ model MenuCategory {
   id                      String           @id @default(cuid())
   accountId               String?
   name                    String
+  imageUrl                String?
   nameTranslations        Json?
   description             String?
   descriptionTranslations Json?
@@ -193,6 +195,12 @@ model ModifierGroup {
   id                  String      @id @default(cuid())
   type                String      @default("radio")
   name                String?
+  plu                String?
+  max                Int?
+  min                Int?
+  multiMax           Int?
+  multiply            Int?
+  nameTranslations    Json?
   minSelectionAllowed Int?
   maxSelectionAllowed Int?
   isMandatory         Boolean?

@@ -1,10 +1,5 @@
-import {ActionArgs, json, redirect} from '@remix-run/node'
-import {
-  useLoaderData,
-  useSearchParams,
-  useNavigate,
-  Form,
-} from '@remix-run/react'
+import {type ActionArgs, json, redirect} from '@remix-run/node'
+import {useLoaderData, useSearchParams, useNavigate, Form} from '@remix-run/react'
 import React, {useState} from 'react'
 import {Button, FlexRow, Modal, Spacer} from '~/components'
 import {prisma} from '~/db.server'
@@ -62,8 +57,8 @@ export async function action({request, params}: ActionArgs) {
 export default function Add() {
   const data = useLoaderData()
 
-  const [searchParams, setSearchParams] = useSearchParams()
-  const navigate = useNavigate()
+  const [searchParams] = useSearchParams()
+
   const addTable = searchParams.get('type') === 'table'
   const addMenu = searchParams.get('type') === 'menu'
   const addUser = searchParams.get('type') === 'user'
@@ -80,8 +75,6 @@ export default function Add() {
 }
 
 export function AddTable() {
-  const [waiters, setWaiters] = useState([])
-
   return (
     <Form method="post">
       <label htmlFor="tableNumber" className="capitalize">
@@ -176,13 +169,7 @@ export function AddMenu() {
         <label htmlFor="allDay" className="shrink-0">
           Todo el dia?
         </label>
-        <input
-          type="checkBox"
-          required
-          name="allday"
-          id="allDay"
-          className="dark:bg-DARK_2 dark:ring-DARK_4 w-full "
-        />
+        <input type="checkBox" required name="allday" id="allDay" className="dark:bg-DARK_2 dark:ring-DARK_4 w-full " />
       </FlexRow>
       <Button name="_create" value="menu" fullWith={true}>
         Crear menu

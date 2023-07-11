@@ -28,7 +28,7 @@ import {getUser, getUserId} from '~/session.server'
 // }
 
 export async function getDvctAccounts(token) {
-  const accountsUrl = 'https://api.staging.deliverect.com/accounts'
+  const accountsUrl = `${process.env.DELIVERECT_API_URL}/accounts`
   const options = {
     method: 'GET',
     headers: {
@@ -50,13 +50,12 @@ export async function getDvctAccounts(token) {
 export async function isTokenExpired() {
   const deliverect = await prisma.deliverect.findFirst({})
   const dvctExpiration = deliverect?.deliverectExpiration
-  const dvctToken = deliverect?.deliverectToken
   const currentTime = Math.floor(Date.now() / 1000) // Get the current time in Unix timestamp
   const isTokenExpired =
     deliverect && dvctExpiration <= currentTime ? true : false
   return isTokenExpired
 }
 
-export function getDvctToken() {
+export async function getDvctToken() {
   return prisma.deliverect.findFirst({}).then(res => res?.deliverectToken)
 }

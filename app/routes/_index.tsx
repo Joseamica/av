@@ -1,10 +1,8 @@
-import {json, redirect} from '@remix-run/node'
 import type {LoaderArgs} from '@remix-run/node'
-import {Links, Meta, Scripts} from '@remix-run/react'
-import React from 'react'
-import {prisma} from '~/db.server'
-import {getSession} from '~/session.server'
+import {json} from '@remix-run/node'
+
 import {isRouteErrorResponse, useRouteError} from '@remix-run/react'
+import {getSession} from '~/session.server'
 
 // TODO  Move this logic ._.)/
 export async function loader({request, params}: LoaderArgs) {

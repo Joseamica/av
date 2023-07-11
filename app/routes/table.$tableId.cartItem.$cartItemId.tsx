@@ -5,11 +5,8 @@ import {
   useNavigate,
   useSearchParams,
 } from '@remix-run/react'
-
-import {ActionArgs, LoaderArgs, redirect} from '@remix-run/node'
-
+import {type ActionArgs, type LoaderArgs, redirect, json} from '@remix-run/node'
 import type {User} from '@prisma/client'
-import {json} from '@remix-run/node'
 import invariant from 'tiny-invariant'
 import {
   Button,
