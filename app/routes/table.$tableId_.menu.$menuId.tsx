@@ -133,6 +133,7 @@ export default function Menu() {
   const data = useLoaderData()
   const actionData = useActionData()
   const fetcher = useFetcher()
+  console.log('fetcher', fetcher)
   const [searchParams, setSearchParams] = useSearchParams()
   const [isSticky, setIsSticky] = React.useState(false)
 
@@ -292,11 +293,12 @@ export default function Menu() {
                       </FlexRow>
                       <div className="flex flex-col space-y-2">
                         {modifierGroup.modifiers.map((modifier: Modifiers) => {
-                          const isChecked = actionData?.modifiers.find((id: Modifiers['id']) => id === modifier.id)
+                          const isChecked = fetcher.data?.modifiers.find((id: Modifiers['id']) => id === modifier.id)
+                          // console.log('isChecked', isChecked)
                           return (
                             <label htmlFor={modifier.id} className="flex flex-row space-x-2" key={modifier.id}>
                               <span
-                                className={clsx('h-6 w-6 rounded-full ring-2', {
+                                className={clsx('h-6 w-6 rounded-full ring-2 ring-button-primary', {
                                   'flex items-center justify-center bg-button-primary text-white ': isChecked,
                                 })}
                               >
