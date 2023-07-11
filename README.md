@@ -1,14 +1,14 @@
 # Remix Blues Stack
 
-![The Remix Blues Stack](https://repository-images.githubusercontent.com/461012689/37d5bd8b-fa9c-4ab0-893c-f0a199d5012d)
+<!-- ![The Remix Blues Stack](https://repository-images.githubusercontent.com/461012689/37d5bd8b-fa9c-4ab0-893c-f0a199d5012d) -->
 
 ![Avoqado](https://storage.googleapis.com/avoqado-d0a24.appspot.com/i-need-a-high-quality-principal-image-for-the-hero-section-of-my-landing-page-this-image-will-r-.png?GoogleAccessId=service-219752736783@gcp-sa-firebasestorage.iam.gserviceaccount.com&Expires=1689101656&Signature=BMXbn2fn4PXrugDoF1wsMa8GZG7cOJMY4VlFZP68xMLQ/cyZvpKBYgTB5b5nHPT%2BjD9Vdz6yNjUqu63DW9eNLi1Mgd5Ihl0a%2Bc6aHY9T3oA6IwTp2Muij2GXwwyUMTC55JIT1fhEVPIYBjtiv4UoV7/9RYbYIItLGI8knDaKfqddl%2BtgPpdAgaGECE0ez8yyeoRAxofXoInUVQpiEBQAG6XH4SZ8tK3aLNjP/ar/9rBWHdN8Svksg8/a04gKylstt6O9vPdbaInLRuQ5nB8f8mPiVXT9oAucKxobN8p/ai88ReMYNtiWLdw7Ac0xT8cnGknl9FvtrO8yuWx7RIDWBQ%3D%3D)
 
-Learn more about [Remix Stacks](https://remix.run/stacks).
+<!-- Learn more about [Remix Stacks](https://remix.run/stacks). -->
 
-```
+<!-- ```
 npx create-remix@latest --template remix-run/blues-stack
-```
+``` -->
 
 ## What's in the stack
 
@@ -17,13 +17,13 @@ npx create-remix@latest --template remix-run/blues-stack
 - Healthcheck endpoint for
   [Fly backups region fallbacks](https://fly.io/docs/reference/configuration/#services-http_checks)
 - [GitHub Actions](https://github.com/features/actions) for deploy on merge to production and staging environments
-- Email/Password Authentication with
-  [cookie-based sessions](https://remix.run/utils/sessions#creatememorysessionstorage)
+<!-- - Email/Password Authentication with
+  [cookie-based sessions](https://remix.run/utils/sessions#creatememorysessionstorage) -->
 - Database ORM with [Prisma](https://prisma.io)
 - Styling with [Tailwind](https://tailwindcss.com/)
 - End-to-end testing with [Cypress](https://cypress.io)
 - Local third party request mocking with [MSW](https://mswjs.io)
-- Unit testing with [Vitest](https://vitest.dev) and [Testing Library](https://testing-library.com)
+<!-- - Unit testing with [Vitest](https://vitest.dev) and [Testing Library](https://testing-library.com) -->
 - Code formatting with [Prettier](https://prettier.io)
 - Linting with [ESLint](https://eslint.org)
 - Static Types with [TypeScript](https://typescriptlang.org)
@@ -74,7 +74,7 @@ pre-installed
 
 This starts your app in development mode, rebuilding assets on file changes.
 
-The database seed script creates a new user with some data you can use to get started:
+<!-- The database seed script creates a new user with some data you can use to get started:
 
 - Email: `rachel@remix.run`
 - Password: `racheliscool`
@@ -91,9 +91,9 @@ Remix. The main functionality is creating users, logging in and out, and creatin
 
 - creating users, and logging in and out [./app/models/user.server.ts](./app/models/user.server.ts)
 - user sessions, and verifying them [./app/session.server.ts](./app/session.server.ts)
-- creating, and deleting notes [./app/models/note.server.ts](./app/models/note.server.ts)
+- creating, and deleting notes [./app/models/note.server.ts](./app/models/note.server.ts) -->
 
-## Deployment
+<!-- ## Deployment
 
 This Remix Stack comes with two GitHub Actions that handle automatically deploying your app to production and staging
 environments.
@@ -201,7 +201,7 @@ to set that to the region you want to use as the primary region for both your ap
 Install the [ModHeader](https://modheader.com/) browser extension (or something similar) and use it to load your app
 with the header `fly-prefer-region` set to the region name you would like to test.
 
-You can check the `x-fly-region` header on the response to know which region your request was handled by.
+You can check the `x-fly-region` header on the response to know which region your request was handled by. -->
 
 ## GitHub Actions
 
