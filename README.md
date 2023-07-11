@@ -2,7 +2,7 @@
 
 ![The Remix Blues Stack](https://repository-images.githubusercontent.com/461012689/37d5bd8b-fa9c-4ab0-893c-f0a199d5012d)
 
-![Avoqado](https://storage.googleapis.com/avoqado-d0a24.appspot.com/avoq.png?GoogleAccessId=service-219752736783@gcp-sa-firebasestorage.iam.gserviceaccount.com&Expires=1689100694&Signature=JHMxp0m360oe8P1BrfG3M7Hho2z5ntGk1te/rN6ZfAYQ/kyxz47Db25en5RrFmaK3/mUErxLFFIz1bfJ28%2B5xLzv9l9ZTmh/PYMZtDG2J5jOlrkRzK6blquqD1OJOY%2B0wmHCWkDNT%2Bf405Pq3SGpTDw8vxvzf3vcikj9XZf3kzCWU3yRBslTBi3/FXDd3puGnJzxe3UDDltIZrpgEYW5xhn4e9ugC6rndQyLTcrMZc7w0/quFDe0i8aV2r4Ve43fnGZe2x6%2B4zigQdprhUHb1HC43nfbaT1mjUgKWQ1NFON8E3FdBvCP74e1W7u361Zgou1ADEXxxkqNWvCR215eZQ%3D%3D)
+![Avoqado](https://storage.googleapis.com/avoqado-d0a24.appspot.com/i-need-a-high-quality-principal-image-for-the-hero-section-of-my-landing-page-this-image-will-r-.png?GoogleAccessId=service-219752736783@gcp-sa-firebasestorage.iam.gserviceaccount.com&Expires=1689101656&Signature=BMXbn2fn4PXrugDoF1wsMa8GZG7cOJMY4VlFZP68xMLQ/cyZvpKBYgTB5b5nHPT%2BjD9Vdz6yNjUqu63DW9eNLi1Mgd5Ihl0a%2Bc6aHY9T3oA6IwTp2Muij2GXwwyUMTC55JIT1fhEVPIYBjtiv4UoV7/9RYbYIItLGI8knDaKfqddl%2BtgPpdAgaGECE0ez8yyeoRAxofXoInUVQpiEBQAG6XH4SZ8tK3aLNjP/ar/9rBWHdN8Svksg8/a04gKylstt6O9vPdbaInLRuQ5nB8f8mPiVXT9oAucKxobN8p/ai88ReMYNtiWLdw7Ac0xT8cnGknl9FvtrO8yuWx7RIDWBQ%3D%3D)
 
 Learn more about [Remix Stacks](https://remix.run/stacks).
 
