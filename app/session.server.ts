@@ -1,11 +1,10 @@
-import type {CartItem} from '@prisma/client'
-import {createCookieSessionStorage, redirect} from '@remix-run/node'
+import type { CartItem } from '@prisma/client'
+import { createCookieSessionStorage, redirect, Session } from '@remix-run/node'
 import invariant from 'tiny-invariant'
-import {v4 as uuidv4} from 'uuid'
+import { v4 as uuidv4 } from 'uuid'
 
-import type {User} from '~/models/user.server'
-import {getUserById} from '~/models/user.server'
-import {prisma} from './db.server'
+import type { User } from '~/models/user.server'
+import { getUserById } from '~/models/user.server'
 
 invariant(process.env.SESSION_SECRET, 'SESSION_SECRET must be set')
 
@@ -24,12 +23,9 @@ export const sessionStorage = createCookieSessionStorage({
 const USER_SESSION_KEY = 'userId'
 let cartSessionKey = 'cart'
 const USER_TOTAL_SESSION_KEY = 'total'
-const RANDOM_COLOR = '#' + (((1 << 24) * Math.random()) | 0).toString(16)
 
 export async function getSession(request: Request) {
   const cookie = request.headers.get('Cookie')
-  let session = await sessionStorage.getSession(cookie)
-
   return sessionStorage.getSession(cookie)
 }
 
@@ -46,26 +42,20 @@ export async function sessionActions(request: Request) {
   }
 }
 
-export async function getUserId(request: Request): Promise<User['id']> {
-  const session = await getSession(request)
-  const userId = session.get(USER_SESSION_KEY)
+// ! USER METHODS ESTOS METHODOS EN REALIDAD SIRVEN?
+export async function getUserId(session: Session): Promise<User['id']> {
+  const userId: User['id'] = session.get(USER_SESSION_KEY)
   return userId ?? `guest-${uuidv4()}`
 }
-//DELETE because orderId only is being used by only 1 user, we need a order to share
-// export async function getOrderId(request: Request) {
-//   const session = await getSession(request)
-//   const orderId = session.get(ORDER_SESSION_KEY)
-//   return orderId ?? uuidv4()
-// }
 
-export async function getUsername(request: Request) {
-  const session = await getSession(request)
-  const username = session.get('username')
+export async function getUsername(session: Session) {
+  const username: string = session.get('username')
 
   if (username === undefined) return null
 
-  if (username) return username
+  return username
 }
+// ! END USER METHODS
 
 export async function getTotal(request: Request) {
   const session = await getSession(request)
@@ -155,7 +145,7 @@ export function addToCart(
     }
   }
   if (!added) {
-    cart.push({variantId, quantity, modifiers})
+    cart.push({ variantId, quantity, modifiers })
   }
   return cart
 }
@@ -182,7 +172,14 @@ export function updateCartItem(
     }
   }
   if (!updated) {
-    cart.push({variantId, quantity})
+    cart.push({ variantId, quantity })
   }
   return cart
 }
+
+//DELETE because orderId only is being used by only 1 user, we need a order to share
+// export async function getOrderId(request: Request) {
+//   const session = await getSession(request)
+//   const orderId = session.get(ORDER_SESSION_KEY)
+//   return orderId ?? uuidv4()
+// }

@@ -40,11 +40,12 @@ export default function TableLayoutPath() {
 }
 
 export const loader = async ({ request }: LoaderArgs) => {
-  console.log('****userId*****', request)
-  const userId = await getUserId(request)
-
   const session = await getSession(request)
-  session.set('userId', userId)
+  // const userId = await getUserId(session)
+  // const username = await getUsername(session)
+  const userId = session.get('userId')
+  const username = session.get('username')
+  let user = null
 
   //ADMIN PURPOSES
   const isAdmin = await prisma.user.findFirst({
@@ -54,10 +55,11 @@ export const loader = async ({ request }: LoaderArgs) => {
     },
   })
 
-  const username = await getUsername(request)
-
-  //Verify if user is on the database or create
-  const user = await findOrCreateUser(userId, username)
+  // * Verify if user is on the database or create
+  // * Que onda con usern name ._.)
+  if (username) {
+    user = await findOrCreateUser(userId, username)
+  }
 
   const url = new URL(request.url)
   const pathname = url.pathname
@@ -118,6 +120,7 @@ export const action = async ({ request, params }: ActionArgs) => {
   return null
 }
 
+// TEST ERROR BONDARY
 export const ErrorBoundary = () => {
   const error = useRouteError()
 

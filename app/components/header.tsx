@@ -1,18 +1,17 @@
-import type {User} from '@prisma/client'
-import {Link, useLocation, useMatches} from '@remix-run/react'
-import {IoChevronBack} from 'react-icons/io5'
-import {LinkButton} from './ui/buttons/button'
-import {H1, H4, H5} from './util/typography'
-import {FlexRow} from './util/flexrow'
-import {SearchIcon} from '@heroicons/react/solid'
-import {UserCircleIcon} from '@heroicons/react/solid'
+import type { User } from '@prisma/client'
+import { Link, useLocation, useMatches } from '@remix-run/react'
+import { IoChevronBack } from 'react-icons/io5'
+import { LinkButton } from './ui/buttons/button'
+import { H1, H4, H5 } from './util/typography'
+import { FlexRow } from './util/flexrow'
+import { SearchIcon } from '@heroicons/react/solid'
+import { UserCircleIcon } from '@heroicons/react/solid'
 interface HeaderProps {
   user: User
   isAdmin: boolean
 }
 
-export function Header({user, isAdmin}: HeaderProps) {
-  // const params = useParams()
+export function Header({ user, isAdmin }: HeaderProps) {
   const location = useLocation()
   const isTablePathOnly = location.pathname.split('/').length <= 3
 

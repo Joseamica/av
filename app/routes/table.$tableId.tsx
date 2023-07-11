@@ -24,7 +24,7 @@ import { getBranch } from '~/models/branch.server'
 import { getMenu } from '~/models/menu.server'
 import { getTable } from '~/models/table.server'
 import { getPaidUsers, getUsersOnTable } from '~/models/user.server'
-
+import { getOrder } from '~/models/order.server'
 import { getSession } from '~/session.server'
 import {
   formatCurrency,
@@ -344,29 +344,30 @@ export default function Table() {
 }
 
 export async function loader({ request, params }: LoaderArgs) {
+  const session = await getSession(request)
+  const userId = session.get('userId')
+  const username = session.get('username')
+
   const { tableId } = params
   invariant(tableId, 'No se encontró el ID de la mesa')
 
   const branch = await getBranch(tableId)
   invariant(branch, 'No se encontró la sucursal')
 
-  const [table, usersInTable] = await Promise.all([
+  const [table, usersInTable, order] = await Promise.all([
     getTable(tableId),
     getUsersOnTable(tableId),
+    getOrder(tableId),
   ])
 
-  const session = await getSession(request)
-  const userId = session.get('userId')
-  const username = session.get('username')
-
-  const order = await prisma.order.findFirst({
-    where: { tableId, active: true },
-    include: {
-      cartItems: { include: { user: true } },
-      users: { include: { cartItems: true } },
-      payments: true,
-    },
-  })
+  // const order = await prisma.order.findFirst({
+  //   where: { tableId, active: true },
+  //   include: {
+  //     cartItems: { include: { user: true } },
+  //     users: { include: { cartItems: true } },
+  //     payments: true,
+  //   },
+  // })
   const total = Number(order?.total)
   const menu = await getMenu(branch.id)
 
@@ -511,11 +512,23 @@ export const ErrorBoundary = () => {
     return (
       <main>
         <p>No information</p>
+        <img
+          src="https://media1.giphy.com/media/EFXGvbDPhLoWs/giphy.gif?cid=ecf05e47e4j9c0wtau2ep4e46x7dk654cz4c2370l34t9kwc&ep=v1_gifs_search&rid=giphy.gif&ct=g"
+          alt="error page"
+        />
         <p>Status: {error.status}</p>
         <p>{error?.data.message}</p>
       </main>
     )
   } else {
-    return redirect('/table')
+    return (
+      <main>
+        <p>{error?.message}</p>
+        <img
+          src="https://media1.giphy.com/media/EFXGvbDPhLoWs/giphy.gif?cid=ecf05e47e4j9c0wtau2ep4e46x7dk654cz4c2370l34t9kwc&ep=v1_gifs_search&rid=giphy.gif&ct=g"
+          alt="error page"
+        />
+      </main>
+    )
   }
 }
