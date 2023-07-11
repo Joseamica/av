@@ -28,7 +28,7 @@ npx create-remix@latest --template remix-run/blues-stack
 - Linting with [ESLint](https://eslint.org)
 - Static Types with [TypeScript](https://typescriptlang.org)
 
-Not a fan of bits of the stack? Fork it, change it, and use `npx create-remix --template your/repo`! Make it your own.
+<!-- Not a fan of bits of the stack? Fork it, change it, and use `npx create-remix --template your/repo`! Make it your own. -->
 
 ## Quickstart
 
@@ -45,14 +45,14 @@ pre-installed
   npx remix init
   ```
 
-- Start the Postgres Database in [Docker](https://www.docker.com/get-started):
+<!-- - Start the Postgres Database in [Docker](https://www.docker.com/get-started):
 
   ```sh
   npm run docker
   ```
 
   > **Note:** The npm script will complete while Docker sets up the container in the background. Ensure that Docker has
-  > finished and your container is running before proceeding.
+  > finished and your container is running before proceeding. -->
 
 - Initial setup:
 
@@ -71,6 +71,8 @@ pre-installed
   ```sh
   npm run dev
   ```
+
+> **Note:** Remember to adjust environment variables in `.env` to match your local setup, such as the database URL.
 
 This starts your app in development mode, rebuilding assets on file changes.
 
