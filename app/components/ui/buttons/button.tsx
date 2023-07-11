@@ -19,13 +19,7 @@ interface LinkProps {
   onClick?: () => void
 }
 
-function getClassName({
-  className,
-  fullWith,
-}: {
-  className?: string
-  fullWith?: boolean
-}) {
+function getClassName({className, fullWith}: {className?: string; fullWith?: boolean}) {
   return clsx(
     'group relative inline-flex text-lg font-medium focus:outline-none opacity-100 disabled:opacity-50 transition  ',
     {'w-full': fullWith},
@@ -33,11 +27,7 @@ function getClassName({
   )
 }
 
-function ButtonInner({
-  children,
-  variant,
-  size = 'large',
-}: Pick<ButtonProps, 'children' | 'variant' | 'size'>) {
+function ButtonInner({children, variant, size = 'large'}: Pick<ButtonProps, 'children' | 'variant' | 'size'>) {
   return (
     <>
       <div
@@ -54,18 +44,15 @@ function ButtonInner({
       />
 
       <div
-        className={clsx(
-          'relative flex h-full w-full items-center justify-center whitespace-nowrap',
-          {
-            'text-primary': variant === 'secondary',
-            'text-white': variant === 'primary',
-            'text-red-500': variant === 'danger',
-            'space-x-5 px-11 py-6 ': size === 'large',
-            'space-x-3 px-8 py-4': size === 'medium',
-            'space-x-1 px-5 py-2 text-sm ': size === 'small',
-            'space-x-1 p-3 px-5 text-sm ': size === 'icon',
-          },
-        )}
+        className={clsx('relative flex h-full w-full items-center justify-center whitespace-nowrap', {
+          'text-primary': variant === 'secondary',
+          'text-white': variant === 'primary',
+          'text-red-500': variant === 'danger',
+          'space-x-5 px-11 py-6 ': size === 'large',
+          'space-x-3 px-8 py-4': size === 'medium',
+          'space-x-1 px-5 py-2 text-sm ': size === 'small',
+          'space-x-1 p-3 px-5 text-sm ': size === 'icon',
+        })}
       >
         {children}
       </div>
@@ -100,12 +87,7 @@ function LinkButton({
   onClick,
 }: LinkProps & JSX.IntrinsicElements['button']) {
   return (
-    <Link
-      onClick={onClick}
-      to={to}
-      preventScrollReset
-      className={getClassName({className, fullWith})}
-    >
+    <Link onClick={onClick} to={to} preventScrollReset className={getClassName({className, fullWith})}>
       <ButtonInner variant={variant} size={size}>
         {children}
       </ButtonInner>
@@ -140,7 +122,7 @@ function QuantityButton({
           {quantity <= 1 ? (
             <button
               type={'submit'}
-              className="dark:bg-mainDark dark:text-night-text_principal flex h-10 w-10 items-center justify-center rounded-full bg-day-bg_principal text-2xl  text-day-principal shadow-lg disabled:text-gray-300 dark:bg-warning xs:h-7 xs:w-7"
+              className="dark:bg-mainDark dark:text-night-text_principal flex h-10 w-10 items-center justify-center rounded-full bg-day-bg_principal text-2xl text-warning shadow-lg disabled:text-gray-300 xs:h-7 xs:w-7"
               onClick={onDecrease}
               disabled={disabled}
               name={name}
@@ -173,7 +155,7 @@ function QuantityButton({
           -
         </button>
       )}
-      <span className="flex w-7  justify-center px-3 py-2 text-white disabled:text-gray-200 xs:px-2 xs:py-1 xs:text-xs">
+      <span className="flex w-7 justify-center px-3 py-2 text-white disabled:text-gray-200 xs:px-2 xs:py-1 xs:text-xs">
         {quantity}
       </span>
       <button
