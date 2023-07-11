@@ -20,7 +20,7 @@ import {assignExpirationAndValuesToOrder, getOrder} from '~/models/order.server'
 import {getPaidUsers} from '~/models/user.server'
 import {validateFullPay} from '~/models/validations.server'
 import {validateRedirect} from '~/redirect.server'
-import {getUserId, getUsername} from '~/session.server'
+import {getSession, getUserId, getUsername} from '~/session.server'
 import {SendWhatsApp} from '~/twilio.server'
 import {useLiveLoader} from '~/use-live-loader'
 import {formatCurrency, getAmountLeftToPay, getCurrency} from '~/utils'
@@ -43,7 +43,8 @@ export async function loader({request, params}: LoaderArgs) {
   const amountLeft = await getAmountLeftToPay(tableId)
   const order = await getOrder(tableId)
   const total = order?.total
-  const userId = await getUserId(request)
+  const session = await getSession(request)
+  const userId = session.get('userId')
 
   const tipsPercentages = await getTipsPercentages(tableId)
   const paymentMethods = await getPaymentMethods(tableId)
@@ -76,6 +77,7 @@ export async function action({request, params}: ActionArgs) {
   const {tableId} = params
   invariant(tableId, 'tableId no encontrado')
   const branchId = await getBranchId(tableId)
+  const session = await getSession(request)
 
   const order = await getOrder(tableId)
   invariant(order, 'No se encontró la orden')
@@ -91,7 +93,7 @@ export async function action({request, params}: ActionArgs) {
     return error
   }
   const redirectTo = validateRedirect(request.redirect, `/table/${tableId}`)
-  const userId = await getUserId(request)
+  const userId = await getUserId(session)
   const tipPercentage = formData.get('tipPercentage') as string
   const paymentMethod = formData.get('paymentMethod') as PaymentMethod
 
@@ -124,7 +126,7 @@ export async function action({request, params}: ActionArgs) {
     )
     return redirect(stripeRedirectUrl)
   } else if (paymentMethod === 'cash') {
-    const userName = await getUsername(request)
+    const userName = await getUsername(session)
     await prisma.order.update({
       where: {tableId: tableId},
       data: {
@@ -218,7 +220,10 @@ export function Pay() {
 
   const [tipRadio, setTipRadio] = React.useState(12)
   const [paymentRadio, setPaymentRadio] = React.useState('cash')
-  const [showModal, setShowModal] = React.useState({tip: false, payment: false})
+  const [showModal, setShowModal] = React.useState({
+    tip: false,
+    payment: false,
+  })
 
   const tip = Number(data.amountLeft) * (Number(tipRadio) / 100)
   const total = Number(data.amountLeft) + tip
