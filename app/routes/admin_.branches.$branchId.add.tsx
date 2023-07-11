@@ -1,8 +1,13 @@
-import {type ActionArgs, json, redirect} from '@remix-run/node'
-import {useLoaderData, useSearchParams, useNavigate, Form} from '@remix-run/react'
-import React, {useState} from 'react'
-import {Button, FlexRow, Modal, Spacer} from '~/components'
-import {prisma} from '~/db.server'
+import { type ActionArgs, json, redirect } from "@remix-run/node";
+import {
+  useLoaderData,
+  useSearchParams,
+  useNavigate,
+  Form,
+} from "@remix-run/react";
+import React, { useState } from "react";
+import { Button, FlexRow, Modal, Spacer } from "~/components";
+import { prisma } from "~/db.server";
 
 // await prisma.menu.create({
 //     data: {
@@ -15,19 +20,19 @@ import {prisma} from '~/db.server'
 //     },
 //   })
 
-export async function action({request, params}: ActionArgs) {
-  const {branchId} = params
-  const formData = await request.formData()
+export async function action({ request, params }: ActionArgs) {
+  const { branchId } = params;
+  const formData = await request.formData();
 
-  const _create = formData.get('_create') as string
+  const _create = formData.get("_create") as string;
 
   switch (_create) {
-    case 'menu':
-      const name = formData.get('name') as string
-      const image = formData.get('image') as string
-      const currency = formData.get('currency') as string
-      const allday = formData.get('allday') === 'on' ? true : false
-      const type = formData.get('type') as string
+    case "menu":
+      const name = formData.get("name") as string;
+      const image = formData.get("image") as string;
+      const currency = formData.get("currency") as string;
+      const allday = formData.get("allday") === "on" ? true : false;
+      const type = formData.get("type") as string;
 
       await prisma.menu.create({
         data: {
@@ -38,39 +43,39 @@ export async function action({request, params}: ActionArgs) {
           type,
           branchId: branchId,
         },
-      })
-      break
-    case 'table':
-      const number = formData.get('tableNumber') as string
+      });
+      break;
+    case "table":
+      const number = formData.get("tableNumber") as string;
       await prisma.table.create({
         data: {
           table_number: Number(number),
           branchId: branchId,
           order_in_progress: false,
         },
-      })
+      });
   }
 
-  return redirect(`/admin/branches/${branchId}`)
+  return redirect(`/admin/branches/${branchId}`);
 }
 
 export default function Add() {
-  const data = useLoaderData()
+  const data = useLoaderData();
 
-  const [searchParams] = useSearchParams()
+  const [searchParams] = useSearchParams();
 
-  const addTable = searchParams.get('type') === 'table'
-  const addMenu = searchParams.get('type') === 'menu'
-  const addUser = searchParams.get('type') === 'user'
+  const addTable = searchParams.get("type") === "table";
+  const addMenu = searchParams.get("type") === "menu";
+  const addUser = searchParams.get("type") === "user";
 
   if (addTable) {
-    return <AddTable />
+    return <AddTable />;
   } else if (addMenu) {
-    return <AddMenu />
+    return <AddMenu />;
   } else if (addUser) {
-    return <AddUser />
+    return <AddUser />;
   } else {
-    throw new Error('No tienes permisos para acceder a esta pagina')
+    throw new Error("No tienes permisos para acceder a esta pagina");
   }
 }
 
@@ -118,7 +123,7 @@ export function AddTable() {
         Crear mesa
       </Button>
     </Form>
-  )
+  );
 }
 
 export function AddMenu() {
@@ -169,15 +174,21 @@ export function AddMenu() {
         <label htmlFor="allDay" className="shrink-0">
           Todo el dia?
         </label>
-        <input type="checkBox" required name="allday" id="allDay" className="dark:bg-DARK_2 dark:ring-DARK_4 w-full " />
+        <input
+          type="checkBox"
+          required
+          name="allday"
+          id="allDay"
+          className="dark:bg-DARK_2 dark:ring-DARK_4 w-full "
+        />
       </FlexRow>
       <Button name="_create" value="menu" fullWith={true}>
         Crear menu
       </Button>
     </Form>
-  )
+  );
 }
 
 export function AddUser() {
-  return <Form method="post">User</Form>
+  return <Form method="post">User</Form>;
 }

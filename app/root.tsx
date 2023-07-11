@@ -1,5 +1,5 @@
-import { cssBundleHref } from '@remix-run/css-bundle'
-import type { LinksFunction } from '@remix-run/node'
+import { cssBundleHref } from "@remix-run/css-bundle";
+import type { LinksFunction } from "@remix-run/node";
 import {
   Links,
   LiveReload,
@@ -8,26 +8,26 @@ import {
   Scripts,
   ScrollRestoration,
   useNavigation,
-} from '@remix-run/react'
+} from "@remix-run/react";
 // * STYLES
-import tailwindStylesheetUrl from '~/styles/tailwind.css'
+import tailwindStylesheetUrl from "~/styles/tailwind.css";
 // * CUSTOM COMPONENTS
-import appStylesheetUrl from './styles/app.css'
-import { useSpinDelay } from 'spin-delay'
+import appStylesheetUrl from "./styles/app.css";
+import { useSpinDelay } from "spin-delay";
 
 export const links: LinksFunction = () => [
-  { rel: 'stylesheet', href: tailwindStylesheetUrl },
-  { rel: 'stylesheet', href: appStylesheetUrl },
-  ...(cssBundleHref ? [{ rel: 'stylesheet', href: cssBundleHref }] : []),
-]
+  { rel: "stylesheet", href: tailwindStylesheetUrl },
+  { rel: "stylesheet", href: appStylesheetUrl },
+  ...(cssBundleHref ? [{ rel: "stylesheet", href: cssBundleHref }] : []),
+];
 
 export default function App() {
-  const navigation = useNavigation()
+  const navigation = useNavigation();
 
-  const showLoader = useSpinDelay(Boolean(navigation.state !== 'idle'), {
+  const showLoader = useSpinDelay(Boolean(navigation.state !== "idle"), {
     delay: 0,
     minDuration: 500,
-  })
+  });
 
   return (
     <html lang="en" className="h-screen">
@@ -53,5 +53,5 @@ export default function App() {
         <LiveReload />
       </body>
     </html>
-  )
+  );
 }

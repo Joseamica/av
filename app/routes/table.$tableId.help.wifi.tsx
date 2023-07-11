@@ -1,30 +1,30 @@
-import type {LoaderArgs} from '@remix-run/node'
-import {json} from '@remix-run/node'
-import {useLoaderData, useNavigate} from '@remix-run/react'
-import invariant from 'tiny-invariant'
-import {FlexRow, H2, H6, Modal} from '~/components'
-import {prisma} from '~/db.server'
-import {getBranchId} from '~/models/branch.server'
+import type { LoaderArgs } from "@remix-run/node";
+import { json } from "@remix-run/node";
+import { useLoaderData, useNavigate } from "@remix-run/react";
+import invariant from "tiny-invariant";
+import { FlexRow, H2, H6, Modal } from "~/components";
+import { prisma } from "~/db.server";
+import { getBranchId } from "~/models/branch.server";
 
-export async function loader({request, params}: LoaderArgs) {
-  const {tableId} = params
-  invariant(tableId, 'tableId is required')
-  const branchId = await getBranchId(tableId)
+export async function loader({ request, params }: LoaderArgs) {
+  const { tableId } = params;
+  invariant(tableId, "tableId is required");
+  const branchId = await getBranchId(tableId);
   const wifiDetails = await prisma.branch.findFirst({
-    where: {id: branchId},
-    select: {wifiName: true, wifipwd: true},
-  })
+    where: { id: branchId },
+    select: { wifiName: true, wifipwd: true },
+  });
 
-  return json({wifiDetails})
+  return json({ wifiDetails });
 }
 
 export default function Help() {
-  const data = useLoaderData()
-  const navigate = useNavigate()
+  const data = useLoaderData();
+  const navigate = useNavigate();
 
   const onClose = () => {
-    navigate('..')
-  }
+    navigate("..");
+  };
 
   return (
     <Modal title="Wifi" onClose={onClose}>
@@ -49,5 +49,5 @@ export default function Help() {
         </div>
       </div>
     </Modal>
-  )
+  );
 }

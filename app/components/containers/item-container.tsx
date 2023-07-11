@@ -1,30 +1,30 @@
-import {ChevronDownIcon, ChevronUpIcon} from '@heroicons/react/solid'
-import clsx from 'clsx'
-import {motion} from 'framer-motion'
-import React from 'react'
+import { ChevronDownIcon, ChevronUpIcon } from "@heroicons/react/solid";
+import clsx from "clsx";
+import { motion } from "framer-motion";
+import React from "react";
 
 interface SectionContainerProps {
-  children: React.ReactNode | React.ReactNode[]
-  className?: string
-  divider?: boolean
-  collapse?: boolean
-  handleCollapse?: any | (() => void)
-  showCollapse?: boolean
-  unActive?: boolean
+  children: React.ReactNode | React.ReactNode[];
+  className?: string;
+  divider?: boolean;
+  collapse?: boolean;
+  handleCollapse?: any | (() => void);
+  showCollapse?: boolean;
+  unActive?: boolean;
 }
 
 function getClassName({
   unActive,
   className,
 }: {
-  unActive?: boolean
-  className?: string
+  unActive?: boolean;
+  className?: string;
 }) {
   return clsx(
-    'no-scrollbar flex flex-row justify-between rounded-lg bg-day-bg_principal  dark:bg-night-bg_principal dark:text-night-text_principal p-4 font-sans shadow-md  container',
-    {'text-disabled': unActive},
-    className,
-  )
+    "no-scrollbar flex flex-row justify-between rounded-lg bg-day-bg_principal  dark:bg-night-bg_principal dark:text-night-text_principal p-4 font-sans shadow-md  container",
+    { "text-disabled": unActive },
+    className
+  );
 }
 
 export function ItemContainer({
@@ -40,13 +40,13 @@ export function ItemContainer({
   return (
     <motion.label
       {...rest}
-      className={clsx(getClassName({unActive, className}))}
+      className={clsx(getClassName({ unActive, className }))}
     >
       {showCollapse && (
         <button
           {...rest}
           onClick={handleCollapse}
-          className={clsx('flex cursor-pointer ', {
+          className={clsx("flex cursor-pointer ", {
             // 'justify-center': collapse,
             // 'justify-center': !collapse,
           })}
@@ -60,5 +60,5 @@ export function ItemContainer({
       )}
       {children}
     </motion.label>
-  )
+  );
 }

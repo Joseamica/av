@@ -1,4 +1,4 @@
-import {H4} from '~/components'
+import { H4 } from "~/components";
 
 export default function Thankyou() {
   return (
@@ -18,5 +18,5 @@ export default function Thankyou() {
         </H4>
       </div>
     </div>
-  )
+  );
 }

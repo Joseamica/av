@@ -4,10 +4,15 @@ import {
   useLoaderData,
   useNavigate,
   useSearchParams,
-} from '@remix-run/react'
-import {type ActionArgs, type LoaderArgs, redirect, json} from '@remix-run/node'
-import type {User} from '@prisma/client'
-import invariant from 'tiny-invariant'
+} from "@remix-run/react";
+import {
+  type ActionArgs,
+  type LoaderArgs,
+  redirect,
+  json,
+} from "@remix-run/node";
+import type { User } from "@prisma/client";
+import invariant from "tiny-invariant";
 import {
   Button,
   FlexRow,
@@ -19,87 +24,87 @@ import {
   Modal,
   SendComments,
   Spacer,
-} from '~/components'
-import {prisma} from '~/db.server'
-import {validateRedirect} from '~/redirect.server'
-import {getUserId} from '~/session.server'
-import {formatCurrency, getCurrency, getDateTime} from '~/utils'
-import {FOOD_REPORT_SUBJECTS} from './table.$tableId.help.report'
-import {StarIcon, UserCircleIcon} from '@heroicons/react/solid'
+} from "~/components";
+import { prisma } from "~/db.server";
+import { validateRedirect } from "~/redirect.server";
+import { getUserId } from "~/session.server";
+import { formatCurrency, getCurrency, getDateTime } from "~/utils";
+import { FOOD_REPORT_SUBJECTS } from "./table.$tableId.help.report";
+import { StarIcon, UserCircleIcon } from "@heroicons/react/solid";
 
-export async function loader({request, params}: LoaderArgs) {
-  const {tableId, cartItemId} = params
-  invariant(tableId, 'No se encontró la mesa')
-  invariant(cartItemId, 'No se encontró el ID del item')
-  const userId = await getUserId(request)
-  const currency = await getCurrency(tableId)
+export async function loader({ request, params }: LoaderArgs) {
+  const { tableId, cartItemId } = params;
+  invariant(tableId, "No se encontró la mesa");
+  invariant(cartItemId, "No se encontró el ID del item");
+  const userId = await getUserId(request);
+  const currency = await getCurrency(tableId);
 
   const cartItem = await prisma.cartItem.findUnique({
-    where: {id: cartItemId},
-    include: {user: true},
-  })
-  invariant(cartItem, 'No se encontró el item')
-  return json({cartItem, currency})
+    where: { id: cartItemId },
+    include: { user: true },
+  });
+  invariant(cartItem, "No se encontró el item");
+  return json({ cartItem, currency });
 }
 
-export async function action({request, params}: ActionArgs) {
-  const formData = await request.formData()
-  const _action = formData.get('_action') as string
-  const url = new URL(request.url)
-  const urlSearchParams = url.searchParams
-  const subject = urlSearchParams.get('subject') as string
+export async function action({ request, params }: ActionArgs) {
+  const formData = await request.formData();
+  const _action = formData.get("_action") as string;
+  const url = new URL(request.url);
+  const urlSearchParams = url.searchParams;
+  const subject = urlSearchParams.get("subject") as string;
 
-  const sendComments = formData.get('sendComments') as string
+  const sendComments = formData.get("sendComments") as string;
   const redirectTo = validateRedirect(
     request.redirect,
-    `/table/${params.tableId}`,
-  )
-  const date = getDateTime()
+    `/table/${params.tableId}`
+  );
+  const date = getDateTime();
 
   switch (_action) {
-    case 'report':
+    case "report":
       await prisma.feedback.create({
         data: {
-          type: 'food',
+          type: "food",
           creationDate: date.toString(),
-          report: subject + ' ' + sendComments,
+          report: subject + " " + sendComments,
           tableId: params.tableId,
           userId: await getUserId(request),
-          cartItems: {connect: {id: params.cartItemId}},
+          cartItems: { connect: { id: params.cartItemId } },
         },
-      })
-      return redirect(redirectTo, {status: 303})
-    case 'rate':
-      const rating = urlSearchParams.get('rating') as string
+      });
+      return redirect(redirectTo, { status: 303 });
+    case "rate":
+      const rating = urlSearchParams.get("rating") as string;
       await prisma.cartItem.update({
-        where: {id: params.cartItemId},
+        where: { id: params.cartItemId },
         data: {
           rating: rating,
         },
-      })
-      return redirect(redirectTo, {status: 303})
+      });
+      return redirect(redirectTo, { status: 303 });
 
-    case 'proceed':
-      return redirect(redirectTo + '/pay/perDish', {status: 303})
+    case "proceed":
+      return redirect(redirectTo + "/pay/perDish", { status: 303 });
   }
-  return json({success: true})
+  return json({ success: true });
 }
 
 export default function CartItemId() {
-  const data = useLoaderData()
-  const navigate = useNavigate()
-  const [searchParams] = useSearchParams()
-  const report = searchParams.get('report')
-  const rate = searchParams.get('rate')
-  const subject = searchParams.get('subject') || undefined
+  const data = useLoaderData();
+  const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const report = searchParams.get("report");
+  const rate = searchParams.get("rate");
+  const subject = searchParams.get("subject") || undefined;
 
   const onClose = () => {
-    navigate('..')
-  }
+    navigate("..");
+  };
   const sharedPrice = formatCurrency(
     data.currency,
-    data.cartItem.price / data.cartItem.user.length,
-  )
+    data.cartItem.price / data.cartItem.user.length
+  );
 
   return (
     <Modal
@@ -118,7 +123,7 @@ export default function CartItemId() {
                 key={key}
                 size="small"
                 className="mx-1"
-                variant={subject === value ? 'primary' : 'secondary'}
+                variant={subject === value ? "primary" : "secondary"}
               >
                 {value}
               </LinkButton>
@@ -138,14 +143,14 @@ export default function CartItemId() {
             </FlexRow>
             <Spacer spaceY="2" />
             <FlexRow justify="center">
-              {Array.from({length: 5}).map((_, index) => (
+              {Array.from({ length: 5 }).map((_, index) => (
                 <Link to={`?rate=true&rating=${index + 1}`} key={index}>
                   <StarIcon
                     key={index}
                     className={`h-8 w-8 ${
-                      index + 1 <= Number(searchParams.get('rating'))
-                        ? 'text-yellow-500'
-                        : 'text-gray-400'
+                      index + 1 <= Number(searchParams.get("rating"))
+                        ? "text-yellow-500"
+                        : "text-gray-400"
                     }`}
                   />
                 </Link>
@@ -153,7 +158,7 @@ export default function CartItemId() {
             </FlexRow>
             <Spacer spaceY="2" />
             <Button fullWith={true} name="_action" value="rate">
-              Calificar con {searchParams.get('rating')} estrellas
+              Calificar con {searchParams.get("rating")} estrellas
             </Button>
           </div>
         ) : (
@@ -191,7 +196,7 @@ export default function CartItemId() {
                 <ItemContainer key={user.id} className="items-center">
                   <FlexRow>
                     <UserCircleIcon
-                      fill={user.color || '#000'}
+                      fill={user.color || "#000"}
                       className=" min-h-5 min-w-8 h-8 "
                     />
                     <H5>{user.name}</H5>
@@ -209,5 +214,5 @@ export default function CartItemId() {
         )}
       </Form>
     </Modal>
-  )
+  );
 }

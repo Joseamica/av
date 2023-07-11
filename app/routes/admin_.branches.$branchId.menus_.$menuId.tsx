@@ -1,7 +1,5 @@
-import type {Menu, MenuCategory, Table, User} from '@prisma/client'
-import {ActionArgs, json, redirect} from '@remix-run/node'
-import type {LoaderArgs} from '@remix-run/node'
-import React, {useState} from 'react'
+import type {MenuCategory} from '@prisma/client'
+import {json, redirect, type ActionArgs, type LoaderArgs} from '@remix-run/node'
 import {
   Form,
   Link,
@@ -9,10 +7,10 @@ import {
   useNavigate,
   useSearchParams,
 } from '@remix-run/react'
-import {Button, FlexRow, H1, H3, LinkButton, Modal, Spacer} from '~/components'
-import {prisma} from '~/db.server'
 import {AiFillDelete, AiFillEdit} from 'react-icons/ai'
 import {IoChevronBack} from 'react-icons/io5'
+import {Button, FlexRow, H1, H3, LinkButton, Modal, Spacer} from '~/components'
+import {prisma} from '~/db.server'
 
 export async function loader({request, params}: LoaderArgs) {
   const {branchId, menuId} = params
@@ -155,7 +153,7 @@ export async function action({request, params}: ActionArgs) {
   if (data._action === 'addCategory') {
     await prisma.menuCategory.create({
       data: {
-        name: data.name,
+        name: data.name.toString(),
         menuId: menuId,
       },
     })

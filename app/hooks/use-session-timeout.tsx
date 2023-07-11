@@ -1,17 +1,17 @@
-import {useNavigation, useSubmit} from '@remix-run/react'
-import React from 'react'
-import {prisma} from '~/db.server'
+import { useNavigation, useSubmit } from "@remix-run/react";
+import React from "react";
+import { prisma } from "~/db.server";
 
 export function useSessionTimeout() {
-  const submit = useSubmit()
-  const navigation = useNavigation()
+  const submit = useSubmit();
+  const navigation = useNavigation();
 
   React.useEffect(() => {
     const timeout = setTimeout(() => {
-      submit(null, {method: 'POST', action: '/logout'})
-    }, 18000000)
-    return () => clearTimeout(timeout)
-  }, [submit, navigation])
+      submit(null, { method: "POST", action: "/logout" });
+    }, 18000000);
+    return () => clearTimeout(timeout);
+  }, [submit, navigation]);
 }
 
 // export async function useOrderDelete(orderId: string) {

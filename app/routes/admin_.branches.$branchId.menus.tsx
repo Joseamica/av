@@ -1,22 +1,22 @@
-import type {Menu} from '@prisma/client'
-import type {LoaderArgs} from '@remix-run/node'
-import {json} from '@remix-run/node'
-import {Link, useLoaderData} from '@remix-run/react'
-import {FlexRow, H1, LinkButton, Spacer} from '~/components'
-import {prisma} from '~/db.server'
+import type { Menu } from "@prisma/client";
+import type { LoaderArgs } from "@remix-run/node";
+import { json } from "@remix-run/node";
+import { Link, useLoaderData } from "@remix-run/react";
+import { FlexRow, H1, LinkButton, Spacer } from "~/components";
+import { prisma } from "~/db.server";
 
-export async function loader({request, params}: LoaderArgs) {
-  const {branchId} = params
-  const menus = await prisma.menu.findMany({where: {branchId}})
-  return json({menus})
+export async function loader({ request, params }: LoaderArgs) {
+  const { branchId } = params;
+  const menus = await prisma.menu.findMany({ where: { branchId } });
+  return json({ menus });
 }
 
 export const handle = {
   breadcrumb: () => <Link to="..">Menus</Link>,
-}
+};
 
 export default function AdminTables() {
-  const data = useLoaderData()
+  const data = useLoaderData();
 
   return (
     <div>
@@ -35,5 +35,5 @@ export default function AdminTables() {
         </LinkButton>
       ))}
     </div>
-  )
+  );
 }

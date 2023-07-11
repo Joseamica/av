@@ -1,13 +1,13 @@
 type QuantityManagerProps = {
-  tableNumber?: number
-  quantity: number
-  setQuantity: React.Dispatch<React.SetStateAction<number>>
-  disabledPlus?: boolean
-  payingFor?: number
-  activate?: boolean
-  setPayingFor?: React.Dispatch<React.SetStateAction<number>>
-  disableSub?: boolean
-}
+  tableNumber?: number;
+  quantity: number;
+  setQuantity: React.Dispatch<React.SetStateAction<number>>;
+  disabledPlus?: boolean;
+  payingFor?: number;
+  activate?: boolean;
+  setPayingFor?: React.Dispatch<React.SetStateAction<number>>;
+  disableSub?: boolean;
+};
 
 export const QuantityManagerButton = ({
   quantity,
@@ -26,12 +26,12 @@ export const QuantityManagerButton = ({
       payingFor !== 0 &&
       quantity <= payingFor
     ) {
-      setPayingFor(payingFor - 1)
-      setQuantity(quantity - 1)
+      setPayingFor(payingFor - 1);
+      setQuantity(quantity - 1);
     } else {
-      setQuantity(quantity - 1)
+      setQuantity(quantity - 1);
     }
-  }
+  };
   return (
     <div className="flex items-center justify-center rounded-full p-1 dark:bg-button-primary">
       <button
@@ -54,5 +54,5 @@ export const QuantityManagerButton = ({
         +
       </button>
     </div>
-  )
-}
+  );
+};

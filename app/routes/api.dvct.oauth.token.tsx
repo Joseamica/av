@@ -1,17 +1,17 @@
-import {ActionArgs, LoaderArgs, json, redirect} from '@remix-run/node'
-import invariant from 'tiny-invariant'
-import {prisma} from '~/db.server'
-import {getOrAssignDvctToken} from '~/models/deliverect.server'
-import {getSession, sessionStorage} from '~/session.server'
+import { type ActionArgs, type LoaderArgs, json, redirect } from "@remix-run/node";
+import invariant from "tiny-invariant";
+import { prisma } from "~/db.server";
+import { getOrAssignDvctToken } from "~/models/deliverect.server";
+import { getSession, sessionStorage } from "~/session.server";
 
-export async function loader({request, params}: LoaderArgs) {
-  const rawData = await request.text()
+export async function loader({ request, params }: LoaderArgs) {
+  const rawData = await request.text();
 
   // Parse the raw data to JSON
   //   const data = JSON.parse(rawData)
   //   console.log(data)
 
-  return json({success: true})
+  return json({ success: true });
 }
 
 // export async function action({request, params}: ActionArgs) {
@@ -67,40 +67,40 @@ export async function loader({request, params}: LoaderArgs) {
 //   return redirect(`/table/${tableId}`)
 // }
 
-export async function action({request, params}: ActionArgs) {
-  const clientId = process.env.DELIVERECT_CLIENT_ID
-  const secret = process.env.DELIVERECT_SECRET
-  const session = await getSession(request)
-  const tableId = session.get('tableId')
+export async function action({ request, params }: ActionArgs) {
+  const clientId = process.env.DELIVERECT_CLIENT_ID;
+  const secret = process.env.DELIVERECT_SECRET;
+  const session = await getSession(request);
+  const tableId = session.get("tableId");
 
-  const deliverect = await prisma.deliverect.findFirst({})
-  invariant(deliverect, 'deliverect not found')
-  const url = `${process.env.DELIVERECT_API_URL}/oauth/token`
+  const deliverect = await prisma.deliverect.findFirst({});
+  invariant(deliverect, "deliverect not found");
+  const url = `${process.env.DELIVERECT_API_URL}/oauth/token`;
   const options = {
-    method: 'POST',
-    headers: {accept: 'application/json', 'content-type': 'application/json'},
+    method: "POST",
+    headers: { accept: "application/json", "content-type": "application/json" },
     body: JSON.stringify({
       audience: process.env.DELIVERECT_API_URL,
-      grant_type: 'token',
+      grant_type: "token",
       client_id: clientId,
       client_secret: secret,
     }),
-  }
+  };
   try {
-    const response = await fetch(url, options)
-    const data = await response.json()
+    const response = await fetch(url, options);
+    const data = await response.json();
 
     await prisma.deliverect.update({
-      where: {id: deliverect.id},
+      where: { id: deliverect.id },
       data: {
         deliverectToken: data.access_token,
         deliverectExpiration: data.expires_at,
       },
-    })
+    });
 
-    return redirect(`/table/${tableId}`, {status: 303})
+    return redirect(`/table/${tableId}`, { status: 303 });
   } catch (err) {
-    console.error('error:' + err)
-    return json({tokenAssign: false}) // Or throw an error, or return some other value indicating the request failed.
+    console.error("error:" + err);
+    return json({ tokenAssign: false }); // Or throw an error, or return some other value indicating the request failed.
   }
 }

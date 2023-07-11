@@ -1,4 +1,4 @@
-import React from 'react'
+import React from "react";
 
 const PaymentSuccess = () => {
   return (
@@ -6,7 +6,7 @@ const PaymentSuccess = () => {
       <h1>Payment Success!</h1>
       <p>Thank you for your purchase.</p>
     </div>
-  )
-}
+  );
+};
 
-export default PaymentSuccess
+export default PaymentSuccess;

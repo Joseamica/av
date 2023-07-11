@@ -1,30 +1,30 @@
-import { Form } from '@remix-run/react'
-import { useState } from 'react'
+import { Form } from "@remix-run/react";
+import { useState } from "react";
 // * UTILS
-import { getRandomColor } from '~/utils'
-import { Button } from './ui/buttons/button'
-import { FlexRow } from './util/flexrow'
-import { Spacer } from './util/spacer'
-import { H4 } from './util/typography'
+import { getRandomColor } from "~/utils";
+import { Button } from "./ui/buttons/button";
+import { FlexRow } from "./util/flexrow";
+import { Spacer } from "./util/spacer";
+import { H4 } from "./util/typography";
 
 export function ContentForm({
   errorClass,
   error,
   pathname,
 }: {
-  errorClass: string
-  error?: string
-  pathname: string
+  errorClass: string;
+  error?: string;
+  pathname: string;
 }) {
-  const [name, setName] = useState('')
+  const [name, setName] = useState("");
 
   const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    setName(event.currentTarget.value)
-  }
+    setName(event.currentTarget.value);
+  };
 
-  const handleError = !name && error && error
+  const handleError = !name && error && error;
 
-  const randomColor = getRandomColor()
+  const randomColor = getRandomColor();
 
   return (
     <Form
@@ -35,7 +35,7 @@ export function ContentForm({
       <div
         className={`flex w-full flex-row items-center bg-button-notSelected px-4 py-2 ${
           !name && errorClass
-        } ${handleError && 'border-2 border-warning'}`}
+        } ${handleError && "border-2 border-warning"}`}
       >
         <input
           type="text"
@@ -48,7 +48,7 @@ export function ContentForm({
             !name && errorClass
           } `}
           placeholder="Nombre"
-          onChange={e => handleChange(e)}
+          onChange={(e) => handleChange(e)}
         />
       </div>
       {!name && error && (
@@ -80,5 +80,5 @@ export function ContentForm({
         </Button>
       </div>
     </Form>
-  )
+  );
 }

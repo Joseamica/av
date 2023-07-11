@@ -1,6 +1,6 @@
-import type {Employee, Menu, Order, Table, User} from '@prisma/client'
-import type {ActionArgs, LoaderArgs} from '@remix-run/node'
-import {json, redirect} from '@remix-run/node'
+import type { Employee, Menu, Order, Table, User } from "@prisma/client";
+import type { ActionArgs, LoaderArgs } from "@remix-run/node";
+import { json, redirect } from "@remix-run/node";
 import {
   Form,
   Link,
@@ -8,21 +8,21 @@ import {
   useLoaderData,
   useMatches,
   useSearchParams,
-} from '@remix-run/react'
-import React from 'react'
-import {AiFillDelete, AiFillEdit} from 'react-icons/ai'
-import {IoChevronBack, IoChevronDown, IoChevronUp} from 'react-icons/io5'
-import {Button, FlexRow, H1, LinkButton, Modal, Spacer} from '~/components'
-import {prisma} from '~/db.server'
+} from "@remix-run/react";
+import React from "react";
+import { AiFillDelete, AiFillEdit } from "react-icons/ai";
+import { IoChevronBack, IoChevronDown, IoChevronUp } from "react-icons/io5";
+import { Button, FlexRow, H1, LinkButton, Modal, Spacer } from "~/components";
+import { prisma } from "~/db.server";
 
-export async function loader({request, params}: LoaderArgs) {
-  const {branchId} = params
+export async function loader({ request, params }: LoaderArgs) {
+  const { branchId } = params;
   const branch = await prisma.branch.findUniqueOrThrow({
-    where: {id: branchId},
+    where: { id: branchId },
     include: {
       menus: true,
       table: true,
-      orders: {where: {active: true}},
+      orders: { where: { active: true } },
       users: true,
       feedbacks: true,
       // restaurant: true,
@@ -31,61 +31,61 @@ export async function loader({request, params}: LoaderArgs) {
       // payments: {where: {method: 'card'}},
       payments: true,
     },
-  })
-  const menus = await prisma.menu.findMany({where: {branchId}})
-  return json({branch, menus})
+  });
+  const menus = await prisma.menu.findMany({ where: { branchId } });
+  return json({ branch, menus });
 }
 
-export async function action({request, params}: ActionArgs) {
-  const {branchId} = params
-  const formData = await request.formData()
-  let data = Object.fromEntries(formData.entries())
+export async function action({ request, params }: ActionArgs) {
+  const { branchId } = params;
+  const formData = await request.formData();
+  let data = Object.fromEntries(formData.entries());
 
-  const url = new URL(request.url)
+  const url = new URL(request.url);
 
-  Object.keys(data).forEach(field => {
-    if (field !== 'phone') {
-      const value = data[field]
-      if (value === '') {
-        data[field] = null // Convert empty strings to null
+  Object.keys(data).forEach((field) => {
+    if (field !== "phone") {
+      const value = data[field];
+      if (value === "") {
+        data[field] = null; // Convert empty strings to null
       } else if (!isNaN(value)) {
-        data[field] = Number(value) // Convert non-empty numeric strings to numbers
+        data[field] = Number(value); // Convert non-empty numeric strings to numbers
       }
     }
-  })
+  });
 
-  if (data._action === 'editBranch') {
+  if (data._action === "editBranch") {
     const branchData = Object.fromEntries(
       Object.entries(data).filter(([key, value]) => {
         return (
-          ((typeof value === 'string' &&
-            value !== '' &&
-            !value.includes('[object')) ||
-            typeof value === 'number') &&
-          key !== '_action'
-        )
-      }),
-    )
+          ((typeof value === "string" &&
+            value !== "" &&
+            !value.includes("[object")) ||
+            typeof value === "number") &&
+          key !== "_action"
+        );
+      })
+    );
 
     await prisma.branch.update({
-      where: {id: branchId},
-      data: {...branchData},
-    })
+      where: { id: branchId },
+      data: { ...branchData },
+    });
   }
 
   await prisma.branch.update({
-    where: {id: branchId},
+    where: { id: branchId },
     data: {
       ppt_image:
-        'https://firebasestorage.googleapis.com/v0/b/avoqado-d0a24.appspot.com/o/kuikku%2FKuikku%20General.JPG?alt=media&token=e585a90e-59dd-499d-97b6-b059a031ff8b',
+        "https://firebasestorage.googleapis.com/v0/b/avoqado-d0a24.appspot.com/o/kuikku%2FKuikku%20General.JPG?alt=media&token=e585a90e-59dd-499d-97b6-b059a031ff8b",
     },
-  })
+  });
 
-  return redirect(url.pathname)
+  return redirect(url.pathname);
 }
 
 export default function AdminBranch() {
-  const data = useLoaderData()
+  const data = useLoaderData();
 
   const [show, setShow] = React.useState({
     table: false,
@@ -95,9 +95,9 @@ export default function AdminBranch() {
     order: false,
     employee: false,
     payment: false,
-  })
-  const matches = useMatches()
-  const [searchParams, setSearchParams] = useSearchParams()
+  });
+  const matches = useMatches();
+  const [searchParams, setSearchParams] = useSearchParams();
 
   return (
     <div>
@@ -128,7 +128,7 @@ export default function AdminBranch() {
         <div className="col-span-2 flex flex-col space-y-2">
           <FlexRow className="">
             <button
-              onClick={() => setShow({...show, table: !show.table})}
+              onClick={() => setShow({ ...show, table: !show.table })}
               className="flex flex-row items-center text-base"
             >
               {show.table ? <IoChevronUp /> : <IoChevronDown />}
@@ -162,7 +162,7 @@ export default function AdminBranch() {
           <div className="col-span-2 flex flex-col space-y-2">
             <FlexRow className="">
               <button
-                onClick={() => setShow({...show, menu: !show.menu})}
+                onClick={() => setShow({ ...show, menu: !show.menu })}
                 className="flex flex-row items-center text-base"
               >
                 {show.menu ? <IoChevronUp /> : <IoChevronDown />}
@@ -193,7 +193,7 @@ export default function AdminBranch() {
             )}
             <FlexRow className="">
               <button
-                onClick={() => setShow({...show, order: !show.order})}
+                onClick={() => setShow({ ...show, order: !show.order })}
                 className="flex flex-row items-center text-base"
               >
                 {show.order ? <IoChevronUp /> : <IoChevronDown />}
@@ -227,7 +227,7 @@ export default function AdminBranch() {
             )}
             <FlexRow className="">
               <button
-                onClick={() => setShow({...show, user: !show.user})}
+                onClick={() => setShow({ ...show, user: !show.user })}
                 className="flex flex-row items-center text-base"
               >
                 {show.user ? <IoChevronUp /> : <IoChevronDown />}
@@ -262,7 +262,7 @@ export default function AdminBranch() {
             )}
             <FlexRow className="">
               <button
-                onClick={() => setShow({...show, employee: !show.employee})}
+                onClick={() => setShow({ ...show, employee: !show.employee })}
                 className="flex flex-row items-center text-base"
               >
                 {show.employee ? <IoChevronUp /> : <IoChevronDown />}
@@ -297,7 +297,7 @@ export default function AdminBranch() {
             )}
             <FlexRow className="">
               <button
-                onClick={() => setShow({...show, payment: !show.payment})}
+                onClick={() => setShow({ ...show, payment: !show.payment })}
                 className="flex flex-row items-center text-base"
               >
                 {show.payment ? <IoChevronUp /> : <IoChevronDown />}
@@ -332,11 +332,11 @@ export default function AdminBranch() {
             )}
           </div>
         </div>
-        {searchParams.get('editBranch') && (
+        {searchParams.get("editBranch") && (
           <Modal
             onClose={() => {
-              searchParams.delete('editBranch')
-              setSearchParams(searchParams)
+              searchParams.delete("editBranch");
+              setSearchParams(searchParams);
             }}
             title="Editar Sucursal"
           >
@@ -345,11 +345,11 @@ export default function AdminBranch() {
                 {Object.entries(data.branch)
                   .filter(
                     ([key, value]) =>
-                      key !== 'id' && !String(value).includes('[object'),
+                      key !== "id" && !String(value).includes("[object")
                   )
 
                   .map(([key, value]) => {
-                    if (typeof value === 'boolean') {
+                    if (typeof value === "boolean") {
                       return (
                         <FlexRow key={key}>
                           <label>{key}</label>
@@ -360,8 +360,8 @@ export default function AdminBranch() {
                             className="h-5 w-5"
                           />
                         </FlexRow>
-                      )
-                    } else if (typeof value === 'number') {
+                      );
+                    } else if (typeof value === "number") {
                       return (
                         <FlexRow key={key}>
                           <label className="capitalize">{key}</label>
@@ -372,7 +372,7 @@ export default function AdminBranch() {
                             className="dark:bg-DARK_2 dark:ring-DARK_4 w-full rounded-full p-2 dark:ring-1"
                           />
                         </FlexRow>
-                      )
+                      );
                     } else {
                       return (
                         <FlexRow key={key}>
@@ -384,7 +384,7 @@ export default function AdminBranch() {
                             className="dark:bg-DARK_2 dark:ring-DARK_4 w-full rounded-full p-2 dark:ring-1"
                           />
                         </FlexRow>
-                      )
+                      );
                     }
                   })}
                 <Button name="_action" value="editBranch" fullWith={true}>
@@ -399,5 +399,5 @@ export default function AdminBranch() {
         </div>
       </div>
     </div>
-  )
+  );
 }

@@ -1,26 +1,26 @@
-import {WifiIcon, BellIcon} from '@heroicons/react/solid'
-import {Link} from '@remix-run/react'
-import {IoIosPerson} from 'react-icons/io'
-import {IoWarning} from 'react-icons/io5'
-import {FlexRow} from './util/flexrow'
-import {Spacer} from './util/spacer'
-import {H5} from './util/typography'
+import { WifiIcon, BellIcon } from "@heroicons/react/solid";
+import { Link } from "@remix-run/react";
+import { IoIosPerson } from "react-icons/io";
+import { IoWarning } from "react-icons/io5";
+import { FlexRow } from "./util/flexrow";
+import { Spacer } from "./util/spacer";
+import { H5 } from "./util/typography";
 
 const REPORT_TYPES = {
   waiter: {
-    name: 'waiter',
+    name: "waiter",
     icon: <BellIcon className="h-5 w-5" />,
-    es: 'Mesero',
+    es: "Mesero",
   },
   manager: {
-    name: 'manager',
+    name: "manager",
     icon: <IoIosPerson className="h-5 w-5" fontSize="small" />,
-    es: 'Gerente',
+    es: "Gerente",
   },
   report: {
-    name: 'report',
+    name: "report",
     icon: <IoWarning className="h-5 w-5" fontSize="small" />,
-    es: 'Reportar',
+    es: "Reportar",
   },
   // car: {
   //   name: 'car',
@@ -33,11 +33,11 @@ const REPORT_TYPES = {
   //   es: 'Coche',
   // },
   wifi: {
-    name: 'wifi',
+    name: "wifi",
     icon: <WifiIcon fontSize="small" className="h-5 w-5 " />,
-    es: 'Wifi',
+    es: "Wifi",
   },
-}
+};
 
 export function Help() {
   return (
@@ -57,9 +57,9 @@ export function Help() {
               </Link>
               <H5 variant="secondary">{type?.es}</H5>
             </div>
-          )
+          );
         })}
       </FlexRow>
     </Spacer>
-  )
+  );
 }

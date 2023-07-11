@@ -1,8 +1,8 @@
-import { BookOpenIcon, XCircleIcon } from '@heroicons/react/outline'
-import { Link } from '@remix-run/react'
-import introJs from 'intro.js'
-import 'intro.js/introjs.css'
-import { useEffect } from 'react'
+import { BookOpenIcon, XCircleIcon } from "@heroicons/react/outline";
+import { Link } from "@remix-run/react";
+import introJs from "intro.js";
+import "intro.js/introjs.css";
+import { useEffect } from "react";
 
 export function RestaurantInfoCard({
   branch,
@@ -10,10 +10,10 @@ export function RestaurantInfoCard({
   error,
   isOrderActive,
 }: {
-  branch: any
-  menu: any
-  error: string
-  isOrderActive?: boolean
+  branch: any;
+  menu: any;
+  error: string;
+  isOrderActive?: boolean;
 }) {
   return (
     <main className="px-1 pt-4">
@@ -33,7 +33,7 @@ export function RestaurantInfoCard({
           </p>
           <p className="text-white">
             {branch.address.length > 40
-              ? branch.address.substring(0, 40) + '...'
+              ? branch.address.substring(0, 40) + "..."
               : branch.address}
           </p>
           <p className="text-white">{branch.city}</p>
@@ -62,5 +62,5 @@ export function RestaurantInfoCard({
         </div>
       )}
     </main>
-  )
+  );
 }

@@ -1,14 +1,14 @@
-import {ChevronDownIcon, ChevronUpIcon} from '@heroicons/react/outline'
-import {UserCircleIcon} from '@heroicons/react/solid'
-import type {User} from '@prisma/client'
-import {Link} from '@remix-run/react'
-import clsx from 'clsx'
-import {AnimatePresence, motion} from 'framer-motion'
-import {useState} from 'react'
-import {SectionContainer} from '~/components'
-import {formatCurrency} from '~/utils'
-import {FlexRow} from './util/flexrow'
-import {H2, H4, H5} from './util/typography'
+import { ChevronDownIcon, ChevronUpIcon } from "@heroicons/react/outline";
+import { UserCircleIcon } from "@heroicons/react/solid";
+import type { User } from "@prisma/client";
+import { Link } from "@remix-run/react";
+import clsx from "clsx";
+import { AnimatePresence, motion } from "framer-motion";
+import { useState } from "react";
+import { SectionContainer } from "~/components";
+import { formatCurrency } from "~/utils";
+import { FlexRow } from "./util/flexrow";
+import { H2, H4, H5 } from "./util/typography";
 
 export function BillAmount({
   userIsPaying,
@@ -18,23 +18,23 @@ export function BillAmount({
   paidUsers,
   userId,
 }: {
-  userIsPaying?: any
-  amountLeft: number
-  total: number
-  currency: string
-  paidUsers: User[]
-  userId: string
+  userIsPaying?: any;
+  amountLeft: number;
+  total: number;
+  currency: string;
+  paidUsers: User[];
+  userId: string;
 }) {
   // const data = useLoaderData()
 
-  const [showDetails, setShowDetails] = useState(false)
+  const [showDetails, setShowDetails] = useState(false);
   return (
     <SectionContainer className="">
       <FlexRow className="justify-between p-2">
         <H2>Cuenta Total</H2>
         <H2
-          className={clsx('text-xl', {
-            'dark:decoration-DARK_PRIMARY_1   decoration-principal  line-through decoration-2':
+          className={clsx("text-xl", {
+            "dark:decoration-DARK_PRIMARY_1   decoration-principal  line-through decoration-2":
               amountLeft < total,
           })}
         >
@@ -65,7 +65,7 @@ export function BillAmount({
             className="mb-2 flex flex-row items-center space-x-1 text-sm"
             onClick={() => setShowDetails(!showDetails)}
           >
-            <H5>{showDetails ? 'Ocultar detalles' : 'Ver detalles'}</H5>
+            <H5>{showDetails ? "Ocultar detalles" : "Ver detalles"}</H5>
             {showDetails ? (
               <ChevronUpIcon className="h-6 w-6" />
             ) : (
@@ -80,9 +80,9 @@ export function BillAmount({
                   <motion.div
                     key={index}
                     className="flex w-full flex-row justify-between space-x-1"
-                    initial={{height: 0}}
-                    animate={{height: 'auto'}}
-                    exit={{opacity: 0, height: 0}}
+                    initial={{ height: 0 }}
+                    animate={{ height: "auto" }}
+                    exit={{ opacity: 0, height: 0 }}
                     transition={{
                       duration: 0.8,
                       ease: [0.04, 0.62, 0.23, 0.98],
@@ -93,7 +93,7 @@ export function BillAmount({
                       to={`./user/${user.id}`}
                     >
                       <UserCircleIcon
-                        fill={user?.color || ''}
+                        fill={user?.color || ""}
                         className="h-5 w-5"
                       />
                       <H4>{user?.name}</H4>
@@ -105,7 +105,7 @@ export function BillAmount({
                     </Link>
                     <H4>{formatCurrency(currency, Number(user?.paid))}</H4>
                   </motion.div>
-                )
+                );
               })}
             {userIsPaying ? (
               <motion.div>
@@ -116,5 +116,5 @@ export function BillAmount({
         </div>
       ) : null}
     </SectionContainer>
-  )
+  );
 }

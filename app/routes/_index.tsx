@@ -1,13 +1,13 @@
-import type {LoaderArgs} from '@remix-run/node'
-import {json} from '@remix-run/node'
+import type { LoaderArgs } from "@remix-run/node";
+import { json } from "@remix-run/node";
 
-import {isRouteErrorResponse, useRouteError} from '@remix-run/react'
-import {getSession} from '~/session.server'
+import { isRouteErrorResponse, useRouteError } from "@remix-run/react";
+import { getSession } from "~/session.server";
 
 // TODO  Move this logic ._.)/
-export async function loader({request, params}: LoaderArgs) {
-  const session = await getSession(request)
-  const sessionTableId = session.get('tableId') || null
+export async function loader({ request, params }: LoaderArgs) {
+  const session = await getSession(request);
+  const sessionTableId = session.get("tableId") || null;
 
   // if (sessionTableId) {
   //   return redirect(`/table/${sessionTableId}`);
@@ -15,15 +15,15 @@ export async function loader({request, params}: LoaderArgs) {
   //   throw new Error("Escanea un codigo QR or entra el link de la mesa");
   // }
 
-  return json({success: true})
+  return json({ success: true });
 }
 
 export default function _index() {
-  return <div>No deberias de estar Aqui!</div>
+  return <div>No deberias de estar Aqui!</div>;
 }
 
 export function ErrorBoundary() {
-  const error = useRouteError()
+  const error = useRouteError();
 
   // when true, this is what used to go to `CatchBoundary`
   if (isRouteErrorResponse(error)) {
@@ -33,14 +33,14 @@ export function ErrorBoundary() {
         <p>Status: {error.status}</p>
         <p>{error.data.message}</p>
       </div>
-    )
+    );
   }
 
   // Don't forget to typecheck with your own logic.
   // Any value can be thrown, not just errors!
-  let errorMessage = 'Unknown error'
+  let errorMessage = "Unknown error";
   if (error instanceof Error) {
-    errorMessage = error.message
+    errorMessage = error.message;
   }
 
   return (
@@ -49,5 +49,5 @@ export function ErrorBoundary() {
       <p>Something went wrong.</p>
       <pre>{errorMessage}</pre>
     </div>
-  )
+  );
 }

@@ -106,6 +106,7 @@ import cuid from 'cuid'
 import {prisma} from '~/db.server'
 import {getBranchId} from '~/models/branch.server'
 import {getSession} from '~/session.server'
+import type {DvctModifierGroup} from '~/types/modifiers'
 
 //TODO MAKE MODIFIERS WORK
 //TODO MAKE TRANSLATIONS
@@ -181,7 +182,11 @@ export const action = async ({request}: ActionArgs) => {
   const branchId = await getBranchId(tableId)
   const rawData = await request.text()
   const [menuData] = JSON.parse(rawData)
-  console.log('\x1b[41m%s\x1b[0m', 'api.dvct.menu_update.tsx line:184 menuData', menuData)
+  console.log(
+    '\x1b[41m%s\x1b[0m',
+    'api.dvct.menu_update.tsx line:184 menuData',
+    menuData,
+  )
   console.log('ModifierGroups -> ', menuData.modifierGroups)
 
   const menu = await prisma.menu.upsert({
@@ -232,7 +237,9 @@ export const action = async ({request}: ActionArgs) => {
     await upsertMenuItem(product)
   }
 
-  for (const modifierGroup of Object.values(menuData.modifierGroups)) {
+  for (const modifierGroup of Object.values(
+    menuData.modifierGroups,
+  ) as DvctModifierGroup[]) {
     await prisma.modifierGroup.upsert({
       where: {
         id: modifierGroup._id,

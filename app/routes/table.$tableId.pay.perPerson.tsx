@@ -26,7 +26,7 @@ import {assignExpirationAndValuesToOrder, getOrder} from '~/models/order.server'
 import {createPayment} from '~/models/payments.server'
 import {assignUserNewPayments} from '~/models/user.server'
 import {validateRedirect} from '~/redirect.server'
-import {getUserId, getUsername} from '~/session.server'
+import {getSession, getUserDetails} from '~/session.server'
 import {SendWhatsApp} from '~/twilio.server'
 import {useLiveLoader} from '~/use-live-loader'
 import {formatCurrency, getAmountLeftToPay, getCurrency} from '~/utils'
@@ -112,6 +112,8 @@ export async function action({request, params}: ActionArgs) {
   invariant(branchId, 'No se encontró la sucursal')
 
   const formData = await request.formData()
+  const session = await getSession(request)
+
   const data = Object.fromEntries(formData)
 
   const selectedUsers = formData.getAll('selectedUsers')
@@ -127,20 +129,11 @@ export async function action({request, params}: ActionArgs) {
   }
 
   const redirectTo = validateRedirect(request.redirect, `/table/${tableId}`)
-  const userId = await getUserId(request)
+  const user = await getUserDetails(session)
   const tip = total * (Number(data.tipPercentage) / 100)
 
   const amountLeft = (await getAmountLeftToPay(tableId)) || 0
 
-  // let error = ''
-  // if (amountLeft < total) {
-  //   error = `Estas pagando ${formatCurrency(
-  //     currency,
-  //     total - amountLeft,
-  //   )} de más....`
-  // }
-
-  const userName = await getUsername(request)
   if (amountLeft < total) {
     const url = new URL(request.url)
     const pathname = url.pathname
@@ -164,7 +157,7 @@ export async function action({request, params}: ActionArgs) {
         tip,
         order.id,
         data.paymentMethod,
-        userId,
+        user.userId,
         branchId,
       )
       return redirect(stripeRedirectUrl)
@@ -175,16 +168,16 @@ export async function action({request, params}: ActionArgs) {
         total,
         tip,
         order.id,
-        userId,
+        user.userId,
         branchId,
       )
-      await assignUserNewPayments(userId, total, tip)
+      await assignUserNewPayments(user.userId, total, tip)
       await assignExpirationAndValuesToOrder(amountLeft, tip, total, order)
 
       SendWhatsApp(
         '14155238886',
         `5215512956265`,
-        `El usuario ${userName} ha pagado quiere pagar en efectivo propina ${tip} y total ${total}`,
+        `El usuario ${user.username} ha pagado quiere pagar en efectivo propina ${tip} y total ${total}`,
       )
       EVENTS.ISSUE_CHANGED(tableId)
       return redirect(redirectTo)

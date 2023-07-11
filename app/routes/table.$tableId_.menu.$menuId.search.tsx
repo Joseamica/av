@@ -1,14 +1,37 @@
 import {ChevronLeftIcon} from '@heroicons/react/outline'
-import type {CartItem, MenuItem, ModifierGroup, Modifiers, User} from '@prisma/client'
+import type {
+  CartItem,
+  MenuItem,
+  ModifierGroup,
+  Modifiers,
+  User,
+} from '@prisma/client'
 import type {ActionArgs, LoaderArgs} from '@remix-run/node'
 import {json, redirect} from '@remix-run/node'
-import {Link, useActionData, useLoaderData, useNavigate, useSearchParams} from '@remix-run/react'
+import {
+  Link,
+  useActionData,
+  useLoaderData,
+  useNavigate,
+  useSearchParams,
+} from '@remix-run/react'
 import clsx from 'clsx'
 import {AnimatePresence, motion} from 'framer-motion'
 import React from 'react'
 import {AiOutlineCheck} from 'react-icons/ai'
 import invariant from 'tiny-invariant'
-import {Button, FlexRow, H2, H3, H4, H5, Modal, SectionContainer, SendComments, Spacer} from '~/components'
+import {
+  Button,
+  FlexRow,
+  H2,
+  H3,
+  H4,
+  H5,
+  Modal,
+  SectionContainer,
+  SendComments,
+  Spacer,
+} from '~/components'
 import {prisma} from '~/db.server'
 import {getBranch, getBranchId} from '~/models/branch.server'
 import {getCartItems} from '~/models/cart.server'
@@ -159,57 +182,78 @@ export default function Search() {
             name="search"
             autoFocus={true}
             value={searchText}
-            onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleChange(e)}
+            onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+              handleChange(e)
+            }
             placeholder="Buscar platillo"
             className="flex w-full rounded-r-full bg-gray_light p-3 px-3 py-3 text-sm focus:border-none focus:outline-none focus:ring-0 dark:bg-gray_light"
           />
         </label>
         <div className="flex flex-col space-y-2 p-2">
           {data.categories.map((categories: any) => {
-            const filteredItems = categories.menuItems.filter((menuItem: MenuItem) =>
-              searchText === '' ? null : menuItem.name.toLowerCase().includes(searchText),
+            const filteredItems = categories.menuItems.filter(
+              (menuItem: MenuItem) =>
+                searchText === ''
+                  ? null
+                  : menuItem.name.toLowerCase().includes(searchText),
             )
             return (
-              <SectionContainer key={categories.id} divider={true}>
-                {filteredItems != '' ? (
-                  <H3 className="sticky top-12 w-full bg-white p-4 shadow-md dark:shadow-none ">{categories.name}</H3>
-                ) : null}
-                {/* //~~>All menu items<~~// */}
-                <AnimatePresence initial={false}>
-                  <div className="">
-                    {filteredItems &&
-                      filteredItems.map((dish: MenuItem) => (
-                        <motion.div
-                          key={dish.id}
-                          initial={{opacity: 0, height: 0}}
-                          animate={{opacity: 1, height: 'auto'}}
-                          exit={{opacity: 0, height: 0}}
-                          className="space-y-1 overflow-hidden bg-white p-2 dark:bg-transparent"
-                        >
-                          <Link key={dish.id} preventScrollReset to={`?dishId=${dish.id}`} className="p-2">
-                            <FlexRow justify="between">
-                              <div className="flex flex-col ">
-                                <H3>{dish.name}</H3>
-                                <H5>{dish.description}</H5>
-                                <Spacer spaceY="1" />
-                                <H3>{formatCurrency(data.currency, dish.price)}</H3>
-                              </div>
-                              <motion.img
-                                whileHover={{scale: 1}}
-                                whileTap={{scale: 0.8}}
-                                src={dish.image ? dish.image : ''}
-                                // onError={() => console.log('image error')}
-                                className="dark:bg-secondaryDark max-h-24 w-24 shrink-0 rounded-lg bg-white object-cover"
-                                loading="lazy"
-                              />
-                            </FlexRow>
-                            {/* FIX */}
-                          </Link>
-                        </motion.div>
-                      ))}
-                  </div>
-                </AnimatePresence>
-              </SectionContainer>
+              <>
+                {filteredItems.length > 0 ? (
+                  <SectionContainer key={categories.id} divider={true}>
+                    <H3 className="sticky top-12 w-full bg-white p-4 shadow-md dark:shadow-none ">
+                      {categories.name}
+                    </H3>
+                    {/* //~~>All menu items<~~// */}
+                    <AnimatePresence initial={false}>
+                      <div className="">
+                        {filteredItems &&
+                          filteredItems.map((dish: MenuItem) => (
+                            <motion.div
+                              key={dish.id}
+                              initial={{opacity: 0, height: 0}}
+                              animate={{opacity: 1, height: 'auto'}}
+                              exit={{opacity: 0, height: 0}}
+                              className="space-y-1 overflow-hidden bg-white p-2 dark:bg-transparent"
+                            >
+                              <Link
+                                key={dish.id}
+                                preventScrollReset
+                                to={`?dishId=${dish.id}`}
+                                className="p-2"
+                              >
+                                <FlexRow justify="between">
+                                  <div className="flex flex-col ">
+                                    <H3>{dish.name}</H3>
+                                    <H5>{dish.description}</H5>
+                                    <Spacer spaceY="1" />
+                                    <H3>
+                                      {formatCurrency(
+                                        data.currency,
+                                        dish.price,
+                                      )}
+                                    </H3>
+                                  </div>
+                                  <motion.img
+                                    whileHover={{scale: 1}}
+                                    whileTap={{scale: 0.8}}
+                                    src={dish.image ? dish.image : ''}
+                                    // onError={() => console.log('image error')}
+                                    className="dark:bg-secondaryDark max-h-24 w-24 shrink-0 rounded-lg bg-white object-cover"
+                                    loading="lazy"
+                                  />
+                                </FlexRow>
+                                {/* FIX */}
+                              </Link>
+                            </motion.div>
+                          ))}
+                      </div>
+                    </AnimatePresence>
+                  </SectionContainer>
+                ) : (
+                  <div className="  h-full"></div>
+                )}
+              </>
             )
           })}
         </div>
@@ -235,7 +279,10 @@ export default function Search() {
                     value={user.id}
                     className="h-5 w-5 rounded text-blue-600"
                   />
-                  <label htmlFor={`shareDish-${user.id}`} className="ml-2 text-sm text-gray-700">
+                  <label
+                    htmlFor={`shareDish-${user.id}`}
+                    className="ml-2 text-sm text-gray-700"
+                  >
                     {user.name}
                   </label>
                 </div>
@@ -254,12 +301,19 @@ export default function Search() {
                     </FlexRow>
                     <div className="flex flex-col space-y-2">
                       {modifierGroup.modifiers.map((modifier: Modifiers) => {
-                        const isChecked = actionData?.modifiers.find((id: Modifiers['id']) => id === modifier.id)
+                        const isChecked = actionData?.modifiers.find(
+                          (id: Modifiers['id']) => id === modifier.id,
+                        )
                         return (
-                          <label htmlFor={modifier.id} className="flex flex-row space-x-2" key={modifier.id}>
+                          <label
+                            htmlFor={modifier.id}
+                            className="flex flex-row space-x-2"
+                            key={modifier.id}
+                          >
                             <span
                               className={clsx('h-6 w-6 rounded-full ring-2', {
-                                'flex items-center justify-center bg-button-primary text-white ': isChecked,
+                                'flex items-center justify-center bg-button-primary text-white ':
+                                  isChecked,
                               })}
                             >
                               {isChecked ? <AiOutlineCheck /> : ''}
@@ -269,12 +323,23 @@ export default function Search() {
                               type={modifierGroup.type}
                               name="modifier"
                               value={modifier.id}
-                              required={modifierGroup.isMandatory ? true : false}
+                              required={
+                                modifierGroup.isMandatory ? true : false
+                              }
                               className="sr-only"
-                              defaultChecked={modifierGroup.type === 'radio' ? isChecked : undefined}
+                              defaultChecked={
+                                modifierGroup.type === 'radio'
+                                  ? isChecked
+                                  : undefined
+                              }
                             />
                             <H3>{modifier.name}</H3>
-                            <H3>{formatCurrency(data.currency, Number(modifier.extraPrice))}</H3>
+                            <H3>
+                              {formatCurrency(
+                                data.currency,
+                                Number(modifier.extraPrice),
+                              )}
+                            </H3>
                           </label>
                         )
                       })}

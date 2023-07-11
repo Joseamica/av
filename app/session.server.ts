@@ -1,10 +1,14 @@
-import type { CartItem } from '@prisma/client'
-import { createCookieSessionStorage, redirect, Session } from '@remix-run/node'
+import type {CartItem} from '@prisma/client'
+import {
+  createCookieSessionStorage,
+  redirect,
+  type Session,
+} from '@remix-run/node'
 import invariant from 'tiny-invariant'
-import { v4 as uuidv4 } from 'uuid'
+import {v4 as uuidv4} from 'uuid'
 
-import type { User } from '~/models/user.server'
-import { getUserById } from '~/models/user.server'
+import type {User} from '~/models/user.server'
+import {getUserById} from '~/models/user.server'
 
 invariant(process.env.SESSION_SECRET, 'SESSION_SECRET must be set')
 
@@ -145,7 +149,7 @@ export function addToCart(
     }
   }
   if (!added) {
-    cart.push({ variantId, quantity, modifiers })
+    cart.push({variantId, quantity, modifiers})
   }
   return cart
 }
@@ -172,7 +176,7 @@ export function updateCartItem(
     }
   }
   if (!updated) {
-    cart.push({ variantId, quantity })
+    cart.push({variantId, quantity})
   }
   return cart
 }
@@ -183,3 +187,11 @@ export function updateCartItem(
 //   const orderId = session.get(ORDER_SESSION_KEY)
 //   return orderId ?? uuidv4()
 // }
+
+export async function getUserDetails(session: Session) {
+  return {
+    userId: session.get(USER_SESSION_KEY),
+    username: session.get('username'),
+    user_color: session.get('user_color'),
+  }
+}

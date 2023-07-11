@@ -105,6 +105,7 @@
     "dotenv": "^16.0.3",
     "esbuild": "^0.17.17",
     "eslint": "^8.38.0",
+    "eslint-config-kentcdodds": "^20.5.0",
     "eslint-config-prettier": "^8.8.0",
     "eslint-plugin-cypress": "^2.13.2",
     "happy-dom": "^9.8.0",

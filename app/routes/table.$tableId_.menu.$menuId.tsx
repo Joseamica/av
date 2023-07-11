@@ -1,6 +1,19 @@
-import type {CartItem, MenuItem, ModifierGroup, Modifiers, User} from '@prisma/client'
+import type {
+  CartItem,
+  MenuItem,
+  ModifierGroup,
+  Modifiers,
+  User,
+} from '@prisma/client'
 import {json, redirect} from '@remix-run/node'
-import {Link, Outlet, useActionData, useFetcher, useLoaderData, useSearchParams} from '@remix-run/react'
+import {
+  Link,
+  Outlet,
+  useActionData,
+  useFetcher,
+  useLoaderData,
+  useSearchParams,
+} from '@remix-run/react'
 import type {ActionArgs, LoaderArgs} from '@remix-run/server-runtime'
 import clsx from 'clsx'
 import {motion} from 'framer-motion'
@@ -133,7 +146,7 @@ export default function Menu() {
   const data = useLoaderData()
   const actionData = useActionData()
   const fetcher = useFetcher()
-  console.log('fetcher', fetcher)
+
   const [searchParams, setSearchParams] = useSearchParams()
   const [isSticky, setIsSticky] = React.useState(false)
 
@@ -184,7 +197,8 @@ export default function Menu() {
     fetcher.submit(event.currentTarget, {replace: true})
   }
 
-  let isSubmitting = fetcher.state === 'submitting' || fetcher.state === 'loading'
+  let isSubmitting =
+    fetcher.state === 'submitting' || fetcher.state === 'loading'
 
   const cartItemsAdded = data.cartItems
     ?.map((items: CartItem) => {
@@ -196,10 +210,19 @@ export default function Menu() {
 
   return (
     <>
-      <fetcher.Form method="POST" preventScrollReset className="relative top-0" onChange={handleChange}>
+      <fetcher.Form
+        method="POST"
+        preventScrollReset
+        className="relative top-0"
+        onChange={handleChange}
+      >
         <MenuInfo menu={data.menu} branch={data.branch} />
         {/* CATEGORIES BAR */}
-        <CategoriesBar categoryId={currentCategory} categories={data.categories} isSticky={isSticky} />
+        <CategoriesBar
+          categoryId={currentCategory}
+          categories={data.categories}
+          isSticky={isSticky}
+        />
         <div className="space-y-2" ref={refReachTop}>
           {data.categories.map((categories: MenuCategory) => {
             const dishes = categories.menuItems
@@ -214,7 +237,12 @@ export default function Menu() {
                 <div className="flex flex-col divide-y ">
                   {dishes.map((dish: MenuItem) => {
                     return (
-                      <Link key={dish.id} preventScrollReset to={`?dishId=${dish.id}`} className="p-2">
+                      <Link
+                        key={dish.id}
+                        preventScrollReset
+                        to={`?dishId=${dish.id}`}
+                        className="p-2"
+                      >
                         <FlexRow justify="between">
                           <div className="flex flex-col ">
                             <H3>{dish.name}</H3>
@@ -226,7 +254,9 @@ export default function Menu() {
                           <motion.img
                             whileHover={{scale: 1}}
                             whileTap={{scale: 0.8}}
-                            src={dish.image ? dish.image : data.branch.ppt_image}
+                            src={
+                              dish.image ? dish.image : data.branch.ppt_image
+                            }
                             // onError={() => console.log('image error')}
                             className="dark:bg-secondaryDark h-28 max-h-28 w-28 shrink-0 rounded-lg bg-white object-cover"
                             loading="lazy"
@@ -245,13 +275,23 @@ export default function Menu() {
           })}
         </div>
         {data.cartItems?.length > 0 ? (
-          <LinkButton to="cart" disabled={isSubmitting} className="sticky inset-x-0 bottom-0 mb-2 w-full">
-            {isSubmitting ? `Agregando platillos... (${cartItemsAdded})` : `Ir al carrito (${cartItemsAdded})`}
+          <LinkButton
+            to="cart"
+            disabled={isSubmitting}
+            className="sticky inset-x-0 bottom-0 mb-2 w-full"
+          >
+            {isSubmitting
+              ? `Agregando platillos... (${cartItemsAdded})`
+              : `Ir al carrito (${cartItemsAdded})`}
           </LinkButton>
         ) : null}
         {/* MODAL */}
         {dish && (
-          <Modal onClose={onClose} title={data.dish.name} imgHeader={data.dish.image}>
+          <Modal
+            onClose={onClose}
+            title={data.dish.name}
+            imgHeader={data.dish.image}
+          >
             <div className="w-full space-y-2 overflow-auto p-4">
               <H2 boldVariant="semibold">{data.dish.name}</H2>
               <H3> {formatCurrency(data.currency, data.dish?.price)}</H3>
@@ -267,7 +307,10 @@ export default function Menu() {
                       value={user.id}
                       className="h-5 w-5 rounded text-blue-600"
                     />
-                    <label htmlFor={`shareDish-${user.id}`} className="ml-2 text-sm text-gray-700">
+                    <label
+                      htmlFor={`shareDish-${user.id}`}
+                      className="ml-2 text-sm text-gray-700"
+                    >
                       {user.name}
                     </label>
                   </div>
@@ -288,19 +331,31 @@ export default function Menu() {
                       <FlexRow>
                         <H2 variant="secondary">{modifierGroup.name}</H2>
                         <span className="rounded-full bg-button-primary px-2 text-white ">
-                          {modifierGroup?.isMandatory ? 'Requerido' : 'Opcional'}
+                          {modifierGroup?.isMandatory
+                            ? 'Requerido'
+                            : 'Opcional'}
                         </span>
                       </FlexRow>
                       <div className="flex flex-col space-y-2">
                         {modifierGroup.modifiers.map((modifier: Modifiers) => {
-                          const isChecked = fetcher.data?.modifiers.find((id: Modifiers['id']) => id === modifier.id)
+                          const isChecked = fetcher.data?.modifiers.find(
+                            (id: Modifiers['id']) => id === modifier.id,
+                          )
                           // console.log('isChecked', isChecked)
                           return (
-                            <label htmlFor={modifier.id} className="flex flex-row space-x-2" key={modifier.id}>
+                            <label
+                              htmlFor={modifier.id}
+                              className="flex flex-row space-x-2"
+                              key={modifier.id}
+                            >
                               <span
-                                className={clsx('h-6 w-6 rounded-full ring-2 ring-button-primary', {
-                                  'flex items-center justify-center bg-button-primary text-white ': isChecked,
-                                })}
+                                className={clsx(
+                                  'h-6 w-6 rounded-full ring-2 ring-button-primary',
+                                  {
+                                    'flex items-center justify-center bg-button-primary text-white ':
+                                      isChecked,
+                                  },
+                                )}
                               >
                                 {isChecked ? <AiOutlineCheck /> : ''}
                               </span>
@@ -309,12 +364,23 @@ export default function Menu() {
                                 type={modifierGroup.type}
                                 name="modifier"
                                 value={modifier.id}
-                                required={modifierGroup.isMandatory ? true : false}
+                                required={
+                                  modifierGroup.isMandatory ? true : false
+                                }
                                 className="sr-only"
-                                defaultChecked={modifierGroup.type === 'radio' ? isChecked : undefined}
+                                defaultChecked={
+                                  modifierGroup.type === 'radio'
+                                    ? isChecked
+                                    : undefined
+                                }
                               />
                               <H3>{modifier.name}</H3>
-                              <H3>{formatCurrency(data.currency, Number(modifier.extraPrice))}</H3>
+                              <H3>
+                                {formatCurrency(
+                                  data.currency,
+                                  Number(modifier.extraPrice),
+                                )}
+                              </H3>
                             </label>
                           )
                         })}
@@ -326,7 +392,12 @@ export default function Menu() {
               <SendComments />
             </div>
 
-            <Button name="_action" value="proceed" className="m-2" disabled={isSubmitting}>
+            <Button
+              name="_action"
+              value="proceed"
+              className="m-2"
+              disabled={isSubmitting}
+            >
               Agregar {data.dish.name}
             </Button>
             <input type="hidden" name="submittedItemId" value={data.dish.id} />

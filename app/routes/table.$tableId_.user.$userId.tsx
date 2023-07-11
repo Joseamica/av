@@ -1,8 +1,8 @@
-import type {CartItem} from '@prisma/client'
-import type {LoaderArgs} from '@remix-run/node'
-import {json} from '@remix-run/node'
-import {Link, useLoaderData, useSearchParams} from '@remix-run/react'
-import invariant from 'tiny-invariant'
+import type { CartItem } from "@prisma/client";
+import type { LoaderArgs } from "@remix-run/node";
+import { json } from "@remix-run/node";
+import { Link, useLoaderData, useSearchParams } from "@remix-run/react";
+import invariant from "tiny-invariant";
 import {
   Button,
   FlexRow,
@@ -12,36 +12,36 @@ import {
   H4,
   SectionContainer,
   Spacer,
-} from '~/components'
-import {prisma} from '~/db.server'
-import {formatCurrency, getCurrency} from '~/utils'
+} from "~/components";
+import { prisma } from "~/db.server";
+import { formatCurrency, getCurrency } from "~/utils";
 
-export async function loader({params, request}: LoaderArgs) {
-  const {branchId, tableId, userId} = params
-  invariant(tableId, 'No existe ninguna mesa con este id')
+export async function loader({ params, request }: LoaderArgs) {
+  const { branchId, tableId, userId } = params;
+  invariant(tableId, "No existe ninguna mesa con este id");
 
-  invariant(userId, 'No hay ningun userId')
+  invariant(userId, "No hay ningun userId");
   const user = await prisma.user.findFirst({
-    where: {id: userId},
-    include: {orders: {select: {table: {include: {order: true}}}}},
-  })
+    where: { id: userId },
+    include: { orders: { select: { table: { include: { order: true } } } } },
+  });
   const orderId = await prisma.user.findFirst({
-    where: {id: userId},
-    select: {orderId: true},
-  })
+    where: { id: userId },
+    select: { orderId: true },
+  });
   const getUsersTotalPaid = await prisma.user.aggregate({
-    where: {orderId: orderId?.orderId},
-    _sum: {paid: true, tip: true},
-  })
-  const totalPaid = getUsersTotalPaid._sum.paid
-  const totalTip = getUsersTotalPaid._sum.tip
+    where: { orderId: orderId?.orderId },
+    _sum: { paid: true, tip: true },
+  });
+  const totalPaid = getUsersTotalPaid._sum.paid;
+  const totalTip = getUsersTotalPaid._sum.tip;
 
   const cartItems = await prisma.cartItem.findMany({
-    where: {user: {some: {id: userId}}},
-    include: {menuItem: true},
-  })
+    where: { user: { some: { id: userId } } },
+    include: { menuItem: true },
+  });
 
-  const currency = await getCurrency(tableId)
+  const currency = await getCurrency(tableId);
   return json({
     user,
     userId,
@@ -51,13 +51,13 @@ export async function loader({params, request}: LoaderArgs) {
     cartItems,
     currency,
     totalTip,
-  })
+  });
 }
 
 export default function User() {
-  const data = useLoaderData()
-  const [searchParams] = useSearchParams()
-  const changeName = searchParams.get('changeName')
+  const data = useLoaderData();
+  const [searchParams] = useSearchParams();
+  const changeName = searchParams.get("changeName");
 
   return (
     <SectionContainer className="">
@@ -118,7 +118,7 @@ export default function User() {
                   /> */}
                 </FlexRow>
               </FlexRow>
-            )
+            );
           })}
         </div>
         <Spacer spaceY="2" />
@@ -142,5 +142,5 @@ export default function User() {
         </div>
       </div>
     </SectionContainer>
-  )
+  );
 }

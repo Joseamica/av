@@ -1,12 +1,9 @@
-import type {Table, User} from '@prisma/client'
-import {ActionArgs, json, redirect} from '@remix-run/node'
-import type {LoaderArgs} from '@remix-run/node'
-import React from 'react'
+import {json, redirect, type ActionArgs, type LoaderArgs} from '@remix-run/node'
 import {Form, Link, useLoaderData, useSearchParams} from '@remix-run/react'
-import {Button, FlexRow, H1, H2, LinkButton, Spacer} from '~/components'
-import {prisma} from '~/db.server'
-import {AiFillEdit, AiFillDelete} from 'react-icons/ai'
+import {AiFillDelete, AiFillEdit} from 'react-icons/ai'
+import {Button, FlexRow, H1, H2, Spacer} from '~/components'
 import {Modal} from '~/components/modals'
+import {prisma} from '~/db.server'
 
 export async function action({request, params}: ActionArgs) {
   const {branchId, userId} = params

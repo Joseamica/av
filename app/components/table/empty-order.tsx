@@ -1,15 +1,15 @@
-import introJs from 'intro.js'
-import 'intro.js/introjs.css'
-import { useEffect } from 'react'
+import introJs from "intro.js";
+import "intro.js/introjs.css";
+import { useEffect } from "react";
 // * MODELS
 
 // * CUSTOM COMPONENTS
-import { SectionContainer } from '../containers/section-container'
-import { RestaurantInfoCard } from '../restaurant-info-card'
-import { UserButton } from '../ui/buttons/UserButton'
-import { FlexRow } from '../util/flexrow'
-import { Spacer } from '../util/spacer'
-import { H4, H5 } from '../util/typography'
+import { SectionContainer } from "../containers/section-container";
+import { RestaurantInfoCard } from "../restaurant-info-card";
+import { UserButton } from "../ui/buttons/UserButton";
+import { FlexRow } from "../util/flexrow";
+import { Spacer } from "../util/spacer";
+import { H4, H5 } from "../util/typography";
 
 export function EmptyOrder({
   branch,
@@ -19,12 +19,12 @@ export function EmptyOrder({
   usersInTable,
   isOrderActive,
 }: {
-  branch: any
-  menu: any
-  error: string
-  tableNumber: number
-  usersInTable: any
-  isOrderActive: boolean
+  branch: any;
+  menu: any;
+  error: string;
+  tableNumber: number;
+  usersInTable: any;
+  isOrderActive: boolean;
 }) {
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -33,16 +33,16 @@ export function EmptyOrder({
           isActive: !isOrderActive ? true : false,
           showProgress: true,
           dontShowAgain: true,
-          dontShowAgainLabel: 'No volver a mostrar',
+          dontShowAgainLabel: "No volver a mostrar",
           dontShowAgainCookieDays: 1,
-          buttonClass: 'bg-button-primary rounded-lg text-white px-4 py-2',
+          buttonClass: "bg-button-primary rounded-lg text-white px-4 py-2",
         })
-        .start()
-    }, 1500) // 2 seconds delay
+        .start();
+    }, 1500); // 2 seconds delay
 
     // Cleanup function to clear the timer when the component unmounts or when isOrderActive changes
-    return () => clearTimeout(timer)
-  }, [isOrderActive])
+    return () => clearTimeout(timer);
+  }, [isOrderActive]);
 
   return (
     <main>
@@ -95,5 +95,5 @@ export function EmptyOrder({
           ))}
       </SectionContainer>
     </main>
-  )
+  );
 }
