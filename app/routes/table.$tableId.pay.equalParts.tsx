@@ -1,137 +1,125 @@
-import { type PaymentMethod } from "@prisma/client";
-import type { ActionArgs, LoaderArgs } from "@remix-run/node";
-import { json, redirect } from "@remix-run/node";
-import {
-  Form,
-  useActionData,
-  useNavigate,
-  useSearchParams,
-  useSubmit,
-} from "@remix-run/react";
-import { AnimatePresence, motion } from "framer-motion";
-import React from "react";
-import invariant from "tiny-invariant";
-import { H5, Payment, QuantityManagerButton } from "~/components";
-import { Modal } from "~/components/modal";
-import { P } from "~/components/payment";
-import { prisma } from "~/db.server";
-import { EVENTS } from "~/events";
+import {type PaymentMethod} from '@prisma/client'
+import type {ActionArgs, LoaderArgs} from '@remix-run/node'
+import {json, redirect} from '@remix-run/node'
+import {Form, useNavigate} from '@remix-run/react'
+import {AnimatePresence, motion} from 'framer-motion'
+import React from 'react'
+import invariant from 'tiny-invariant'
+import {H5, Payment, QuantityManagerButton} from '~/components'
+import {Modal} from '~/components/modal'
+import {prisma} from '~/db.server'
+import {EVENTS} from '~/events'
 import {
   getBranchId,
   getPaymentMethods,
   getTipsPercentages,
-} from "~/models/branch.server";
-import {
-  assignExpirationAndValuesToOrder,
-  getOrder,
-} from "~/models/order.server";
-import { createPayment } from "~/models/payments.server";
-import { assignUserNewPayments } from "~/models/user.server";
-import { validateRedirect } from "~/redirect.server";
-import { getUserId, getUsername } from "~/session.server";
-import { SendWhatsApp } from "~/twilio.server";
-import { useLiveLoader } from "~/use-live-loader";
-import { formatCurrency, getAmountLeftToPay, getCurrency } from "~/utils";
-import { getDomainUrl, getStripeSession } from "~/utils/stripe.server";
+} from '~/models/branch.server'
+import {assignExpirationAndValuesToOrder, getOrder} from '~/models/order.server'
+import {createPayment} from '~/models/payments.server'
+import {assignUserNewPayments} from '~/models/user.server'
+import {validateRedirect} from '~/redirect.server'
+import {getSession, getUserId, getUsername} from '~/session.server'
+import {SendWhatsApp} from '~/twilio.server'
+import {useLiveLoader} from '~/use-live-loader'
+import {getAmountLeftToPay, getCurrency} from '~/utils'
+import {getDomainUrl, getStripeSession} from '~/utils/stripe.server'
 
-export async function action({ request, params }: ActionArgs) {
-  const { tableId } = params;
-  invariant(tableId, "No se encontró mesa");
-  const formData = await request.formData();
-  const branchId = await getBranchId(tableId);
+export async function action({request, params}: ActionArgs) {
+  const {tableId} = params
+  invariant(tableId, 'No se encontró mesa')
+  const formData = await request.formData()
+  const branchId = await getBranchId(tableId)
 
-  const redirectTo = validateRedirect(request.redirect, `/table/${tableId}`);
+  const redirectTo = validateRedirect(request.redirect, `/table/${tableId}`)
 
-  const tipPercentage = formData.get("tipPercentage") as string;
-  const paymentMethod = formData.get("paymentMethod") as PaymentMethod;
+  const tipPercentage = formData.get('tipPercentage') as string
+  const paymentMethod = formData.get('paymentMethod') as PaymentMethod
 
-  const order = await getOrder(tableId);
-  invariant(order, "No se encontró la orden, o aun no ha sido creada.");
-  invariant(branchId, "No se encontró la sucursal");
+  const order = await getOrder(tableId)
+  invariant(order, 'No se encontró la orden, o aun no ha sido creada.')
+  invariant(branchId, 'No se encontró la sucursal')
 
-  const total = order.total;
+  const total = order.total
 
   if (!total) {
-    return json(
-      { error: "No se ha seleccionado ningún platillo" },
-      { status: 400 }
-    );
+    return json({error: 'No se ha seleccionado ningún platillo'}, {status: 400})
   }
+  const session = await getSession(request)
 
-  const payingTotal = Number(formData.get("payingTotal")) as number;
-  const tip = Number(payingTotal) * (Number(tipPercentage) / 100);
-  const amountLeft = (await getAmountLeftToPay(tableId)) || 0;
-  const userName = await getUsername(request);
+  const payingTotal = Number(formData.get('payingTotal')) as number
+  const tip = Number(payingTotal) * (Number(tipPercentage) / 100)
+  const amountLeft = (await getAmountLeftToPay(tableId)) || 0
+  const userName = await getUsername(session)
 
   if (payingTotal > Number(amountLeft)) {
-    const url = new URL(request.url);
-    const pathname = url.pathname;
+    const url = new URL(request.url)
+    const pathname = url.pathname
     return redirect(
       `/table/${tableId}/pay/confirmExtra?total=${payingTotal}&tip=${
         tip <= 0 ? Number(payingTotal) * 0.12 : tip
-      }&pMethod=${paymentMethod}&redirectTo=${pathname}`
-    );
+      }&pMethod=${paymentMethod}&redirectTo=${pathname}`,
+    )
   }
-  const userId = await getUserId(request);
+  const userId = await getUserId(session)
 
-  const isOrderAmountFullPaid = amountLeft <= payingTotal;
+  const isOrderAmountFullPaid = amountLeft <= payingTotal
 
   // NOTE - esto va aqui porque si el metodo de pago es otro que no sea tarjeta, entonces que cree el pago directo, sin stripe (ya que stripe tiene su propio create payment en el webhook)
-  if (paymentMethod === "card") {
+  if (paymentMethod === 'card') {
     const stripeRedirectUrl = await getStripeSession(
       payingTotal * 100 + tip * 100,
       isOrderAmountFullPaid,
       getDomainUrl(request),
       tableId,
       // FIX aqui tiene que tener congruencia con el currency del database, ya que stripe solo acepta ciertas monedas, puedo hacer una condicion o cambiar db a "eur"
-      "eur",
+      'eur',
       tip,
       order.id,
       paymentMethod,
       userId,
-      branchId
-    );
-    return redirect(stripeRedirectUrl);
-  } else if (paymentMethod === "cash") {
+      branchId,
+    )
+    return redirect(stripeRedirectUrl)
+  } else if (paymentMethod === 'cash') {
     await createPayment(
       paymentMethod,
       payingTotal,
       tip,
       order.id,
       userId,
-      branchId
-    );
-    await assignUserNewPayments(userId, payingTotal, tip);
-    await assignExpirationAndValuesToOrder(amountLeft, tip, payingTotal, order);
+      branchId,
+    )
+    await assignUserNewPayments(userId, payingTotal, tip)
+    await assignExpirationAndValuesToOrder(amountLeft, tip, payingTotal, order)
     SendWhatsApp(
-      "14155238886",
+      '14155238886',
       `5215512956265`,
-      `El usuario ${userName} ha pagado quiere pagar en efectivo propina ${tip} y total ${payingTotal}`
-    );
+      `El usuario ${userName} ha pagado quiere pagar en efectivo propina ${tip} y total ${payingTotal}`,
+    )
   }
-  EVENTS.ISSUE_CHANGED(tableId);
-  return redirect(redirectTo);
+  EVENTS.ISSUE_CHANGED(tableId)
+  return redirect(redirectTo)
 }
 
-export async function loader({ request, params }: LoaderArgs) {
-  const { tableId } = params;
-  invariant(tableId, "No se encontró mesa");
+export async function loader({request, params}: LoaderArgs) {
+  const {tableId} = params
+  invariant(tableId, 'No se encontró mesa')
 
-  const order = await getOrder(tableId);
+  const order = await getOrder(tableId)
 
-  invariant(order, "No se encontró la orden, o aun no ha sido creada.");
-  const tipsPercentages = await getTipsPercentages(tableId);
-  const paymentMethods = await getPaymentMethods(tableId);
+  invariant(order, 'No se encontró la orden, o aun no ha sido creada.')
+  const tipsPercentages = await getTipsPercentages(tableId)
+  const paymentMethods = await getPaymentMethods(tableId)
 
   const cartItems = await prisma.cartItem.findMany({
     // FIX
-    where: { orderId: order.id, activeOnOrder: true },
-    include: { menuItem: true, user: true },
-  });
-  const total = order.total;
+    where: {orderId: order.id, activeOnOrder: true},
+    include: {menuItem: true, user: true},
+  })
+  const total = order.total
 
-  const currency = await getCurrency(tableId);
-  const amountLeft = await getAmountLeftToPay(tableId);
+  const currency = await getCurrency(tableId)
+  const amountLeft = await getAmountLeftToPay(tableId)
 
   return json({
     cartItems,
@@ -140,44 +128,43 @@ export async function loader({ request, params }: LoaderArgs) {
     paymentMethods,
     currency,
     amountLeft,
-  });
+  })
 }
 
 export default function EqualParts() {
-  const navigate = useNavigate();
-  const data = useLiveLoader<typeof loader>();
+  const navigate = useNavigate()
+  const data = useLiveLoader<typeof loader>()
 
-  const [personQuantity, setPersonQuantity] = React.useState(2);
-  const [activate, setActivate] = React.useState(false);
-  const [perPerson, setPerPerson] = React.useState(Number(data.total));
-  const [payingFor, setPayingFor] = React.useState(1);
+  const [personQuantity, setPersonQuantity] = React.useState(2)
+  const [activate, setActivate] = React.useState(false)
+  const [perPerson, setPerPerson] = React.useState(Number(data.total))
+  const [payingFor, setPayingFor] = React.useState(1)
 
   React.useEffect(() => {
-    let amountPerPerson = Number(data.total) / personQuantity;
-    let perPerson = amountPerPerson * payingFor;
-    setPerPerson(perPerson);
+    let amountPerPerson = Number(data.total) / personQuantity
+    let perPerson = amountPerPerson * payingFor
+    setPerPerson(perPerson)
 
     if (personQuantity >= payingFor && personQuantity > 2) {
-      setActivate(true);
+      setActivate(true)
     } else {
-      setActivate(false);
+      setActivate(false)
     }
-  }, [personQuantity, payingFor]);
+  }, [personQuantity, payingFor])
 
   // function handleChange(event: React.FormEvent<HTMLFormElement>) {
   //   submit(event.currentTarget, {replace: true})
   // }
 
-  let pathSize = 100;
-  let gapSize = 2;
-  let percentForOne = pathSize / personQuantity;
-  let greenedPercent = percentForOne * payingFor - gapSize;
-  let notGreenedPercent =
-    percentForOne * (personQuantity - payingFor) + gapSize;
+  let pathSize = 100
+  let gapSize = 2
+  let percentForOne = pathSize / personQuantity
+  let greenedPercent = percentForOne * payingFor - gapSize
+  let notGreenedPercent = percentForOne * (personQuantity - payingFor) + gapSize
 
   return (
     <Modal
-      onClose={() => navigate("..")}
+      onClose={() => navigate('..')}
       // fullScreen={true}
       title="Dividir en partes iguales"
     >
@@ -198,7 +185,7 @@ export default function EqualParts() {
               <div className="relative h-52 w-52 md:h-32 md:w-32 xs:h-16 xs:w-16 ">
                 <svg className="-rotate-90 fill-none" viewBox="0 0 36 36">
                   <motion.circle
-                    initial={{ strokeDashoffset: 0, opacity: 0 }}
+                    initial={{strokeDashoffset: 0, opacity: 0}}
                     animate={{
                       strokeDasharray: `${percentForOne - gapSize} ,${gapSize}`,
                       opacity: 1,
@@ -212,7 +199,7 @@ export default function EqualParts() {
                   />
 
                   <motion.circle
-                    initial={{ strokeDashoffset: 0, opacity: 0 }}
+                    initial={{strokeDashoffset: 0, opacity: 0}}
                     animate={{
                       strokeDasharray: `${greenedPercent},${notGreenedPercent}`,
                       opacity: 1,
@@ -229,8 +216,8 @@ export default function EqualParts() {
                 </svg>
                 <div className="absolute inset-0 flex items-center justify-center p-8 text-center md:text-xs xs:hidden ">
                   <p>
-                    Pagando por {payingFor}{" "}
-                    {payingFor > 1 ? "personas" : "persona"}
+                    Pagando por {payingFor}{' '}
+                    {payingFor > 1 ? 'personas' : 'persona'}
                   </p>
                 </div>
               </div>
@@ -275,5 +262,5 @@ export default function EqualParts() {
         <input type="hidden" name="payingTotal" value={perPerson} />
       </Form>
     </Modal>
-  );
+  )
 }

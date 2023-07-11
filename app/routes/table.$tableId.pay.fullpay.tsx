@@ -115,7 +115,7 @@ export async function action({request, params}: ActionArgs) {
       true,
       getDomainUrl(request),
       tableId,
-      // FIX aqui tiene que tener congruencia con el currency del database, ya que stripe solo acepta ciertas monedas, puedo hacer una condicion o cambiar db a "eur"
+      //FIXME aqui tiene que tener congruencia con el currency del database, ya que stripe solo acepta ciertas monedas, puedo hacer una condicion o cambiar db a "eur"
       'eur',
       tip,
       order.id,
