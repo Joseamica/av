@@ -22,8 +22,9 @@ import {getTableIdFromUrl} from '~/utils'
 // * COMPONENTS
 // * CUSTOM COMPONENTS
 import {Header, UserForm} from '~/components'
+import invariant from 'tiny-invariant'
 
-const SESSION_EXPIRATION_TIME = 1000 * 60 * 60 * 24 * 30
+const SESSION_EXPIRATION_TIME = 1000 * 60 * 60 * 24 * 30 //30 days
 
 export default function TableLayoutPath() {
   const data = useLoaderData()
@@ -42,10 +43,9 @@ export default function TableLayoutPath() {
 
 export const loader = async ({request}: LoaderArgs) => {
   const session = await getSession(request)
+  const sessionId = session.get('sessionId')
+  invariant(sessionId, 'Session ID is required Error in table.tsx line 47')
   const userId = await getUserId(session)
-  session.set('userId', userId)
-
-  const username = await getUsername(session)
 
   let user = null
 
@@ -56,10 +56,12 @@ export const loader = async ({request}: LoaderArgs) => {
       role: 'admin',
     },
   })
+  const username = await getUsername(session)
+  const user_color = session.get('user_color')
 
   // * Verify if user is on the database or create
   if (username) {
-    user = await findOrCreateUser(userId, username)
+    user = await findOrCreateUser(userId, username, user_color)
   }
 
   const url = new URL(request.url)
@@ -90,7 +92,7 @@ export const action = async ({request, params}: ActionArgs) => {
   let redirectTo = validateRedirect(formData.get('redirect'), url)
   const tableId = getTableIdFromUrl(url)
 
-  const userId = session.get('userId')
+  // const userId = session.get('userId')
   const searchParams = new URLSearchParams(request.url)
 
   if (!name) {
@@ -100,37 +102,49 @@ export const action = async ({request, params}: ActionArgs) => {
   if (name && proceed) {
     console.time(`✅ Creating session and user with name... ${name}`)
     searchParams.set('error', '')
-    const sessionId = await prisma.session.create({
+    const isOrderActive = await prisma.order.findFirst({
+      where: {active: true, tableId: tableId},
+    })
+
+    const createdUser = await prisma.user.create({
       data: {
-        expirationDate: new Date(Date.now() + SESSION_EXPIRATION_TIME),
-        user: {
+        name: name,
+        color: color ? color : '#000000',
+        tableId: tableId ? tableId : null,
+        orderId: isOrderActive ? isOrderActive.id : null,
+        sessions: {
           create: {
-            id: userId,
-            name: name,
-            color: color ? color : '#000000',
-            tables: tableId ? {connect: {id: tableId}} : {},
+            expirationDate: new Date(Date.now() + SESSION_EXPIRATION_TIME),
           },
         },
       },
-      // select: {id: !0, expirationDate: !0},
+      include: {sessions: true},
     })
-    console.log('✅Connected user to table')
-
-    session.set('sessionId', sessionId.id)
+    console.log(
+      '\x1b[44m%s\x1b[0m',
+      'table.tsx line:125 ✅Created user from setName prompt',
+    )
+    if (createdUser) {
+      const sessionId = createdUser.sessions.find(session => session.id)?.id
+      sessionId && session.set('sessionId', sessionId)
+      console.log(createdUser)
+      session.set('username', name)
+      session.set('user_color', color)
+      session.set('userId', createdUser.id)
+    }
 
     // Set expiry time 4 hours from now
     // const expiryTime = formatISO(addHours(new Date(), 4))
     // session.set('expiryTime', expiryTime)
     if (tableId) {
       console.log(
-        '\x1b[42m%s\x1b[0m',
-        'table.tsx line:115 SSE TRIGGER because tableId exists and user entered name',
+        '\x1b[44m%s\x1b[0m',
+        'table.tsx line:147 SSE TRIGGER because tableId exists and user entered name',
       )
       EVENTS.ISSUE_CHANGED(tableId)
       session.set('tableId', tableId)
     }
-    session.set('username', name)
-    session.set('user_color', color)
+
     // session.set('tutorial', true)
     console.timeEnd(`✅ Creating session and user with name... ${name}`)
 
