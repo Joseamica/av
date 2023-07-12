@@ -6,13 +6,9 @@ import type {
   Table as TableProps,
   User,
 } from '@prisma/client'
-import {type ActionArgs, type LoaderArgs, json} from '@remix-run/node'
-import {
-  Form,
-  isRouteErrorResponse,
-  Outlet,
-  useRouteError,
-} from '@remix-run/react'
+import type {ActionArgs, LoaderArgs} from '@remix-run/node'
+import {json} from '@remix-run/node'
+import {Form, Outlet} from '@remix-run/react'
 import {useState} from 'react'
 // * UTILS, MODELS, DB, HOOKS
 import {prisma} from '~/db.server'
@@ -26,7 +22,7 @@ import {
   getPaidUsers,
   getUsersOnTable,
 } from '~/models/user.server'
-import {getSession, getUserDetails} from '~/session.server'
+import {getSession} from '~/session.server'
 import {
   formatCurrency,
   getAmountLeftToPay,
@@ -34,6 +30,7 @@ import {
   isOrderExpired,
 } from '~/utils'
 // * COMPONENTS
+import {useLiveLoader} from '~/use-live-loader'
 import {
   ChevronDownIcon,
   UserCircleIcon,
@@ -42,13 +39,11 @@ import {
 import clsx from 'clsx'
 import {AnimatePresence, motion} from 'framer-motion'
 import invariant from 'tiny-invariant'
-import {useLiveLoader} from '~/use-live-loader'
 // TODO React icons or heroicons ? :angry
 import {IoFastFood} from 'react-icons/io5'
 // * CUSTOM COMPONENTS
 import {
   BillAmount,
-  Button,
   CartItemDetails,
   FlexRow,
   H3,
@@ -58,12 +53,12 @@ import {
   SectionContainer,
   Spacer,
   SwitchButton,
+  Button,
 } from '~/components/index'
 
 import {RestaurantInfoCard} from '~/components/restaurant-info-card'
 import {EmptyOrder} from '~/components/table/empty-order'
 import {SinglePayButton} from '~/components/table/single-pay-button'
-import {getOrder} from '~/models/order.server'
 
 type LoaderData = {
   order: Order & any
@@ -86,7 +81,6 @@ export default function Table() {
   useSessionTimeout()
 
   const data = useLiveLoader<LoaderData>()
-
   // const data = useLiveLoader<LoaderData>()
 
   const [selectedUsers, setSelectedUsers] = useState<string[]>([])
@@ -110,7 +104,7 @@ export default function Table() {
   }
   const [showPaymentOptions, setShowPaymentOptions] = useState(false)
 
-  if (data.order) {
+  if (data.total > 0) {
     return (
       <motion.main className="no-scrollbar">
         <div className="fixed inset-x-0 top-0 z-50 w-full bg-button-successBg text-success"></div>
@@ -371,50 +365,57 @@ export default function Table() {
 }
 
 export async function loader({request, params}: LoaderArgs) {
-  const session = await getSession(request)
-  const user = await getUserDetails(session)
-
   const {tableId} = params
   invariant(tableId, 'No se encontró el ID de la mesa')
 
   const branch = await getBranch(tableId)
   invariant(branch, 'No se encontró la sucursal')
 
-  const table = await getTable(tableId)
+  const [table, usersInTable] = await Promise.all([
+    getTable(tableId),
+    getUsersOnTable(tableId),
+  ])
 
-  const order = await getOrder(tableId, {
-    cartItems: {include: {user: true}},
-    users: {include: {cartItems: true}},
-    payments: true,
+  const session = await getSession(request)
+  const userId = session.get('userId')
+  const username = session.get('username')
+  const user_color = session.get('user_color')
+
+  const order = await prisma.order.findFirst({
+    where: {tableId, active: true},
+    include: {
+      cartItems: {include: {user: true}},
+      users: {include: {cartItems: true}},
+      payments: true,
+    },
   })
-
   const total = Number(order?.total)
   const menu = await getMenu(branch.id)
 
   //NOTE - USER CONNECT TO TABLE AND ORDER
-  if (user.userId && user.username) {
-    // TODO CREATE MODEL
+  console.log('userId', userId)
+  if (userId && username) {
     const isUserInTable = await prisma.user.findFirst({
       where: {
-        id: user.userId, // user.userId is the id of the user you want to check
+        id: userId, // userId is the id of the user you want to check
         tableId: tableId, // tableId is the id of the table you want to check
       },
     })
 
     if (!isUserInTable) {
       try {
-        console.log(`🔌 Connecting '${user.username}' to the table`)
+        console.log(`🔌 Connecting '${username}' to the table`)
 
         await prisma.user.update({
-          where: {id: user.userId},
+          where: {id: userId},
           data: {
             tableId: tableId,
             branchId: branch.id,
-            color: user.user_color ? user.user_color : '#000',
+            color: user_color ? user_color : '#000',
           },
         })
         EVENTS.ISSUE_CHANGED(tableId)
-        console.log(`✅ Connected '${user.username}' to the table`)
+        console.log(`✅ Connected '${username}' to the table`)
       } catch (error) {
         console.log(
           '%cerror table.$tableId.tsx line:361 ',
@@ -424,23 +425,23 @@ export async function loader({request, params}: LoaderArgs) {
         throw new Error(`No se pudo conectar al usuario con la mesa ${error}`)
       }
     }
-
     const isUserInOrder = await prisma.user.findFirst({
-      where: {id: user.userId, orderId: order?.id},
+      where: {
+        id: userId,
+        orderId: order?.id,
+      },
     })
-
-    // * TODO por qué lo de la isUserInOrder
     if (!isUserInOrder && order) {
       try {
-        console.log(`🔌 Connecting '${user.username}' to the order`)
+        console.log(`🔌 Connecting '${username}' to the order`)
         await prisma.order.update({
           where: {id: order?.id},
           data: {
-            users: {connect: {id: user.userId}},
+            users: {connect: {id: userId}},
           },
         })
         EVENTS.ISSUE_CHANGED(tableId)
-        console.log(`✅ Connected '${user.username}' to the order`)
+        console.log(`✅ Connected '${username}' to the order`)
       } catch (error) {
         console.log(
           '%cerror table.$tableId.tsx line:361 ',
@@ -452,8 +453,6 @@ export async function loader({request, params}: LoaderArgs) {
     }
   }
 
-  const usersInTable = await getUsersOnTable(tableId)
-
   let paidUsers = null
   let amountLeft = null
   let isExpired = null
@@ -461,9 +460,16 @@ export async function loader({request, params}: LoaderArgs) {
   if (order) {
     paidUsers = await getPaidUsers(order.id)
     amountLeft = await getAmountLeftToPay(tableId)
-    isExpired = isOrderExpired(order.paidDate, 2)
+    isExpired = isOrderExpired(order.paidDate)
   }
 
+  // let error = {}
+  // if (!menu) {
+  //   error = {
+  //     body: null,
+  //     title: `${branch?.name} no cuenta con un menu abierto en este horario.`,
+  //   }
+  // }
   const error = !menu
     ? `${branch?.name} no cuenta con un menu abierto en este horario.`
     : null
@@ -471,7 +477,7 @@ export async function loader({request, params}: LoaderArgs) {
   const currency = await getCurrency(tableId)
 
   if (order && isExpired) {
-    // FIXME  TAMBIÉN USAR EXPIRACIÓN EN las rutas MenuId Y CART (mejor en root)
+    // FIX  TAMBIEN USAR EXPIRACION EN las rutas MENUID Y CART (mejor en root)
 
     for (let user of order.users) {
       await cleanUserData(user.id)
@@ -502,6 +508,7 @@ export async function loader({request, params}: LoaderArgs) {
   })
 }
 
+// * CUANDO EL USUARIO AGREGAR SU NOMBRE SERIA BUENO CONECTARLO A LA MESA DIRECTAMENTE.
 export async function action({request, params}: ActionArgs) {
   const {tableId} = params
   invariant(tableId, 'Mesa no encontrada!')
@@ -515,35 +522,4 @@ export async function action({request, params}: ActionArgs) {
   }
 
   return json({success: true})
-}
-
-export const ErrorBoundary = () => {
-  const error = useRouteError()
-
-  console.log('****error***', error)
-  console.log('isRouteErrorResponse', isRouteErrorResponse(error))
-
-  if (isRouteErrorResponse(error)) {
-    return (
-      <main>
-        <p>No information</p>
-        <img
-          src="https://media1.giphy.com/media/EFXGvbDPhLoWs/giphy.gif?cid=ecf05e47e4j9c0wtau2ep4e46x7dk654cz4c2370l34t9kwc&ep=v1_gifs_search&rid=giphy.gif&ct=g"
-          alt="error page"
-        />
-        <p>Status: {error.status}</p>
-        <p>{error?.data.message}</p>
-      </main>
-    )
-  } else {
-    return (
-      <main>
-        <p>{(error as {message: string}).message}</p>
-        <img
-          src="https://media1.giphy.com/media/EFXGvbDPhLoWs/giphy.gif?cid=ecf05e47e4j9c0wtau2ep4e46x7dk654cz4c2370l34t9kwc&ep=v1_gifs_search&rid=giphy.gif&ct=g"
-          alt="error page"
-        />
-      </main>
-    )
-  }
 }

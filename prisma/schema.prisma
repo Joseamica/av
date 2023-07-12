@@ -29,7 +29,7 @@ model Branch {
   name                String
   updated             String?
   created             String?
-  storeTimeZone       String?
+  timezone            String?
   ppt_image           String
   email               String
   phone               String?
@@ -41,6 +41,7 @@ model Branch {
   cuisine             String
   wifiName            String?
   wifipwd             String?
+  coordinates         Json?
   instagram           String?
   facebook            String?
   twitter             String?

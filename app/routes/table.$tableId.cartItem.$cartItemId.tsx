@@ -31,8 +31,7 @@ export async function loader({request, params}: LoaderArgs) {
   const {tableId, cartItemId} = params
   invariant(tableId, 'No se encontró la mesa')
   invariant(cartItemId, 'No se encontró el ID del item')
-  const session = await getSession(request)
-  const userId = await getUserId(session)
+
   const currency = await getCurrency(tableId)
 
   const cartItem = await prisma.cartItem.findUnique({

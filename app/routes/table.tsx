@@ -12,7 +12,12 @@ import {prisma} from '~/db.server'
 import {EVENTS} from '~/events'
 import {findOrCreateUser} from '~/models/user.server'
 import {validateRedirect} from '~/redirect.server'
-import {getSession, sessionStorage} from '~/session.server'
+import {
+  getSession,
+  getUserId,
+  getUsername,
+  sessionStorage,
+} from '~/session.server'
 import {getTableIdFromUrl} from '~/utils'
 // * COMPONENTS
 // * CUSTOM COMPONENTS
@@ -37,8 +42,11 @@ export default function TableLayoutPath() {
 
 export const loader = async ({request}: LoaderArgs) => {
   const session = await getSession(request)
-  const userId = session.get('userId')
-  const username = session.get('username')
+  const userId = await getUserId(session)
+  session.set('userId', userId)
+
+  const username = await getUsername(session)
+
   let user = null
 
   //ADMIN PURPOSES

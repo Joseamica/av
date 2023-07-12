@@ -1,0 +1,332 @@
+{
+  "_items": [
+    {
+      "_id": "649c4c1f25eb8c2a9569b6df",
+      "posSettings": {
+        "dummy": {
+          "anonymizeCustomer": false,
+          "validateProducts": false,
+          "sendDiscount": true,
+          "sendDeliveryFee": true,
+          "sendServiceCharge": true,
+          "sendDeliveryFeeCondition": 0,
+          "posOrdersAreAlwaysPaid": false,
+          "sortModifiers": 0,
+          "bufferOrders": false,
+          "deliveryByChannelIsPickup": false,
+          "ignoreUnknownOrderStatuses": false,
+          "recalcPriceOverrides": false,
+          "separateSameProducts": false,
+          "dontSendCancel": false,
+          "readonly": false,
+          "logOps": true,
+          "orderStatus": 2
+        }
+      },
+      "status": "TESTING",
+      "subscriptions": [
+        {
+          "brandId": "649c4c00c18d406de4aa0d4f"
+        }
+      ],
+      "comment": "",
+      "enableOutOfStock": false,
+      "splitOrderItems": false,
+      "enableWorkstations": false,
+      "ignorePOSOrderStatuses": false,
+      "posSystemId": 9999,
+      "address": {
+        "remarks": "",
+        "phoneNumber": "",
+        "houseNumber": "",
+        "street": "",
+        "postalCode": "",
+        "city": "",
+        "stateOrProvince": "",
+        "restaurantName": ""
+      },
+      "contact": {
+        "phoneNumber": "",
+        "email": "",
+        "firstName": "",
+        "lastName": ""
+      },
+      "timezone": "America/Mexico_City",
+      "name": "Barezzito",
+      "taxExcl": false,
+      "enablePickupScreen": false,
+      "enablePickupScreenQR": false,
+      "pickupScreenSubscriptionId": "",
+      "account": "649c4c00c18d406de4aa0d50",
+      "_updated": "2023-06-30T21:05:32.000000Z",
+      "_created": "2023-06-28T15:05:03.000000Z",
+      "_deleted": false,
+      "geolocation": {
+        "country": "UN",
+        "subdivision": "UNKNOWN",
+        "city": "UNKNOWN"
+      },
+      "fulfillmentEnabled": false,
+      "deliverySystemSettings": {
+        "uberdaas": null,
+        "driverapp": {
+          "active": true
+        }
+      },
+      "_etag": "5b4c830b6c689d4052a6ae6371fa6af8a2f47a34",
+      "channelLinks": ["649c4c1fd96c741891b8b012", "649c4d4b889668b20753176a"],
+      "enabledDMA": true,
+      "region": "unknown",
+      "tags": ["Cuerna"],
+      "_links": {
+        "self": {
+          "title": "Locations",
+          "href": "locations/649c4c1f25eb8c2a9569b6df"
+        },
+        "related": {
+          "account": {
+            "title": "accounts",
+            "href": "accounts/649c4c00c18d406de4aa0d50"
+          },
+          "channelLinks": [
+            {
+              "title": "channelLink",
+              "href": "channelLinks/649c4c1fd96c741891b8b012"
+            },
+            {
+              "title": "channelLink",
+              "href": "channelLinks/649c4d4b889668b20753176a"
+            }
+          ]
+        }
+      },
+      "channelLinksDetails": {
+        "649c4c1fd96c741891b8b012": {
+          "channel": "Deliverect",
+          "channelId": 1,
+          "name": "Test channel"
+        },
+        "649c4d4b889668b20753176a": {
+          "channel": "Generic Channel(Nested)",
+          "channelId": 10057,
+          "name": "joseantonioamieva"
+        }
+      },
+      "isCanary": false
+    },
+    {
+      "_id": "649c4c104983574f60e7aeab",
+      "posSettings": {
+        "dummy": {
+          "anonymizeCustomer": false,
+          "validateProducts": false,
+          "sendDiscount": true,
+          "sendDeliveryFee": true,
+          "sendServiceCharge": true,
+          "sendDeliveryFeeCondition": 0,
+          "posOrdersAreAlwaysPaid": false,
+          "sortModifiers": 0,
+          "bufferOrders": false,
+          "deliveryByChannelIsPickup": false,
+          "ignoreUnknownOrderStatuses": false,
+          "recalcPriceOverrides": false,
+          "separateSameProducts": false,
+          "dontSendCancel": false,
+          "readonly": false,
+          "logOps": true,
+          "orderStatus": 2
+        }
+      },
+      "status": "TESTING",
+      "subscriptions": [
+        {
+          "brandId": "649c4c00c18d406de4aa0d4f"
+        }
+      ],
+      "comment": "",
+      "enableOutOfStock": false,
+      "splitOrderItems": false,
+      "enableWorkstations": false,
+      "ignorePOSOrderStatuses": false,
+      "posSystemId": 9999,
+      "address": {
+        "remarks": "",
+        "phoneNumber": "+525512956265",
+        "houseNumber": "0",
+        "street": " Mexico-Acapulco, Villas del Lago, 62374 Cuernavaca, Mor.",
+        "postalCode": "62374",
+        "city": "Cuernavaca",
+        "stateOrProvince": "",
+        "restaurantName": "La Chilanguita",
+        "country": "MX",
+        "coordinates": {
+          "type": "Point",
+          "coordinates": [-99.19757369999999, 18.9346811]
+        }
+      },
+      "contact": {
+        "phoneNumber": "+525512956265",
+        "email": "joseamica@gmail.com",
+        "firstName": "Jose",
+        "lastName": "Amieva"
+      },
+      "timezone": "America/Mexico_City",
+      "name": "Chilanguita",
+      "taxExcl": false,
+      "enablePickupScreen": false,
+      "enablePickupScreenQR": false,
+      "pickupScreenSubscriptionId": "",
+      "account": "649c4c00c18d406de4aa0d50",
+      "_updated": "2023-07-03T17:12:46.375000Z",
+      "_created": "2023-06-28T15:04:48.000000Z",
+      "_deleted": false,
+      "geolocation": {
+        "country": "UN",
+        "subdivision": "UNKNOWN",
+        "city": "UNKNOWN"
+      },
+      "_etag": "8c57a5ec04e8f1c406c973eaf1eb1ee89de87c92",
+      "channelLinks": [
+        "649c4c115f300761e15a7a01",
+        "649c4d38770ee8288c5a8729",
+        "64a3018e120af31fc3ecc740"
+      ],
+      "enabledDMA": true,
+      "region": "unknown",
+      "openingHours": [
+        {
+          "dayOfWeek": 1,
+          "startTime": "13:00",
+          "endTime": "23:59"
+        },
+        {
+          "dayOfWeek": 1,
+          "startTime": "00:00",
+          "endTime": "01:00"
+        },
+        {
+          "dayOfWeek": 2,
+          "startTime": "13:00",
+          "endTime": "23:59"
+        },
+        {
+          "dayOfWeek": 2,
+          "startTime": "00:00",
+          "endTime": "01:00"
+        },
+        {
+          "dayOfWeek": 3,
+          "startTime": "13:00",
+          "endTime": "23:59"
+        },
+        {
+          "dayOfWeek": 3,
+          "startTime": "00:00",
+          "endTime": "01:00"
+        },
+        {
+          "dayOfWeek": 4,
+          "startTime": "13:00",
+          "endTime": "23:59"
+        },
+        {
+          "dayOfWeek": 4,
+          "startTime": "00:00",
+          "endTime": "01:00"
+        },
+        {
+          "dayOfWeek": 5,
+          "startTime": "13:00",
+          "endTime": "23:59"
+        },
+        {
+          "dayOfWeek": 5,
+          "startTime": "00:00",
+          "endTime": "01:00"
+        },
+        {
+          "dayOfWeek": 6,
+          "startTime": "13:00",
+          "endTime": "23:59"
+        },
+        {
+          "dayOfWeek": 6,
+          "startTime": "00:00",
+          "endTime": "03:00"
+        },
+        {
+          "dayOfWeek": 7,
+          "startTime": "13:00",
+          "endTime": "23:59"
+        },
+        {
+          "dayOfWeek": 7,
+          "startTime": "00:00",
+          "endTime": "01:00"
+        }
+      ],
+      "deliverySystemSettings": {},
+      "tags": ["Cuerna"],
+      "_links": {
+        "self": {
+          "title": "Locations",
+          "href": "locations/649c4c104983574f60e7aeab"
+        },
+        "related": {
+          "account": {
+            "title": "accounts",
+            "href": "accounts/649c4c00c18d406de4aa0d50"
+          },
+          "channelLinks": [
+            {
+              "title": "channelLink",
+              "href": "channelLinks/649c4c115f300761e15a7a01"
+            },
+            {
+              "title": "channelLink",
+              "href": "channelLinks/649c4d38770ee8288c5a8729"
+            },
+            {
+              "title": "channelLink",
+              "href": "channelLinks/64a3018e120af31fc3ecc740"
+            }
+          ]
+        }
+      },
+      "channelLinksDetails": {
+        "649c4d38770ee8288c5a8729": {
+          "channel": "Generic Channel(Nested)",
+          "channelId": 10057,
+          "name": "joseantonioamieva"
+        },
+        "649c4c115f300761e15a7a01": {
+          "channel": "Deliverect",
+          "channelId": 1,
+          "name": "Testchannel"
+        },
+        "64a3018e120af31fc3ecc740": {
+          "channel": "Uber Eats",
+          "channelId": 7,
+          "name": "Uber Eats"
+        }
+      },
+      "isCanary": false
+    }
+  ],
+  "_links": {
+    "parent": {
+      "title": "home",
+      "href": "/"
+    },
+    "self": {
+      "title": "locations",
+      "href": "locations?max_results=500&where={\"account\":\"649c4c00c18d406de4aa0d50\"}&sort=-_created&cursor=new"
+    }
+  },
+  "_meta": {
+    "page": 1,
+    "max_results": 500,
+    "total": 2,
+    "cursor": "aabe6dad3d1907456495e4cfbd8b3690"
+  }
+}
