@@ -44,6 +44,10 @@ export default function TableLayoutPath() {
 export const loader = async ({request}: LoaderArgs) => {
   const session = await getSession(request)
   const sessionId = session.get('sessionId')
+  if (!sessionId) {
+    console.log('No sessionID ❌error expected')
+    redirect('/logout')
+  }
   invariant(sessionId, 'Session ID is required Error in table.tsx line 47')
   const userId = await getUserId(session)
 
