@@ -169,14 +169,20 @@ export default function Table() {
         <Spacer className="py-[2px]" />
 
         {/* NOTE: FILTER */}
-        {filterPerUser
-          ? perUserView(
-              data.order,
-              data.currency,
-              handleToggleUser,
-              selectedUsers,
-            )
-          : orderView(data.order, collapse, handleCollapse)}
+        {filterPerUser ? (
+          <FilterUserView
+            order={data.order}
+            currency={data.currency}
+            handleToggleUser={handleToggleUser}
+            selectedUsers={selectedUsers}
+          />
+        ) : (
+          <FilterOrderView
+            order={data.order}
+            collapse={collapse}
+            handleCollapse={handleCollapse}
+          />
+        )}
 
         <Spacer spaceY="2" />
         {/* {data.order.cartItems.length > 7 ? (
@@ -222,7 +228,15 @@ export default function Table() {
   }
 }
 
-function orderView(order: any, collapse: boolean, handleCollapse: () => void) {
+function FilterOrderView({
+  order,
+  collapse,
+  handleCollapse,
+}: {
+  order: any
+  collapse: boolean
+  handleCollapse: () => void
+}) {
   return (
     <SectionContainer
       divider={true}
@@ -272,12 +286,17 @@ function orderView(order: any, collapse: boolean, handleCollapse: () => void) {
   )
 }
 
-function perUserView(
-  order: any,
-  currency: string,
-  handleToggleUser: (userId: string) => void,
-  selectedUsers: string[],
-) {
+function FilterUserView({
+  order,
+  currency,
+  handleToggleUser,
+  selectedUsers,
+}: {
+  order: any
+  currency: string
+  handleToggleUser: (userId: string) => void
+  selectedUsers: string[]
+}) {
   return (
     <AnimatePresence>
       <div className="space-y-2">
