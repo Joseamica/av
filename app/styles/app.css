@@ -1,4 +1,10 @@
+/* purgecss start ignore */
 @tailwind base;
+@tailwind components;
+/* purgecss end ignore */
+
+@tailwind utilities;
+@tailwind screens;
 
 .no-scrollbar::-webkit-scrollbar {
   display: none;

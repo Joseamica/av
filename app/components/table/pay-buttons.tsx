@@ -1,33 +1,33 @@
-import { useState } from "react";
+import {useState} from 'react'
 // * UTILS
-import { Spacer } from "../util/spacer";
+import {Spacer} from '../util/spacer'
 // * CUSTOM COMPONENTS
-import { Modal as ModalPortal } from "~/components/modals";
-import { Button, LinkButton } from "../ui/buttons/button";
+import {Modal as ModalPortal} from '~/components/modals'
+import {Button, LinkButton} from '../ui/buttons/button'
 
 export function PayButtons({
   setShowPaymentOptions,
 }: {
-  setShowPaymentOptions?: (value: boolean) => void;
+  setShowPaymentOptions?: (value: boolean) => void
 }) {
-  const [showSplit, setShowSplit] = useState(false);
+  const [showSplit, setShowSplit] = useState(false)
 
   const handleFullPay = () => {
-    if (setShowPaymentOptions) setShowPaymentOptions(false);
-  };
+    if (setShowPaymentOptions) setShowPaymentOptions(false)
+  }
 
   const handleSplitPay = () => {
     if (setShowPaymentOptions) {
-      setShowSplit(false);
-      setShowPaymentOptions(false);
+      setShowSplit(false)
+      setShowPaymentOptions(false)
     }
-  };
+  }
 
   return (
     <div className="flex h-full flex-col">
       <Button
         onClick={() => {
-          setShowSplit(true);
+          setShowSplit(true)
         }}
         variant="primary"
         size="large"
@@ -60,5 +60,5 @@ export function PayButtons({
         </div>
       </ModalPortal>
     </div>
-  );
+  )
 }

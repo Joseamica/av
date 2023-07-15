@@ -2,7 +2,6 @@ import type {Order, Password, Table, User} from '@prisma/client'
 import bcrypt from 'bcryptjs'
 
 import {prisma} from '~/db.server'
-import {getSession} from '~/session.server'
 
 export type {User} from '@prisma/client'
 

@@ -48,7 +48,7 @@ export const loader = async ({request}: LoaderArgs) => {
     console.log('No sessionID ❌error expected')
     redirect('/logout')
   }
-  invariant(sessionId, 'Session ID is required Error in table.tsx line 47')
+  // invariant(sessionId, 'Session ID is required Error in table.tsx line 47')
   const userId = await getUserId(session)
 
   let user = null
