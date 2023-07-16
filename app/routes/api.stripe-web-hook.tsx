@@ -53,86 +53,83 @@ export const action = async ({request}: ActionArgs) => {
   const extraData = metadata.extraData ? JSON.parse(metadata.extraData) : null
   const paymentIntentId = stripeSession.payment_intent as string
   const paymentIntent = await stripe.paymentIntents.retrieve(paymentIntentId)
-  console.log('paymentIntent', paymentIntent)
-  console.log('metadata', metadata)
-  console.log(metadata.typeOfPayment)
 
-  if (paymentIntent.status === 'succeeded') {
-    try {
-      const amount =
-        Number(stripeSession.amount_total) / 100 - Number(metadata.tip)
-      const tip = Number(metadata.tip)
-      const total = Number(stripeSession.amount_total) / 100
+  // if (paymentIntent.status === 'succeeded') {
+  //   try {
+  //     const amount =
+  //       Number(stripeSession.amount_total) / 100 - Number(metadata.tip)
+  //     const tip = Number(metadata.tip)
+  //     const total = Number(stripeSession.amount_total) / 100
 
-      //NOTE - get and update user tip,paid,total
-      await assignUserNewPayments(metadata.userId, amount, tip)
+  //     //NOTE - get and update user tip,paid,total
+  //     // await assignUserNewPayments(metadata.userId, amount, tip)
 
-      console.time('Creating...')
+  //     console.time('Creating...')
 
-      if (metadata.isOrderAmountFullPaid === 'true') {
-        const order = await prisma.order.findFirst({
-          where: {id: metadata.orderId, active: true},
-        })
-        await prisma.order.update({
-          where: {id: metadata.orderId},
-          data: {
-            paid: true,
-            paidDate: new Date(),
-            tip: Number(order?.tip) + tip,
-          },
-        })
-      }
-      await prisma.payments.create({
-        data: {
-          amount: amount,
-          method: metadata.paymentMethod as PaymentMethod,
-          orderId: metadata.orderId,
-          tip: tip,
-          total: total,
-          branchId: metadata.branchId,
-          userId: metadata.userId,
-        },
-      })
-      if (metadata.typeOfPayment === 'perDish') {
-        const user = await prisma.user.findUnique({
-          where: {id: metadata.userId},
-        })
-        const userName = user?.name
-        const itemData = extraData
-        await updatePaidItemsAndUserData(itemData, userName || '')
-      }
-      if (metadata.typeOfPayment === 'fullpay') {
-        await prisma.order.update({
-          where: {id: metadata.orderId},
-          data: {
-            active: false,
-            paid: true,
-            paidDate: new Date(),
-          },
-        })
-      }
-      if (metadata.typeOfPayment === 'cartPay') {
-        console.log('------------^-----------')
+  //     // if (metadata.isOrderAmountFullPaid === 'true') {
+  //     //   const order = await prisma.order.findFirst({
+  //     //     where: {id: metadata.orderId, active: true},
+  //     //   })
+  //     //   await prisma.order.update({
+  //     //     where: {id: metadata.orderId},
+  //     //     data: {
+  //     //       paid: true,
+  //     //       paidDate: new Date(),
+  //     //       tip: Number(order?.tip) + tip,
+  //     //     },
+  //     //   })
+  //     // }
+  //     // await prisma.payments.create({
+  //     //   data: {
+  //     //     amount: amount,
+  //     //     method: metadata.paymentMethod as PaymentMethod,
+  //     //     orderId: metadata.orderId,
+  //     //     tip: tip,
+  //     //     total: total,
+  //     //     branchId: metadata.branchId,
+  //     //     userId: metadata.userId,
+  //     //   },
+  //     // })
+  //     // if (metadata.typeOfPayment === 'perDish') {
+  //     //   const user = await prisma.user.findUnique({
+  //     //     where: {id: metadata.userId},
+  //     //   })
+  //     //   const userName = user?.name
+  //     //   const itemData = extraData
+  //     //   await updatePaidItemsAndUserData(itemData, userName || '')
+  //     // }
+  //     // if (metadata.typeOfPayment === 'fullpay') {
+  //     //   await prisma.order.update({
+  //     //     where: {id: metadata.orderId},
+  //     //     data: {
+  //     //       active: false,
+  //     //       paid: true,
+  //     //       paidDate: new Date(),
+  //     //     },
+  //     //   })
+  //     // }
+  //     // if (metadata.typeOfPayment === 'cartPay') {
+  //     //   console.log('------------^-----------')
 
-        const user = await prisma.user.findUnique({
-          where: {id: metadata.userId},
-        })
-        const userName = user?.name
-        const itemData = extraData
-        //FIXME - pass the items to update on the route
-        // await updatePaidItemsAndUserData(itemData, userName || '')
-      }
+  //     //   const user = await prisma.user.findUnique({
+  //     //     where: {id: metadata.userId},
+  //     //   })
+  //     //   const userName = user?.name
+  //     //   const itemData = extraData
+  //     //   //FIXME - pass the items to update on the route
+  //     //   // await updatePaidItemsAndUserData(itemData, userName || '')
+  //     // }
 
-      // EVENTS.ISSUE_CHANGED(metadata.sseURL)
-      console.timeEnd('Creating...')
-    } catch (err) {
-      console.error('Error creating payment:', err)
-      // Here, you can handle the error as needed. For example:
-      // - Send an alert or notification
-      // - Retry the operation
-      // - Exit the function or throw the error to be caught higher up
-    }
-  }
+  //     // EVENTS.ISSUE_CHANGED(metadata.sseURL)
+  //     console.timeEnd('Creating...')
+  //   } catch (err) {
+  //     console.error('Error creating payment:', err)
+  //     // Here, you can handle the error as needed. For example:
+  //     // - Send an alert or notification
+  //     // - Retry the operation
+  //     // - Exit the function or throw the error to be caught higher up
+  //   }
+  // }
   return new Response(null, {status: 200})
 }
 

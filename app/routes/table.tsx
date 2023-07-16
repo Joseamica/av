@@ -23,11 +23,24 @@ import {getTableIdFromUrl} from '~/utils'
 // * CUSTOM COMPONENTS
 import {Header, UserForm} from '~/components'
 import invariant from 'tiny-invariant'
+import {useEffect, useState} from 'react'
 
 const SESSION_EXPIRATION_TIME = 1000 * 60 * 60 * 24 * 30 //30 days
 
 export default function TableLayoutPath() {
   const data = useLoaderData()
+
+  const [notification, setNotification] = useState(data.notification)
+  console.log('notification', notification)
+
+  useEffect(() => {
+    if (notification) {
+      const timer = setTimeout(() => {
+        setNotification(null)
+      }, 4000)
+      return () => clearTimeout(timer)
+    }
+  }, [notification])
 
   if (!data.username) {
     return <UserForm />
@@ -36,6 +49,11 @@ export default function TableLayoutPath() {
   return (
     <>
       <Header user={data.user} isAdmin={data.isAdmin} />
+      {notification && (
+        <div className="fixed left-0 top-0 z-[9999] w-full bg-green-500 py-2 text-center text-white">
+          {notification}
+        </div>
+      )}
       <Outlet></Outlet>
     </>
   )
@@ -77,9 +95,10 @@ export const loader = async ({request}: LoaderArgs) => {
       'Procura acceder por medio del código QR, u obtener el link con el id de la mesa.',
     )
   }
+  const notification = session.get('success')
 
   return json(
-    {username, pathname, user, isAdmin},
+    {username, pathname, user, isAdmin, notification},
     {headers: {'Set-Cookie': await sessionStorage.commitSession(session)}},
   )
 }

@@ -45,27 +45,47 @@ export const getStripeSession = async (
       quantity: 1,
     },
   ]
-  // switch (typeOfPayment){
-  //   case: "perDish":
-  // }
+
+  const params = {
+    typeOfPayment: typeOfPayment,
+    amount: amount / 100,
+    tip: tip,
+    paymentMethod: paymentMethod,
+    extraData: extraData ? JSON.stringify(extraData) : undefined,
+    isOrderAmountFullPaid: isOrderAmountFullPaid,
+  }
+  const queryString = createQueryString(params)
+
   const session = await stripe.checkout.sessions.create({
     mode: 'payment',
     payment_method_types: ['card'],
     line_items: lineItems,
-    metadata: {
-      isOrderAmountFullPaid,
-      tip,
-      orderId,
-      paymentMethod,
-      userId,
-      branchId,
-      sseURL,
-      typeOfPayment,
-      extraData: extraData ? JSON.stringify(extraData) : undefined,
-    },
-    success_url: `${domainUrl}`,
+    // metadata: {
+    //   isOrderAmountFullPaid,
+    //   tip,
+    //   orderId,
+    //   paymentMethod,
+    //   userId,
+    //   branchId,
+    //   sseURL,
+    //   typeOfPayment,
+    //   extraData: extraData ? JSON.stringify(extraData) : undefined,
+    // },
+    success_url: `${domainUrl}/payment/success?${queryString}`,
+
     cancel_url: `${domainUrl}`,
   })
 
   return session.url
+}
+
+function createQueryString(params) {
+  let queryString = ''
+  for (const key in params) {
+    if (queryString !== '') {
+      queryString += '&'
+    }
+    queryString += `${key}=${encodeURIComponent(params[key])}`
+  }
+  return queryString
 }

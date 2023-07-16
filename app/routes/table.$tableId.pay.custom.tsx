@@ -111,7 +111,7 @@ export async function action({request, params}: ActionArgs) {
         const stripeRedirectUrl = await getStripeSession(
           total * 100 + tip * 100,
           isOrderAmountFullPaid,
-          getDomainUrl(request),
+          getDomainUrl(request) + redirectTo,
           tableId,
           'eur',
           tip,

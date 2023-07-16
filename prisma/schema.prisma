@@ -50,6 +50,7 @@ model Branch {
   firstTip            Decimal?   @default(10)
   secondTip           Decimal?   @default(12)
   thirdTip            Decimal?   @default(15)
+  paymentMethods      Json?
   firstPaymentMethod  String?    @default("cash")
   secondPaymentMethod String?    @default("card")
   thirdPaymentMethod  String?    @default("paypal")

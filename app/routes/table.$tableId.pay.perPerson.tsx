@@ -150,7 +150,7 @@ export async function action({request, params}: ActionArgs) {
       const stripeRedirectUrl = await getStripeSession(
         total * 100 + tip * 100,
         isOrderAmountFullPaid,
-        getDomainUrl(request),
+        getDomainUrl(request) + redirectTo,
         tableId,
         // FIX aqui tiene que tener congruencia con el currency del database, ya que stripe solo acepta ciertas monedas, puedo hacer una condicion o cambiar db a "eur"
         'eur',

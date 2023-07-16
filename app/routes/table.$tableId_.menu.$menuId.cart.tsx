@@ -286,6 +286,9 @@ export async function action({request, params}: ActionArgs) {
             userId,
             branchId,
             'cartPay',
+            //FIXME le estoy pasando mas de 500 characters y hay error.
+            //Es Para alterar los cartItems y que se vean quien pago
+            // cartItems,
           )
           return redirect(stripeRedirectUrl)
         } else if (paymentMethod === 'cash') {
