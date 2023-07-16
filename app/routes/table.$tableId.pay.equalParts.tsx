@@ -8,20 +8,15 @@ import invariant from 'tiny-invariant'
 import {H5, Payment, QuantityManagerButton} from '~/components'
 import {Modal} from '~/components/modal'
 import {prisma} from '~/db.server'
-import {EVENTS} from '~/events'
 import {
   getBranchId,
   getPaymentMethods,
   getTipsPercentages,
 } from '~/models/branch.server'
-import {assignExpirationAndValuesToOrder, getOrder} from '~/models/order.server'
-import {createPayment} from '~/models/payments.server'
-import {assignUserNewPayments} from '~/models/user.server'
+import {getOrder} from '~/models/order.server'
 import {validateRedirect} from '~/redirect.server'
-import {getSession, getUserId, getUsername} from '~/session.server'
-import {SendWhatsApp} from '~/twilio.server'
 import {useLiveLoader} from '~/use-live-loader'
-import {getAmountLeftToPay, getCurrency} from '~/utils'
+import {createQueryString, getAmountLeftToPay, getCurrency} from '~/utils'
 import {getDomainUrl, getStripeSession} from '~/utils/stripe.server'
 
 export async function action({request, params}: ActionArgs) {
@@ -44,12 +39,10 @@ export async function action({request, params}: ActionArgs) {
   if (!total) {
     return json({error: 'No se ha seleccionado ningún platillo'}, {status: 400})
   }
-  const session = await getSession(request)
 
   const payingTotal = Number(formData.get('payingTotal')) as number
   const tip = Number(payingTotal) * (Number(tipPercentage) / 100)
   const amountLeft = (await getAmountLeftToPay(tableId)) || 0
-  const userName = await getUsername(session)
 
   if (payingTotal > Number(amountLeft)) {
     const url = new URL(request.url)
@@ -60,7 +53,6 @@ export async function action({request, params}: ActionArgs) {
       }&pMethod=${paymentMethod}&redirectTo=${pathname}`,
     )
   }
-  const userId = await getUserId(session)
 
   const isOrderAmountFullPaid = amountLeft <= payingTotal
 
@@ -70,35 +62,23 @@ export async function action({request, params}: ActionArgs) {
       payingTotal * 100 + tip * 100,
       isOrderAmountFullPaid,
       getDomainUrl(request) + redirectTo,
-      tableId,
-      // FIX aqui tiene que tener congruencia con el currency del database, ya que stripe solo acepta ciertas monedas, puedo hacer una condicion o cambiar db a "eur"
       'eur',
       tip,
-      order.id,
       paymentMethod,
-      userId,
-      branchId,
     )
     return redirect(stripeRedirectUrl)
   } else if (paymentMethod === 'cash') {
-    await createPayment(
-      paymentMethod,
-      payingTotal,
-      tip,
-      order.id,
-      userId,
-      branchId,
-    )
-    await assignUserNewPayments(userId, payingTotal, tip)
-    await assignExpirationAndValuesToOrder(amountLeft, tip, payingTotal, order)
-    SendWhatsApp(
-      '14155238886',
-      `5215512956265`,
-      `El usuario ${userName} ha pagado quiere pagar en efectivo propina ${tip} y total ${payingTotal}`,
-    )
+    const params = {
+      typeOfPayment: 'perDish',
+      amount: payingTotal + tip,
+      tip: tip,
+      paymentMethod: paymentMethod,
+      // extraData: itemData ? JSON.stringify(itemData) : undefined,
+      isOrderAmountFullPaid: isOrderAmountFullPaid,
+    }
+    const queryString = createQueryString(params)
+    return redirect(`${redirectTo}/payment/success?${queryString}`)
   }
-  EVENTS.ISSUE_CHANGED(tableId)
-  return redirect(redirectTo)
 }
 
 export async function loader({request, params}: LoaderArgs) {

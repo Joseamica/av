@@ -1,12 +1,10 @@
-import {ChevronUpIcon, ChevronRightIcon} from '@heroicons/react/outline'
+import {ChevronRightIcon, ChevronUpIcon} from '@heroicons/react/outline'
 import type {CartItem, Order, PaymentMethod, User} from '@prisma/client'
 import {json, redirect} from '@remix-run/node'
 import {
   Outlet,
   useFetcher,
   useLoaderData,
-  useLocation,
-  useMatches,
   useNavigate,
   useNavigation,
   useParams,
@@ -14,7 +12,7 @@ import {
 import type {ActionArgs, LoaderArgs} from '@remix-run/server-runtime'
 import clsx from 'clsx'
 import cuid from 'cuid'
-import {AnimatePresence, motion} from 'framer-motion'
+import {motion} from 'framer-motion'
 import React, {useState} from 'react'
 import invariant from 'tiny-invariant'
 import {
@@ -26,9 +24,7 @@ import {
   H5,
   H6,
   ItemContainer,
-  LinkButton,
   Modal,
-  Payment,
   QuantityButton,
   Spacer,
   Underline,
@@ -44,22 +40,19 @@ import {
 } from '~/models/branch.server'
 import {getCartItems} from '~/models/cart.server'
 import {getDvctToken} from '~/models/deliverect.server'
-import {
-  assignExpirationAndValuesToOrder,
-  getOrderTotal,
-} from '~/models/order.server'
+import {getOrderTotal} from '~/models/order.server'
 import {getTable} from '~/models/table.server'
 
 import {validateRedirect} from '~/redirect.server'
-import {
-  getSession,
-  getUsername,
-  sessionStorage,
-  updateCartItem,
-} from '~/session.server'
-import {SendWhatsApp} from '~/twilio.server'
+import {getSession, sessionStorage, updateCartItem} from '~/session.server'
 
-import {formatCurrency, getAmountLeftToPay, getCurrency} from '~/utils'
+import {
+  Translate,
+  createQueryString,
+  formatCurrency,
+  getAmountLeftToPay,
+  getCurrency,
+} from '~/utils'
 import {getDomainUrl, getStripeSession} from '~/utils/stripe.server'
 
 // type MenuCategory = {
@@ -262,12 +255,6 @@ export async function action({request, params}: ActionArgs) {
         const paymentMethod = formData.get('paymentMethod') as PaymentMethod
         const amountToPay = Number(formData.get('amountToPay'))
 
-        const userPrevPaid = await prisma.user.findFirst({
-          where: {id: userId},
-          select: {paid: true},
-        })
-
-        const total = Number(amountToPay) + Number(userPrevPaid?.paid)
         //FIX this \/
         //@ts-expect-error
         const tip = amountToPay * Number(tipPercentage / 100)
@@ -277,14 +264,10 @@ export async function action({request, params}: ActionArgs) {
             amountToPay * 100 + tip * 100,
             false,
             getDomainUrl(request) + redirectTo,
-            tableId,
             //FIXME aqui tiene que tener congruencia con el currency del database, ya que stripe solo acepta ciertas monedas, puedo hacer una condicion o cambiar db a "eur"
             'eur',
             tip,
-            order.id,
             paymentMethod,
-            userId,
-            branchId,
             'cartPay',
             //FIXME le estoy pasando mas de 500 characters y hay error.
             //Es Para alterar los cartItems y que se vean quien pago
@@ -292,49 +275,16 @@ export async function action({request, params}: ActionArgs) {
           )
           return redirect(stripeRedirectUrl)
         } else if (paymentMethod === 'cash') {
-          const userName = await getUsername(session)
-          await prisma.order.update({
-            where: {tableId: tableId},
-            data: {
-              paid: true,
-              users: {
-                update: {
-                  where: {id: userId},
-                  data: {
-                    paid: total,
-                    tip: tip,
-                    total: tip + total,
-                  },
-                },
-              },
-            },
-          })
-          await prisma.payments.create({
-            data: {
-              createdAt: new Date(),
-              method: paymentMethod,
-              amount: amountToPay,
-              tip: Number(tip),
-              total: amountToPay + tip,
-              branchId,
-              orderId: order?.id,
-              userId,
-            },
-          })
-          await assignExpirationAndValuesToOrder(
-            amountToPay,
-            tip,
-            amountToPay,
-            order,
-          )
-
-          SendWhatsApp(
-            '14155238886',
-            `5215512956265`,
-            `El usuario ${userName} ha pagado quiere pagar en efectivo propina ${tip} y total ${amountToPay}`,
-          )
-          // session.unset('cart')
-          // EVENTS.ISSUE_CHANGED(tableId)
+          const params = {
+            typeOfPayment: 'perDish',
+            amount: amountToPay + tip,
+            tip: tip,
+            paymentMethod: paymentMethod,
+            // extraData: itemData ? JSON.stringify(itemData) : undefined,
+            isOrderAmountFullPaid: false,
+          }
+          const queryString = createQueryString(params)
+          return redirect(`${redirectTo}/payment/success?${queryString}`)
         }
       }
 
@@ -587,8 +537,6 @@ export function CartPayment({
   }
   const isSubmitting = navigation.state !== 'idle'
 
-  const tipPercentages = [...Object.values(data.tipsPercentages), '0']
-
   return (
     <>
       <div className="dark:bg-night-bg_principal dark:text-night-text_principal sticky inset-x-0 bottom-0 flex flex-col justify-center rounded-t-xl border-4 bg-day-bg_principal px-3">
@@ -719,7 +667,7 @@ export function CartPayment({
           title="Asignar propina"
         >
           <FlexRow justify="between">
-            {tipPercentages.map((tipPercentage: any) => (
+            {data.tipsPercentages.map((tipPercentage: any) => (
               <label
                 key={tipPercentage}
                 className={clsx(
@@ -765,28 +713,31 @@ export function CartPayment({
           title="Asignar método de pago"
         >
           <div className="space-y-2">
-            {Object.values(data.paymentMethods).map((paymentMethod: any) => (
-              <label
-                key={paymentMethod}
-                className={clsx(
-                  'flex w-full flex-row items-center justify-center space-x-2 rounded-lg border border-button-outline border-opacity-40 px-3 py-2 shadow-lg',
-                  {
-                    'text-2 rounded-full bg-button-primary px-2 py-1  text-white  ring-4   ring-button-outline':
-                      paymentRadio === paymentMethod,
-                  },
-                )}
-              >
-                {paymentMethod}
-                <input
-                  type="radio"
-                  name="paymentMethod"
-                  // defaultChecked={paymentMethod === 'cash'}
-                  value={paymentMethod}
-                  onChange={handleMethodChange}
-                  className="sr-only"
-                />
-              </label>
-            ))}
+            {data.paymentMethods.paymentMethods.map((paymentMethod: any) => {
+              const translate = Translate('es', paymentMethod)
+              return (
+                <label
+                  key={paymentMethod}
+                  className={clsx(
+                    'flex w-full flex-row items-center justify-center space-x-2 rounded-lg border border-button-outline border-opacity-40 px-3 py-2 shadow-lg',
+                    {
+                      'text-2 rounded-full bg-button-primary px-2 py-1  text-white  ring-4   ring-button-outline':
+                        paymentRadio === paymentMethod,
+                    },
+                  )}
+                >
+                  {translate}
+                  <input
+                    type="radio"
+                    name="paymentMethod"
+                    // defaultChecked={paymentMethod === 'cash'}
+                    value={paymentMethod}
+                    onChange={handleMethodChange}
+                    className="sr-only"
+                  />
+                </label>
+              )
+            })}
             <Button
               fullWith={true}
               onClick={() => setShowModal({...showModal, payment: false})}

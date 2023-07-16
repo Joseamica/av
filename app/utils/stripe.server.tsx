@@ -1,5 +1,6 @@
 import type {Branch, PaymentMethod, User} from '@prisma/client'
 import initStripe from 'stripe'
+import {createQueryString} from '~/utils'
 
 // copied from (https://github.com/kentcdodds/kentcdodds.com/blob/ebb36d82009685e14da3d4b5d0ce4d577ed09c63/app/utils/misc.tsx#L229-L237)
 export function getDomainUrl(request: Request) {
@@ -12,17 +13,28 @@ export function getDomainUrl(request: Request) {
   return `${protocol}://${host}`
 }
 
+/**
+ *
+ * @param amount
+ * @param isOrderAmountFullPaid
+ * @param domainUrl
+ * @param currency
+ * @param tip
+ * @param paymentMethod
+ * @param typeOfPayment (optional)
+ * @param extraData (optional)
+ * @returns
+ */
 export const getStripeSession = async (
   amount: number, // Amount in cents (or the smallest currency unit)
   isOrderAmountFullPaid: boolean,
   domainUrl: string,
-  sseURL: string,
+
   currency: string = 'usd', // Default to USD
   tip: number,
-  orderId: string,
+
   paymentMethod: PaymentMethod,
-  userId: User['id'],
-  branchId: Branch['id'],
+
   typeOfPayment?: string,
   extraData?: any,
 ): Promise<string> => {
@@ -60,32 +72,19 @@ export const getStripeSession = async (
     mode: 'payment',
     payment_method_types: ['card'],
     line_items: lineItems,
-    // metadata: {
-    //   isOrderAmountFullPaid,
-    //   tip,
-    //   orderId,
-    //   paymentMethod,
-    //   userId,
-    //   branchId,
-    //   sseURL,
-    //   typeOfPayment,
-    //   extraData: extraData ? JSON.stringify(extraData) : undefined,
-    // },
+    metadata: {
+      isOrderAmountFullPaid,
+      tip,
+
+      paymentMethod,
+
+      typeOfPayment,
+      extraData: extraData ? JSON.stringify(extraData) : undefined,
+    },
     success_url: `${domainUrl}/payment/success?${queryString}`,
 
     cancel_url: `${domainUrl}`,
   })
 
   return session.url
-}
-
-function createQueryString(params) {
-  let queryString = ''
-  for (const key in params) {
-    if (queryString !== '') {
-      queryString += '&'
-    }
-    queryString += `${key}=${encodeURIComponent(params[key])}`
-  }
-  return queryString
 }

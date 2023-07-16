@@ -4,7 +4,7 @@ import {useMatches, useNavigation} from '@remix-run/react'
 import clsx from 'clsx'
 import {AnimatePresence, motion} from 'framer-motion'
 import React from 'react'
-import {formatCurrency} from '~/utils'
+import {Translate, formatCurrency} from '~/utils'
 import {SubModal} from './modal'
 import {Button} from './ui/buttons/button'
 import {FlexRow} from './util/flexrow'
@@ -303,9 +303,10 @@ export function Payment({
 
   const isSubmitting = navigation.state !== 'idle'
 
-  const tipPercentages = [...Object.values(tipsPercentages), '0']
+  // const tipPercentages = tipsPercentages.map(tipsPercentages => tipsPercentages)
 
   const showPayContent = total > 0
+  console.log('tipsPercentages', tipsPercentages)
 
   return (
     <>
@@ -367,7 +368,7 @@ export function Payment({
               >
                 <H5>Método de pago</H5>
                 <FlexRow>
-                  <H3>{paymentRadio}</H3>
+                  <H3>{Translate('es', paymentRadio)}</H3>
                   {showModal.payment ? (
                     <FlexRow className="rounded-full bg-gray_light px-2 py-1">
                       <H6>Cerrar</H6>
@@ -422,7 +423,7 @@ export function Payment({
           handleTipChange={handleTipChange}
           setShowModal={setShowModal}
           showModal={showModal}
-          tipPercentages={tipPercentages}
+          tipPercentages={tipsPercentages}
           tipRadio={tipRadio}
         />
       )}
@@ -511,8 +512,8 @@ export function AssignPaymentMethodModal({
       title="Asignar método de pago"
     >
       <div className="space-y-2">
-        {Object.values(paymentMethods).map((paymentMethod: any) => {
-          const translate = paymentMethod === 'cash' ? 'Efectivo' : 'Tarjeta'
+        {paymentMethods.paymentMethods.map((paymentMethod: any) => {
+          const translate = Translate('es', paymentMethod)
 
           return (
             <label

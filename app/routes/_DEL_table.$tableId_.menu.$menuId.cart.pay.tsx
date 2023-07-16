@@ -136,14 +136,9 @@ export async function action({request, params}: ActionArgs) {
       total * 100 + tip * 100,
       true,
       getDomainUrl(request),
-      tableId,
-      //FIXME aqui tiene que tener congruencia con el currency del database, ya que stripe solo acepta ciertas monedas, puedo hacer una condicion o cambiar db a "eur"
       'eur',
       tip,
-      order.id,
       paymentMethod,
-      userId,
-      branchId,
       'cartPay',
     )
     return redirect(stripeRedirectUrl)

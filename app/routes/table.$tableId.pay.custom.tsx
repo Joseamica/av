@@ -20,7 +20,7 @@ import {validateCustom} from '~/models/validations.server'
 import {validateRedirect} from '~/redirect.server'
 import {getSession, getUserId, getUsername} from '~/session.server'
 import {SendWhatsApp} from '~/twilio.server'
-import {getAmountLeftToPay, getCurrency} from '~/utils'
+import {createQueryString, getAmountLeftToPay, getCurrency} from '~/utils'
 import {getDomainUrl, getStripeSession} from '~/utils/stripe.server'
 
 const variants = {
@@ -48,6 +48,7 @@ export async function loader({request, params}: LoaderArgs) {
   const paymentMethods = await getPaymentMethods(tableId)
   const currency = await getCurrency(tableId)
   const amountLeft = await getAmountLeftToPay(tableId)
+  console.log('paymentMethods', paymentMethods)
   // Set the date to "2018-09-01T16:01:36.386Z"
 
   // Obtain a Date instance that will render the equivalent Berlin time for the UTC date
@@ -112,13 +113,9 @@ export async function action({request, params}: ActionArgs) {
           total * 100 + tip * 100,
           isOrderAmountFullPaid,
           getDomainUrl(request) + redirectTo,
-          tableId,
           'eur',
           tip,
-          order.id,
           data.paymentMethod,
-          userId,
-          branchId,
           'custom',
           {tip},
         )
@@ -130,23 +127,16 @@ export async function action({request, params}: ActionArgs) {
       }
 
     case 'cash':
-      await createPayment(
-        data.paymentMethod,
-        total,
-        tip,
-        order.id,
-        userId,
-        branchId,
-      )
-      await assignUserNewPayments(userId, total, tip)
-      await assignExpirationAndValuesToOrder(amountLeft, tip, total, order)
-      SendWhatsApp(
-        '14155238886',
-        `5215512956265`,
-        `El usuario ${username} ha pagado quiere pagar en efectivo propina ${tip} y total ${total}`,
-      )
-      EVENTS.ISSUE_CHANGED(tableId, `userPaid ${username}`)
-      return redirect(redirectTo)
+      const params = {
+        typeOfPayment: 'perDish',
+        amount: total + tip,
+        tip: tip,
+        paymentMethod: data.paymentMethod,
+        // extraData: itemData ? JSON.stringify(itemData) : undefined,
+        isOrderAmountFullPaid: isOrderAmountFullPaid,
+      }
+      const queryString = createQueryString(params)
+      return redirect(`${redirectTo}/payment/success?${queryString}`)
   }
 
   return json({success: true})
