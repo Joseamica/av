@@ -1,6 +1,5 @@
 import type {
   Branch,
-  CartItem,
   Menu,
   Order,
   Table as TableProps,
@@ -24,20 +23,10 @@ import {getMenu} from '~/models/menu.server'
 import {getTable} from '~/models/table.server'
 import {getPaidUsers, getUsersOnTable} from '~/models/user.server'
 import {getSession, getUserDetails} from '~/session.server'
-import {
-  formatCurrency,
-  getAmountLeftToPay,
-  getCurrency,
-  isOrderExpired,
-} from '~/utils'
+import {getAmountLeftToPay, getCurrency, isOrderExpired} from '~/utils'
 // * COMPONENTS
-import {
-  ChevronDownIcon,
-  UserCircleIcon,
-  UsersIcon,
-} from '@heroicons/react/solid'
-import clsx from 'clsx'
-import {AnimatePresence, motion} from 'framer-motion'
+import {UsersIcon} from '@heroicons/react/solid'
+import {motion} from 'framer-motion'
 import invariant from 'tiny-invariant'
 import {useLiveLoader} from '~/use-live-loader'
 // TODO React icons or heroicons ? :angry
@@ -46,15 +35,9 @@ import {IoFastFood} from 'react-icons/io5'
 import {
   BillAmount,
   Button,
-  CartItemDetails,
   FilterOrderView,
   FilterUserView,
-  FlexRow,
-  H3,
-  H5,
-  H6,
   Help,
-  SectionContainer,
   Spacer,
   SwitchButton,
 } from '~/components/index'

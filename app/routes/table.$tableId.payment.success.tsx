@@ -29,7 +29,6 @@ export const loader = async ({params, request}: LoaderArgs) => {
     : null
   const isOrderAmountFullPaid = searchParams.get('isOrderAmountFullPaid')
   const amount = Number(total) - Number(tip)
-  console.log('extraData', extraData)
 
   await assignUserNewPayments(userId, amount, tip)
   await prisma.payments.create({

@@ -9,20 +9,17 @@ import React from 'react'
 import invariant from 'tiny-invariant'
 import {BillAmount, Button, FlexRow, H3, H4, H5, H6, Spacer} from '~/components'
 import {Modal, SubModal} from '~/components/modal'
-import {prisma} from '~/db.server'
-import {EVENTS} from '~/events'
 import {
   getBranch,
   getBranchId,
   getPaymentMethods,
   getTipsPercentages,
 } from '~/models/branch.server'
-import {assignExpirationAndValuesToOrder, getOrder} from '~/models/order.server'
+import {getOrder} from '~/models/order.server'
 import {getPaidUsers} from '~/models/user.server'
 import {validateFullPay} from '~/models/validations.server'
 import {validateRedirect} from '~/redirect.server'
-import {getSession, getUserId, getUsername} from '~/session.server'
-import {SendWhatsApp} from '~/twilio.server'
+import {getSession} from '~/session.server'
 import {useLiveLoader} from '~/use-live-loader'
 import {
   Translate,
@@ -304,15 +301,16 @@ export function Pay() {
           onClose={() => setShowModal({...showModal, tip: false})}
           title="Asignar propina"
         >
-          <FlexRow justify="between">
+          <div className="flex flex-col space-y-2">
             {data.tipsPercentages.map((tipPercentage: any) => (
               <label
                 key={tipPercentage}
                 className={clsx(
-                  'flex w-full flex-row items-center justify-center space-x-2 rounded-lg border border-button-outline border-opacity-40 px-3 py-1 text-center shadow-lg',
+                  'flex w-full flex-row items-center justify-center space-x-2 rounded-full border border-button-outline border-opacity-40 px-3 py-1 text-center shadow-lg',
                   {
                     'text-2 rounded-full bg-button-primary px-2 py-1  text-white  ring-4   ring-button-outline':
                       tipRadio.toString() === tipPercentage,
+                    'bg-white': tipRadio.toString() !== tipPercentage,
                   },
                 )}
               >
@@ -335,13 +333,13 @@ export function Pay() {
                 />
               </label>
             ))}
-          </FlexRow>
+          </div>
           <Spacer spaceY="2" />
           <Button
             fullWith={true}
             onClick={() => setShowModal({...showModal, tip: false})}
           >
-            Asignar
+            Asignar propina
           </Button>
         </SubModal>
       )}
@@ -350,14 +348,14 @@ export function Pay() {
           onClose={() => setShowModal({...showModal, payment: false})}
           title="Asignar método de pago"
         >
-          <div className="space-y-2">
+          <div className="flex flex-col space-y-2">
             {data.paymentMethods.paymentMethods.map((paymentMethod: any) => {
               const translate = Translate(data.language, paymentMethod)
               return (
                 <label
                   key={paymentMethod}
                   className={clsx(
-                    'flex w-full flex-row items-center justify-center space-x-2 rounded-lg border border-button-outline border-opacity-40 px-3 py-2 shadow-lg',
+                    'flex w-full flex-row items-center justify-center space-x-2 rounded-full border border-button-outline border-opacity-40 px-3 py-2 shadow-lg',
                     {
                       'text-2 rounded-full bg-button-primary px-2 py-1  text-white  ring-4   ring-button-outline':
                         paymentRadio === paymentMethod,
@@ -376,6 +374,7 @@ export function Pay() {
                 </label>
               )
             })}
+            <Spacer spaceY="2" />
             <Button
               fullWith={true}
               onClick={() => setShowModal({...showModal, payment: false})}

@@ -43,7 +43,7 @@ model Branch {
   wifiName        String?
   wifipwd         String?
   coordinates     Json?
-  social          Json?
+  social          Json[]     @default([])
   open            Int?
   close           Int?
   tipsPercentages Decimal[]  @default([10, 12, 15])

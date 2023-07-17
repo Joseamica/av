@@ -276,7 +276,7 @@ export async function action({request, params}: ActionArgs) {
           return redirect(stripeRedirectUrl)
         } else if (paymentMethod === 'cash') {
           const params = {
-            typeOfPayment: 'perDish',
+            typeOfPayment: 'cartPay',
             amount: amountToPay + tip,
             tip: tip,
             paymentMethod: paymentMethod,
@@ -462,7 +462,7 @@ export default function Cart() {
                   <div>
                     <span className="font-light">Ordenar y </span>
                     {
-                      <span className="button-outline underline  underline-offset-8">
+                      <span className="button-outline font-bold underline-offset-8">
                         pagar después
                       </span>
                     }
@@ -472,11 +472,11 @@ export default function Cart() {
               <Spacer spaceY="1" />
               <Button
                 onClick={() => setShowPaymentOptions(true)}
-                className="w-full text-button-successOutline"
+                className="w-full text-white"
                 type="button"
                 size="medium"
                 variant="custom"
-                custom="bg-button- border-button-successOutline"
+                custom="bg-success border-button-successOutline"
               >
                 ¡ Quiero pagar ahora 👍🏼 !
               </Button>
@@ -602,7 +602,7 @@ export function CartPayment({
           >
             <H5>Método de pago</H5>
             <FlexRow>
-              <H3>{paymentRadio}</H3>
+              <H3>{Translate('es', paymentRadio)}</H3>
               {showModal.payment ? (
                 <FlexRow className="rounded-full bg-gray_light px-2 py-1">
                   <H6>Cerrar</H6>
@@ -666,7 +666,7 @@ export function CartPayment({
           onClose={() => setShowModal({...showModal, tip: false})}
           title="Asignar propina"
         >
-          <FlexRow justify="between">
+          <div className="flex flex-col space-y-2">
             {data.tipsPercentages.map((tipPercentage: any) => (
               <label
                 key={tipPercentage}
@@ -678,15 +678,28 @@ export function CartPayment({
                   },
                 )}
               >
-                <div>
+                <FlexRow justify="between" className="w-full">
+                  <H4>
+                    {tipPercentage >= 10 && tipPercentage < 12
+                      ? 'Muchas gracias!'
+                      : tipPercentage >= 12 && tipPercentage < 15
+                      ? 'Excelente servicio!'
+                      : tipPercentage >= 15 && tipPercentage < 18
+                      ? '❤️ Wow!'
+                      : tipPercentage >= 18
+                      ? 'Eres increible!'
+                      : tipPercentage === '0'
+                      ? 'No dejar propina'
+                      : 'otro'}
+                  </H4>
                   <H3>{tipPercentage}%</H3>
-                  <H5>
+                  {/* <H5>
                     {formatCurrency(
                       data.currency,
                       Number(total) * (Number(tipPercentage) / 100),
                     )}
-                  </H5>
-                </div>
+                  </H5> */}
+                </FlexRow>
                 <input
                   type="radio"
                   name="tipPercentage"
@@ -697,7 +710,15 @@ export function CartPayment({
                 />
               </label>
             ))}
-          </FlexRow>
+          </div>
+          <Spacer spaceY="2" />
+          <H3 className="flex w-full flex-row justify-center">
+            <Underline>
+              Estas dejando{' '}
+              {formatCurrency(data.currency, (tipRadio * total) / 100)} de
+              propina
+            </Underline>
+          </H3>
           <Spacer spaceY="2" />
           <Button
             fullWith={true}

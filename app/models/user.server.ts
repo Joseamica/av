@@ -123,12 +123,6 @@ export async function getUsersOnTable(tableId: Table['id']) {
   return users.length > 0 ? users : null
 }
 
-interface UserPrevPaidData {
-  total: number | null
-  tip: number | null
-  paid: number | null
-}
-
 export async function assignUserNewPayments(
   userId: User['id'],
   amount: number,
