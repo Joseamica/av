@@ -40,9 +40,9 @@ export function CategoriesBar({
     <motion.div
       ref={containerRef}
       className={clsx(
-        "no-scrollbar dark:bg-night-bg_principal my-2 flex items-center space-x-2 overflow-x-scroll whitespace-nowrap rounded-xl bg-day-bg_principal px-5 py-4 shadow-lg",
+        "no-scrollbar dark:bg-night-bg_principal bg-day-bg_principal my-2 flex items-center space-x-2 overflow-x-scroll whitespace-nowrap rounded-xl px-5 py-4 shadow-lg",
         {
-          "dark:text-night-text_principal sticky top-14  bg-day-bg_principal":
+          "dark:text-night-text_principal bg-day-bg_principal sticky  top-14":
             isSticky,
         }
       )}
@@ -54,7 +54,7 @@ export function CategoriesBar({
           {...{ preventScrollReset: true }}
           key={category.id}
           className={clsx({
-            "rounded-full bg-day-principal px-3 text-lg font-medium text-white  underline-offset-4":
+            "bg-black rounded-full px-3 text-lg font-medium text-white  underline-offset-4":
               category.id === categoryId, // Aplica el estilo si la categoría es la actual
           })}
         >

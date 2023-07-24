@@ -360,7 +360,7 @@ export default function Menu() {
           </div>
         </div>
         <Spacer spaceY="2" />
-        <div className="sticky bottom-0 rounded-t-lg border-x border-t bg-day-bg_principal p-2">
+        <div className="bg-day-bg_principal sticky bottom-0 rounded-t-lg border-x border-t p-2">
           <FlexRow justify="between" className="px-2">
             <H4>Numero de platillos: </H4>
             <H3>{cartItemsQuantity}</H3>

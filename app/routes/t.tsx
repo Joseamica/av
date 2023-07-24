@@ -1,7 +1,10 @@
 import type { Table } from "@prisma/client";
-import { type LoaderArgs, json } from "@remix-run/node";
-import { useLoaderData } from "@remix-run/react";
-import { LinkButton } from "~/components";
+import type { LoaderArgs } from "@remix-run/node";
+
+import { json } from "@remix-run/node";
+import { Link, useLoaderData } from "@remix-run/react";
+
+import { Button } from "~/components/ui/button";
 import { prisma } from "~/db.server";
 
 export const loader = async ({ request }: LoaderArgs) => {
@@ -14,9 +17,13 @@ export default function Tables() {
   return (
     <div>
       {data.tables.map((table: Table) => (
-        <LinkButton size="small" key={table.id} to={`/table/${table.id}`}>
-          {table.table_number}
-        </LinkButton>
+        <Button
+          key={table.id}
+          className="mr-4 rounded-md border border-red-400"
+          asChild
+        >
+          <Link to={`/table/${table.id}`}> {table.table_number}</Link>
+        </Button>
       ))}
     </div>
   );
