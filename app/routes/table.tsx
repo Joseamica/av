@@ -18,7 +18,11 @@ import {
   getUsername,
   sessionStorage,
 } from '~/session.server'
-import {getTableIdFromUrl} from '~/utils'
+import {
+  getIsDvctTokenExpired,
+  getTableIdFromUrl,
+  isDvctTokenExpired,
+} from '~/utils'
 // * COMPONENTS
 // * CUSTOM COMPONENTS
 import {Header, UserForm} from '~/components'
@@ -84,15 +88,21 @@ export const loader = async ({request}: LoaderArgs) => {
     user = await findOrCreateUser(userId, username, user_color)
   }
 
+  //NOTE - This is to validate if the user is scanning from QR
   const url = new URL(request.url)
   const pathname = url.pathname
   const tableId = getTableIdFromUrl(pathname)
-
   if (!tableId) {
     throw new Error(
       'Procura acceder por medio del código QR, u obtener el link con el id de la mesa.',
     )
   }
+  //NOTE - This is to validate if the token is expired
+  const isDvctTokenExpired = await getIsDvctTokenExpired()
+  if (isDvctTokenExpired) {
+    return redirect(`/api/dvct/oauth/token?redirectTo=${pathname}`)
+  }
+
   const notification = session.get('notification')
 
   return json(

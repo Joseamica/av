@@ -5,7 +5,7 @@ import type {
   Table as TableProps,
   User,
 } from '@prisma/client'
-import {json, type ActionArgs, type LoaderArgs} from '@remix-run/node'
+import {json, type ActionArgs, type LoaderArgs, redirect} from '@remix-run/node'
 import {
   Form,
   Outlet,
@@ -23,7 +23,12 @@ import {getMenu} from '~/models/menu.server'
 import {getTable} from '~/models/table.server'
 import {getPaidUsers, getUsersOnTable} from '~/models/user.server'
 import {getSession, getUserDetails} from '~/session.server'
-import {getAmountLeftToPay, getCurrency, isOrderExpired} from '~/utils'
+import {
+  getAmountLeftToPay,
+  getCurrency,
+  getIsDvctTokenExpired,
+  isOrderExpired,
+} from '~/utils'
 // * COMPONENTS
 import {UsersIcon} from '@heroicons/react/solid'
 import {motion} from 'framer-motion'

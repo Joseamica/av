@@ -246,3 +246,25 @@ export function createQueryString(params) {
   }
   return queryString
 }
+
+export async function getIsDvctTokenExpired() {
+  const dvct = await prisma.deliverect.findFirst({})
+  const dvctExpiration = dvct.deliverectExpiration
+  const dvctToken = dvct.deliverectToken
+  const currentTime = Math.floor(Date.now() / 1000) // Get the current time in Unix timestamp
+  if (!dvctToken || !dvctExpiration) {
+    console.log(
+      '%cutils.ts line:256 🔴  dvctToken or dvctExpiration on db is null',
+      'color: #007acc;',
+    )
+    return true
+  }
+  const isTokenExpired = dvct && dvctExpiration <= currentTime ? true : false
+  console.log(
+    'isDvctTokenExpired',
+    isTokenExpired === false
+      ? '🟢 token is not expired'
+      : '🔴 needs to refresh!',
+  )
+  return isTokenExpired
+}
