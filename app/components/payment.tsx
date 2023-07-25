@@ -306,7 +306,6 @@ export function Payment({
   // const tipPercentages = tipsPercentages.map(tipsPercentages => tipsPercentages)
 
   const showPayContent = total > 0
-  console.log('tipsPercentages', tipsPercentages)
 
   return (
     <>

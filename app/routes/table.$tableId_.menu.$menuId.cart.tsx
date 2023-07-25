@@ -162,6 +162,20 @@ export async function action({request, params}: ActionArgs) {
       session.set('cart', JSON.stringify(cart))
       break
     case 'submitCart':
+      let adjustedItems = cartItems.map(item => {
+        return {
+          plu: item.id,
+          price: Number(item.price) * 100,
+          quantity: item.quantity,
+          remark: item.comments ?? 'No remarks',
+          name: item.name,
+        }
+      })
+      //NOTE - Se usa porque deliverect no recibe puntos decimales, por lo que se multiplica por 100
+      const adjustedCartItemsTotal = cartItemsTotal * 100
+      //TODO SI ESTA VENCIDO EL TOKEN, HACER UN REFRESH en donde???
+      const token = await getDvctToken()
+      const table = await getTable(tableId)
       let order:
         | (Order & {
             users?: User[]
@@ -288,21 +302,6 @@ export async function action({request, params}: ActionArgs) {
             return redirect(stripeRedirectUrl)
         }
       }
-
-      let adjustedItems = cartItems.map(item => {
-        return {
-          plu: item.id,
-          price: Number(item.price) * 100,
-          quantity: item.quantity,
-          remark: item.comments ?? 'No remarks',
-          name: item.name,
-        }
-      })
-      //NOTE - Se usa porque deliverect no recibe puntos decimales, por lo que se multiplica por 100
-      const adjustedCartItemsTotal = cartItemsTotal * 100
-      //TODO SI ESTA VENCIDO EL TOKEN, HACER UN REFRESH en donde???
-      const token = await getDvctToken()
-      const table = await getTable(tableId)
 
       //TODO: cambiar el channelname y channelLinkId agarrandolos de la base de datos o api
       const url =

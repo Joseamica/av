@@ -5,7 +5,7 @@ import type {
   Table as TableProps,
   User,
 } from '@prisma/client'
-import {json, type ActionArgs, type LoaderArgs, redirect} from '@remix-run/node'
+import {json, type ActionArgs, type LoaderArgs} from '@remix-run/node'
 import {
   Form,
   Outlet,
@@ -23,12 +23,7 @@ import {getMenu} from '~/models/menu.server'
 import {getTable} from '~/models/table.server'
 import {getPaidUsers, getUsersOnTable} from '~/models/user.server'
 import {getSession, getUserDetails} from '~/session.server'
-import {
-  getAmountLeftToPay,
-  getCurrency,
-  getIsDvctTokenExpired,
-  isOrderExpired,
-} from '~/utils'
+import {getAmountLeftToPay, getCurrency, isOrderExpired} from '~/utils'
 // * COMPONENTS
 import {UsersIcon} from '@heroicons/react/solid'
 import {motion} from 'framer-motion'
@@ -124,16 +119,6 @@ export default function Table() {
         </h3>
         <Spacer spaceY="2" />
         <Help />
-        <Form method="POST" action="/api/dvct/oauth/token">
-          <button>Assign Token</button>
-        </Form>
-        {/*
-        <Form method="GET" action="/oauth/token">
-          <button>Get Token</button>
-        </Form>
-        <Form method="POST" action="/api/createOrder">
-          <button>createOrder</button>
-        </Form> */}
 
         <BillAmount
           amountLeft={data.amountLeft}

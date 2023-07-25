@@ -83,7 +83,7 @@ export const loader = async ({request}: LoaderArgs) => {
   const username = await getUsername(session)
   const user_color = session.get('user_color')
 
-  // * Verify if user is on the database or create
+  // NOTE - Verify if user is on the database or create
   if (username) {
     user = await findOrCreateUser(userId, username, user_color)
   }

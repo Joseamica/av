@@ -309,7 +309,10 @@ enum PaymentMethod {
 }
 
 model Deliverect {
-  id                   String  @id @default(cuid())
-  deliverectToken      String?
+  id              String  @id @default(cuid())
+  deliverectToken String?
+  // TODO add deliverect details like channel id, orderId etc???
+  // channelName         String?
+
   deliverectExpiration Int?
 }
