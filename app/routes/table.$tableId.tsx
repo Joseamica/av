@@ -1,18 +1,15 @@
 import type {
   Branch,
-  CartItem,
   Menu,
   Order,
   Table as TableProps,
   User,
 } from '@prisma/client'
-import {type ActionArgs, type LoaderArgs, json} from '@remix-run/node'
+import {json, type ActionArgs, type LoaderArgs} from '@remix-run/node'
 import {
   Form,
-  isRouteErrorResponse,
   Outlet,
-  useFetcher,
-  useNavigate,
+  isRouteErrorResponse,
   useRouteError,
   useSubmit,
 } from '@remix-run/react'
@@ -24,26 +21,12 @@ import {useSessionTimeout} from '~/hooks/use-session-timeout'
 import {getBranch} from '~/models/branch.server'
 import {getMenu} from '~/models/menu.server'
 import {getTable} from '~/models/table.server'
-import {
-  cleanUserData,
-  getPaidUsers,
-  getUsersOnTable,
-} from '~/models/user.server'
+import {getPaidUsers, getUsersOnTable} from '~/models/user.server'
 import {getSession, getUserDetails} from '~/session.server'
-import {
-  formatCurrency,
-  getAmountLeftToPay,
-  getCurrency,
-  isOrderExpired,
-} from '~/utils'
+import {getAmountLeftToPay, getCurrency, isOrderExpired} from '~/utils'
 // * COMPONENTS
-import {
-  ChevronDownIcon,
-  UserCircleIcon,
-  UsersIcon,
-} from '@heroicons/react/solid'
-import clsx from 'clsx'
-import {AnimatePresence, motion} from 'framer-motion'
+import {UsersIcon} from '@heroicons/react/solid'
+import {motion} from 'framer-motion'
 import invariant from 'tiny-invariant'
 import {useLiveLoader} from '~/use-live-loader'
 // TODO React icons or heroicons ? :angry
@@ -52,13 +35,9 @@ import {IoFastFood} from 'react-icons/io5'
 import {
   BillAmount,
   Button,
-  CartItemDetails,
-  FlexRow,
-  H3,
-  H5,
-  H6,
+  FilterOrderView,
+  FilterUserView,
   Help,
-  SectionContainer,
   Spacer,
   SwitchButton,
 } from '~/components/index'
@@ -92,6 +71,8 @@ export default function Table() {
 
   //NOTE - Se obtiene del useDataLoader si la orden esta expirada, si si, se envia el request para terminar la orden
   //TESTING
+  //FIXME El problema es que si un usuario se une a la mesa, y la orden ya esta expirada, lo va a redirigir a la thankyou page, y el problema es que si es un usuario nuevo, no podra acceder
+  //SOLUTIONS - Hacer que cuando el usuario cree el primer platillo, se cree una nueva orden, y redirija a order/$orderID
   useEffect(() => {
     if (data.orderExpired) {
       submit('', {method: 'POST', action: 'processes/endOrder'})
@@ -138,15 +119,6 @@ export default function Table() {
         </h3>
         <Spacer spaceY="2" />
         <Help />
-        {/* <Form method="POST" action="/oauth/token">
-          <button>Assign Token</button>
-        </Form>
-        <Form method="GET" action="/oauth/token">
-          <button>Get Token</button>
-        </Form>
-        <Form method="POST" action="/api/createOrder">
-          <button>createOrder</button>
-        </Form> */}
 
         <BillAmount
           amountLeft={data.amountLeft}
@@ -169,176 +141,25 @@ export default function Table() {
             stretch
           />
         </div>
-        {/* <Spacer spaceY="1" /> */}
-        <Spacer className="py-[2px]" />
-        {/* FIX */}
-        {filterPerUser ? (
-          <AnimatePresence>
-            <div className="space-y-2">
-              {data.order.users &&
-                data.order.users.map((user: any) => {
-                  const userPaid = Number(user.paid)
-                  return (
-                    <SectionContainer key={user.id} as="div">
-                      <FlexRow justify="between" className="rounded-xl px-1 ">
-                        <Spacer spaceY="2">
-                          <FlexRow className="items-center space-x-2">
-                            <UserCircleIcon
-                              fill={user.color || '#000'}
-                              className="min-h-10 min-w-10 h-8 w-8"
-                            />
-                            <div className="flex flex-col">
-                              <H3>{user.name}</H3>
-                              <H6>
-                                {Number(user.paid) > 0
-                                  ? `Pagado: ${formatCurrency(
-                                      data.currency,
-                                      userPaid,
-                                    )}`
-                                  : 'No ha pagado'}
-                              </H6>
-                              <FlexRow>
-                                <H6>
-                                  {user.cartItems?.length === 1
-                                    ? `${user.cartItems?.length} platillo ordenado`
-                                    : `${user.cartItems?.length} platillos ordenado` ||
-                                      0}
-                                </H6>
-                                <H6>
-                                  (
-                                  {formatCurrency(
-                                    data.currency,
-                                    user.cartItems.reduce(
-                                      (sum, item) => sum + item.price,
-                                      0,
-                                    ),
-                                  )}
-                                  )
-                                </H6>
-                              </FlexRow>
-                            </div>
-                          </FlexRow>
-                        </Spacer>
-                        <button
-                          onClick={() => handleToggleUser(user.id)}
-                          className={clsx(
-                            'flex items-center justify-center rounded-lg  border border-button-outline px-1   py-1 text-xs',
-                            {
-                              'bg-button-primary text-white':
-                                selectedUsers.includes(user.id),
-                            },
-                          )}
-                        >
-                          Detalles
-                          <ChevronDownIcon className={clsx('h-3 w-3 ', {})} />
-                        </button>
-                      </FlexRow>
-                      <AnimatePresence>
-                        {selectedUsers.includes(user.id) && (
-                          <motion.div
-                            className="flex flex-col"
-                            key={user.id}
-                            initial={{
-                              opacity: 0,
-                              height: '0',
-                            }}
-                            animate={{
-                              opacity: 1,
-                              height: 'auto',
-                            }}
-                            exit={{
-                              opacity: 0,
-                              height: '0',
-                            }}
-                            transition={{
-                              opacity: {
-                                duration: 0.2,
-                                ease: [0.04, 0.62, 0.23, 0.98],
-                              },
-                              height: {
-                                duration: 0.4,
-                              },
-                            }}
-                          >
-                            <hr />
-                            {user.cartItems.length > 0 ? (
-                              <motion.div>
-                                {user.cartItems.map((cartItem: any) => (
-                                  <CartItemDetails
-                                    key={cartItem.id}
-                                    cartItem={cartItem}
-                                  />
-                                ))}
-                              </motion.div>
-                            ) : (
-                              <Spacer spaceY="2" className="px-2">
-                                <H6 variant="secondary">
-                                  Usuario no cuenta con platillos ordenados
-                                </H6>
-                              </Spacer>
-                            )}
-                          </motion.div>
-                        )}
-                      </AnimatePresence>
 
-                      {/* <hr /> */}
-                    </SectionContainer>
-                  )
-                })}
-            </div>
-          </AnimatePresence>
+        <Spacer className="py-[2px]" />
+
+        {/* NOTE: FILTER */}
+        {filterPerUser ? (
+          <FilterUserView
+            order={data.order}
+            currency={data.currency}
+            handleToggleUser={handleToggleUser}
+            selectedUsers={selectedUsers}
+          />
         ) : (
-          <SectionContainer
-            divider={true}
-            showCollapse={data.order?.cartItems.length > 4 ? true : false}
+          <FilterOrderView
+            order={data.order}
             collapse={collapse}
-            collapseTitle={
-              collapse ? (
-                <H5>Ver más platillos</H5>
-              ) : (
-                <H5>Ver menos platillos</H5>
-              )
-            }
             handleCollapse={handleCollapse}
-          >
-            <AnimatePresence initial={false}>
-              {(collapse
-                ? data.order?.cartItems.slice(0, 4)
-                : data.order?.cartItems
-              ).map((cartItem: CartItem) => {
-                return (
-                  <motion.div
-                    className="flex flex-col"
-                    key={cartItem.id}
-                    initial={{
-                      opacity: 0,
-                      height: '0',
-                    }}
-                    animate={{
-                      opacity: 1,
-                      height: 'auto',
-                    }}
-                    exit={{
-                      opacity: 0,
-                      height: '0',
-                    }}
-                    transition={{
-                      opacity: {
-                        duration: 0.2,
-                        ease: [0.04, 0.62, 0.23, 0.98],
-                      },
-                      height: {
-                        duration: 0.4,
-                      },
-                    }}
-                  >
-                    <CartItemDetails cartItem={cartItem} />
-                  </motion.div>
-                )
-              })}
-            </AnimatePresence>
-          </SectionContainer>
+          />
         )}
+
         <Spacer spaceY="2" />
         {/* {data.order.cartItems.length > 7 ? (
           <SinglePayButton

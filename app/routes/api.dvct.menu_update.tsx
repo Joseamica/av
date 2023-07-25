@@ -131,7 +131,9 @@ const adjustCategory = (category: DVCT_CATEGORY) => ({
 
 const adjustMenuItem = (menuItem: any) => ({
   plu: menuItem.plu,
-  image: menuItem.imageUrl,
+  image: menuItem.imageUrl
+    ? menuItem.imageUrl
+    : 'https://firebasestorage.googleapis.com/v0/b/avoqado-d0a24.appspot.com/o/kuikku%2F3.%20TEMAKI%20(HANDROLL)%2FTEMAKI%20NEGITORO.jpg?alt=media&token=08782db0-22ef-49f6-8ac0-4c9c92e59645',
   name: menuItem.name,
   description: menuItem.description,
   price: menuItem.price / 100,
@@ -142,6 +144,7 @@ const adjustMenuItem = (menuItem: any) => ({
 // Helper function to upsert a menu item
 const upsertMenuItem = async product => {
   const adjustedMenuItem = adjustMenuItem(product)
+  console.log('adjustedMenuItem', adjustedMenuItem)
   await prisma.menuItem.upsert({
     where: {id: product._id},
     update: adjustedMenuItem,
@@ -189,17 +192,25 @@ export const action = async ({request}: ActionArgs) => {
   )
   console.log('ModifierGroups -> ', menuData.modifierGroups)
 
+  await prisma.menu.deleteMany({
+    where: {
+      branchId,
+    },
+  })
+
   const menu = await prisma.menu.upsert({
     where: {id: menuData.menuId},
     update: {
       name: menuData.menu,
       currency: String(menuData.currency),
       branchId: branchId,
+      image: menuData.menuImageURL,
     },
     create: {
       id: menuData.menuId,
       name: menuData.menu,
       currency: String(menuData.currency),
+      image: menuData.menuImageURL,
       branchId: branchId,
     },
   })

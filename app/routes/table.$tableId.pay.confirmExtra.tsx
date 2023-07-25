@@ -19,7 +19,12 @@ import {validateRedirect} from '~/redirect.server'
 import {getSession, getUserId, getUsername} from '~/session.server'
 import {SendWhatsApp} from '~/twilio.server'
 import {useLiveLoader} from '~/use-live-loader'
-import {formatCurrency, getAmountLeftToPay, getCurrency} from '~/utils'
+import {
+  createQueryString,
+  formatCurrency,
+  getAmountLeftToPay,
+  getCurrency,
+} from '~/utils'
 import {getDomainUrl, getStripeSession} from '~/utils/stripe.server'
 
 export async function action({request, params}: ActionArgs) {
@@ -48,48 +53,30 @@ export async function action({request, params}: ActionArgs) {
   const selectedTip = action === 'normal' ? Number(tip) : Number(restAllToTip)
 
   const amountLeft = (await getAmountLeftToPay(tableId)) || 0
+  const total = amountLeft
   const userId = await getUserId(session)
 
   if (paymentMethod === 'card') {
     const stripeRedirectUrl = await getStripeSession(
-      amountLeft * 100 + Number(tip) * 100,
+      total * 100 + Number(tip) * 100,
       true,
-      getDomainUrl(request),
-      tableId,
-      // FIX aqui tiene que tener congruencia con el currency del database, ya que stripe solo acepta ciertas monedas, puedo hacer una condicion o cambiar db a "eur"
+      getDomainUrl(request) + redirectTo,
       'eur',
       selectedTip,
-      order.id,
       paymentMethod,
-      userId,
-      branchId,
     )
     return redirect(stripeRedirectUrl)
   } else if (paymentMethod === 'cash') {
-    await createPayment(
-      paymentMethod,
-      amountLeft,
-      selectedTip,
-      order.id,
-      userId,
-      branchId,
-    )
-    await assignUserNewPayments(userId, amountLeft, Number(selectedTip))
-    await assignExpirationAndValuesToOrder(
-      amountLeft,
-      selectedTip,
-      amountLeft,
-      order,
-    )
-
-    SendWhatsApp(
-      '14155238886',
-      `5215512956265`,
-      `El usuario ${userName} ha pagado quiere pagar en efectivo propina ${selectedTip} y total ${amountLeft}`,
-    )
-    EVENTS.ISSUE_CHANGED(tableId)
-
-    return redirect(redirectTo)
+    const params = {
+      typeOfPayment: 'perDish',
+      amount: total + tip,
+      tip: tip,
+      paymentMethod: paymentMethod,
+      // extraData: itemData ? JSON.stringify(itemData) : undefined,
+      isOrderAmountFullPaid: true,
+    }
+    const queryString = createQueryString(params)
+    return redirect(`${redirectTo}/payment/success?${queryString}`)
   }
 
   return json({success: true})

@@ -6,6 +6,7 @@ export default {
   theme: {
     fontFamily: {
       sans: ['Matter', ...defaultTheme.fontFamily.sans],
+      // sans: ['Nunito Sans', ...defaultTheme.fontFamily.sans],
     },
     screens: {
       '2xl': {max: '1535px'},
@@ -59,6 +60,7 @@ export default {
           // outline: '#3E7BFA',
           outline: '#4E4E62',
           successBg: '#DBFAE3',
+          successOutline: '#336B42',
           notSelected: '#ECECF1',
           textNotSelected: '#8E8EA0',
         },
