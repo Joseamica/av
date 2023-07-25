@@ -259,32 +259,33 @@ export async function action({request, params}: ActionArgs) {
         //@ts-expect-error
         const tip = amountToPay * Number(tipPercentage / 100)
 
-        if (paymentMethod === 'card') {
-          const stripeRedirectUrl = await getStripeSession(
-            amountToPay * 100 + tip * 100,
-            false,
-            getDomainUrl(request) + redirectTo,
-            //FIXME aqui tiene que tener congruencia con el currency del database, ya que stripe solo acepta ciertas monedas, puedo hacer una condicion o cambiar db a "eur"
-            'eur',
-            tip,
-            paymentMethod,
-            'cartPay',
-            //FIXME le estoy pasando mas de 500 characters y hay error.
-            //Es Para alterar los cartItems y que se vean quien pago
-            // cartItems,
-          )
-          return redirect(stripeRedirectUrl)
-        } else if (paymentMethod === 'cash') {
-          const params = {
-            typeOfPayment: 'cartPay',
-            amount: amountToPay + tip,
-            tip: tip,
-            paymentMethod: paymentMethod,
-            // extraData: itemData ? JSON.stringify(itemData) : undefined,
-            isOrderAmountFullPaid: false,
-          }
-          const queryString = createQueryString(params)
-          return redirect(`${redirectTo}/payment/success?${queryString}`)
+        switch (paymentMethod) {
+          case 'cash':
+            const params = {
+              typeOfPayment: 'cartPay',
+              amount: amountToPay + tip,
+              tip: tip,
+              paymentMethod: paymentMethod,
+              // extraData: itemData ? JSON.stringify(itemData) : undefined,
+              isOrderAmountFullPaid: false,
+            }
+            const queryString = createQueryString(params)
+            return redirect(`${redirectTo}/payment/success?${queryString}`)
+          case 'card':
+            const stripeRedirectUrl = await getStripeSession(
+              amountToPay * 100 + tip * 100,
+              false,
+              getDomainUrl(request) + redirectTo,
+              //FIXME aqui tiene que tener congruencia con el currency del database, ya que stripe solo acepta ciertas monedas, puedo hacer una condicion o cambiar db a "eur"
+              'eur',
+              tip,
+              paymentMethod,
+              'cartPay',
+              //FIXME le estoy pasando mas de 500 characters y hay error.
+              //Es Para alterar los cartItems y que se vean quien pago
+              // cartItems,
+            )
+            return redirect(stripeRedirectUrl)
         }
       }
 
