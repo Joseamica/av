@@ -203,7 +203,7 @@ export const action = async ({request}: ActionArgs) => {
       branchId: branchId,
     },
   })
-  //NOTE - delete all availabilities and then upsert them to prevent duplicates
+  //NOTE - delete all availabilities and then upsert them to prevent duplicatesa
   await prisma.availabilities.deleteMany({
     where: {
       menuId: menu.id,
