@@ -41,9 +41,11 @@ import { formatCurrency, getCurrency } from '~/utils'
 // }
 
 /**
- * Fetcher es un hook para multifetching, tiene si propio life-cycle
- * sin ser bloqueante para la UI
- * es una forma de comunicarnos con el server sin modificar el navigation
+ * * Fetcher es un hook para multifetching, tiene si propio life-cycle
+ * * sin ser bloqueante para la UI
+ * * es una forma de comunicarnos con el server sin modificar el navigation
+ * * Lo genial es que haciendo eso remix sincroniza nuestra interfaz con el el server (GET)
+ * ¿En realidad lo necesitamos en esta ocación?
  * @returns
  */
 export default function Menu() {

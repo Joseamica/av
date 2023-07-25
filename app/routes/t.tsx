@@ -1,19 +1,19 @@
-import type { Table } from "@prisma/client";
-import type { LoaderArgs } from "@remix-run/node";
+import type { Table } from '@prisma/client'
+import type { LoaderArgs } from '@remix-run/node'
 
-import { json } from "@remix-run/node";
-import { Link, useLoaderData } from "@remix-run/react";
+import { json } from '@remix-run/node'
+import { Link, useLoaderData } from '@remix-run/react'
 
-import { Button } from "~/components/ui/button";
-import { prisma } from "~/db.server";
+import { Button } from '~/components/ui/button'
+import { prisma } from '~/db.server'
 
 export const loader = async ({ request }: LoaderArgs) => {
-  const tables = await prisma.table.findMany({});
-  return json({ tables });
-};
+  const tables = await prisma.table.findMany({})
+  return json({ tables })
+}
 
 export default function Tables() {
-  const data = useLoaderData();
+  const data = useLoaderData()
   return (
     <div>
       {data.tables.map((table: Table) => (
@@ -26,5 +26,5 @@ export default function Tables() {
         </Button>
       ))}
     </div>
-  );
+  )
 }
