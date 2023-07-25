@@ -73,6 +73,7 @@ export async function action({request, params}: ActionArgs) {
   const tableId = session.get('tableId')
 
   const deliverect = await prisma.deliverect.findFirst({})
+
   invariant(deliverect, 'deliverect not found')
   const url = `${process.env.DELIVERECT_API_URL}/oauth/token`
   const options = {
@@ -88,7 +89,6 @@ export async function action({request, params}: ActionArgs) {
   try {
     const response = await fetch(url, options)
     const data = await response.json()
-
     await prisma.deliverect.update({
       where: {id: deliverect.id},
       data: {

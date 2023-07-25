@@ -119,9 +119,10 @@ export default function Table() {
         </h3>
         <Spacer spaceY="2" />
         <Help />
-        {/* <Form method="POST" action="/oauth/token">
+        <Form method="POST" action="/api/dvct/oauth/token">
           <button>Assign Token</button>
         </Form>
+        {/*
         <Form method="GET" action="/oauth/token">
           <button>Get Token</button>
         </Form>
