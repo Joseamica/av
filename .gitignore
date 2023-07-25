@@ -7,9 +7,10 @@ node_modules
 /cypress/screenshots
 /cypress/videos
 /postgres-data
-/package/lock.json
 
 /app/styles/tailwind.css
 /test-results/
 /playwright-report/
 /playwright/.cache/
+
+package-lock.json
