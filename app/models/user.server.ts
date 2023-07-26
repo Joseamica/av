@@ -2,7 +2,6 @@ import type {Order, Password, Table, User} from '@prisma/client'
 import bcrypt from 'bcryptjs'
 
 import {prisma} from '~/db.server'
-import {getSession} from '~/session.server'
 
 export type {User} from '@prisma/client'
 
@@ -122,12 +121,6 @@ export async function getUsersOnTable(tableId: Table['id']) {
   })
 
   return users.length > 0 ? users : null
-}
-
-interface UserPrevPaidData {
-  total: number | null
-  tip: number | null
-  paid: number | null
 }
 
 export async function assignUserNewPayments(

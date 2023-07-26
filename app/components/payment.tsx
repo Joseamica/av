@@ -1,33 +1,33 @@
-import { ChevronRightIcon } from "@heroicons/react/outline";
-import { ChevronUpIcon } from "@heroicons/react/solid";
-import { useMatches, useNavigation } from "@remix-run/react";
-import clsx from "clsx";
-import { AnimatePresence, motion } from "framer-motion";
-import React from "react";
-import { formatCurrency } from "~/utils";
-import { SubModal } from "./modal";
-import { Button } from "./ui/buttons/button";
-import { FlexRow } from "./util/flexrow";
-import { Spacer } from "./util/spacer";
-import { H2, H3, H4, H5, H6 } from "./util/typography";
+import {ChevronRightIcon} from '@heroicons/react/outline'
+import {ChevronUpIcon} from '@heroicons/react/solid'
+import {useMatches, useNavigation} from '@remix-run/react'
+import clsx from 'clsx'
+import {AnimatePresence, motion} from 'framer-motion'
+import React from 'react'
+import {Translate, formatCurrency} from '~/utils'
+import {SubModal} from './modal'
+import {Button} from './ui/buttons/button'
+import {FlexRow} from './util/flexrow'
+import {Spacer} from './util/spacer'
+import {H2, H3, H4, H5, H6} from './util/typography'
 
 const variants = {
   hidden: {
     height: 0,
     opacity: 0,
     transition: {
-      opacity: { duration: 0.2 },
-      height: { duration: 0.4 },
+      opacity: {duration: 0.2},
+      height: {duration: 0.4},
     },
   },
   visible: {
-    height: "auto",
+    height: 'auto',
     opacity: 1,
     transition: {
       duration: 0.5,
     },
   },
-};
+}
 
 // export function Payment({
 //   total = 0,
@@ -269,71 +269,58 @@ export function Payment({
   amountLeft,
   amountToPayState,
 }: {
-  currency: string;
-  tipsPercentages: any;
-  paymentMethods: any;
-  amountLeft: number | undefined;
-  amountToPayState: number;
+  currency: string
+  tipsPercentages: any
+  paymentMethods: any
+  amountLeft: number | undefined
+  amountToPayState: number
 }) {
   // const matches = useMatchesData(params.)
-  const matches = useMatches() as any;
+  const matches = useMatches() as any
 
-  const matchData = matches.find(
-    (match) => match.id === "routes/table.$tableId"
-  ).data;
+  // const matchData = matches.find(
+  //   match => match.id === 'routes/table.$tableId',
+  // ).data
 
-  const navigation = useNavigation();
+  const navigation = useNavigation()
 
-  const [tipRadio, setTipRadio] = React.useState(12);
-  const [paymentRadio, setPaymentRadio] = React.useState("cash");
+  const [tipRadio, setTipRadio] = React.useState(12)
+  const [paymentRadio, setPaymentRadio] = React.useState('cash')
   const [showModal, setShowModal] = React.useState({
     tip: false,
     payment: false,
-  });
+  })
 
-  const handleTipChange = (e) => {
-    setTipRadio(Number(e.target.value));
-  };
-  const handleMethodChange = (e) => {
-    setPaymentRadio(e.target.value);
-  };
+  const handleTipChange = e => {
+    setTipRadio(Number(e.target.value))
+  }
+  const handleMethodChange = e => {
+    setPaymentRadio(e.target.value)
+  }
 
-  const tip = Number(amountToPayState) * (Number(tipRadio) / 100);
-  const total = Number(amountToPayState) + tip;
+  const tip = Number(amountToPayState) * (Number(tipRadio) / 100)
+  const total = Number(amountToPayState) + tip
 
-  const isSubmitting = navigation.state !== "idle";
+  const isSubmitting = navigation.state !== 'idle'
 
-  const tipPercentages = [...Object.values(tipsPercentages), "0"];
+  // const tipPercentages = tipsPercentages.map(tipsPercentages => tipsPercentages)
 
-  const showPayContent = total > 0;
+  const showPayContent = total > 0
 
   return (
     <>
       <div className="dark:bg-night-bg_principal dark:text-night-text_principal sticky inset-x-0 bottom-0 flex flex-col justify-center rounded-t-xl border-2 border-button-textNotSelected border-opacity-70 bg-day-bg_principal px-3">
         <Spacer spaceY="2" />
-        <FlexRow
-          justify="between"
-          className={clsx({ "py-2": !showPayContent })}
-        >
+        <FlexRow justify="between" className={clsx({'py-2': !showPayContent})}>
           {showPayContent ? (
-            <H5>Queda por pagar:</H5>
+            <H5>Queda por pagar en la mesa:</H5>
           ) : (
             <H3>Queda por pagar:</H3>
           )}
           {showPayContent ? (
-            <H3>
-              {formatCurrency(
-                matchData.currency,
-                matchData.amountLeft ? matchData.amountLeft : total
-              )}
-            </H3>
+            <H3>{formatCurrency(currency, amountLeft ? amountLeft : total)}</H3>
           ) : (
-            <H2>
-              {formatCurrency(
-                matchData.currency,
-                matchData.amountLeft ? matchData.amountLeft : total
-              )}
-            </H2>
+            <H2>{formatCurrency(currency, amountLeft ? amountLeft : total)}</H2>
           )}
         </FlexRow>
         <Spacer spaceY="1" />
@@ -342,7 +329,7 @@ export function Payment({
             <motion.div
               variants={variants}
               initial="hidden"
-              animate={showPayContent ? "visible" : "hidden"}
+              animate={showPayContent ? 'visible' : 'hidden'}
               exit="hidden"
               className="flex flex-col"
             >
@@ -351,13 +338,13 @@ export function Payment({
               <button
                 className="flex flex-row items-center justify-between"
                 type="button"
-                onClick={() => setShowModal({ ...showModal, tip: true })}
+                onClick={() => setShowModal({...showModal, tip: true})}
               >
                 <H5>Propina</H5>
                 <FlexRow>
                   <FlexRow>
                     <H4 variant="secondary">{tipRadio}%</H4>
-                    <H3>{formatCurrency(matchData.currency, tip)}</H3>
+                    <H3>{formatCurrency(currency, tip)}</H3>
                   </FlexRow>
                   {showModal.tip ? (
                     <FlexRow className="rounded-full bg-gray_light px-2 py-1">
@@ -376,11 +363,11 @@ export function Payment({
               <button
                 className="flex flex-row items-center justify-between"
                 type="button"
-                onClick={() => setShowModal({ ...showModal, payment: true })}
+                onClick={() => setShowModal({...showModal, payment: true})}
               >
                 <H5>Método de pago</H5>
                 <FlexRow>
-                  <H3>{paymentRadio}</H3>
+                  <H3>{Translate('es', paymentRadio)}</H3>
                   {showModal.payment ? (
                     <FlexRow className="rounded-full bg-gray_light px-2 py-1">
                       <H6>Cerrar</H6>
@@ -400,9 +387,7 @@ export function Payment({
               <FlexRow justify="between">
                 <H5>Vas a pagar:</H5>
                 <div className="flex flex-col">
-                  <H2>
-                    {formatCurrency(matchData.currency, total ? total : 0)}
-                  </H2>
+                  <H2>{formatCurrency(currency, total ? total : 0)}</H2>
                   <svg
                     viewBox="0 0 72 6"
                     fill="none"
@@ -420,10 +405,10 @@ export function Payment({
 
               <Spacer spaceY="2" />
               <Button fullWith={true} disabled={isSubmitting}>
-                {isSubmitting ? "Procesando..." : "Pagar"}{" "}
+                {isSubmitting ? 'Procesando...' : 'Pagar'}{' '}
                 {formatCurrency(
-                  matchData.currency,
-                  total // Update the total amount
+                  currency,
+                  total, // Update the total amount
                 )}
               </Button>
             </motion.div>
@@ -433,11 +418,11 @@ export function Payment({
       {showModal.tip && (
         <AssignTipModal
           amountToPay={amountToPayState}
-          currency={matchData.currency}
+          currency={currency}
           handleTipChange={handleTipChange}
           setShowModal={setShowModal}
           showModal={showModal}
-          tipPercentages={tipPercentages}
+          tipPercentages={tipsPercentages}
           tipRadio={tipRadio}
         />
       )}
@@ -453,7 +438,7 @@ export function Payment({
       <input type="hidden" name="paymentMethod" value={paymentRadio} />
       <input type="hidden" name="tipPercentage" value={tipRadio} />
     </>
-  );
+  )
 }
 
 export function AssignTipModal({
@@ -467,7 +452,7 @@ export function AssignTipModal({
 }) {
   return (
     <SubModal
-      onClose={() => setShowModal({ ...showModal, tip: false })}
+      onClose={() => setShowModal({...showModal, tip: false})}
       title="Asignar propina"
     >
       <div className="space-y-2">
@@ -475,11 +460,11 @@ export function AssignTipModal({
           <label
             key={tipPercentage}
             className={clsx(
-              "flex w-full flex-row items-center justify-center space-x-2 rounded-lg border border-button-outline border-opacity-40 px-3 py-1 text-center shadow-lg",
+              'flex w-full flex-row items-center justify-center space-x-2 rounded-lg border border-button-outline border-opacity-40 px-3 py-1 text-center shadow-lg',
               {
-                "text-2 rounded-full bg-button-primary px-2 py-1  text-white  ring-4   ring-button-outline":
+                'text-2 rounded-full bg-button-primary px-2 py-1  text-white  ring-4   ring-button-outline':
                   tipRadio.toString() === tipPercentage,
-              }
+              },
             )}
           >
             <div>
@@ -487,7 +472,7 @@ export function AssignTipModal({
               <H5>
                 {formatCurrency(
                   currency,
-                  Number(amountToPay) * (Number(tipPercentage) / 100)
+                  Number(amountToPay) * (Number(tipPercentage) / 100),
                 )}
               </H5>
             </div>
@@ -505,12 +490,12 @@ export function AssignTipModal({
       <Spacer spaceY="2" />
       <Button
         fullWith={true}
-        onClick={() => setShowModal({ ...showModal, tip: false })}
+        onClick={() => setShowModal({...showModal, tip: false})}
       >
         Asignar
       </Button>
     </SubModal>
-  );
+  )
 }
 
 export function AssignPaymentMethodModal({
@@ -522,22 +507,22 @@ export function AssignPaymentMethodModal({
 }) {
   return (
     <SubModal
-      onClose={() => setShowModal({ ...showModal, payment: false })}
+      onClose={() => setShowModal({...showModal, payment: false})}
       title="Asignar método de pago"
     >
       <div className="space-y-2">
-        {Object.values(paymentMethods).map((paymentMethod: any) => {
-          const translate = paymentMethod === "cash" ? "Efectivo" : "Tarjeta";
+        {paymentMethods.paymentMethods.map((paymentMethod: any) => {
+          const translate = Translate('es', paymentMethod)
 
           return (
             <label
               key={paymentMethod}
               className={clsx(
-                "flex w-full flex-row items-center justify-center space-x-2 rounded-lg border border-button-outline border-opacity-40 px-3 py-2 shadow-lg",
+                'flex w-full flex-row items-center justify-center space-x-2 rounded-lg border border-button-outline border-opacity-40 px-3 py-2 shadow-lg',
                 {
-                  "text-2 rounded-full bg-button-primary px-2 py-3  text-white  ring-4   ring-button-outline":
+                  'text-2 rounded-full bg-button-primary px-2 py-3  text-white  ring-4   ring-button-outline':
                     paymentRadio === paymentMethod,
-                }
+                },
               )}
             >
               {translate}
@@ -550,15 +535,15 @@ export function AssignPaymentMethodModal({
                 className="sr-only"
               />
             </label>
-          );
+          )
         })}
         <Button
           fullWith={true}
-          onClick={() => setShowModal({ ...showModal, payment: false })}
+          onClick={() => setShowModal({...showModal, payment: false})}
         >
           Asignar
         </Button>
       </div>
     </SubModal>
-  );
+  )
 }

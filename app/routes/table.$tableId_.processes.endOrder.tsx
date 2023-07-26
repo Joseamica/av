@@ -44,6 +44,7 @@ export const action = async ({request, params}: ActionArgs) => {
     },
   })
   session.unset('cart')
+  session.unset('tableId')
   // session.unset('tableSession')
   EVENTS.ISSUE_CHANGED(tableId)
   return redirect('/thankyou', {

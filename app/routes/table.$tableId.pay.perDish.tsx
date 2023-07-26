@@ -23,7 +23,12 @@ import {validateRedirect} from '~/redirect.server'
 import {getSession, getUserId, getUsername} from '~/session.server'
 import {SendWhatsApp} from '~/twilio.server'
 import {useLiveLoader} from '~/use-live-loader'
-import {formatCurrency, getAmountLeftToPay, getCurrency} from '~/utils'
+import {
+  createQueryString,
+  formatCurrency,
+  getAmountLeftToPay,
+  getCurrency,
+} from '~/utils'
 import {getDomainUrl, getStripeSession} from '~/utils/stripe.server'
 
 type LoaderData = {
@@ -141,13 +146,13 @@ export async function action({request, params}: ActionArgs) {
 
   //ERROR HANDLING
 
-  if (amountLeft < total) {
-    const error = `Estas pagando ${formatCurrency(
-      currency,
-      total - amountLeft,
-    )} de más....`
-    return json({error}, {status: 400})
-  }
+  // if (amountLeft < total) {
+  //   const error = `Estas pagando ${formatCurrency(
+  //     currency,
+  //     total - amountLeft,
+  //   )} de más....`
+  //   return json({error}, {status: 400})
+  // }
 
   if (amountLeft < total) {
     const url = new URL(request.url)
@@ -158,10 +163,6 @@ export async function action({request, params}: ActionArgs) {
       }&pMethod=${data.paymentMethod}&redirectTo=${pathname}`,
     )
   }
-  const session = await getSession(request)
-
-  const userId = await getUserId(session)
-  const userName = await getUsername(session)
 
   const isOrderAmountFullPaid = amountLeft <= total
 
@@ -172,37 +173,25 @@ export async function action({request, params}: ActionArgs) {
         total * 100 + tip * 100,
         isOrderAmountFullPaid,
         getDomainUrl(request) + `/table/${tableId}`,
-        tableId,
-        // FIX aqui tiene que tener congruencia con el currency del database, ya que stripe solo acepta ciertas monedas, puedo hacer una condicion o cambiar db a "eur"
         'eur',
         tip,
-        order.id,
         data.paymentMethod,
-        userId,
-        branchId,
         'perDish',
         itemData,
       )
       return redirect(stripeRedirectUrl)
+    //TODO Agregar que cuando paga el usuario el mesero lo confirme como pagado en su app cuando me llegue eso, entonces podra proceder
     case 'cash': {
-      await createPayment(
-        data.paymentMethod,
-        total,
-        tip,
-        order.id,
-        userId,
-        branchId,
-      )
-      await updatePaidItemsAndUserData(itemData, total, tip, userName, userId)
-      await assignExpirationAndValuesToOrder(amountLeft, tip, total, order)
-
-      SendWhatsApp(
-        '14155238886',
-        `5215512956265`,
-        `El usuario ${userName} ha pagado quiere pagar en efectivo propina ${tip} y total ${total}`,
-      )
-      EVENTS.ISSUE_CHANGED(tableId, `userPaid ${userName}`)
-      return redirect(redirectTo)
+      const params = {
+        typeOfPayment: 'perDish',
+        amount: total + tip,
+        tip: tip,
+        paymentMethod: data.paymentMethod,
+        extraData: itemData ? JSON.stringify(itemData) : undefined,
+        isOrderAmountFullPaid: isOrderAmountFullPaid,
+      }
+      const queryString = createQueryString(params)
+      return redirect(`${redirectTo}/payment/success?${queryString}`)
     }
   }
   return json({success: true})

@@ -146,7 +146,7 @@ export async function getAmountLeftToPay(
   // orderId?: Order[`id`],
 ) {
   const order = await getOrder(tableId)
-  invariant(order, 'order should be defined')
+  if (!order) return null
 
   const payments = await prisma.payments.aggregate({
     where: {orderId: order.id},
@@ -218,4 +218,55 @@ export function getTableIdFromUrl(pathname: string) {
   let tableIndex = segments.indexOf('table')
   let tableId = segments[tableIndex + 1]
   return tableId
+}
+
+const TRANSLATIONS = {
+  en: {
+    card: 'Card',
+    cash: 'Cash',
+    paypal: 'Paypal',
+  },
+  es: {
+    card: 'Tarjeta',
+    cash: 'Efectivo',
+    paypal: 'Paypal',
+  },
+}
+
+export function Translate(wishLanguage, textToTranslate) {
+  return TRANSLATIONS[wishLanguage][textToTranslate] || textToTranslate
+}
+
+export function createQueryString(params) {
+  let queryString = ''
+  for (const key in params) {
+    if (queryString !== '') {
+      queryString += '&'
+    }
+    queryString += `${key}=${encodeURIComponent(params[key])}`
+  }
+  return queryString
+}
+
+export async function getIsDvctTokenExpired() {
+  const dvct = await prisma.deliverect.findFirst({})
+  const dvctExpiration = dvct.deliverectExpiration
+  const dvctToken = dvct.deliverectToken
+  console.log('dvctToken', dvctToken)
+  const currentTime = Math.floor(Date.now() / 1000) // Get the current time in Unix timestamp
+  if (!dvctToken || !dvctExpiration) {
+    console.log(
+      '%cutils.ts line:256 🔴  dvctToken or dvctExpiration on db is null',
+      'color: #007acc;',
+    )
+    return true
+  }
+  const isTokenExpired = dvct && dvctExpiration <= currentTime ? true : false
+  console.log(
+    'isDvctTokenExpired',
+    isTokenExpired === false
+      ? '🟢 token is not expired'
+      : '🔴 needs to refresh!',
+  )
+  return isTokenExpired
 }

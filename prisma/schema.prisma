@@ -25,44 +25,38 @@ model Restaurant {
 }
 
 model Branch {
-  id                  String     @id @default(cuid())
-  name                String
-  updated             String?
-  created             String?
-  timezone            String?
-  ppt_image           String
-  email               String
-  phone               String?
-  city                String
-  address             String
-  extraAddress        String
-  rating              Float?
-  rating_quantity     Int?
-  cuisine             String
-  wifiName            String?
-  wifipwd             String?
-  coordinates         Json?
-  instagram           String?
-  facebook            String?
-  twitter             String?
-  open                Int?
-  close               Int?
-  firstTip            Decimal?   @default(10)
-  secondTip           Decimal?   @default(12)
-  thirdTip            Decimal?   @default(15)
-  firstPaymentMethod  String?    @default("cash")
-  secondPaymentMethod String?    @default("card")
-  thirdPaymentMethod  String?    @default("paypal")
-  fourthPaymentMethod String?    @default("apple_pay")
-  menus               Menu[]
-  table               Table[]
-  orders              Order[]
-  users               User[]
-  employees           Employee[]
-  feedbacks           Feedback[]
-  payments            Payments[]
-  restaurant          Restaurant @relation(fields: [restaurantId], references: [id], onDelete: Cascade, onUpdate: Cascade)
-  restaurantId        String
+  id              String     @id @default(cuid())
+  name            String
+  updated         String?
+  created         String?
+  timezone        String?
+  language        String?    @default("en")
+  ppt_image       String
+  email           String
+  phone           String?
+  city            String
+  address         String
+  extraAddress    String
+  rating          Float?
+  rating_quantity Int?
+  cuisine         String
+  wifiName        String?
+  wifipwd         String?
+  coordinates     Json?
+  social          Json[]     @default([])
+  open            Int?
+  close           Int?
+  tipsPercentages Decimal[]  @default([10, 12, 15])
+  paymentMethods  String[]   @default(["cash", "card"])
+  menus           Menu[]
+  table           Table[]
+  orders          Order[]
+  users           User[]
+  employees       Employee[]
+  feedbacks       Feedback[]
+  payments        Payments[]
+  restaurant      Restaurant @relation(fields: [restaurantId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  restaurantId    String
 }
 
 model Table {
@@ -315,7 +309,10 @@ enum PaymentMethod {
 }
 
 model Deliverect {
-  id                   String  @id @default(cuid())
-  deliverectToken      String?
+  id              String  @id @default(cuid())
+  deliverectToken String?
+  // TODO add deliverect details like channel id, orderId etc???
+  // channelName         String?
+
   deliverectExpiration Int?
 }

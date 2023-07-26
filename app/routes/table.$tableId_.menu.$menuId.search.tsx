@@ -198,7 +198,7 @@ export default function Search() {
                   : menuItem.name.toLowerCase().includes(searchText),
             )
             return (
-              <>
+              <div key={categories.id}>
                 {filteredItems.length > 0 ? (
                   <SectionContainer key={categories.id} divider={true}>
                     <H3 className="sticky top-12 w-full bg-white p-4 shadow-md dark:shadow-none ">
@@ -253,7 +253,7 @@ export default function Search() {
                 ) : (
                   <div className="  h-full"></div>
                 )}
-              </>
+              </div>
             )
           })}
         </div>

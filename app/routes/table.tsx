@@ -18,16 +18,31 @@ import {
   getUsername,
   sessionStorage,
 } from '~/session.server'
-import {getTableIdFromUrl} from '~/utils'
+import {
+  getIsDvctTokenExpired,
+  getTableIdFromUrl,
+  isDvctTokenExpired,
+} from '~/utils'
 // * COMPONENTS
 // * CUSTOM COMPONENTS
 import {Header, UserForm} from '~/components'
-import invariant from 'tiny-invariant'
+import {useEffect, useState} from 'react'
 
 const SESSION_EXPIRATION_TIME = 1000 * 60 * 60 * 24 * 30 //30 days
 
 export default function TableLayoutPath() {
   const data = useLoaderData()
+
+  const [notification, setNotification] = useState(data.notification)
+
+  // useEffect(() => {
+  //   if (notification) {
+  //     const timer = setTimeout(() => {
+  //       setNotification(null)
+  //     }, 4000)
+  //     return () => clearTimeout(timer)
+  //   }
+  // }, [notification])
 
   if (!data.username) {
     return <UserForm />
@@ -36,6 +51,11 @@ export default function TableLayoutPath() {
   return (
     <>
       <Header user={data.user} isAdmin={data.isAdmin} />
+      {notification && (
+        <div className="fixed left-0 top-0 z-[9999] w-full bg-green-500 py-2 text-center text-white">
+          {notification}
+        </div>
+      )}
       <Outlet></Outlet>
     </>
   )
@@ -48,7 +68,7 @@ export const loader = async ({request}: LoaderArgs) => {
     console.log('No sessionID ❌error expected')
     redirect('/logout')
   }
-  invariant(sessionId, 'Session ID is required Error in table.tsx line 47')
+  // invariant(sessionId, 'Session ID is required Error in table.tsx line 47')
   const userId = await getUserId(session)
 
   let user = null
@@ -63,23 +83,30 @@ export const loader = async ({request}: LoaderArgs) => {
   const username = await getUsername(session)
   const user_color = session.get('user_color')
 
-  // * Verify if user is on the database or create
+  // NOTE - Verify if user is on the database or create
   if (username) {
     user = await findOrCreateUser(userId, username, user_color)
   }
 
+  //NOTE - This is to validate if the user is scanning from QR
   const url = new URL(request.url)
   const pathname = url.pathname
   const tableId = getTableIdFromUrl(pathname)
-
   if (!tableId) {
     throw new Error(
       'Procura acceder por medio del código QR, u obtener el link con el id de la mesa.',
     )
   }
+  //NOTE - This is to validate if the token is expired
+  const isDvctTokenExpired = await getIsDvctTokenExpired()
+  if (isDvctTokenExpired) {
+    return redirect(`/api/dvct/oauth/token?redirectTo=${pathname}`)
+  }
+
+  const notification = session.get('notification')
 
   return json(
-    {username, pathname, user, isAdmin},
+    {username, pathname, user, isAdmin, notification},
     {headers: {'Set-Cookie': await sessionStorage.commitSession(session)}},
   )
 }
