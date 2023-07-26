@@ -7,13 +7,16 @@ import {
   Outlet,
   Scripts,
   ScrollRestoration,
+  isRouteErrorResponse,
   useNavigation,
+  useRouteError,
 } from '@remix-run/react'
 // * STYLES
 import tailwindStylesheetUrl from '~/styles/tailwind.css'
 // * CUSTOM COMPONENTS
 import appStylesheetUrl from './styles/app.css'
 import {useSpinDelay} from 'spin-delay'
+import Error from './components/util/error'
 
 export const links: LinksFunction = () => [
   {
@@ -63,11 +66,8 @@ function Document({
           <div className="h-16 w-16 animate-spin rounded-full border-4 border-blue-500" />
         </div>
       )} */}
-        {/* <RemixSseProvider> */}
         <div id="modal-root" />
-
         {children}
-        {/* </RemixSseProvider> */}
         <ScrollRestoration />
         <Scripts />
         <LiveReload />
@@ -81,5 +81,40 @@ export default function App() {
     <Document>
       <Outlet />
     </Document>
+  )
+}
+
+export function ErrorBoundary() {
+  const error = useRouteError()
+
+  // when true, this is what used to go to `CatchBoundary`
+  if (isRouteErrorResponse(error)) {
+    return (
+      <div>
+        <h1>Oops</h1>
+        <p>Status: {error.status}</p>
+        <p>{error.data.message}</p>
+        <Error title={error.data.message}>
+          <h1>Uh oh ...</h1>
+          <p>Something went wrong.</p>
+        </Error>
+      </div>
+    )
+  }
+
+  // Don't forget to typecheck with your own logic.
+  // Any value can be thrown, not just errors!
+  let errorMessage = 'Unknown error'
+  // if (isDefinitelyAnError(error)) {
+  //   errorMessage = error.message;
+  // }
+
+  return (
+    <div>
+      <Error title={errorMessage}>
+        <h1>Uh oh ...</h1>
+        <p>Something went wrong.</p>
+      </Error>
+    </div>
   )
 }
