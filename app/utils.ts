@@ -267,5 +267,6 @@ export async function getIsDvctTokenExpired() {
       ? '🟢 token is not expired'
       : '🔴 needs to refresh!',
   )
+
   return isTokenExpired
 }
