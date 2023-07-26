@@ -129,6 +129,7 @@ export function getHour() {
   const timeNow = Number(`${hours}.${String(minutes).padStart(2, '0')}`)
   return timeNow
 }
+
 export function getDateTime() {
   const now = new Date()
   const day = String(now.getDate()).padStart(2, '0')

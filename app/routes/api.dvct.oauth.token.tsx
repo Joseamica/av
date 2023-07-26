@@ -1,4 +1,4 @@
-import {type ActionArgs, type LoaderArgs, json, redirect} from '@remix-run/node'
+import {type ActionArgs, json, redirect} from '@remix-run/node'
 import invariant from 'tiny-invariant'
 import {prisma} from '~/db.server'
 import {validateRedirect} from '~/redirect.server'
@@ -111,6 +111,7 @@ export async function action({request, params}: ActionArgs) {
   const deliverect = await prisma.deliverect.findFirst({})
 
   invariant(deliverect, 'deliverect not found')
+
   const url = `${process.env.DELIVERECT_API_URL}/oauth/token`
   const options = {
     method: 'POST',
@@ -122,6 +123,7 @@ export async function action({request, params}: ActionArgs) {
       client_secret: secret,
     }),
   }
+
   try {
     const response = await fetch(url, options)
     const data = await response.json()
