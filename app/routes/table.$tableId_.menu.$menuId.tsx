@@ -110,6 +110,7 @@ export async function loader({request, params}: LoaderArgs) {
     branch,
   })
 }
+export const handle = {disableUserButton: true}
 
 export async function action({request, params}: ActionArgs) {
   const {tableId} = params

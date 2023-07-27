@@ -1,18 +1,18 @@
-import { UserCircleIcon } from "@heroicons/react/solid";
-import type { User } from "@prisma/client";
-import { Link, useLoaderData } from "@remix-run/react";
-import { motion } from "framer-motion";
-import { formatCurrency } from "~/utils";
-import { FlexRow } from "./util/flexrow";
-import { H5, H6 } from "./util/typography";
+import {UserCircleIcon} from '@heroicons/react/solid'
+import type {User} from '@prisma/client'
+import {Link, useLoaderData} from '@remix-run/react'
+import {motion} from 'framer-motion'
+import {formatCurrency} from '~/utils'
+import {FlexRow} from './util/flexrow'
+import {H5, H6} from './util/typography'
 
-const MotionLink = motion(Link);
+const MotionLink = motion(Link)
 
-export function CartItemDetails({ cartItem }: { cartItem: any }) {
-  const data = useLoaderData();
-  let cartTotalPrice = cartItem.price * cartItem.quantity;
-  let users = cartItem.user?.slice(0, 2).map((user) => user.name);
-  if (cartItem.user?.length > 2) users.push("...");
+export function CartItemDetails({cartItem}: {cartItem: any}) {
+  const data = useLoaderData()
+  let cartTotalPrice = cartItem.price * cartItem.quantity
+  let users = cartItem.user?.slice(0, 2).map(user => user.name)
+  if (cartItem.user?.length > 2) users.push('...')
   return (
     <MotionLink
       to={`cartItem/${cartItem.id}`}
@@ -37,7 +37,7 @@ export function CartItemDetails({ cartItem }: { cartItem: any }) {
         <img
           alt=""
           loading="lazy"
-          src={cartItem?.image || ""}
+          src={cartItem?.image || ''}
           className="dark:bg-secondaryDark h-10 w-10 rounded-lg"
         />
         <div className="space-y-[2px]">
@@ -54,7 +54,7 @@ export function CartItemDetails({ cartItem }: { cartItem: any }) {
                   className="flex flex-row items-center space-x-1"
                 >
                   <UserCircleIcon
-                    fill={user.color || "#000"}
+                    fill={user.color || '#000'}
                     className="min-h-5  min-w-5 h-5"
                   />
                   <H6 className="">{user.name}</H6>
@@ -93,5 +93,5 @@ export function CartItemDetails({ cartItem }: { cartItem: any }) {
         </H5>
       </FlexRow>
     </MotionLink>
-  );
+  )
 }

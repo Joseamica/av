@@ -18,11 +18,7 @@ import {
   getUsername,
   sessionStorage,
 } from '~/session.server'
-import {
-  getIsDvctTokenExpired,
-  getTableIdFromUrl,
-  isDvctTokenExpired,
-} from '~/utils'
+import {getIsDvctTokenExpired, getTableIdFromUrl} from '~/utils'
 // * COMPONENTS
 // * CUSTOM COMPONENTS
 import {Header, UserForm} from '~/components'

@@ -107,6 +107,8 @@ export default function Table() {
   if (data.order) {
     return (
       <motion.main className="no-scrollbar">
+        <Outlet />
+        {/* TODO NOTIFICATIONS */}
         <div className="fixed inset-x-0 top-0 z-50 w-full bg-button-successBg text-success"></div>
         <RestaurantInfoCard
           branch={data.branch}
@@ -161,14 +163,6 @@ export default function Table() {
         )}
 
         <Spacer spaceY="2" />
-        {/* {data.order.cartItems.length > 7 ? (
-          <SinglePayButton
-            showPaymentOptions={showPaymentOptions}
-            setShowPaymentOptions={setShowPaymentOptions}
-          />
-        ) : (
-          <PayButtons />
-        )} */}
         {data.amountLeft > 0 ? (
           <SinglePayButton
             showPaymentOptions={showPaymentOptions}
@@ -186,8 +180,6 @@ export default function Table() {
             </Button>
           </Form>
         )}
-
-        <Outlet />
       </motion.main>
     )
   } else {

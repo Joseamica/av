@@ -1,4 +1,4 @@
-import {UserCircleIcon, ChevronDownIcon} from '@heroicons/react/outline'
+import {UserCircleIcon, ChevronDownIcon} from '@heroicons/react/solid'
 import clsx from 'clsx'
 import {AnimatePresence, motion} from 'framer-motion'
 import {formatCurrency} from '~/utils'
@@ -6,7 +6,7 @@ import {CartItemDetails} from '../cart-item-details'
 import {SectionContainer} from '../containers/section-container'
 import {FlexRow} from '../util/flexrow'
 import {Spacer} from '../util/spacer'
-import {H3, H6} from '../util/typography'
+import {H3, H5, H6} from '../util/typography'
 
 export function FilterUserView({
   order,
@@ -36,20 +36,19 @@ export function FilterUserView({
                       />
                       <div className="flex flex-col">
                         <H3>{user.name}</H3>
-                        <H6>
+                        <H5>
                           {Number(user.paid) > 0
                             ? `Pagado: ${formatCurrency(currency, userPaid)}`
                             : 'No ha pagado'}
-                        </H6>
+                        </H5>
                         <FlexRow>
-                          <H6>
+                          <H5>
                             {user.cartItems?.length === 1
                               ? `${user.cartItems?.length} platillo ordenado`
                               : `${user.cartItems?.length} platillos ordenado` ||
                                 0}
-                          </H6>
+                          </H5>
                           <H6>
-                            (
                             {formatCurrency(
                               currency,
                               user.cartItems.reduce(
@@ -57,7 +56,6 @@ export function FilterUserView({
                                 0,
                               ),
                             )}
-                            )
                           </H6>
                         </FlexRow>
                       </div>
