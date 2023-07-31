@@ -107,7 +107,6 @@ export default function Table() {
   if (data.order) {
     return (
       <motion.main className="no-scrollbar">
-        <Outlet />
         {/* TODO NOTIFICATIONS */}
         <div className="fixed inset-x-0 top-0 z-50 w-full bg-button-successBg text-success"></div>
         <RestaurantInfoCard
@@ -180,6 +179,7 @@ export default function Table() {
             </Button>
           </Form>
         )}
+        <Outlet />
       </motion.main>
     )
   } else {

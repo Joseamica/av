@@ -28,7 +28,7 @@ function getClassName({
   fullWith?: boolean
 }) {
   return clsx(
-    'group relative inline-flex text-lg font-medium focus:outline-none opacity-100 disabled:opacity-50 transition ',
+    'group relative inline-flex text-lg  focus:outline-none opacity-100 disabled:opacity-50 transition ',
     {'w-full': fullWith},
 
     className,
