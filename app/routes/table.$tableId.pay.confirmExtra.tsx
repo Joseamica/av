@@ -11,6 +11,7 @@ import {
   getPaymentMethods,
   getTipsPercentages,
 } from '~/models/branch.server'
+import {getMenu} from '~/models/menu.server'
 import {getOrder} from '~/models/order.server'
 import {getPaidUsers} from '~/models/user.server'
 import {validateRedirect} from '~/redirect.server'
@@ -22,6 +23,7 @@ import {
   getAmountLeftToPay,
   getCurrency,
 } from '~/utils'
+import {handlePaymentProcessing} from '~/utils/paymentProcessing.server'
 import {getDomainUrl, getStripeSession} from '~/utils/stripe.server'
 
 export async function action({request, params}: ActionArgs) {
@@ -50,22 +52,24 @@ export async function action({request, params}: ActionArgs) {
   const selectedTip = action === 'normal' ? Number(tip) : Number(restAllToTip)
 
   const amountLeft = (await getAmountLeftToPay(tableId)) || 0
+  const menuCurrency = await getMenu(branchId).then(
+    (menu: any) => menu?.currency || 'mxn',
+  )
   const total = amountLeft
-  const userId = await getUserId(session)
 
   if (paymentMethod === 'card') {
     const stripeRedirectUrl = await getStripeSession(
       total * 100 + Number(tip) * 100,
       true,
       getDomainUrl(request) + redirectTo,
-      'eur',
+      menuCurrency,
       selectedTip,
       paymentMethod,
     )
     return redirect(stripeRedirectUrl)
   } else if (paymentMethod === 'cash') {
     const params = {
-      typeOfPayment: 'perDish',
+      typeOfPayment: 'confirmExtra',
       amount: total + tip,
       tip: tip,
       paymentMethod: paymentMethod,

@@ -8,16 +8,15 @@ import {
   Scripts,
   ScrollRestoration,
   isRouteErrorResponse,
-  useMatches,
   useNavigation,
   useRouteError,
 } from '@remix-run/react'
 // * STYLES
 import tailwindStylesheetUrl from '~/styles/tailwind.css'
 // * CUSTOM COMPONENTS
-import appStylesheetUrl from './styles/app.css'
 import {useSpinDelay} from 'spin-delay'
 import Error from './components/util/error'
+import appStylesheetUrl from './styles/app.css'
 
 export const links: LinksFunction = () => [
   {

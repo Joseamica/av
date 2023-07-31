@@ -16,26 +16,17 @@ import {
   SectionContainer,
 } from '~/components'
 import {prisma} from '~/db.server'
-import {EVENTS} from '~/events'
 import {
   getBranchId,
   getPaymentMethods,
   getTipsPercentages,
 } from '~/models/branch.server'
-import {assignExpirationAndValuesToOrder, getOrder} from '~/models/order.server'
-import {createPayment} from '~/models/payments.server'
-import {assignUserNewPayments} from '~/models/user.server'
+import {getMenu} from '~/models/menu.server'
+import {getOrder} from '~/models/order.server'
 import {validateRedirect} from '~/redirect.server'
-import {getSession, getUserDetails} from '~/session.server'
-import {SendWhatsApp} from '~/twilio.server'
 import {useLiveLoader} from '~/use-live-loader'
-import {
-  createQueryString,
-  formatCurrency,
-  getAmountLeftToPay,
-  getCurrency,
-} from '~/utils'
-import {getDomainUrl, getStripeSession} from '~/utils/stripe.server'
+import {formatCurrency, getAmountLeftToPay, getCurrency} from '~/utils'
+import {handlePaymentProcessing} from '~/utils/paymentProcessing.server'
 
 export async function loader({request, params}: LoaderArgs) {
   const {tableId} = params
@@ -117,7 +108,6 @@ export async function action({request, params}: ActionArgs) {
   invariant(branchId, 'No se encontró la sucursal')
 
   const formData = await request.formData()
-  const session = await getSession(request)
 
   const data = Object.fromEntries(formData)
 
@@ -134,10 +124,13 @@ export async function action({request, params}: ActionArgs) {
   }
 
   const redirectTo = validateRedirect(request.redirect, `/table/${tableId}`)
-  const user = await getUserDetails(session)
+
   const tip = total * (Number(data.tipPercentage) / 100)
 
   const amountLeft = (await getAmountLeftToPay(tableId)) || 0
+  const menuCurrency = await getMenu(branchId).then(
+    (menu: any) => menu?.currency || 'mxn',
+  )
 
   if (amountLeft < total) {
     const url = new URL(request.url)
@@ -149,30 +142,20 @@ export async function action({request, params}: ActionArgs) {
     )
   }
   const isOrderAmountFullPaid = amountLeft <= total
-  // NOTE - esto va aqui porque si el metodo de pago es otro que no sea tarjeta, entonces que cree el pago directo, sin stripe (ya que stripe tiene su propio create payment en el webhook)
-  switch (data.paymentMethod) {
-    case 'card':
-      const stripeRedirectUrl = await getStripeSession(
-        total * 100 + tip * 100,
-        isOrderAmountFullPaid,
-        getDomainUrl(request) + redirectTo,
-        'eur',
-        tip,
-        data.paymentMethod,
-      )
-      return redirect(stripeRedirectUrl)
 
-    case 'cash':
-      const params = {
-        typeOfPayment: 'perDish',
-        amount: total + tip,
-        tip: tip,
-        paymentMethod: data.paymentMethod,
-        // extraData: itemData ? JSON.stringify(itemData) : undefined,
-        isOrderAmountFullPaid: isOrderAmountFullPaid,
-      }
-      const queryString = createQueryString(params)
-      return redirect(`${redirectTo}/payment/success?${queryString}`)
+  const result = await handlePaymentProcessing(
+    data.paymentMethod as string,
+    amountLeft,
+    tip,
+    menuCurrency,
+    isOrderAmountFullPaid,
+    request,
+    redirectTo,
+    'perPerson',
+  )
+
+  if (result.type === 'redirect') {
+    return redirect(result.url)
   }
 
   return json({success: true})

@@ -57,7 +57,7 @@ export const loader = async ({params, request}: LoaderArgs) => {
 
   switch (typeOfPayment) {
     case 'cartPay':
-      session.flash('notification', 'Haz pagado tu orden con éxito')
+      session.flash('notification', 'Haz pagado productos con éxito')
       session.unset('cart')
       //TODO assign payments to dishes connect to user
       // await updatePaidItemsAndUserData(itemData, username || '')
@@ -77,9 +77,10 @@ export const loader = async ({params, request}: LoaderArgs) => {
         },
       })
       break
+    case 'custom':
+      session.flash('notification', 'Pago realizado con éxito')
   }
 
-  //   session.flash('success', 'Pago realizado con éxito')
   EVENTS.ISSUE_CHANGED(tableId)
   await assignExpirationAndValuesToOrder(amountLeft, tip, amount, order)
   SendWhatsApp(

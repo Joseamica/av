@@ -15,6 +15,7 @@ import {
   getPaymentMethods,
   getTipsPercentages,
 } from '~/models/branch.server'
+import {getMenu} from '~/models/menu.server'
 import {getOrder} from '~/models/order.server'
 import {getPaidUsers} from '~/models/user.server'
 import {validateFullPay} from '~/models/validations.server'
@@ -28,6 +29,7 @@ import {
   getAmountLeftToPay,
   getCurrency,
 } from '~/utils'
+import {handlePaymentProcessing} from '~/utils/paymentProcessing.server'
 import {getDomainUrl, getStripeSession} from '~/utils/stripe.server'
 
 type LoaderData = {
@@ -104,34 +106,50 @@ export async function action({request, params}: ActionArgs) {
   const paymentMethod = formData.get('paymentMethod') as PaymentMethod
 
   const amountLeft = (await getAmountLeftToPay(tableId)) || 0
+  const menuCurrency = await getMenu(branchId).then(
+    (menu: any) => menu?.currency || 'mxn',
+  )
   //FIX this \/
   //@ts-expect-error
   const tip = amountLeft * Number(tipPercentage / 100)
 
-  // NOTE - esto va aqui porque si el metodo de pago es otro que no sea tarjeta, entonces que cree el pago directo, sin stripe (ya que stripe tiene su propio create payment en el webhook)
-  if (paymentMethod === 'card') {
-    const stripeRedirectUrl = await getStripeSession(
-      amountLeft * 100 + tip * 100,
-      true,
-      getDomainUrl(request) + redirectTo,
-      'eur',
-      tip,
-      paymentMethod,
-      'fullpay',
-    )
-    return redirect(stripeRedirectUrl)
-  } else if (paymentMethod === 'cash') {
-    const params = {
-      typeOfPayment: 'fullpay',
-      amount: amountLeft + tip,
-      tip: tip,
-      paymentMethod: paymentMethod,
-      // extraData: extraData ? JSON.stringify(extraData) : undefined,
-      isOrderAmountFullPaid: true,
-    }
-    const queryString = createQueryString(params)
-    return redirect(`/table/${tableId}/payment/success?${queryString}`)
+  const result = await handlePaymentProcessing(
+    paymentMethod as string,
+    amountLeft,
+    tip,
+    menuCurrency,
+    true,
+    request,
+    redirectTo,
+    'fullpay',
+  )
+
+  if (result.type === 'redirect') {
+    return redirect(result.url)
   }
+  // if (paymentMethod === 'card') {
+  //   const stripeRedirectUrl = await getStripeSession(
+  //     amountLeft * 100 + tip * 100,
+  //     true,
+  //     getDomainUrl(request) + redirectTo,
+  //     'eur',
+  //     tip,
+  //     paymentMethod,
+  //     'fullpay',
+  //   )
+  //   return redirect(stripeRedirectUrl)
+  // } else if (paymentMethod === 'cash') {
+  //   const params = {
+  //     typeOfPayment: 'fullpay',
+  //     amount: amountLeft + tip,
+  //     tip: tip,
+  //     paymentMethod: paymentMethod,
+  //     // extraData: extraData ? JSON.stringify(extraData) : undefined,
+  //     isOrderAmountFullPaid: true,
+  //   }
+  //   const queryString = createQueryString(params)
+  //   return redirect(`/table/${tableId}/payment/success?${queryString}`)
+  // }
 
   return json({success: true})
 }

@@ -31,14 +31,19 @@ export default function TableLayoutPath() {
 
   const [notification, setNotification] = useState(data.notification)
 
-  // useEffect(() => {
-  //   if (notification) {
-  //     const timer = setTimeout(() => {
-  //       setNotification(null)
-  //     }, 4000)
-  //     return () => clearTimeout(timer)
-  //   }
-  // }, [notification])
+  useEffect(() => {
+    setNotification(data.notification)
+  }, [data.notification])
+
+  useEffect(() => {
+    let timer
+    if (notification) {
+      timer = setTimeout(() => {
+        setNotification(null)
+      }, 4000)
+    }
+    return () => clearTimeout(timer)
+  }, [notification])
 
   if (!data.username) {
     return <UserForm />
@@ -48,7 +53,7 @@ export default function TableLayoutPath() {
     <>
       <Header user={data.user} isAdmin={data.isAdmin} />
       {notification && (
-        <div className="fixed left-0 top-0 z-[9999] w-full bg-green-500 py-2 text-center text-white">
+        <div className="fixed left-0 top-0 z-[9999] w-full bg-button-successBg py-2 text-center text-success">
           {notification}
         </div>
       )}

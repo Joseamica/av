@@ -13,6 +13,7 @@ import {
   getPaymentMethods,
   getTipsPercentages,
 } from '~/models/branch.server'
+import {getMenu} from '~/models/menu.server'
 import {assignExpirationAndValuesToOrder, getOrder} from '~/models/order.server'
 import {createPayment} from '~/models/payments.server'
 import {assignUserNewPayments} from '~/models/user.server'
@@ -21,6 +22,7 @@ import {validateRedirect} from '~/redirect.server'
 import {getSession, getUserId, getUsername} from '~/session.server'
 import {SendWhatsApp} from '~/twilio.server'
 import {createQueryString, getAmountLeftToPay, getCurrency} from '~/utils'
+import {handlePaymentProcessing} from '~/utils/paymentProcessing.server'
 import {getDomainUrl, getStripeSession} from '~/utils/stripe.server'
 
 const variants = {
@@ -48,7 +50,7 @@ export async function loader({request, params}: LoaderArgs) {
   const paymentMethods = await getPaymentMethods(tableId)
   const currency = await getCurrency(tableId)
   const amountLeft = await getAmountLeftToPay(tableId)
-  console.log('paymentMethods', paymentMethods)
+
   // Set the date to "2018-09-01T16:01:36.386Z"
 
   // Obtain a Date instance that will render the equivalent Berlin time for the UTC date
@@ -83,13 +85,11 @@ export async function action({request, params}: ActionArgs) {
   invariant(branchId, 'No se encontró sucursal')
 
   const redirectTo = validateRedirect(request.redirect, `/table/${tableId}`)
-  const session = await getSession(request)
 
-  const [amountLeft, currency, username] = await Promise.all([
-    getAmountLeftToPay(tableId),
-    getCurrency(tableId),
-    getUsername(session),
-  ])
+  const amountLeft = await getAmountLeftToPay(tableId)
+  const menuCurrency = await getMenu(branchId).then(
+    (menu: any) => menu?.currency || 'mxn',
+  )
 
   const tip = Number(total) * (Number(data.tipPercentage) / 100)
 
@@ -102,41 +102,21 @@ export async function action({request, params}: ActionArgs) {
       }&pMethod=${data.paymentMethod}&redirectTo=${pathname}`,
     )
   }
-  const userId = await getUserId(session)
   const isOrderAmountFullPaid = amountLeft <= total
 
-  switch (data.paymentMethod) {
-    case 'card':
-      try {
-        // TODO assignexpirationandvaluestoOrder lo tengo que implementar en stripe.
-        const stripeRedirectUrl = await getStripeSession(
-          total * 100 + tip * 100,
-          isOrderAmountFullPaid,
-          getDomainUrl(request) + redirectTo,
-          'eur',
-          tip,
-          data.paymentMethod,
-          'custom',
-          {tip},
-        )
+  const result = await handlePaymentProcessing(
+    data.paymentMethod as string,
+    total,
+    tip,
+    menuCurrency,
+    isOrderAmountFullPaid,
+    request,
+    redirectTo,
+    'custom',
+  )
 
-        return redirect(stripeRedirectUrl)
-      } catch (error) {
-        console.error('Failed to create payment session:', error)
-        return redirect('/error')
-      }
-
-    case 'cash':
-      const params = {
-        typeOfPayment: 'perDish',
-        amount: total + tip,
-        tip: tip,
-        paymentMethod: data.paymentMethod,
-        // extraData: itemData ? JSON.stringify(itemData) : undefined,
-        isOrderAmountFullPaid: isOrderAmountFullPaid,
-      }
-      const queryString = createQueryString(params)
-      return redirect(`${redirectTo}/payment/success?${queryString}`)
+  if (result.type === 'redirect') {
+    return redirect(result.url)
   }
 
   return json({success: true})

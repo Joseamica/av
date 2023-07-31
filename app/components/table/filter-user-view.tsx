@@ -1,34 +1,15 @@
-import {
-  UserCircleIcon,
-  ChevronDownIcon,
-  DotsVerticalIcon,
-} from '@heroicons/react/solid'
+import {CashIcon, ShoppingCartIcon} from '@heroicons/react/outline'
+import {ChevronDownIcon, UserCircleIcon} from '@heroicons/react/solid'
 import clsx from 'clsx'
 import {AnimatePresence, motion} from 'framer-motion'
+import {IoFastFoodOutline} from 'react-icons/io5'
 import {formatCurrency} from '~/utils'
 import {CartItemDetails} from '../cart-item-details'
 import {SectionContainer} from '../containers/section-container'
 import {FlexRow} from '../util/flexrow'
 import {Spacer} from '../util/spacer'
-import {H3, H4, H5, H6} from '../util/typography'
-import {
-  CashIcon,
-  ShoppingBagIcon,
-  ShoppingCartIcon,
-  ViewListIcon,
-} from '@heroicons/react/outline'
-import {IoFastFoodOutline} from 'react-icons/io5'
-import {
-  FaClipboardList,
-  FaFirstOrder,
-  FaList,
-  FaListAlt,
-  FaListOl,
-  FaMoneyBill,
-  FaShoppingBag,
-  FaShoppingCart,
-} from 'react-icons/fa'
-import {IoMdListBox} from 'react-icons/io'
+import {H3, H6} from '../util/typography'
+import {Underline} from '../util/underline'
 
 export function FilterUserView({
   order,
@@ -86,16 +67,16 @@ export function FilterUserView({
                                   0,
                                 ),
                               )}{' '}
-                              de orden
+                              total de productos
                             </p>
                           </div>
                         )}
                         {Number(user.paid) > 0 ? (
                           <div className="flex space-x-2">
                             <CashIcon className="h-5 w-5 flex-shrink-0" />
-                            <p className="w-full text-sm">
+                            <Underline>
                               {formatCurrency(currency, userPaid)} pagado
-                            </p>
+                            </Underline>
                           </div>
                         ) : (
                           <p className="text-sm">No ha pagado</p>

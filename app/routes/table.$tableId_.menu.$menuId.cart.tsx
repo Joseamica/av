@@ -643,7 +643,7 @@ export function CartPayment({
             custom="bg-button-successOutline border-green-700"
             className="text-button-successBg"
           >
-            {isSubmitting ? 'Procesando...' : 'Pagar'}{' '}
+            {isSubmitting ? 'Procesando...' : 'Pagar y ordenar'}{' '}
             {/* {formatCurrency(
               data.currency,
               total + tip, // Update the total amount

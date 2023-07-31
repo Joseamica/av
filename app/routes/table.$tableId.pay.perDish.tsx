@@ -10,26 +10,19 @@ import {ItemContainer} from '~/components/containers/item-container'
 import {Modal} from '~/components/modal'
 
 import {prisma} from '~/db.server'
-import {EVENTS} from '~/events'
 import {
   getBranchId,
   getPaymentMethods,
   getTipsPercentages,
 } from '~/models/branch.server'
-import {assignExpirationAndValuesToOrder, getOrder} from '~/models/order.server'
-import {createPayment} from '~/models/payments.server'
+import {getMenu} from '~/models/menu.server'
+import {getOrder} from '~/models/order.server'
 import {assignUserNewPayments} from '~/models/user.server'
 import {validateRedirect} from '~/redirect.server'
-import {getSession, getUserId, getUsername} from '~/session.server'
-import {SendWhatsApp} from '~/twilio.server'
+import {getSession} from '~/session.server'
 import {useLiveLoader} from '~/use-live-loader'
-import {
-  createQueryString,
-  formatCurrency,
-  getAmountLeftToPay,
-  getCurrency,
-} from '~/utils'
-import {getDomainUrl, getStripeSession} from '~/utils/stripe.server'
+import {formatCurrency, getAmountLeftToPay, getCurrency} from '~/utils'
+import {handlePaymentProcessing} from '~/utils/paymentProcessing.server'
 
 type LoaderData = {
   cartItems: CartItem[]
@@ -141,8 +134,11 @@ export async function action({request, params}: ActionArgs) {
   // }
 
   const tip = total * (Number(data.tipPercentage) / 100)
-  const currency = await getCurrency(tableId)
+
   const amountLeft = (await getAmountLeftToPay(tableId)) || 0
+  const menuCurrency = await getMenu(branchId).then(
+    (menu: any) => menu?.currency || 'mxn',
+  )
 
   //ERROR HANDLING
 
@@ -166,34 +162,22 @@ export async function action({request, params}: ActionArgs) {
 
   const isOrderAmountFullPaid = amountLeft <= total
 
-  // NOTE - esto va aqui porque si el metodo de pago es otro que no sea tarjeta, entonces que cree el pago directo, sin stripe (ya que stripe tiene su propio create payment en el webhook)
-  switch (data.paymentMethod) {
-    case 'card':
-      const stripeRedirectUrl = await getStripeSession(
-        total * 100 + tip * 100,
-        isOrderAmountFullPaid,
-        getDomainUrl(request) + `/table/${tableId}`,
-        'eur',
-        tip,
-        data.paymentMethod,
-        'perDish',
-        itemData,
-      )
-      return redirect(stripeRedirectUrl)
-    //TODO Agregar que cuando paga el usuario el mesero lo confirme como pagado en su app cuando me llegue eso, entonces podra proceder
-    case 'cash': {
-      const params = {
-        typeOfPayment: 'perDish',
-        amount: total + tip,
-        tip: tip,
-        paymentMethod: data.paymentMethod,
-        extraData: itemData ? JSON.stringify(itemData) : undefined,
-        isOrderAmountFullPaid: isOrderAmountFullPaid,
-      }
-      const queryString = createQueryString(params)
-      return redirect(`${redirectTo}/payment/success?${queryString}`)
-    }
+  const result = await handlePaymentProcessing(
+    data.paymentMethod as string,
+    total,
+    tip,
+    menuCurrency,
+    isOrderAmountFullPaid,
+    request,
+    redirectTo,
+    'perDish',
+    itemData ? JSON.stringify(itemData) : undefined,
+  )
+
+  if (result.type === 'redirect') {
+    return redirect(result.url)
   }
+
   return json({success: true})
 }
 
