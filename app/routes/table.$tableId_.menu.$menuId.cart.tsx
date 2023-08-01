@@ -55,13 +55,6 @@ import {
 } from '~/utils'
 import {getDomainUrl, getStripeSession} from '~/utils/stripe.server'
 
-// type MenuCategory = {
-//   id: string
-//   name: string
-//   menuId: string
-//   menuItems: MenuItem[]
-// }
-
 export async function loader({request, params}: LoaderArgs) {
   const {tableId, menuId} = params
   invariant(tableId, 'No se encontró la mesa')
@@ -264,6 +257,7 @@ export async function action({request, params}: ActionArgs) {
           }),
         ),
       )
+      //NOTE - Aqui se usa el request.method para identificar que boton se esta usando
       if (request.method === 'PATCH') {
         const tipPercentage = formData.get('tipPercentage') as string
         const paymentMethod = formData.get('paymentMethod') as PaymentMethod
@@ -406,27 +400,6 @@ export default function Cart() {
                       decreaseValue="decreaseQuantity"
                       increaseValue="increaseQuantity"
                     />
-                    {/* <FlexRow className="p-1 rounded-full bg-gray_light ">
-                    <Button
-                      size="small"
-                      name="_action"
-                      value="decreaseQuantity"
-                      variant="secondary"
-                      onClick={() => setItem(items.id)}
-                    >
-                      -
-                    </Button>
-                    <p>{items.quantity}</p>
-                    <Button
-                      size="small"
-                      name="_action"
-                      value="increaseQuantity"
-                      variant="secondary"
-                      onClick={() => setItem(items.id)}
-                    >
-                      +
-                    </Button>
-                  </FlexRow> */}
                   </ItemContainer>
                 )
               })}
@@ -446,8 +419,6 @@ export default function Cart() {
                 </Underline>
               </FlexRow>
               <Spacer spaceY="3" />
-              {/* Te gustaría pagar ahorita los platillos? */}
-              {/* <LinkButton to={`pay`}>Pagar {cartItemsQuantity} ahora</LinkButton> */}
               <Button
                 name="_action"
                 value="submitCart"
@@ -541,18 +512,6 @@ export function CartPayment({
     <>
       <div className="dark:bg-night-bg_principal dark:text-night-text_principal sticky inset-x-0 bottom-0 flex flex-col justify-center rounded-t-xl border-4 bg-day-bg_principal px-3">
         <Spacer spaceY="2" />
-        {/* <FlexRow justify="between">
-          <H5>Queda por pagar:</H5>
-          <H3>
-            {formatCurrency(
-              data.currency,
-              data.amountLeft ? data.amountLeft + total : total,
-            )}
-          </H3>
-        </FlexRow>
-        <Spacer spaceY="1" />
-        <AnimatePresence initial={false}>
-          {total > 0 && ( */}
         <motion.div
           variants={variants}
           initial="hidden"
@@ -644,10 +603,6 @@ export function CartPayment({
             className="text-button-successBg"
           >
             {isSubmitting ? 'Procesando...' : 'Pagar y ordenar'}{' '}
-            {/* {formatCurrency(
-              data.currency,
-              total + tip, // Update the total amount
-            )} */}
           </Button>
           <Spacer spaceY="1" />
           <Button
@@ -693,17 +648,10 @@ export function CartPayment({
                       : 'otro'}
                   </H4>
                   <H3>{tipPercentage}%</H3>
-                  {/* <H5>
-                    {formatCurrency(
-                      data.currency,
-                      Number(total) * (Number(tipPercentage) / 100),
-                    )}
-                  </H5> */}
                 </FlexRow>
                 <input
                   type="radio"
                   name="tipPercentage"
-                  // defaultChecked={tipPercentage === '12'}
                   value={tipPercentage}
                   onChange={handleTipChange}
                   className="sr-only"

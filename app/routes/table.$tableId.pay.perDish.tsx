@@ -17,12 +17,10 @@ import {
 } from '~/models/branch.server'
 import {getMenu} from '~/models/menu.server'
 import {getOrder} from '~/models/order.server'
-import {assignUserNewPayments} from '~/models/user.server'
 import {validateRedirect} from '~/redirect.server'
-import {getSession} from '~/session.server'
 import {useLiveLoader} from '~/use-live-loader'
 import {formatCurrency, getAmountLeftToPay, getCurrency} from '~/utils'
-import {handlePaymentProcessing} from '~/utils/paymentProcessing.server'
+import {handlePaymentProcessing} from '~/utils/payment-processing.server'
 
 type LoaderData = {
   cartItems: CartItem[]
@@ -39,7 +37,7 @@ export async function loader({request, params}: LoaderArgs) {
   invariant(tableId, 'No se encontró mesa')
   const tipsPercentages = await getTipsPercentages(tableId)
   const paymentMethods = await getPaymentMethods(tableId)
-  const session = await getSession(request)
+
   const order = await prisma.order.findFirst({
     where: {tableId},
   })
@@ -47,7 +45,6 @@ export async function loader({request, params}: LoaderArgs) {
   invariant(order, 'No se encontró la orden, o aun no ha sido creada.')
 
   const cartItems = await prisma.cartItem.findMany({
-    // FIX
     where: {orderId: order.id, activeOnOrder: true},
     include: {menuItem: true, user: true},
   })
@@ -57,7 +54,6 @@ export async function loader({request, params}: LoaderArgs) {
   const currency = await getCurrency(tableId)
 
   const amountLeft = (await getAmountLeftToPay(tableId)) || 0
-  // EVENTS.ISSUE_CHANGED(tableId, `userIsPaying ${username}`)
 
   return json({
     cartItems,
@@ -92,28 +88,6 @@ const getItemsAndTotalFromFormData = (formData: FormData) => {
   return {itemData, total}
 }
 
-const updatePaidItemsAndUserData = async (
-  itemData: {itemId: string; price: string}[],
-  total: number,
-  tip: number,
-  userName: string,
-  userId: string,
-) => {
-  // Loop through items and update price and paid
-  for (const {itemId} of itemData) {
-    const cartItem = await prisma.cartItem.findUnique({
-      where: {id: itemId},
-    })
-    if (cartItem) {
-      await prisma.cartItem.update({
-        where: {id: itemId},
-        data: {paid: true, paidBy: userName},
-      })
-    }
-  }
-  await assignUserNewPayments(userId, total, tip)
-}
-
 export async function action({request, params}: ActionArgs) {
   const {tableId} = params
   invariant(tableId, 'No se encontró mesa')
@@ -129,26 +103,12 @@ export async function action({request, params}: ActionArgs) {
 
   const {itemData, total} = getItemsAndTotalFromFormData(formData)
 
-  // if (!total) {
-  //   return json({error: 'No se ha seleccionado ningún platillo'}, {status: 400})
-  // }
-
   const tip = total * (Number(data.tipPercentage) / 100)
 
   const amountLeft = (await getAmountLeftToPay(tableId)) || 0
   const menuCurrency = await getMenu(branchId).then(
     (menu: any) => menu?.currency || 'mxn',
   )
-
-  //ERROR HANDLING
-
-  // if (amountLeft < total) {
-  //   const error = `Estas pagando ${formatCurrency(
-  //     currency,
-  //     total - amountLeft,
-  //   )} de más....`
-  //   return json({error}, {status: 400})
-  // }
 
   if (amountLeft < total) {
     const url = new URL(request.url)
@@ -198,11 +158,9 @@ export default function PerDish() {
     }
   }
 
-  // const [searchParams] = useSearchParams()
   return (
     <Modal
       onClose={() => navigate('..', {replace: true})}
-      // fullScreen={true}
       title="Dividir por platillo"
     >
       <Form method="POST" preventScrollReset>
@@ -256,7 +214,6 @@ export default function PerDish() {
           paymentMethods={data.paymentMethods}
           tipsPercentages={data.tipsPercentages}
         />
-        {/* )} */}
       </Form>
     </Modal>
   )

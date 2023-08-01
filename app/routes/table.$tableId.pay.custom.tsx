@@ -22,7 +22,7 @@ import {validateRedirect} from '~/redirect.server'
 import {getSession, getUserId, getUsername} from '~/session.server'
 import {SendWhatsApp} from '~/twilio.server'
 import {createQueryString, getAmountLeftToPay, getCurrency} from '~/utils'
-import {handlePaymentProcessing} from '~/utils/paymentProcessing.server'
+import {handlePaymentProcessing} from '~/utils/payment-processing.server'
 import {getDomainUrl, getStripeSession} from '~/utils/stripe.server'
 
 const variants = {
@@ -50,13 +50,6 @@ export async function loader({request, params}: LoaderArgs) {
   const paymentMethods = await getPaymentMethods(tableId)
   const currency = await getCurrency(tableId)
   const amountLeft = await getAmountLeftToPay(tableId)
-
-  // Set the date to "2018-09-01T16:01:36.386Z"
-
-  // Obtain a Date instance that will render the equivalent Berlin time for the UTC date
-  // const dateNow = await getDateTimeTz(tableId)
-  // const date = new Date()
-  // console.log('dateNow', dateNow, date)
 
   return json({paymentMethods, tipsPercentages, currency, amountLeft})
 }

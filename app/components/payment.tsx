@@ -276,7 +276,7 @@ export function Payment({
   amountToPayState: number
 }) {
   // const matches = useMatchesData(params.)
-  const matches = useMatches() as any
+  // const matches = useMatches() as any
 
   // const matchData = matches.find(
   //   match => match.id === 'routes/table.$tableId',

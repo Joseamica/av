@@ -24,13 +24,11 @@ import {getSession} from '~/session.server'
 import {useLiveLoader} from '~/use-live-loader'
 import {
   Translate,
-  createQueryString,
   formatCurrency,
   getAmountLeftToPay,
   getCurrency,
 } from '~/utils'
-import {handlePaymentProcessing} from '~/utils/paymentProcessing.server'
-import {getDomainUrl, getStripeSession} from '~/utils/stripe.server'
+import {handlePaymentProcessing} from '~/utils/payment-processing.server'
 
 type LoaderData = {
   amountLeft: number

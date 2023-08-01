@@ -1,4 +1,4 @@
-import type {Branch, PaymentMethod, User} from '@prisma/client'
+import type {PaymentMethod} from '@prisma/client'
 import initStripe from 'stripe'
 import {createQueryString} from '~/utils'
 
@@ -75,14 +75,11 @@ export const getStripeSession = async (
     metadata: {
       isOrderAmountFullPaid,
       tip,
-
       paymentMethod,
-
       typeOfPayment,
       extraData: extraData ? JSON.stringify(extraData) : undefined,
     },
     success_url: `${domainUrl}/payment/success?${queryString}`,
-
     cancel_url: `${domainUrl}`,
   })
 
