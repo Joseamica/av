@@ -29,7 +29,7 @@ export function FilterUserView({
           order.users.map((user: any) => {
             const userPaid = Number(user.paid)
             return (
-              <SectionContainer key={user.id} as="div">
+              <SectionContainer key={user.id} as="div" roundedPosition="bottom">
                 <FlexRow justify="between" className="rounded-xl px-1 ">
                   <Spacer spaceY="2">
                     <FlexRow className="items-center space-x-2 divide-x-2">

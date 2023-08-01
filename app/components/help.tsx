@@ -1,11 +1,11 @@
-import {WifiIcon, BellIcon} from '@heroicons/react/solid'
+import {BellIcon} from '@heroicons/react/solid'
 import {Link} from '@remix-run/react'
+import {FaWifi} from 'react-icons/fa'
 import {IoIosPerson} from 'react-icons/io'
 import {IoWarning} from 'react-icons/io5'
 import {FlexRow} from './util/flexrow'
 import {Spacer} from './util/spacer'
 import {H5} from './util/typography'
-import {FaWifi} from 'react-icons/fa'
 
 const REPORT_TYPES = {
   waiter: {
@@ -43,13 +43,13 @@ const REPORT_TYPES = {
 export function Help() {
   return (
     <Spacer spaceY="2">
-      <FlexRow className="w-full justify-around rounded-xl bg-white py-2 shadow-lg">
+      <FlexRow className="w-full justify-around">
         {Object.values(REPORT_TYPES).map((type, index) => {
           return (
             <div className="flex flex-col items-center space-y-1 " key={index}>
               <Link
                 to={`help/${type?.name}`}
-                className="flex h-9  w-9 items-center justify-center rounded-full bg-white shadow-md"
+                className="flex h-8 w-8 items-center justify-center rounded-full bg-white shadow-md"
 
                 // className="flex items-center justify-center rounded-full bg-day-bg_principal dark:bg-night-bg_principal dark:bg-DARK_1 h-9 w-9 "
                 //   onClick={() => setShowModal(type?.name)}

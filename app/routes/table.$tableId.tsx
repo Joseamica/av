@@ -136,9 +136,10 @@ export default function Table() {
             leftText="Ver por orden"
             rightText="Ver por usuario"
             stretch
+            allCornersRounded={false}
           />
         </div>
-        <Spacer className="py-[2px]" />
+        {/* <Spacer className="py-[2px]" /> */}
         {/* NOTE: FILTER */}
         {filterPerUser ? (
           <FilterUserView

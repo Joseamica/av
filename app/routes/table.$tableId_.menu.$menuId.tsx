@@ -1,4 +1,4 @@
-import {DocumentIcon} from '@heroicons/react/outline'
+import {DocumentIcon, SearchIcon} from '@heroicons/react/outline'
 import {ShoppingCartIcon} from '@heroicons/react/solid'
 import type {
   CartItem,
@@ -169,7 +169,9 @@ export default function Menu() {
   }
 
   const refReachTop = useRef<HTMLDivElement>(null)
-  const [currentCategory, setCurrentCategory] = React.useState<string>('')
+  const [currentCategory, setCurrentCategory] = React.useState<string>(
+    data.categories[0].id,
+  )
   const [quantity, setQuantity] = React.useState<number>(1)
   const [seePdf, setSeePdf] = React.useState<boolean>(false)
 
@@ -229,8 +231,9 @@ export default function Menu() {
         rightText="Ver PDF"
         leftIcon={<FaShoppingCart />}
         rightIcon={<FaFilePdf />}
-        height="small"
+        height="medium"
         stretch
+        allCornersRounded={true}
       />
       <Spacer spaceY="2" />
       {seePdf ? (
@@ -258,6 +261,7 @@ export default function Menu() {
                 </div>
               </div>
             ))}
+          <Outlet />
         </div>
       ) : (
         <>
@@ -272,7 +276,9 @@ export default function Menu() {
               categoryId={currentCategory}
               categories={
                 !seePdf
-                  ? data.categories
+                  ? data.categories.filter(
+                      (category: MenuCategory) => !category.pdf,
+                    )
                   : data.categories.filter(category => category.pdf)
               }
               isSticky={isSticky}

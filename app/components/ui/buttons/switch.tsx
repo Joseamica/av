@@ -23,6 +23,7 @@ export function SwitchButton({
   stretch,
   size = 'large',
   height = 'large',
+  allCornersRounded = true,
 }: {
   state: boolean
   setToggle: (boolean: boolean) => void
@@ -33,6 +34,7 @@ export function SwitchButton({
   stretch?: boolean
   size?: 'small' | 'medium' | 'large'
   height?: 'small' | 'medium' | 'large'
+  allCornersRounded?: boolean
 }) {
   const toggleSwitch = () => {
     if (typeof state === 'string') {
@@ -45,9 +47,11 @@ export function SwitchButton({
     <motion.button
       className={`flex  ${sizes[size]} ${
         heights[height]
-      }  cursor-pointer items-center rounded-2xl bg-button-notSelected p-1 shadow-inner hover:cursor-pointer ${
-        state && 'place-content-end'
-      }`}
+      }  cursor-pointer items-center ${
+        allCornersRounded ? 'rounded-xl' : ' rounded-t-2xl'
+      } bg-button-notSelected ${
+        allCornersRounded && 'p-1'
+      }  shadow-inner hover:cursor-pointer ${state && 'place-content-end'}`}
       onClick={toggleSwitch}
     >
       {state ? (
@@ -61,9 +65,9 @@ export function SwitchButton({
         layout
         onClick={toggleSwitch}
         transition={{type: 'spring', stiffness: 700, damping: 25}}
-        className={`bg-principal flex h-full w-1/2 items-center justify-center rounded-xl ${
-          state ? 'bg-button-primary' : 'bg-button-primary'
-        }`}
+        className={`bg-principal flex h-full w-1/2 items-center justify-center ${
+          allCornersRounded ? 'rounded-xl' : ' rounded-t-2xl'
+        } ${state ? 'bg-button-primary' : 'bg-button-primary'}`}
       >
         {/* ACTIVATED BUTTON */}
         {state ? (
