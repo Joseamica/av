@@ -7,6 +7,12 @@ const sizes = {
   large: 'w-full',
 }
 
+const heights = {
+  small: 'h-8',
+  medium: 'h-10',
+  large: 'h-14',
+}
+
 export function SwitchButton({
   state,
   setToggle,
@@ -16,6 +22,7 @@ export function SwitchButton({
   rightIcon,
   stretch,
   size = 'large',
+  height = 'large',
 }: {
   state: boolean
   setToggle: (boolean: boolean) => void
@@ -25,6 +32,7 @@ export function SwitchButton({
   rightIcon?: any
   stretch?: boolean
   size?: 'small' | 'medium' | 'large'
+  height?: 'small' | 'medium' | 'large'
 }) {
   const toggleSwitch = () => {
     if (typeof state === 'string') {
@@ -35,9 +43,9 @@ export function SwitchButton({
   }
   return (
     <motion.button
-      className={`flex  ${
-        sizes[size]
-      } h-16 cursor-pointer items-center rounded-2xl bg-button-notSelected p-1 shadow-inner hover:cursor-pointer ${
+      className={`flex  ${sizes[size]} ${
+        heights[height]
+      }  cursor-pointer items-center rounded-2xl bg-button-notSelected p-1 shadow-inner hover:cursor-pointer ${
         state && 'place-content-end'
       }`}
       onClick={toggleSwitch}

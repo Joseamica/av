@@ -107,8 +107,6 @@ export default function Table() {
   if (data.order) {
     return (
       <motion.main className="no-scrollbar">
-        {/* TODO NOTIFICATIONS */}
-        <div className="fixed inset-x-0 top-0 z-50 w-full bg-button-successBg text-success"></div>
         <RestaurantInfoCard
           branch={data.branch}
           menu={data.menu}
@@ -120,7 +118,6 @@ export default function Table() {
         </h3>
         <Spacer spaceY="2" />
         <Help />
-
         <BillAmount
           amountLeft={data.amountLeft}
           currency={data.currency}
@@ -129,7 +126,6 @@ export default function Table() {
           userId={data.userId}
         />
         <Spacer spaceY="2" />
-
         {/* NOTE: SWITCH BUTTON */}
         <div className="flex w-full justify-end">
           <SwitchButton
@@ -142,9 +138,7 @@ export default function Table() {
             stretch
           />
         </div>
-
         <Spacer className="py-[2px]" />
-
         {/* NOTE: FILTER */}
         {filterPerUser ? (
           <FilterUserView
@@ -160,7 +154,6 @@ export default function Table() {
             handleCollapse={handleCollapse}
           />
         )}
-
         <Spacer spaceY="2" />
         {data.amountLeft > 0 ? (
           <SinglePayButton

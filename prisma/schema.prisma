@@ -104,17 +104,18 @@ model Availabilities {
 }
 
 model MenuCategory {
-  id                      String           @id @default(cuid())
-  accountId               String?
-  name                    String
-  imageUrl                String?
-  nameTranslations        Json?
-  description             String?
-  descriptionTranslations Json?
-  availabilities          Availabilities[]
-  menuId                  String
-  menu                    Menu             @relation(fields: [menuId], references: [id], onDelete: Cascade, onUpdate: Cascade)
-  menuItems               MenuItem[]
+  id             String           @id @default(cuid())
+  accountId      String?
+  name           String
+  imageUrl       String?
+  // nameTranslations        Json?
+  description    String?
+  pdf            Boolean?         @default(false)
+  // descriptionTranslations Json?
+  availabilities Availabilities[]
+  menuId         String
+  menu           Menu             @relation(fields: [menuId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  menuItems      MenuItem[]
 }
 
 model MenuItem {
