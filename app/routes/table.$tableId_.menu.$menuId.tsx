@@ -238,15 +238,6 @@ export default function Menu() {
       <Spacer spaceY="2" />
       {seePdf ? (
         <div className="space-y-2">
-          {/* <CategoriesBar
-            categoryId={currentCategory}
-            categories={
-              !seePdf
-                ? data.categories
-                : data.categories.filter(category => category.pdf)
-            }
-            isSticky={isSticky}
-          /> */}
           {data.categories
             .filter((category: MenuCategory) => category.pdf)
             .map((category: MenuCategory) => (

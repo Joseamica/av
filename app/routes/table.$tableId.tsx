@@ -136,6 +136,7 @@ export default function Table() {
             leftText="Ver por orden"
             rightText="Ver por usuario"
             stretch
+            height="medium"
             allCornersRounded={false}
           />
         </div>

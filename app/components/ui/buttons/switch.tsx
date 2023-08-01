@@ -44,14 +44,8 @@ export function SwitchButton({
     }
   }
   return (
-    <motion.button
-      className={`flex  ${sizes[size]} ${
-        heights[height]
-      }  cursor-pointer items-center ${
-        allCornersRounded ? 'rounded-xl' : ' rounded-t-2xl'
-      } bg-button-notSelected ${
-        allCornersRounded && 'p-1'
-      }  shadow-inner hover:cursor-pointer ${state && 'place-content-end'}`}
+    // prettier-ignore
+    <motion.button className={`flex  ${sizes[size]} ${heights[height]}  cursor-pointer items-center ${allCornersRounded ? 'rounded-xl' : ' rounded-t-xl'} bg-button-notSelected ${allCornersRounded && 'p-1'}  shadow-inner hover:cursor-pointer ${state && 'place-content-end'}`}
       onClick={toggleSwitch}
     >
       {state ? (
@@ -66,7 +60,7 @@ export function SwitchButton({
         onClick={toggleSwitch}
         transition={{type: 'spring', stiffness: 700, damping: 25}}
         className={`bg-principal flex h-full w-1/2 items-center justify-center ${
-          allCornersRounded ? 'rounded-xl' : ' rounded-t-2xl'
+          allCornersRounded ? 'rounded-lg' : ' rounded-t-lg'
         } ${state ? 'bg-button-primary' : 'bg-button-primary'}`}
       >
         {/* ACTIVATED BUTTON */}
