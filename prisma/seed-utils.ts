@@ -45,7 +45,8 @@ export function createBranch(restaurantId: string) {
       wifiName: faker.random.alphaNumeric(8),
       wifipwd: faker.random.alphaNumeric(8),
       city: 'Cuernavaca',
-      address: 'Mexico-Acapulco KM. 87.5, Villas del Lago, 62370 Cuernavaca, Mor.',
+      address:
+        'Mexico-Acapulco KM. 87.5, Villas del Lago, 62370 Cuernavaca, Mor.',
       extraAddress: 'Averanda',
       rating: 4.8,
       rating_quantity: 400,
@@ -113,12 +114,13 @@ export async function createCategories(menuId: string) {
       {name: 'Pescados & Mariscos', en: 'Fish & Seafood'},
       {name: 'Extras'},
       {name: 'Postres', en: 'Desserts'},
-    ].map(({name, en}) =>
+    ].map(({name, en}, index) =>
       prisma.menuCategory.create({
         data: {
           name,
           menu: {connect: {id: menuId}},
-          nameTranslations: {en},
+          pdf: index === 0, // This will be true for the first category and false for the rest
+          // nameTranslations: {en},
           imageUrl: AVOQADO_LOGO,
         },
       }),
@@ -141,7 +143,11 @@ export async function createProductsAndModifiers(categories: any) {
     [
       {name: 'Salsa Verde', extraPrice: 4, modifierGroupId: modifierGroup.id},
       {name: 'Salsa Roja', extraPrice: 7, modifierGroupId: modifierGroup.id},
-      {name: 'Salsa Habanero', extraPrice: 20, modifierGroupId: modifierGroup.id},
+      {
+        name: 'Salsa Habanero',
+        extraPrice: 20,
+        modifierGroupId: modifierGroup.id,
+      },
     ].map(({name, extraPrice}) =>
       prisma.modifiers.create({
         data: {
@@ -251,7 +257,10 @@ export async function cleanDatabase() {
 }
 
 function range(start: number, end: number, step = 1) {
-  return Array.from({length: (end - start + 1) / step}, (_, i) => start + i * step)
+  return Array.from(
+    {length: (end - start + 1) / step},
+    (_, i) => start + i * step,
+  )
 }
 
 function getRandom(start: number, end: number) {

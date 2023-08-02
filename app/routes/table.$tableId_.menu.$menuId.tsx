@@ -274,6 +274,7 @@ export default function Menu() {
               }
               isSticky={isSticky}
             />
+            <Spacer spaceY="2" />
             <div className="space-y-2" ref={refReachTop}>
               {data.categories
                 .filter((category: MenuCategory) => !category.pdf)
