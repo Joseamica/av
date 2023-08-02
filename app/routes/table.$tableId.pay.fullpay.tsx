@@ -57,6 +57,7 @@ export default function FullPay() {
   )
 }
 
+// ANCHOR LOADER
 export async function loader({ request, params }: LoaderArgs) {
   const { tableId } = params
   invariant(tableId, 'No se encontró mesa')
@@ -96,6 +97,7 @@ export async function loader({ request, params }: LoaderArgs) {
   return json(data)
 }
 
+// ANCHOR ACTION
 export async function action({ request, params }: ActionArgs) {
   const { tableId } = params
   invariant(tableId, 'tableId no encontrado')
