@@ -28,3 +28,20 @@ export {SwitchButton} from './ui/buttons/switch'
 export {FilterUserView} from './table/filter-user-view'
 export {FilterOrderView} from './table/filter-order-view'
 export {Underline} from './util/underline'
+export {Notification} from './notification'
+export {
+  PlusIcon,
+  SearchIcon,
+  UsersIcon,
+  ClipboardIcon,
+  DollarIcon,
+  EyeIcon,
+  MenuIcon,
+  RefreshIcon,
+  BookIcon,
+  CheckIcon,
+  ChevronDownIcon,
+  ChevronLeftIcon,
+  ChevronRightIcon,
+  ChevronUpIcon,
+} from './icons'

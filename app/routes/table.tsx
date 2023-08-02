@@ -21,29 +21,12 @@ import {
 import {getIsDvctTokenExpired, getTableIdFromUrl} from '~/utils'
 // * COMPONENTS
 // * CUSTOM COMPONENTS
-import {Header, UserForm} from '~/components'
-import {useEffect, useState} from 'react'
+import {Header, Notification, UserForm} from '~/components'
 
 const SESSION_EXPIRATION_TIME = 1000 * 60 * 60 * 24 * 30 //30 days
 
 export default function TableLayoutPath() {
   const data = useLoaderData()
-
-  const [notification, setNotification] = useState(data.notification)
-
-  useEffect(() => {
-    setNotification(data.notification)
-  }, [data.notification])
-
-  useEffect(() => {
-    let timer
-    if (notification) {
-      timer = setTimeout(() => {
-        setNotification(null)
-      }, 4000)
-    }
-    return () => clearTimeout(timer)
-  }, [notification])
 
   if (!data.username) {
     return <UserForm />
@@ -52,11 +35,7 @@ export default function TableLayoutPath() {
   return (
     <>
       <Header user={data.user} isAdmin={data.isAdmin} />
-      {notification && (
-        <div className="fixed left-0 top-0 z-[9999] w-full bg-button-successBg py-2 text-center text-success">
-          {notification}
-        </div>
-      )}
+      <Notification message={data.notification} />
       <Outlet></Outlet>
     </>
   )
