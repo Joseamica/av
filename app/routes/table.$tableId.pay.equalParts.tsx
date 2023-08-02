@@ -18,8 +18,9 @@ import { getOrder } from '~/models/order.server'
 import { getAmountLeftToPay, getCurrency } from '~/utils'
 import { handlePaymentProcessing } from '~/utils/payment-processing.server'
 
-import { H5, Payment, QuantityManagerButton } from '~/components'
+import { H5, QuantityManagerButton } from '~/components'
 import { Modal } from '~/components/modal'
+import { PaymentV2 } from '~/components/payment/payment'
 
 export async function action({ request, params }: ActionArgs) {
   const { tableId } = params
@@ -215,7 +216,7 @@ export default function EqualParts() {
             </div>
           </div>
         </div>
-        <Payment
+        <PaymentV2
           amountLeft={data.amountLeft}
           amountToPayState={perPerson}
           currency={data.currency}

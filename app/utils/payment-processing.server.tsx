@@ -68,7 +68,6 @@ export async function handlePaymentProcessing({
         isOrderAmountFullPaid: isOrderAmountFullPaid,
         itemData,
       }
-      console.log('params', params)
       const queryString = createQueryString(params)
 
       return {
