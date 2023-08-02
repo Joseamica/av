@@ -1,8 +1,21 @@
 // PaymentProcessing.js
+import { getDomainUrl, getStripeSession } from './stripe.server'
 
-import {createQueryString} from '~/utils'
-import {getDomainUrl, getStripeSession} from './stripe.server'
+import { createQueryString } from '~/utils'
 
+/**
+ *
+ * @param paymentMethod
+ * @param total
+ * @param tip
+ * @param currency
+ * @param isOrderAmountFullPaid
+ * @param request
+ * @param redirectTo
+ * @param typeOfPayment
+ * @param extraData
+ * @returns Promise<{ type: 'redirect'; url: string } | { type: 'error'; message: string }>
+ */
 export async function handlePaymentProcessing(
   paymentMethod: string,
   total: number,
@@ -13,7 +26,9 @@ export async function handlePaymentProcessing(
   redirectTo: string,
   typeOfPayment: string,
   extraData?: any,
-): Promise<{type: 'redirect'; url: string} | {type: 'error'; message: string}> {
+): Promise<
+  { type: 'redirect'; url: string } | { type: 'error'; message: string }
+> {
   switch (paymentMethod) {
     case 'card':
       try {
@@ -27,10 +42,10 @@ export async function handlePaymentProcessing(
           'custom',
           extraData,
         )
-        return {type: 'redirect', url: stripeRedirectUrl}
+        return { type: 'redirect', url: stripeRedirectUrl }
       } catch (error) {
         console.error('Failed to create payment session:', error)
-        return {type: 'redirect', url: '/error'}
+        return { type: 'redirect', url: '/error' }
       }
     case 'cash':
       const params = {
@@ -41,10 +56,12 @@ export async function handlePaymentProcessing(
         isOrderAmountFullPaid: isOrderAmountFullPaid,
       }
       const queryString = createQueryString(params)
+
       return {
         type: 'redirect',
         url: `${redirectTo}/payment/success?${queryString}`,
       }
   }
-  return {type: 'error', message: `Unknown payment method: ${paymentMethod}`}
+
+  return { type: 'error', message: `Unknown payment method: ${paymentMethod}` }
 }
