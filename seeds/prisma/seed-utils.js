@@ -111,11 +111,12 @@ async function createCategories(menuId) {
         { name: 'Pescados & Mariscos', en: 'Fish & Seafood' },
         { name: 'Extras' },
         { name: 'Postres', en: 'Desserts' },
-    ].map(({ name, en }) => db_server_1.prisma.menuCategory.create({
+    ].map(({ name, en }, index) => db_server_1.prisma.menuCategory.create({
         data: {
             name,
             menu: { connect: { id: menuId } },
-            nameTranslations: { en },
+            pdf: index === 0,
+            // nameTranslations: {en},
             imageUrl: AVOQADO_LOGO,
         },
     })));
@@ -135,7 +136,11 @@ async function createProductsAndModifiers(categories) {
     await Promise.all([
         { name: 'Salsa Verde', extraPrice: 4, modifierGroupId: modifierGroup.id },
         { name: 'Salsa Roja', extraPrice: 7, modifierGroupId: modifierGroup.id },
-        { name: 'Salsa Habanero', extraPrice: 20, modifierGroupId: modifierGroup.id },
+        {
+            name: 'Salsa Habanero',
+            extraPrice: 20,
+            modifierGroupId: modifierGroup.id,
+        },
     ].map(({ name, extraPrice }) => db_server_1.prisma.modifiers.create({
         data: {
             name,
