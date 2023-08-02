@@ -224,17 +224,21 @@ export default function Menu() {
       <Spacer spaceY="2" />
       <MenuInfo menu={data.menu} branch={data.branch} />
       <Spacer spaceY="2" />
-      <SwitchButton
-        setToggle={() => setSeePdf(!seePdf)}
-        state={seePdf}
-        leftText="Ordenar"
-        rightText="Ver PDF"
-        leftIcon={<FaShoppingCart />}
-        rightIcon={<FaFilePdf />}
-        height="medium"
-        stretch
-        allCornersRounded={true}
-      />
+      {/* NOTE: if there is a category.pdf === true then show */}
+      {data.categories.filter(category => category.pdf) && (
+        <SwitchButton
+          setToggle={() => setSeePdf(!seePdf)}
+          state={seePdf}
+          leftText="Ordenar"
+          rightText="Ver PDF"
+          leftIcon={<FaShoppingCart />}
+          rightIcon={<FaFilePdf />}
+          height="medium"
+          stretch
+          allCornersRounded={true}
+        />
+      )}
+
       <Spacer spaceY="2" />
       {seePdf ? (
         <div className="space-y-2">
@@ -242,7 +246,6 @@ export default function Menu() {
             .filter((category: MenuCategory) => category.pdf)
             .map((category: MenuCategory) => (
               <div key={category.id}>
-                {/* <H2>{category.name}</H2> */}
                 <div className="overflow-hidden">
                   <img
                     alt=""
