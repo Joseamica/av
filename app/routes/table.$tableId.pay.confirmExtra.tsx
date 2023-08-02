@@ -23,7 +23,6 @@ import {
   getAmountLeftToPay,
   getCurrency,
 } from '~/utils'
-import {handlePaymentProcessing} from '~/utils/paymentProcessing.server'
 import {getDomainUrl, getStripeSession} from '~/utils/stripe.server'
 
 export async function action({request, params}: ActionArgs) {
@@ -36,12 +35,11 @@ export async function action({request, params}: ActionArgs) {
   invariant(branchId, 'No se encontró la sucursal')
 
   const formData = await request.formData()
-  const session = await getSession(request)
 
   const redirectTo = validateRedirect(request.redirect, `/table/${tableId}`)
 
   const paymentMethod = formData.get('paymentMethod') as PaymentMethod
-  const userName = await getUsername(session)
+
   const action = formData.get('_action') as string
 
   const url = new URL(request.url)
@@ -138,7 +136,7 @@ export default function EqualParts() {
           amountLeft={data.amountLeft}
           currency={data.currency}
           paidUsers={data.paidUsers}
-          total={data.total}
+          total={Number(data.total)}
           userId={data.userId}
         />
         <Spacer spaceY="2" />

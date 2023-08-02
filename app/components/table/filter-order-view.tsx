@@ -19,6 +19,7 @@ export function FilterOrderView({
       collapseTitle={
         collapse ? <H5>Ver más platillos</H5> : <H5>Ver menos platillos</H5>
       }
+      roundedPosition="bottom"
       handleCollapse={handleCollapse}
     >
       <AnimatePresence initial={false}>

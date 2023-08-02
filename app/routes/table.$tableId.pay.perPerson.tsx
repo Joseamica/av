@@ -26,7 +26,7 @@ import {getOrder} from '~/models/order.server'
 import {validateRedirect} from '~/redirect.server'
 import {useLiveLoader} from '~/use-live-loader'
 import {formatCurrency, getAmountLeftToPay, getCurrency} from '~/utils'
-import {handlePaymentProcessing} from '~/utils/paymentProcessing.server'
+import {handlePaymentProcessing} from '~/utils/payment-processing.server'
 
 export async function loader({request, params}: LoaderArgs) {
   const {tableId} = params

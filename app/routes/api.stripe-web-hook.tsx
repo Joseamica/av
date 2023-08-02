@@ -21,6 +21,8 @@ interface Metadata {
   extraData: string
 }
 
+//FIXME VER SI ES RELEVANTE O NO, sino BORRAR
+
 // [credit @kiliman to get this webhook working](https://github.com/remix-run/remix/discussions/1978)
 export const action = async ({request}: ActionArgs) => {
   const payload = await request.text()

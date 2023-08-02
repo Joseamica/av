@@ -9,12 +9,7 @@ import { validateRedirect } from '~/redirect.server'
 import { getSession } from '~/session.server'
 import { useLiveLoader } from '~/use-live-loader'
 
-import {
-  getBranch,
-  getBranchId,
-  getPaymentMethods,
-  getTipsPercentages,
-} from '~/models/branch.server'
+import { getBranch, getBranchId, getPaymentMethods, getTipsPercentages } from '~/models/branch.server'
 import { getMenu } from '~/models/menu.server'
 import { getOrder } from '~/models/order.server'
 import { getPaidUsers } from '~/models/user.server'
@@ -45,13 +40,7 @@ export default function FullPay() {
   return (
     <Modal onClose={() => navigate('..')} title="Pagar cuenta completa">
       <div>
-        <BillAmount
-          amountLeft={data.amountLeft}
-          currency={data.currency}
-          paidUsers={data.paidUsers}
-          total={data.total}
-          userId={data.userId}
-        />
+        <BillAmount amountLeft={data.amountLeft} currency={data.currency} paidUsers={data.paidUsers} total={data.total} userId={data.userId} />
         <Spacer spaceY="2" />
         <Form method="POST" preventScrollReset>
           {/* <Pay /> */}
@@ -131,23 +120,12 @@ export async function action({ request, params }: ActionArgs) {
   const paymentMethod = formData.get('paymentMethod') as PaymentMethod
 
   const amountLeft = (await getAmountLeftToPay(tableId)) || 0
-  const menuCurrency = await getMenu(branchId).then(
-    (menu: any) => menu?.currency || 'mxn',
-  )
+  const menuCurrency = await getMenu(branchId).then((menu: any) => menu?.currency || 'mxn')
   //FIX this \/
   //@ts-expect-error
   const tip = amountLeft * Number(tipPercentage / 100)
 
-  const result = await handlePaymentProcessing(
-    paymentMethod as string,
-    amountLeft,
-    tip,
-    menuCurrency,
-    true,
-    request,
-    redirectTo,
-    'fullpay',
-  )
+  const result = await handlePaymentProcessing(paymentMethod as string, amountLeft, tip, menuCurrency, true, request, redirectTo, 'fullpay')
 
   if (result.type === 'redirect') {
     return redirect(result.url)

@@ -26,10 +26,14 @@ export function FilterUserView({
     <AnimatePresence>
       <div className="space-y-2">
         {order.users &&
-          order.users.map((user: any) => {
+          order.users.map((user: any, index: number) => {
             const userPaid = Number(user.paid)
             return (
-              <SectionContainer key={user.id} as="div">
+              <SectionContainer
+                key={user.id}
+                as="div"
+                roundedPosition={index === 0 ? 'bottom' : undefined}
+              >
                 <FlexRow justify="between" className="rounded-xl px-1 ">
                   <Spacer spaceY="2">
                     <FlexRow className="items-center space-x-2 divide-x-2">
@@ -146,7 +150,6 @@ export function FilterUserView({
                     </motion.div>
                   )}
                 </AnimatePresence>
-
                 {/* <hr /> */}
               </SectionContainer>
             )

@@ -1,27 +1,13 @@
-import {
-  Form,
-  useActionData,
-  useLoaderData,
-  useNavigate,
-} from '@remix-run/react'
+import { Form, useActionData, useLoaderData } from '@remix-run/react'
 import React from 'react'
 
-import {
-  type ActionArgs,
-  type LoaderArgs,
-  json,
-  redirect,
-} from '@remix-run/node'
+import { type ActionArgs, type LoaderArgs, json, redirect } from '@remix-run/node'
 
 import clsx from 'clsx'
 import invariant from 'tiny-invariant'
 import { validateRedirect } from '~/redirect.server'
 
-import {
-  getBranchId,
-  getPaymentMethods,
-  getTipsPercentages,
-} from '~/models/branch.server'
+import { getBranchId, getPaymentMethods, getTipsPercentages } from '~/models/branch.server'
 import { getMenu } from '~/models/menu.server'
 import { getOrder } from '~/models/order.server'
 import { validateCustom } from '~/models/validations.server'
@@ -45,21 +31,12 @@ export default function CustomPay() {
   }
 
   return (
-    <Modal
-      onClose={() => null}
-      fullScreen={false}
-      title="Pagar un monto personalizado"
-    >
+    <Modal onClose={() => null} fullScreen={false} title="Pagar un monto personalizado">
       {actionData?.status === 400 && <div>Error message here</div>}
 
       <Form method="POST" preventScrollReset>
         <div className="bg-componentBg dark:bg-DARK_0 flex w-full flex-row items-center px-4 py-2  ">
-          <label
-            htmlFor="custom"
-            className={clsx(
-              'bg-componentBg dark:bg-DARK_0 dark:text-mainTextDark text-6xl text-[#9CA3AF]',
-            )}
-          >
+          <label htmlFor="custom" className={clsx('bg-componentBg dark:bg-DARK_0 dark:text-mainTextDark text-6xl text-[#9CA3AF]')}>
             {data.currency}
           </label>
           <input
@@ -69,13 +46,9 @@ export default function CustomPay() {
             id="custom"
             inputMode="decimal"
             onChange={handleAmountChange} // Handle input changes
-            className={clsx(
-              `dark:bg-DARK-0 flex h-20 w-full bg-transparent text-6xl placeholder:p-2 placeholder:text-6xl focus:outline-none focus:ring-0`,
-              {
-                'animate-pulse placeholder:text-warning':
-                  actionData?.amountToPay,
-              },
-            )}
+            className={clsx(`dark:bg-DARK-0 flex h-20 w-full bg-transparent text-6xl placeholder:p-2 placeholder:text-6xl focus:outline-none focus:ring-0`, {
+              'animate-pulse placeholder:text-warning': actionData?.amountToPay,
+            })}
             placeholder="0.00"
           />
         </div>
@@ -122,44 +95,26 @@ export async function action({ request, params }: ActionArgs) {
     return error
   }
 
-  const [order, branchId] = await Promise.all([
-    getOrder(tableId),
-    getBranchId(tableId),
-  ])
+  const [order, branchId] = await Promise.all([getOrder(tableId), getBranchId(tableId)])
 
   invariant(order, 'No se encontró orden')
   invariant(branchId, 'No se encontró sucursal')
 
   const amountLeft = await getAmountLeftToPay(tableId)
-  const menuCurrency = await getMenu(branchId).then(
-    (menu: any) => menu?.currency || 'mxn',
-  )
+  const menuCurrency = await getMenu(branchId).then((menu: any) => menu?.currency || 'mxn')
 
   const tip = Number(total) * (Number(data.tipPercentage) / 100)
 
   if (amountLeft && amountLeft < Number(total)) {
     const url = new URL(request.url)
     const pathname = url.pathname
-    return redirect(
-      `/table/${tableId}/pay/confirmExtra?total=${total}&tip=${
-        tip <= 0 ? total * 0.12 : tip
-      }&pMethod=${data.paymentMethod}&redirectTo=${pathname}`,
-    )
+    return redirect(`/table/${tableId}/pay/confirmExtra?total=${total}&tip=${tip <= 0 ? total * 0.12 : tip}&pMethod=${data.paymentMethod}&redirectTo=${pathname}`)
   }
 
   const isOrderAmountFullPaid = amountLeft <= total
 
   // ANCHOR Stripe component
-  const result = await handlePaymentProcessing(
-    data.paymentMethod as string,
-    total,
-    tip,
-    menuCurrency,
-    isOrderAmountFullPaid,
-    request,
-    redirectTo,
-    'custom',
-  )
+  const result = await handlePaymentProcessing(data.paymentMethod as string, total, tip, menuCurrency, isOrderAmountFullPaid, request, redirectTo, 'custom')
 
   if (result.type === 'redirect') {
     return redirect(result.url)

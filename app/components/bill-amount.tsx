@@ -22,7 +22,7 @@ export function BillAmount({
   amountLeft: number
   total: number
   currency: string
-  paidUsers: User[]
+  paidUsers: any
   userId: string
 }) {
   // const data = useLoaderData()
