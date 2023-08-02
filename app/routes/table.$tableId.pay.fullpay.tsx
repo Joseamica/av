@@ -125,7 +125,16 @@ export async function action({ request, params }: ActionArgs) {
   //@ts-expect-error
   const tip = amountLeft * Number(tipPercentage / 100)
 
-  const result = await handlePaymentProcessing(paymentMethod as string, amountLeft, tip, menuCurrency, true, request, redirectTo, 'fullpay')
+  const result = await handlePaymentProcessing({
+    paymentMethod: paymentMethod as string,
+    total: amountLeft,
+    tip,
+    currency: menuCurrency,
+    isOrderAmountFullPaid: true,
+    request,
+    redirectTo,
+    typeOfPayment: 'fullpay',
+  })
 
   if (result.type === 'redirect') {
     return redirect(result.url)

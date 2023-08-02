@@ -28,7 +28,6 @@ export const loader = async ({ params, request }: LoaderArgs) => {
   const typeOfPayment = searchParams.get('typeOfPayment')
   const total = Number(searchParams.get('amount'))
   const tip = Number(searchParams.get('tip'))
-  const itemData = searchParams.get('itemData') ? JSON.parse(searchParams.get('itemData')) : null
   const isOrderAmountFullPaid = searchParams.get('isOrderAmountFullPaid')
   const amount = Number(total) - Number(tip)
 
@@ -65,6 +64,7 @@ export const loader = async ({ params, request }: LoaderArgs) => {
       // await updatePaidItemsAndUserData(itemData, username || '')
       break
     case 'perDish':
+      const itemData = searchParams.get('itemData') ? JSON.parse(searchParams.get('itemData')) : null
       await updatePaidItemsAndUserData(itemData, username || '')
       session.flash('notification', 'Pago realizado con éxito')
       break
