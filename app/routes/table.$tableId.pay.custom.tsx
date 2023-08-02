@@ -13,7 +13,7 @@ import { getOrder } from '~/models/order.server'
 import { validateCustom } from '~/models/validations.server'
 
 import { getAmountLeftToPay, getCurrency } from '~/utils'
-import { handlePaymentProcessing } from '~/utils/paymentProcessing.server'
+import { handlePaymentProcessing } from '~/utils/payment-processing.server'
 
 import { Spacer } from '~/components'
 import { Modal } from '~/components/modal'

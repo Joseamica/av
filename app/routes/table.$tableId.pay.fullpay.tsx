@@ -16,7 +16,7 @@ import { getPaidUsers } from '~/models/user.server'
 import { validateFullPay } from '~/models/validations.server'
 
 import { getAmountLeftToPay, getCurrency } from '~/utils'
-import { handlePaymentProcessing } from '~/utils/paymentProcessing.server'
+import { handlePaymentProcessing } from '~/utils/payment-processing.server'
 
 import { BillAmount, Spacer } from '~/components'
 import { Modal } from '~/components/modal'
