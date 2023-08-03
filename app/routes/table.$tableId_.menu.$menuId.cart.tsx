@@ -1,62 +1,31 @@
-import {ChevronRightIcon, ChevronUpIcon} from '@heroicons/react/outline'
-import type {CartItem, Order, PaymentMethod, User} from '@prisma/client'
-import {json, redirect} from '@remix-run/node'
-import {
-  Outlet,
-  useFetcher,
-  useLoaderData,
-  useNavigate,
-  useNavigation,
-  useParams,
-} from '@remix-run/react'
-import type {ActionArgs, LoaderArgs} from '@remix-run/server-runtime'
+import { ChevronRightIcon, ChevronUpIcon } from '@heroicons/react/outline'
+import type { CartItem, Order, PaymentMethod, User } from '@prisma/client'
+import { json, redirect } from '@remix-run/node'
+import { Outlet, useFetcher, useLoaderData, useNavigate, useNavigation, useParams } from '@remix-run/react'
+import type { ActionArgs, LoaderArgs } from '@remix-run/server-runtime'
 import clsx from 'clsx'
 import cuid from 'cuid'
-import {motion} from 'framer-motion'
-import React, {useState} from 'react'
+import { motion } from 'framer-motion'
+import React, { useState } from 'react'
 import invariant from 'tiny-invariant'
-import {
-  Button,
-  FlexRow,
-  H2,
-  H3,
-  H4,
-  H5,
-  H6,
-  ItemContainer,
-  Modal,
-  QuantityButton,
-  Spacer,
-  Underline,
-} from '~/components'
-import {SubModal} from '~/components/modal'
-import {prisma} from '~/db.server'
-import {EVENTS} from '~/events'
-import {
-  getBranch,
-  getBranchId,
-  getPaymentMethods,
-  getTipsPercentages,
-} from '~/models/branch.server'
-import {getCartItems} from '~/models/cart.server'
-import {getDvctToken} from '~/models/deliverect.server'
-import {getOrderTotal} from '~/models/order.server'
-import {getTable} from '~/models/table.server'
+import { Button, FlexRow, H2, H3, H4, H5, H6, ItemContainer, Modal, QuantityButton, Spacer, Underline } from '~/components'
+import { SubModal } from '~/components/modal'
+import { prisma } from '~/db.server'
+import { EVENTS } from '~/events'
+import { getBranch, getBranchId, getPaymentMethods, getTipsPercentages } from '~/models/branch.server'
+import { getCartItems } from '~/models/cart.server'
+import { getDvctToken } from '~/models/deliverect.server'
+import { getOrderTotal } from '~/models/order.server'
+import { getTable } from '~/models/table.server'
 
-import {validateRedirect} from '~/redirect.server'
-import {getSession, sessionStorage, updateCartItem} from '~/session.server'
+import { validateRedirect } from '~/redirect.server'
+import { getSession, sessionStorage, updateCartItem } from '~/session.server'
 
-import {
-  Translate,
-  createQueryString,
-  formatCurrency,
-  getAmountLeftToPay,
-  getCurrency,
-} from '~/utils'
-import {getDomainUrl, getStripeSession} from '~/utils/stripe.server'
+import { Translate, createQueryString, formatCurrency, getAmountLeftToPay, getCurrency } from '~/utils'
+import { getDomainUrl, getStripeSession } from '~/utils/stripe.server'
 
-export async function loader({request, params}: LoaderArgs) {
-  const {tableId, menuId} = params
+export async function loader({ request, params }: LoaderArgs) {
+  const { tableId, menuId } = params
   invariant(tableId, 'No se encontró la mesa')
 
   const branch = await getBranch(tableId)
@@ -68,13 +37,13 @@ export async function loader({request, params}: LoaderArgs) {
   const dishId = url.searchParams.get('dishId') || ''
 
   const dish = await prisma.menuItem.findFirst({
-    where: {id: dishId},
+    where: { id: dishId },
   })
 
   const session = await getSession(request)
 
   const categories = await prisma.menuCategory.findMany({
-    where: {menuId},
+    where: { menuId },
     include: {
       menuItems: true,
     },
@@ -82,7 +51,7 @@ export async function loader({request, params}: LoaderArgs) {
   //Find users on table that are not the current user,
   //this is to show users to share dishes with and you don't appear
   const usersOnTable = await prisma.user.findMany({
-    where: {tableId, id: {not: session.get('userId')}},
+    where: { tableId, id: { not: session.get('userId') } },
   })
 
   const cart = JSON.parse(session.get('cart') || '[]') as CartItem[]
@@ -111,8 +80,8 @@ export async function loader({request, params}: LoaderArgs) {
   })
 }
 
-export async function action({request, params}: ActionArgs) {
-  const {tableId} = params
+export async function action({ request, params }: ActionArgs) {
+  const { tableId } = params
   invariant(tableId, 'No se encontró la mesa')
 
   const branchId = await getBranchId(tableId)
@@ -127,9 +96,7 @@ export async function action({request, params}: ActionArgs) {
   const session = await getSession(request)
   const shareDish = JSON.parse(session.get('shareUserIds') || false)
   let cart = JSON.parse(session.get('cart') || '[]')
-  const quantityStr = cart.find(
-    (item: {variantId: string}) => item.variantId === variantId,
-  )?.quantity
+  const quantityStr = cart.find((item: { variantId: string }) => item.variantId === variantId)?.quantity
   const userId = session.get('userId')
 
   const cartItems = await getCartItems(cart)
@@ -180,7 +147,7 @@ export async function action({request, params}: ActionArgs) {
         },
         include: {
           users: {
-            where: {id: userId},
+            where: { id: userId },
           },
         },
       })
@@ -203,9 +170,9 @@ export async function action({request, params}: ActionArgs) {
         })
         cartItemsTotal = 0
       } else {
-        const orderTotal = (await getOrderTotal(order.id)) || {total: 0}
+        const orderTotal = (await getOrderTotal(order.id)) || { total: 0 }
         await prisma.order.update({
-          where: {id: order.id},
+          where: { id: order.id },
           data: {
             total: Number(orderTotal.total) + Number(cartItemsTotal),
             paid: false,
@@ -215,7 +182,7 @@ export async function action({request, params}: ActionArgs) {
         // Connect user if not connected
         if (!order.users?.some((user: User) => user.id === userId)) {
           await prisma.order.update({
-            where: {id: order.id},
+            where: { id: order.id },
             data: {
               users: {
                 connect: {
@@ -245,10 +212,7 @@ export async function action({request, params}: ActionArgs) {
 
               //if shareDish is not empty, connect the users to the cartItem
               user: {
-                connect:
-                  shareDish.length > 0
-                    ? [{id: userId}, ...shareDish.map(id => ({id: id}))]
-                    : {id: userId},
+                connect: shareDish.length > 0 ? [{ id: userId }, ...shareDish.map(id => ({ id: id }))] : { id: userId },
               } as any,
               activeOnOrder: true,
               orderId: order?.id,
@@ -298,9 +262,7 @@ export async function action({request, params}: ActionArgs) {
       }
 
       //TODO: cambiar el channelname y channelLinkId agarrandolos de la base de datos o api
-      const url =
-        process.env.DELIVERECT_API_URL +
-        '/joseantonioamieva/order/649c4d38770ee8288c5a8729'
+      const url = process.env.DELIVERECT_API_URL + '/joseantonioamieva/order/649c4d38770ee8288c5a8729'
       const options = {
         method: 'POST',
         headers: {
@@ -309,9 +271,9 @@ export async function action({request, params}: ActionArgs) {
           authorization: 'Bearer ' + token,
         },
         body: JSON.stringify({
-          customer: {name: 'John '},
+          customer: { name: 'John ' },
           orderIsAlreadyPaid: false,
-          payment: {amount: adjustedCartItemsTotal, type: 0},
+          payment: { amount: adjustedCartItemsTotal, type: 0 },
           items: adjustedItems,
           decimalDigits: 2,
           // channelOrderId: order.id,
@@ -331,12 +293,12 @@ export async function action({request, params}: ActionArgs) {
       EVENTS.ISSUE_CHANGED(tableId)
 
       return redirect(redirectTo, {
-        headers: {'Set-Cookie': await sessionStorage.commitSession(session)},
+        headers: { 'Set-Cookie': await sessionStorage.commitSession(session) },
       })
   }
 
   return redirect('', {
-    headers: {'Set-Cookie': await sessionStorage.commitSession(session)},
+    headers: { 'Set-Cookie': await sessionStorage.commitSession(session) },
   })
 }
 
@@ -368,8 +330,7 @@ export default function Cart() {
     return acc + Number(item.price) * item.quantity
   }, 0)
 
-  let isSubmitting =
-    fetcher.state === 'submitting' || fetcher.state === 'loading'
+  let isSubmitting = fetcher.state === 'submitting' || fetcher.state === 'loading'
 
   return (
     <>
@@ -380,16 +341,11 @@ export default function Cart() {
             <div className="space-y-2">
               {data.cartItems?.map((items: CartItem, index: number) => {
                 return (
-                  <ItemContainer
-                    key={index}
-                    className="flex flex-row items-center justify-between space-x-2 "
-                  >
+                  <ItemContainer key={index} className="flex flex-row items-center justify-between space-x-2 ">
                     <input type="hidden" name="variantId" value={item} />
                     <FlexRow justify="between" className="w-full pr-2">
                       <H4>{items.name}</H4>
-                      <H5 className="shrink-0">
-                        {formatCurrency(data.currency, items.price)}
-                      </H5>
+                      <H5 className="shrink-0">{formatCurrency(data.currency, items.price)}</H5>
                     </FlexRow>
                     <QuantityButton
                       isForm={true}
@@ -419,24 +375,13 @@ export default function Cart() {
                 </Underline>
               </FlexRow>
               <Spacer spaceY="3" />
-              <Button
-                name="_action"
-                value="submitCart"
-                type="submit"
-                size="medium"
-                disabled={isSubmitting || data.cartItems?.length === 0}
-                className="w-full"
-              >
+              <Button name="_action" value="submitCart" type="submit" size="medium" disabled={isSubmitting || data.cartItems?.length === 0} className="w-full">
                 {isSubmitting ? (
                   'Agregando platillos...'
                 ) : (
                   <div>
                     <span className="font-light">Ordenar y </span>
-                    {
-                      <span className="button-outline font-bold underline-offset-8">
-                        pagar después
-                      </span>
-                    }
+                    {<span className="button-outline font-bold underline-offset-8">pagar después</span>}
                   </div>
                 )}
               </Button>
@@ -467,8 +412,8 @@ const variants = {
     height: 0,
     opacity: 0,
     transition: {
-      opacity: {duration: 0.2},
-      height: {duration: 0.4},
+      opacity: { duration: 0.2 },
+      height: { duration: 0.4 },
     },
   },
   visible: {
@@ -480,11 +425,7 @@ const variants = {
   },
 }
 
-export function CartPayment({
-  setShowPaymentOptions,
-}: {
-  setShowPaymentOptions: any
-}) {
+export function CartPayment({ setShowPaymentOptions }: { setShowPaymentOptions: any }) {
   const data = useLoaderData()
 
   const navigation = useNavigation()
@@ -512,13 +453,7 @@ export function CartPayment({
     <>
       <div className="dark:bg-night-bg_principal dark:text-night-text_principal sticky inset-x-0 bottom-0 flex flex-col justify-center rounded-t-xl border-4 bg-day-bg_principal px-3">
         <Spacer spaceY="2" />
-        <motion.div
-          variants={variants}
-          initial="hidden"
-          animate={'visible'}
-          exit="hidden"
-          className="flex flex-col"
-        >
+        <motion.div variants={variants} initial="hidden" animate={'visible'} exit="hidden" className="flex flex-col">
           <FlexRow justify="between">
             <H5>Cantidad por {data.cartItems.length} platillos:</H5>
             <H3>{formatCurrency(data.currency, total ? total : 0)}</H3>
@@ -528,11 +463,7 @@ export function CartPayment({
           <hr />
           <Spacer spaceY="2" />
 
-          <button
-            className="flex flex-row items-center justify-between"
-            type="button"
-            onClick={() => setShowModal({...showModal, tip: true})}
-          >
+          <button className="flex flex-row items-center justify-between" type="button" onClick={() => setShowModal({ ...showModal, tip: true })}>
             <H5>Propina</H5>
             <FlexRow>
               <FlexRow>
@@ -554,11 +485,7 @@ export function CartPayment({
           </button>
 
           <Spacer spaceY="2" />
-          <button
-            className="flex flex-row items-center justify-between"
-            type="button"
-            onClick={() => setShowModal({...showModal, payment: true})}
-          >
+          <button className="flex flex-row items-center justify-between" type="button" onClick={() => setShowModal({ ...showModal, payment: true })}>
             <H5>Método de pago</H5>
             <FlexRow>
               <H3>{Translate('es', paymentRadio)}</H3>
@@ -605,22 +532,16 @@ export function CartPayment({
             {isSubmitting ? 'Procesando...' : 'Pagar y ordenar'}{' '}
           </Button>
           <Spacer spaceY="1" />
-          <Button
-            onClick={() => setShowPaymentOptions(false)}
-            to=""
-            variant={'danger'}
-          >
+          <Button onClick={() => setShowPaymentOptions(false)} to="" variant={'danger'}>
             Volver
           </Button>
         </motion.div>
         {/* )}
         </AnimatePresence> */}
       </div>
+      {/* ANCHOR MODAL TIP */}
       {showModal.tip && (
-        <SubModal
-          onClose={() => setShowModal({...showModal, tip: false})}
-          title="Asignar propina"
-        >
+        <SubModal onClose={() => setShowModal({ ...showModal, tip: false })} title="Asignar propina">
           <div className="flex flex-col space-y-2">
             {data.tipsPercentages.map((tipPercentage: any) => (
               <label
@@ -628,8 +549,7 @@ export function CartPayment({
                 className={clsx(
                   'flex w-full flex-row items-center justify-center space-x-2 rounded-lg border border-button-outline border-opacity-40 px-3 py-1 text-center shadow-lg',
                   {
-                    'text-2 rounded-full bg-button-primary px-2 py-1  text-white  ring-4   ring-button-outline':
-                      tipRadio.toString() === tipPercentage,
+                    'text-2 rounded-full bg-button-primary px-2 py-1  text-white  ring-4   ring-button-outline': tipRadio.toString() === tipPercentage,
                   },
                 )}
               >
@@ -649,51 +569,32 @@ export function CartPayment({
                   </H4>
                   <H3>{tipPercentage}%</H3>
                 </FlexRow>
-                <input
-                  type="radio"
-                  name="tipPercentage"
-                  value={tipPercentage}
-                  onChange={handleTipChange}
-                  className="sr-only"
-                />
+                <input type="radio" name="tipPercentage" value={tipPercentage} onChange={handleTipChange} className="sr-only" />
               </label>
             ))}
           </div>
           <Spacer spaceY="2" />
           <H3 className="flex w-full flex-row justify-center">
-            <Underline>
-              Estas dejando{' '}
-              {formatCurrency(data.currency, (tipRadio * total) / 100)} de
-              propina
-            </Underline>
+            <Underline>Estas dejando {formatCurrency(data.currency, (tipRadio * total) / 100)} de propina</Underline>
           </H3>
           <Spacer spaceY="2" />
-          <Button
-            fullWith={true}
-            onClick={() => setShowModal({...showModal, tip: false})}
-          >
+          <Button fullWith={true} onClick={() => setShowModal({ ...showModal, tip: false })}>
             Asignar
           </Button>
         </SubModal>
       )}
+
       {showModal.payment && (
-        <SubModal
-          onClose={() => setShowModal({...showModal, payment: false})}
-          title="Asignar método de pago"
-        >
+        <SubModal onClose={() => setShowModal({ ...showModal, payment: false })} title="Asignar método de pago">
           <div className="space-y-2">
             {data.paymentMethods.paymentMethods.map((paymentMethod: any) => {
               const translate = Translate('es', paymentMethod)
               return (
                 <label
                   key={paymentMethod}
-                  className={clsx(
-                    'flex w-full flex-row items-center justify-center space-x-2 rounded-lg border border-button-outline border-opacity-40 px-3 py-2 shadow-lg',
-                    {
-                      'text-2 rounded-full bg-button-primary px-2 py-1  text-white  ring-4   ring-button-outline':
-                        paymentRadio === paymentMethod,
-                    },
-                  )}
+                  className={clsx('flex w-full flex-row items-center justify-center space-x-2 rounded-lg border border-button-outline border-opacity-40 px-3 py-2 shadow-lg', {
+                    'text-2 rounded-full bg-button-primary px-2 py-1  text-white  ring-4   ring-button-outline': paymentRadio === paymentMethod,
+                  })}
                 >
                   {translate}
                   <input
@@ -707,10 +608,7 @@ export function CartPayment({
                 </label>
               )
             })}
-            <Button
-              fullWith={true}
-              onClick={() => setShowModal({...showModal, payment: false})}
-            >
+            <Button fullWith={true} onClick={() => setShowModal({ ...showModal, payment: false })}>
               Asignar
             </Button>
           </div>

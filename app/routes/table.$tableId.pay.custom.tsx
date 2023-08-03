@@ -1,4 +1,4 @@
-import { Form, useActionData, useLoaderData } from '@remix-run/react'
+import { Form, useActionData, useLoaderData, useNavigate } from '@remix-run/react'
 import React from 'react'
 
 import { type ActionArgs, type LoaderArgs, json, redirect } from '@remix-run/node'
@@ -29,9 +29,10 @@ export default function CustomPay() {
   const handleAmountChange = e => {
     setAmountToPay(Number(e.target.value))
   }
+  const navigate = useNavigate()
 
   return (
-    <Modal onClose={() => null} fullScreen={false} title="Pagar un monto personalizado">
+    <Modal onClose={() => navigate('..', { replace: true })} fullScreen={false} title="Pagar un monto personalizado">
       {actionData?.status === 400 && <div>Error message here</div>}
 
       <Form method="POST" preventScrollReset>
