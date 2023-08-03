@@ -1,22 +1,26 @@
-import {type PaymentMethod} from '@prisma/client'
-import {type LoaderArgs, redirect} from '@remix-run/node'
-import {prisma} from '~/db.server'
-import {EVENTS} from '~/events'
-import {getBranchId} from '~/models/branch.server'
-import {assignExpirationAndValuesToOrder, getOrder} from '~/models/order.server'
-import {assignUserNewPayments} from '~/models/user.server'
-import {getSession, getUserId, sessionStorage} from '~/session.server'
-import {SendWhatsApp} from '~/twilio.server'
-import {getAmountLeftToPay} from '~/utils'
+import { type LoaderArgs, redirect } from '@remix-run/node'
 
-export const loader = async ({params, request}: LoaderArgs) => {
-  const {tableId} = params
+import { type PaymentMethod } from '@prisma/client'
+import { prisma } from '~/db.server'
+import { getSession, getUserId, sessionStorage } from '~/session.server'
+import { SendWhatsApp } from '~/twilio.server'
+
+import { getBranchId } from '~/models/branch.server'
+import { assignExpirationAndValuesToOrder, getOrder } from '~/models/order.server'
+import { assignUserNewPayments } from '~/models/user.server'
+
+import { EVENTS } from '~/events'
+
+import { getAmountLeftToPay } from '~/utils'
+
+export const loader = async ({ params, request }: LoaderArgs) => {
+  const { tableId } = params
 
   const session = await getSession(request)
   const branchId = await getBranchId(tableId)
   const userId = await getUserId(session)
   const order = await getOrder(tableId)
-  const user = await prisma.user.findUnique({where: {id: userId}})
+  const user = await prisma.user.findUnique({ where: { id: userId } })
   const amountLeft = await getAmountLeftToPay(tableId)
 
   const searchParams = new URL(request.url).searchParams
@@ -24,9 +28,6 @@ export const loader = async ({params, request}: LoaderArgs) => {
   const typeOfPayment = searchParams.get('typeOfPayment')
   const total = Number(searchParams.get('amount'))
   const tip = Number(searchParams.get('tip'))
-  const extraData = searchParams.get('extraData')
-    ? JSON.parse(searchParams.get('extraData'))
-    : null
   const isOrderAmountFullPaid = searchParams.get('isOrderAmountFullPaid')
   const amount = Number(total) - Number(tip)
 
@@ -45,7 +46,7 @@ export const loader = async ({params, request}: LoaderArgs) => {
 
   if (isOrderAmountFullPaid === 'true') {
     await prisma.order.update({
-      where: {id: order.id},
+      where: { id: order.id },
       data: {
         paid: true,
         paidDate: new Date(),
@@ -63,14 +64,14 @@ export const loader = async ({params, request}: LoaderArgs) => {
       // await updatePaidItemsAndUserData(itemData, username || '')
       break
     case 'perDish':
-      const itemData = extraData
+      const itemData = searchParams.get('itemData') ? JSON.parse(searchParams.get('itemData')) : null
       await updatePaidItemsAndUserData(itemData, username || '')
       session.flash('notification', 'Pago realizado con éxito')
       break
     case 'fullpay':
       session.flash('notification', 'Haz pagado la cuenta completa con éxito')
       await prisma.order.update({
-        where: {id: order.id},
+        where: { id: order.id },
         data: {
           paid: true,
           paidDate: new Date(),
@@ -83,14 +84,10 @@ export const loader = async ({params, request}: LoaderArgs) => {
 
   EVENTS.ISSUE_CHANGED(tableId)
   await assignExpirationAndValuesToOrder(amountLeft, tip, amount, order)
-  SendWhatsApp(
-    '14155238886',
-    `5215512956265`,
-    `El usuario ${username} ha pagado quiere pagar en efectivo propina ${tip} y total ${amount}`,
-  )
+  SendWhatsApp('14155238886', `5215512956265`, `El usuario ${username} ha pagado quiere pagar en efectivo propina ${tip} y total ${amount}`)
 
   return redirect(`/table/${tableId}`, {
-    headers: {'Set-Cookie': await sessionStorage.commitSession(session)},
+    headers: { 'Set-Cookie': await sessionStorage.commitSession(session) },
   })
 }
 
@@ -105,19 +102,16 @@ export const loader = async ({params, request}: LoaderArgs) => {
 
 // export default PaymentSuccess
 
-const updatePaidItemsAndUserData = async (
-  itemData: {itemId: string; price: string}[],
-  userName: string,
-) => {
+const updatePaidItemsAndUserData = async (itemData: { itemId: string; price: string }[], userName: string) => {
   // Loop through items and update price and paid
-  for (const {itemId} of itemData) {
+  for (const { itemId } of itemData) {
     const cartItem = await prisma.cartItem.findUnique({
-      where: {id: itemId},
+      where: { id: itemId },
     })
     if (cartItem) {
       await prisma.cartItem.update({
-        where: {id: itemId},
-        data: {paid: true, paidBy: userName},
+        where: { id: itemId },
+        data: { paid: true, paidBy: userName },
       })
     }
   }

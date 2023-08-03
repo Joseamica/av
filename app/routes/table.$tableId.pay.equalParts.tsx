@@ -1,27 +1,29 @@
-import {type PaymentMethod} from '@prisma/client'
-import type {ActionArgs, LoaderArgs} from '@remix-run/node'
-import {json, redirect} from '@remix-run/node'
-import {Form, useNavigate} from '@remix-run/react'
-import {AnimatePresence, motion} from 'framer-motion'
+import { Form, useNavigate } from '@remix-run/react'
 import React from 'react'
-import invariant from 'tiny-invariant'
-import {H5, Payment, QuantityManagerButton} from '~/components'
-import {Modal} from '~/components/modal'
-import {prisma} from '~/db.server'
-import {
-  getBranchId,
-  getPaymentMethods,
-  getTipsPercentages,
-} from '~/models/branch.server'
-import {getMenu} from '~/models/menu.server'
-import {getOrder} from '~/models/order.server'
-import {validateRedirect} from '~/redirect.server'
-import {useLiveLoader} from '~/use-live-loader'
-import {getAmountLeftToPay, getCurrency} from '~/utils'
-import {handlePaymentProcessing} from '~/utils/payment-processing.server'
 
-export async function action({request, params}: ActionArgs) {
-  const {tableId} = params
+import type { ActionArgs, LoaderArgs } from '@remix-run/node'
+import { json, redirect } from '@remix-run/node'
+
+import { type PaymentMethod } from '@prisma/client'
+import { AnimatePresence, motion } from 'framer-motion'
+import invariant from 'tiny-invariant'
+import { prisma } from '~/db.server'
+import { validateRedirect } from '~/redirect.server'
+import { useLiveLoader } from '~/use-live-loader'
+
+import { getBranchId, getPaymentMethods, getTipsPercentages } from '~/models/branch.server'
+import { getMenu } from '~/models/menu.server'
+import { getOrder } from '~/models/order.server'
+
+import { getAmountLeftToPay, getCurrency } from '~/utils'
+import { handlePaymentProcessing } from '~/utils/payment-processing.server'
+
+import { H5, QuantityManagerButton } from '~/components'
+import { Modal } from '~/components/modal'
+import { PaymentV2 } from '~/components/payment/payment'
+
+export async function action({ request, params }: ActionArgs) {
+  const { tableId } = params
   invariant(tableId, 'No se encontró mesa')
   const formData = await request.formData()
   const branchId = await getBranchId(tableId)
@@ -38,46 +40,40 @@ export async function action({request, params}: ActionArgs) {
   const total = order.total
 
   if (!total) {
-    return json({error: 'No se ha seleccionado ningún platillo'}, {status: 400})
+    return json({ error: 'No se ha seleccionado ningún platillo' }, { status: 400 })
   }
 
   const payingTotal = Number(formData.get('payingTotal')) as number
   const tip = Number(payingTotal) * (Number(tipPercentage) / 100)
   const amountLeft = (await getAmountLeftToPay(tableId)) || 0
-  const menuCurrency = await getMenu(branchId).then(
-    (menu: any) => menu?.currency || 'mxn',
-  )
+  const menuCurrency = await getMenu(branchId).then((menu: any) => menu?.currency || 'mxn')
 
   if (payingTotal > Number(amountLeft)) {
     const url = new URL(request.url)
     const pathname = url.pathname
-    return redirect(
-      `/table/${tableId}/pay/confirmExtra?total=${payingTotal}&tip=${
-        tip <= 0 ? Number(payingTotal) * 0.12 : tip
-      }&pMethod=${paymentMethod}&redirectTo=${pathname}`,
-    )
+    return redirect(`/table/${tableId}/pay/confirmExtra?total=${payingTotal}&tip=${tip <= 0 ? Number(payingTotal) * 0.12 : tip}&pMethod=${paymentMethod}&redirectTo=${pathname}`)
   }
 
   const isOrderAmountFullPaid = amountLeft <= payingTotal
 
-  const result = await handlePaymentProcessing(
-    paymentMethod as string,
-    payingTotal,
+  const result = await handlePaymentProcessing({
+    paymentMethod: paymentMethod as string,
+    total: payingTotal,
     tip,
-    menuCurrency,
+    currency: menuCurrency,
     isOrderAmountFullPaid,
     request,
     redirectTo,
-    'equalParts',
-  )
+    typeOfPayment: 'equalParts',
+  })
 
   if (result.type === 'redirect') {
     return redirect(result.url)
   }
 }
 
-export async function loader({request, params}: LoaderArgs) {
-  const {tableId} = params
+export async function loader({ request, params }: LoaderArgs) {
+  const { tableId } = params
   invariant(tableId, 'No se encontró mesa')
 
   const order = await getOrder(tableId)
@@ -88,8 +84,8 @@ export async function loader({request, params}: LoaderArgs) {
 
   const cartItems = await prisma.cartItem.findMany({
     // FIX
-    where: {orderId: order.id, activeOnOrder: true},
-    include: {menuItem: true, user: true},
+    where: { orderId: order.id, activeOnOrder: true },
+    include: { menuItem: true, user: true },
   })
   const total = order.total
 
@@ -160,7 +156,7 @@ export default function EqualParts() {
               <div className="relative h-52 w-52 md:h-32 md:w-32 xs:h-16 xs:w-16 ">
                 <svg className="-rotate-90 fill-none" viewBox="0 0 36 36">
                   <motion.circle
-                    initial={{strokeDashoffset: 0, opacity: 0}}
+                    initial={{ strokeDashoffset: 0, opacity: 0 }}
                     animate={{
                       strokeDasharray: `${percentForOne - gapSize} ,${gapSize}`,
                       opacity: 1,
@@ -174,7 +170,7 @@ export default function EqualParts() {
                   />
 
                   <motion.circle
-                    initial={{strokeDashoffset: 0, opacity: 0}}
+                    initial={{ strokeDashoffset: 0, opacity: 0 }}
                     animate={{
                       strokeDasharray: `${greenedPercent},${notGreenedPercent}`,
                       opacity: 1,
@@ -191,8 +187,7 @@ export default function EqualParts() {
                 </svg>
                 <div className="absolute inset-0 flex items-center justify-center p-8 text-center md:text-xs xs:hidden ">
                   <p>
-                    Pagando por {payingFor}{' '}
-                    {payingFor > 1 ? 'personas' : 'persona'}
+                    Pagando por {payingFor} {payingFor > 1 ? 'personas' : 'persona'}
                   </p>
                 </div>
               </div>
@@ -206,13 +201,7 @@ export default function EqualParts() {
                 <p className="text-md shrink-0 xs:text-xs"> la mesa</p>
               </div>
 
-              <QuantityManagerButton
-                quantity={personQuantity}
-                setQuantity={setPersonQuantity}
-                setPayingFor={setPayingFor}
-                payingFor={payingFor}
-                activate={activate}
-              />
+              <QuantityManagerButton quantity={personQuantity} setQuantity={setPersonQuantity} setPayingFor={setPayingFor} payingFor={payingFor} activate={activate} />
             </div>
 
             {/* <Divider /> */}
@@ -227,7 +216,7 @@ export default function EqualParts() {
             </div>
           </div>
         </div>
-        <Payment
+        <PaymentV2
           amountLeft={data.amountLeft}
           amountToPayState={perPerson}
           currency={data.currency}
