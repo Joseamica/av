@@ -91,17 +91,6 @@ export const loader = async ({ params, request }: LoaderArgs) => {
   })
 }
 
-// const PaymentSuccess = () => {
-//   return (
-//     <div>
-//       <h1>Payment Cancelled!</h1>
-//       <p>Thank you for your purchase.</p>
-//     </div>
-//   )
-// }
-
-// export default PaymentSuccess
-
 const updatePaidItemsAndUserData = async (itemData: { itemId: string; price: string }[], userName: string) => {
   // Loop through items and update price and paid
   for (const { itemId } of itemData) {

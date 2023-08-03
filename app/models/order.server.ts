@@ -1,5 +1,5 @@
-import type {Branch, Order, Table, User} from '@prisma/client'
-import {prisma} from '~/db.server'
+import type { Branch, Order, Table, User } from '@prisma/client'
+import { prisma } from '~/db.server'
 
 /**
  *
@@ -9,23 +9,19 @@ import {prisma} from '~/db.server'
  */
 
 type Includes = {
-  cartItems?: boolean | {include: {user: boolean}}
-  users?: boolean | {include: {cartItems: boolean}}
+  cartItems?: boolean | { include: { user: boolean } }
+  users?: boolean | { include: { cartItems: boolean } }
   payments?: boolean
 }
 
 export function getOrder(tableId: Table['id'], includes?: Includes) {
   return prisma.order.findFirst({
-    where: {tableId, active: true},
+    where: { tableId, active: true },
     include: includes,
   })
 }
 
-export async function findOrCreateOrder(
-  branchId: Branch['id'],
-  tableId: Table['id'],
-  userId: User['id'],
-) {
+export async function findOrCreateOrder(branchId: Branch['id'], tableId: Table['id'], userId: User['id']) {
   const order = await prisma.order.findFirst({
     where: {
       tableId,
@@ -66,24 +62,19 @@ export async function findOrCreateOrder(
 
 export function getOrderTotal(orderId: Order['id']) {
   return prisma.order.findUnique({
-    where: {id: orderId},
-    select: {total: true},
+    where: { id: orderId },
+    select: { total: true },
   })
 }
 
-export async function assignExpirationAndValuesToOrder(
-  amountLeft: number,
-  tip: number,
-  total: number,
-  order: Order | null,
-) {
+export async function assignExpirationAndValuesToOrder(amountLeft: number, tip: number, total: number, order: Order | null) {
   if (!order) {
     return null
   }
-  console.time('⏲️Expiration begins and order is updated')
+  // console.time('⏲️Expiration begins and order is updated')
   if (amountLeft <= total) {
     await prisma.order.update({
-      where: {id: order.id},
+      where: { id: order.id },
       data: {
         paid: true,
         paidDate: new Date(),
