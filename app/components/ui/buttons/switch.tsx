@@ -1,5 +1,5 @@
-import {motion} from 'framer-motion'
-import {H4} from '../../util/typography'
+import { motion } from 'framer-motion'
+import { H4 } from '../../util/typography'
 
 const sizes = {
   small: 'w-1/4',
@@ -50,7 +50,7 @@ export function SwitchButton({
     >
       {state ? (
         <div className="flex  w-1/2 flex-row items-center justify-center space-x-2 text-white">
-          <i className="flex h-5 w-5 items-center text-zinc-400">{leftIcon}</i>
+          <i className="flex h-5 w-5 items-center fill-zinc-400">{leftIcon}</i>
           {stretch ? <H4 className="text-zinc-400">{leftText}</H4> : null}
         </div>
       ) : null}
@@ -73,7 +73,7 @@ export function SwitchButton({
           </div>
         ) : (
           <div className="flex flex-row items-center justify-center space-x-2 text-white">
-            <i className="flex h-5 w-5 items-center text-white">{leftIcon}</i>
+            <i className="flex h-5 w-5 items-center fill-white">{leftIcon}</i>
             {stretch ? (
               <h4 className="text-clip text-white">{leftText}</h4>
             ) : null}

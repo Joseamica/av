@@ -1,11 +1,9 @@
-// import {ChevronDownIcon, ChevronUpIcon} from '@heroicons/react/outline'
-import { UserCircleIcon } from '@heroicons/react/solid'
 import type { User } from '@prisma/client'
 import { Link } from '@remix-run/react'
 import clsx from 'clsx'
 import { AnimatePresence, motion } from 'framer-motion'
 import { useState } from 'react'
-import { ChevronDownIcon, ChevronUpIcon, SectionContainer } from '~/components'
+import { ChevronDownIcon, ChevronUpIcon, SectionContainer, UserCircleIcon } from '~/components'
 import { formatCurrency } from '~/utils'
 import { FlexRow } from './util/flexrow'
 import { H2, H4, H5 } from './util/typography'
@@ -56,7 +54,7 @@ export function BillAmount({
           </FlexRow>
           <button className="mb-2 flex flex-row items-center space-x-1 text-sm" onClick={() => setShowDetails(!showDetails)}>
             <H5>{showDetails ? 'Ocultar detalles' : 'Ver detalles'}</H5>
-            {showDetails ? <ChevronUpIcon className="h-6 w-6" /> : <ChevronDownIcon className="h-6 w-6" />}
+            {showDetails ? <ChevronUpIcon /> : <ChevronDownIcon />}
           </button>
           <AnimatePresence>
             {showDetails &&
@@ -75,7 +73,10 @@ export function BillAmount({
                     }}
                   >
                     <Link className="flex flex-row items-center space-x-1" to={`./user/${user.id}`}>
-                      <UserCircleIcon fill={user?.color || ''} className="h-5 w-5" />
+                      <UserCircleIcon
+                        // userColor={user.color}
+                        fill={user.color}
+                      />
                       <H4>{user?.name}</H4>
                       {userId === user.id ? <H4>Has pagado</H4> : <H4>Ha pagado </H4>}
                     </Link>

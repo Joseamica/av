@@ -1,13 +1,11 @@
-import {XIcon} from '@heroicons/react/outline'
-import {Form, useNavigate, useSubmit} from '@remix-run/react'
+import { useNavigate } from '@remix-run/react'
 import clsx from 'clsx'
-import {AnimatePresence, motion} from 'framer-motion'
-import type {ReactNode} from 'react'
-import {IoMdArrowBack} from 'react-icons/io'
-import {Button} from './ui/buttons/button'
+import { AnimatePresence, motion } from 'framer-motion'
+import type { ReactNode } from 'react'
 import React from 'react'
-import {H2} from './util/typography'
-import {FlexRow} from './util/flexrow'
+
+import { Button } from './ui/buttons/button'
+import { ChevronLeftIcon, XIcon } from './icons'
 
 const effect = {
   hidden: {
@@ -65,7 +63,7 @@ export function Modal({
   ariaLabel?: string
   goBack?: boolean
   imgHeader?: string
-} & {justify?: keyof typeof justifyItems}) {
+} & { justify?: keyof typeof justifyItems }) {
   const navigate = useNavigate()
 
   const NavigateBack = () => {
@@ -99,20 +97,18 @@ export function Modal({
 
   return (
     <motion.main
-      className={clsx(
-        'bg-backdrop fixed  inset-0 z-50 flex max-h-screen flex-row items-center justify-center bg-black bg-opacity-90 backdrop-blur-sm backdrop-filter',
-      )}
+      className={clsx('bg-backdrop fixed  inset-0 z-50 flex max-h-screen flex-row items-center justify-center bg-black bg-opacity-90 backdrop-blur-sm backdrop-filter')}
       onClick={onClose}
-      initial={{opacity: 0}}
-      animate={{opacity: 1}}
-      exit={{opacity: 0}}
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
     >
       <AnimatePresence>
         <motion.dialog
           className={clsx(
             'no-scrollbar  dark:text-night-text_principal inset-x-0 bottom-0 m-0 mx-auto flex max-h-full w-full flex-col overflow-auto  rounded-t-lg bg-day-bg_principal p-0 dark:bg-[#F3F4F6] ',
             justifyItems[justify],
-            {'top-0 h-full': fullScreen},
+            { 'top-0 h-full': fullScreen },
           )}
           open
           variants={effect}
@@ -134,27 +130,19 @@ export function Modal({
               >
                 <XIcon className="h-6 w-6" />
               </button>
-              <img
-                alt=""
-                src={imgHeader}
-                className="dark:bg-secondaryDark max-h-72 w-full rounded-t-lg bg-white object-cover"
-                loading="lazy"
-              />
+              <img alt="" src={imgHeader} className="dark:bg-secondaryDark max-h-72 w-full rounded-t-lg bg-white object-cover" loading="lazy" />
             </div>
           ) : (
             <div className="dark:bg-night-bg_principal dark:text-night-text_principal sticky inset-x-0 top-0 z-[9999] mb-2 flex w-full flex-row items-center justify-between border-b-2 bg-day-bg_principal p-4">
               {goBack ? (
                 <Button onClick={NavigateBack} size="small">
-                  <IoMdArrowBack />
+                  <ChevronLeftIcon />
                 </Button>
               ) : (
                 <div />
               )}
               {title}
-              <XIcon
-                className="h-7 w-7 rounded-full p-1 shadow-lg dark:text-night-700"
-                onClick={onClose}
-              />
+              <XIcon className="h-7 w-7 rounded-full p-1 shadow-lg dark:text-night-700" onClick={onClose} />
             </div>
           )}
           {children}
@@ -183,7 +171,7 @@ export function SubModal({
   ariaLabel?: string
   goBack?: boolean
   imgHeader?: string
-} & {justify?: keyof typeof justifyItems}) {
+} & { justify?: keyof typeof justifyItems }) {
   const navigate = useNavigate()
 
   const NavigateBack = () => {
@@ -210,20 +198,18 @@ export function SubModal({
 
   return (
     <motion.main
-      className={clsx(
-        'bg-backdrop fixed  inset-0 z-[9999] flex max-h-screen flex-row items-center justify-center bg-black bg-opacity-90 backdrop-blur-sm backdrop-filter',
-      )}
+      className={clsx('bg-backdrop fixed  inset-0 z-[9999] flex max-h-screen flex-row items-center justify-center bg-black bg-opacity-90 backdrop-blur-sm backdrop-filter')}
       onClick={onClose}
-      initial={{opacity: 0}}
-      animate={{opacity: 1}}
-      exit={{opacity: 0}}
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
     >
       <AnimatePresence>
         <motion.dialog
           className={clsx(
             'no-scrollbar  dark:text-night-text_principal inset-x-0 bottom-0 m-0 mx-auto flex max-h-full w-full flex-col overflow-auto  rounded-t-lg bg-day-bg_principal p-2 dark:bg-[#F3F4F6] ',
             justifyItems[justify],
-            {'top-0 h-full': fullScreen},
+            { 'top-0 h-full': fullScreen },
           )}
           open
           variants={effect}
@@ -245,27 +231,19 @@ export function SubModal({
               >
                 <XIcon className="h-6 w-6" />
               </button>
-              <img
-                alt=""
-                src={imgHeader}
-                className="dark:bg-secondaryDark max-h-72 w-full rounded-t-lg bg-white object-cover"
-                loading="lazy"
-              />
+              <img alt="" src={imgHeader} className="dark:bg-secondaryDark max-h-72 w-full rounded-t-lg bg-white object-cover" loading="lazy" />
             </div>
           ) : (
             <div className="dark:bg-night-bg_principal dark:text-night-text_principal sticky inset-x-0 top-0 z-[9999] mb-2 flex w-full flex-row items-center justify-between border-b-2 bg-day-bg_principal p-4">
               {goBack ? (
                 <Button onClick={NavigateBack} size="small">
-                  <IoMdArrowBack />
+                  <ChevronLeftIcon />
                 </Button>
               ) : (
                 <div />
               )}
               {title}
-              <XIcon
-                className="h-7 w-7 rounded-full p-1 shadow-lg dark:text-night-700"
-                onClick={onClose}
-              />
+              <XIcon className="h-7 w-7 rounded-full p-1 shadow-lg dark:text-night-700" onClick={onClose} />
             </div>
           )}
           {children}
