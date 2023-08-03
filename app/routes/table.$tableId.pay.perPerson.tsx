@@ -216,9 +216,12 @@ export async function action({ request, params }: ActionArgs) {
   const tip = total * (Number(data.tipPercentage) / 100)
 
   const amountLeft = (await getAmountLeftToPay(tableId)) || 0
-  const menuCurrency = await getMenu(branchId).then((menu: any) => menu?.currency || 'mxn')
 
-  if (amountLeft < total) {
+  //NOTE returns the currency code of the branch, example: 'usd'
+  const currencyCode = await getMenu(branchId).then((menu: any) => menu?.currency || 'mxn')
+
+  const payingExtra = amountLeft < total
+  if (payingExtra) {
     const url = new URL(request.url)
     const pathname = url.pathname
     return redirect(`/table/${tableId}/pay/confirmExtra?total=${total}&tip=${tip <= 0 ? total * 0.12 : tip}&pMethod=${data.paymentMethod}&redirectTo=${pathname}`)
@@ -229,7 +232,7 @@ export async function action({ request, params }: ActionArgs) {
     paymentMethod: data.paymentMethod as string,
     total: amountLeft,
     tip,
-    currency: menuCurrency,
+    currency: currencyCode,
     isOrderAmountFullPaid,
     request,
     redirectTo,

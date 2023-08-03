@@ -1,5 +1,5 @@
-import {faker} from '@faker-js/faker'
-import {prisma} from '~/db.server'
+import { faker } from '@faker-js/faker'
+import { prisma } from '~/db.server'
 // const {faker} = require('@faker-js/faker')
 export async function createUsers(totalUsers) {
   console.time(`👤 Created ${totalUsers} users...`)
@@ -45,15 +45,14 @@ export function createBranch(restaurantId: string) {
       wifiName: faker.random.alphaNumeric(8),
       wifipwd: faker.random.alphaNumeric(8),
       city: 'Cuernavaca',
-      address:
-        'Mexico-Acapulco KM. 87.5, Villas del Lago, 62370 Cuernavaca, Mor.',
+      address: 'Mexico-Acapulco KM. 87.5, Villas del Lago, 62370 Cuernavaca, Mor.',
       extraAddress: 'Averanda',
       rating: 4.8,
       rating_quantity: 400,
       cuisine: 'Mexicana',
       open: 7,
       close: 24,
-      restaurant: {connect: {id: restaurantId}},
+      restaurant: { connect: { id: restaurantId } },
     },
   })
 }
@@ -65,7 +64,7 @@ export async function createTables(branchId: string, numberOfTables: number) {
       data: {
         table_number: i,
         order_in_progress: false,
-        branch: {connect: {id: branchId}},
+        branch: { connect: { id: branchId } },
         // employees: {
         //   create: {
         //     name: 'Victor',
@@ -90,10 +89,9 @@ export function createMenu(branchId: string) {
       name: 'DESAYUNO',
       type: 'breakfast',
       branchId: branchId,
-      image:
-        'https://firebasestorage.googleapis.com/v0/b/avoqado-d0a24.appspot.com/o/kuikku%2FKuikku%20General.JPG?alt=media&token=e585a90e-59dd-499d-97b6-b059a031ff8b',
+      image: 'https://firebasestorage.googleapis.com/v0/b/avoqado-d0a24.appspot.com/o/kuikku%2FKuikku%20General.JPG?alt=media&token=e585a90e-59dd-499d-97b6-b059a031ff8b',
       // allday: true,
-      currency: 'euro',
+      currency: 'eur',
     },
   })
 }
@@ -102,23 +100,23 @@ export async function createCategories(menuId: string) {
   console.log("🍔 Created the menu's categories...")
   return Promise.all(
     [
-      {name: 'Entradas', en: 'Appetizers'},
-      {name: 'Sopas', en: 'Soups'},
-      {name: 'Ensaladas', en: 'Salads'},
-      {name: 'Platillos', en: 'Dishes'},
-      {name: 'Tacos', en: 'Tacos'},
-      {name: 'Quesos Fundidos', en: 'Melted Cheeses'},
-      {name: 'Pastas'},
-      {name: 'Grill'},
-      {name: 'Guarniciones', en: 'Side Dishes'},
-      {name: 'Pescados & Mariscos', en: 'Fish & Seafood'},
-      {name: 'Extras'},
-      {name: 'Postres', en: 'Desserts'},
-    ].map(({name, en}, index) =>
+      { name: 'Entradas', en: 'Appetizers' },
+      { name: 'Sopas', en: 'Soups' },
+      { name: 'Ensaladas', en: 'Salads' },
+      { name: 'Platillos', en: 'Dishes' },
+      { name: 'Tacos', en: 'Tacos' },
+      { name: 'Quesos Fundidos', en: 'Melted Cheeses' },
+      { name: 'Pastas' },
+      { name: 'Grill' },
+      { name: 'Guarniciones', en: 'Side Dishes' },
+      { name: 'Pescados & Mariscos', en: 'Fish & Seafood' },
+      { name: 'Extras' },
+      { name: 'Postres', en: 'Desserts' },
+    ].map(({ name, en }, index) =>
       prisma.menuCategory.create({
         data: {
           name,
-          menu: {connect: {id: menuId}},
+          menu: { connect: { id: menuId } },
           pdf: index === 0, // This will be true for the first category and false for the rest
           // nameTranslations: {en},
           imageUrl: AVOQADO_LOGO,
@@ -141,14 +139,14 @@ export async function createProductsAndModifiers(categories: any) {
   console.log("🍔 Created the menu's modifier group...")
   await Promise.all(
     [
-      {name: 'Salsa Verde', extraPrice: 4, modifierGroupId: modifierGroup.id},
-      {name: 'Salsa Roja', extraPrice: 7, modifierGroupId: modifierGroup.id},
+      { name: 'Salsa Verde', extraPrice: 4, modifierGroupId: modifierGroup.id },
+      { name: 'Salsa Roja', extraPrice: 7, modifierGroupId: modifierGroup.id },
       {
         name: 'Salsa Habanero',
         extraPrice: 20,
         modifierGroupId: modifierGroup.id,
       },
-    ].map(({name, extraPrice}) =>
+    ].map(({ name, extraPrice }) =>
       prisma.modifiers.create({
         data: {
           name,
@@ -172,8 +170,8 @@ export async function createProductsAndModifiers(categories: any) {
             description: faker.commerce.productDescription(),
             price: faker.commerce.price(100, 500),
             available: true,
-            menuCategory: {connect: {id: category.id}},
-            modifierGroups: {connect: {id: modifierGroup.id}},
+            menuCategory: { connect: { id: category.id } },
+            modifierGroups: { connect: { id: modifierGroup.id } },
           },
         }),
       ),
@@ -191,7 +189,7 @@ export async function createEmployees(branchId: string, tableIds: [string]) {
         phone: faker.phone.number(),
         branchId: branchId,
         image: faker.image.avatar(),
-        tables: {connect: tableIds.map(id => ({id}))},
+        tables: { connect: tableIds.map(id => ({ id })) },
       },
     })
   }
@@ -203,7 +201,7 @@ export async function createEmployees(branchId: string, tableIds: [string]) {
       phone: faker.phone.number(),
       branchId: branchId,
       image: faker.image.avatar(),
-      tables: {connect: tableIds.map(id => ({id}))},
+      tables: { connect: tableIds.map(id => ({ id })) },
     },
   })
   console.log('🧑🏼‍🍳 Created the employees...')
@@ -225,7 +223,7 @@ export async function createAvailabilities(menuId: string) {
 export function createDeliverect() {
   console.log('🚚 Created the deliverect...')
   return prisma.deliverect.create({
-    data: {deliverectExpiration: null, deliverectToken: null},
+    data: { deliverectExpiration: null, deliverectToken: null },
   })
 }
 
@@ -257,10 +255,7 @@ export async function cleanDatabase() {
 }
 
 function range(start: number, end: number, step = 1) {
-  return Array.from(
-    {length: (end - start + 1) / step},
-    (_, i) => start + i * step,
-  )
+  return Array.from({ length: (end - start + 1) / step }, (_, i) => start + i * step)
 }
 
 function getRandom(start: number, end: number) {

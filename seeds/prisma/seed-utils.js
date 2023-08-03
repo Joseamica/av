@@ -91,7 +91,7 @@ function createMenu(branchId) {
             branchId: branchId,
             image: 'https://firebasestorage.googleapis.com/v0/b/avoqado-d0a24.appspot.com/o/kuikku%2FKuikku%20General.JPG?alt=media&token=e585a90e-59dd-499d-97b6-b059a031ff8b',
             // allday: true,
-            currency: 'euro',
+            currency: 'eur',
         },
     });
 }
