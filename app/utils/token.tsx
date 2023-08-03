@@ -1,12 +1,10 @@
-import {json} from '@remix-run/node'
-import {prisma} from '~/db.server'
+import { json } from '@remix-run/node'
+import { prisma } from '~/db.server'
 
 export async function isDvctTokenExpired() {
   const dvct = await prisma.deliverect.findFirst({})
   const dvctExpiration = dvct.deliverectExpiration
   const dvctToken = dvct.deliverectToken
-
-  console.log('dvctToken', dvctToken)
 
   const currentTime = Math.floor(Date.now() / 1000) // Get the current time in Unix timestamp
 
@@ -31,7 +29,7 @@ export async function getToken() {
 
   const options = {
     method: 'POST',
-    headers: {accept: 'application/json', 'content-type': 'application/json'},
+    headers: { accept: 'application/json', 'content-type': 'application/json' },
     body: JSON.stringify({
       audience: process.env.DELIVERECT_API_URL,
       grant_type: 'token',
@@ -48,7 +46,7 @@ export async function getToken() {
 
       // ANCHOR UPDATING DB WITH THE NEW TOKEN
       await prisma.deliverect.upsert({
-        where: {id: deliverect.id},
+        where: { id: deliverect.id },
         update: {
           deliverectToken: token.access_token,
           deliverectExpiration: token.expires_at,
@@ -66,6 +64,6 @@ export async function getToken() {
     }
   } catch (err) {
     console.error('error:' + err)
-    return json({tokenAssign: false}) // Or throw an error, or return some other value indicating the request failed.
+    return json({ tokenAssign: false }) // Or throw an error, or return some other value indicating the request failed.
   }
 }

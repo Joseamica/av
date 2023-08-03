@@ -1,15 +1,15 @@
-import type {Decimal} from '@prisma/client/runtime'
-import type {Order, Table} from '@prisma/client'
-import {useMatches} from '@remix-run/react'
-import {useMemo} from 'react'
+import type { Decimal } from '@prisma/client/runtime'
+import type { Order, Table } from '@prisma/client'
+import { useMatches } from '@remix-run/react'
+import { useMemo } from 'react'
 
-import {format, utcToZonedTime} from 'date-fns-tz'
+import { format, utcToZonedTime } from 'date-fns-tz'
 import invariant from 'tiny-invariant'
-import type {User} from '~/models/user.server'
-import {prisma} from './db.server'
-import {getBranchId} from './models/branch.server'
-import {getMenu} from './models/menu.server'
-import {getOrder} from './models/order.server'
+import type { User } from '~/models/user.server'
+import { prisma } from './db.server'
+import { getBranchId } from './models/branch.server'
+import { getMenu } from './models/menu.server'
+import { getOrder } from './models/order.server'
 
 const DEFAULT_REDIRECT = '/'
 
@@ -20,10 +20,7 @@ const DEFAULT_REDIRECT = '/'
  * @param {string} to The redirect destination
  * @param {string} defaultRedirect The redirect to use if the to is unsafe.
  */
-export function safeRedirect(
-  to: FormDataEntryValue | string | null | undefined,
-  defaultRedirect: string = DEFAULT_REDIRECT,
-) {
+export function safeRedirect(to: FormDataEntryValue | string | null | undefined, defaultRedirect: string = DEFAULT_REDIRECT) {
   if (!to || typeof to !== 'string') {
     return defaultRedirect
   }
@@ -41,14 +38,9 @@ export function safeRedirect(
  * @param {string} id The route id
  * @returns {JSON|undefined} The router data or undefined if not found
  */
-export function useMatchesData(
-  id: string,
-): Record<string, unknown> | undefined {
+export function useMatchesData(id: string): Record<string, unknown> | undefined {
   const matchingRoutes = useMatches()
-  const route = useMemo(
-    () => matchingRoutes.find(route => route.id === id),
-    [matchingRoutes, id],
-  )
+  const route = useMemo(() => matchingRoutes.find(route => route.id === id), [matchingRoutes, id])
   return route?.data
 }
 
@@ -67,9 +59,7 @@ export function useOptionalUser(): User | undefined {
 export function useUser(): User {
   const maybeUser = useOptionalUser()
   if (!maybeUser) {
-    throw new Error(
-      'No user found in root loader, but user is required by useUser. If user is optional, try useOptionalUser instead.',
-    )
+    throw new Error('No user found in root loader, but user is required by useUser. If user is optional, try useOptionalUser instead.')
   }
   return maybeUser
 }
@@ -105,9 +95,7 @@ export async function getCurrency(tableId: Table['id']) {
   }
   invariant(branchId, 'branchId should be defined')
 
-  const currency = await getMenu(branchId).then(
-    (menu: any) => menu?.currency || 'mxn',
-  )
+  const currency = await getMenu(branchId).then((menu: any) => menu?.currency || 'mxn')
 
   switch (currency) {
     case 'mxn':
@@ -149,14 +137,14 @@ export async function getAmountLeftToPay(
   if (!order) return null
 
   const payments = await prisma.payments.aggregate({
-    where: {orderId: order.id},
-    _sum: {amount: true},
+    where: { orderId: order.id },
+    _sum: { amount: true },
   })
 
   const totalPayments = Number(payments._sum.amount)
   const getTotalBill = await prisma.order.aggregate({
-    _sum: {total: true},
-    where: {id: order.id},
+    _sum: { total: true },
+    where: { id: order.id },
   })
   const totalBill = Number(getTotalBill._sum.total)
   return Number(totalBill - totalPayments)
@@ -176,8 +164,8 @@ export async function getDateTimeTz(tableId: string) {
 
   const timeZone = await prisma.branch
     .findUnique({
-      where: {id: branchId},
-      select: {storeTimeZone: true},
+      where: { id: branchId },
+      select: { storeTimeZone: true },
     })
     .then(branch => branch?.storeTimeZone)
 
@@ -206,9 +194,7 @@ export function isOrderExpired(orderPaidDate: Date | null, hoursToExpire = 2) {
   }
   const MILLISECONDS_IN_AN_HOUR = 3600000
   const currentDate = new Date()
-  const expiryDate = new Date(
-    orderPaidDate.getTime() + hoursToExpire * MILLISECONDS_IN_AN_HOUR,
-  )
+  const expiryDate = new Date(orderPaidDate.getTime() + hoursToExpire * MILLISECONDS_IN_AN_HOUR)
 
   return currentDate.getTime() >= expiryDate.getTime()
 }
@@ -252,21 +238,13 @@ export async function getIsDvctTokenExpired() {
   const dvct = await prisma.deliverect.findFirst({})
   const dvctExpiration = dvct.deliverectExpiration
   const dvctToken = dvct.deliverectToken
-  console.log('dvctToken', dvctToken)
+
   const currentTime = Math.floor(Date.now() / 1000) // Get the current time in Unix timestamp
   if (!dvctToken || !dvctExpiration) {
-    console.log(
-      '%cutils.ts line:256 🔴  dvctToken or dvctExpiration on db is null',
-      'color: #007acc;',
-    )
+    console.log('%cutils.ts line:256 🔴  dvctToken or dvctExpiration on db is null', 'color: #007acc;')
     return true
   }
   const isTokenExpired = dvct && dvctExpiration <= currentTime ? true : false
-  console.log(
-    'isDvctTokenExpired',
-    isTokenExpired === false
-      ? '🟢 token is not expired'
-      : '🔴 needs to refresh!',
-  )
+  console.log('isDvctTokenExpired', isTokenExpired === false ? '🟢 token is not expired' : '🔴 needs to refresh!')
   return isTokenExpired
 }

@@ -1,22 +1,16 @@
-import type {MenuCategory} from '@prisma/client'
-import {json, redirect, type ActionArgs, type LoaderArgs} from '@remix-run/node'
-import {
-  Form,
-  Link,
-  useLoaderData,
-  useNavigate,
-  useSearchParams,
-} from '@remix-run/react'
-import {AiFillDelete, AiFillEdit} from 'react-icons/ai'
-import {IoChevronBack} from 'react-icons/io5'
-import {Button, FlexRow, H1, H3, LinkButton, Modal, Spacer} from '~/components'
-import {prisma} from '~/db.server'
+import type { MenuCategory } from '@prisma/client'
+import { json, redirect, type ActionArgs, type LoaderArgs } from '@remix-run/node'
+import { Form, Link, useLoaderData, useNavigate, useSearchParams } from '@remix-run/react'
+import { AiFillDelete, AiFillEdit } from 'react-icons/ai'
+import { IoChevronBack } from 'react-icons/io5'
+import { Button, FlexRow, H1, H3, LinkButton, Modal, Spacer } from '~/components'
+import { prisma } from '~/db.server'
 
-export async function loader({request, params}: LoaderArgs) {
-  const {branchId, menuId} = params
+export async function loader({ request, params }: LoaderArgs) {
+  const { branchId, menuId } = params
   const menu = await prisma.menu.findUnique({
-    where: {id: menuId},
-    include: {menuCategories: true},
+    where: { id: menuId },
+    include: { menuCategories: true },
   })
   const searchParams = new URL(request.url).searchParams
   const categoryId = searchParams.get('categoryId')
@@ -24,23 +18,22 @@ export async function loader({request, params}: LoaderArgs) {
 
   if (categoryId) {
     const menuCategory = await prisma.menuCategory.findUnique({
-      where: {id: categoryId},
-      include: {menuItems: true},
+      where: { id: categoryId },
+      include: { menuItems: true },
     })
     const menuItem = await prisma.menuItem.findUnique({
-      where: {id: editItemId},
+      where: { id: editItemId },
     })
 
-    return json({menu, menuCategory, menuItem})
+    return json({ menu, menuCategory, menuItem })
   }
   const rawData = await request.text()
   const [dvctMenu] = JSON.parse(rawData)
-  console.log('dvctMenu', dvctMenu)
 
-  return json({menu})
+  return json({ menu })
 }
-export async function action({request, params}: ActionArgs) {
-  const {branchId, menuId} = params
+export async function action({ request, params }: ActionArgs) {
+  const { branchId, menuId } = params
   const formData = await request.formData()
   const data = Object.fromEntries(formData.entries())
 
@@ -56,7 +49,7 @@ export async function action({request, params}: ActionArgs) {
   const asignImageMenu = formData.get('asignImageMenu') as string
   if (asignImageMenu) {
     await prisma.menu.update({
-      where: {id: menuId},
+      where: { id: menuId },
       data: {
         image:
           'https://firebasestorage.googleapis.com/v0/b/avoqado-d0a24.appspot.com/o/kuikku%2FKUIKKU%20(2)%20(1)%20copy.png?alt=media&token=c077af1b-4ed4-4807-a762-a9c091c1ccfa',
@@ -66,7 +59,7 @@ export async function action({request, params}: ActionArgs) {
   const delMenu = formData.get('delMenu') as string
   if (delMenu) {
     await prisma.menu.delete({
-      where: {id: menuId},
+      where: { id: menuId },
     })
     return redirect(`/admin/branches/${branchId}/menus`)
   }
@@ -131,12 +124,7 @@ export async function action({request, params}: ActionArgs) {
   if (data._action === 'editMenu') {
     const menuData = Object.fromEntries(
       Object.entries(data).filter(([key, value]) => {
-        return (
-          typeof value === 'string' &&
-          value !== '' &&
-          key !== '_action' &&
-          !value.includes('[object')
-        )
+        return typeof value === 'string' && value !== '' && key !== '_action' && !value.includes('[object')
       }),
     )
 
@@ -159,7 +147,7 @@ export async function action({request, params}: ActionArgs) {
     })
   }
 
-  return json({success: true})
+  return json({ success: true })
 }
 
 export const handle = {
@@ -222,12 +210,7 @@ export default function AdminMenuId() {
               <div className="space-y-2 p-2">
                 <label>Name</label>
                 <input type="text" name="name" />
-                <Button
-                  name="_action"
-                  value="addCategory"
-                  fullWith={true}
-                  type="submit"
-                >
+                <Button name="_action" value="addCategory" fullWith={true} type="submit">
                   Submit
                 </Button>
               </div>
@@ -243,32 +226,20 @@ export default function AdminMenuId() {
             >
               <div className="space-y-2 p-2">
                 {Object.entries(data.menu)
-                  .filter(
-                    ([key, value]) => key !== 'id' && key !== 'menuCategories',
-                  ) // Exclude 'id' from the keys
+                  .filter(([key, value]) => key !== 'id' && key !== 'menuCategories') // Exclude 'id' from the keys
                   .map(([key, value]) => {
                     if (typeof value === 'boolean') {
                       return (
                         <FlexRow key={key}>
                           <label>{key}</label>
-                          <input
-                            type="checkbox"
-                            name={key}
-                            defaultChecked={value}
-                            className="h-5 w-5"
-                          />
+                          <input type="checkbox" name={key} defaultChecked={value} className="h-5 w-5" />
                         </FlexRow>
                       )
                     } else {
                       return (
                         <FlexRow key={key}>
                           <label className="capitalize">{key}</label>
-                          <input
-                            type="text"
-                            name={key}
-                            defaultValue={value}
-                            className="dark:bg-DARK_2 dark:ring-DARK_4 w-full rounded-full p-2 dark:ring-1"
-                          />
+                          <input type="text" name={key} defaultValue={value} className="dark:bg-DARK_2 dark:ring-DARK_4 w-full rounded-full p-2 dark:ring-1" />
                         </FlexRow>
                       )
                     }
@@ -289,12 +260,7 @@ export default function AdminMenuId() {
             >
               <div className="space-y-3 bg-white p-2">
                 <p>Are you sure you want to delete this menu?</p>
-                <Button
-                  variant="danger"
-                  name="_action"
-                  value="deleteMenu"
-                  fullWith={true}
-                >
+                <Button variant="danger" name="_action" value="deleteMenu" fullWith={true}>
                   Eliminar
                 </Button>
               </div>
@@ -305,54 +271,23 @@ export default function AdminMenuId() {
               <label htmlFor="name" className="capitalize">
                 Nombre
               </label>
-              <input
-                type="text"
-                required
-                name="name"
-                id="name"
-                className="dark:bg-DARK_2 dark:ring-DARK_4 w-full rounded-full dark:ring-1"
-              />
+              <input type="text" required name="name" id="name" className="dark:bg-DARK_2 dark:ring-DARK_4 w-full rounded-full dark:ring-1" />
               <label htmlFor="type" className="capitalize">
                 Tipo de menu
               </label>
-              <input
-                type="text"
-                required
-                name="type"
-                id="type"
-                className="dark:bg-DARK_2 dark:ring-DARK_4 w-full rounded-full dark:ring-1"
-              />
+              <input type="text" required name="type" id="type" className="dark:bg-DARK_2 dark:ring-DARK_4 w-full rounded-full dark:ring-1" />
               <label htmlFor="image" className="capitalize">
                 Imagen
               </label>
-              <input
-                type="url"
-                required
-                name="image"
-                id="image"
-                className="dark:bg-DARK_2 dark:ring-DARK_4 w-full rounded-full dark:ring-1"
-              />
+              <input type="url" required name="image" id="image" className="dark:bg-DARK_2 dark:ring-DARK_4 w-full rounded-full dark:ring-1" />
               <label htmlFor="currency" className="capitalize">
                 Moneda
               </label>
-              <input
-                type="text"
-                required
-                name="currency"
-                id="currency"
-                className="dark:bg-DARK_2 dark:ring-DARK_4 w-full rounded-full dark:ring-1"
-                placeholder="euro"
-              />
+              <input type="text" required name="currency" id="currency" className="dark:bg-DARK_2 dark:ring-DARK_4 w-full rounded-full dark:ring-1" placeholder="euro" />
               <label htmlFor="allDay" className="capitalize">
                 Todo el dia?
               </label>
-              <input
-                type="checkBox"
-                required
-                name="allDay"
-                id="allDay"
-                className="dark:bg-DARK_2 dark:ring-DARK_4 w-full rounded-full dark:ring-1"
-              />
+              <input type="checkBox" required name="allDay" id="allDay" className="dark:bg-DARK_2 dark:ring-DARK_4 w-full rounded-full dark:ring-1" />
               <Button name="_action" value="createMenu">
                 Crear menu
               </Button>
@@ -366,10 +301,7 @@ export default function AdminMenuId() {
               <IoChevronBack />
             </LinkButton>
             <H1 className="shrink-0">{data.menuCategory.name}</H1>
-            <LinkButton
-              size="small"
-              to={`?categoryId=${data.menuCategory.id}&addItem=true`}
-            >
+            <LinkButton size="small" to={`?categoryId=${data.menuCategory.id}&addItem=true`}>
               Agregar
             </LinkButton>
           </FlexRow>
@@ -378,14 +310,10 @@ export default function AdminMenuId() {
             {data.menuCategory.menuItems.map((item: any) => (
               <FlexRow key={item.id}>
                 <H3>{item.name}</H3>
-                <Link
-                  to={`?categoryId=${data.menuCategory.id}&editItemId=${item.id}`}
-                >
+                <Link to={`?categoryId=${data.menuCategory.id}&editItemId=${item.id}`}>
                   <AiFillEdit />
                 </Link>
-                <Link
-                  to={`?categoryId=${data.menuCategory.id}&editItemId=${item.id}&del=true`}
-                >
+                <Link to={`?categoryId=${data.menuCategory.id}&editItemId=${item.id}&del=true`}>
                   <AiFillDelete />
                 </Link>
               </FlexRow>
@@ -394,58 +322,30 @@ export default function AdminMenuId() {
 
           {/* MODALS */}
           {addItem && (
-            <Modal
-              title="Agregar platillo"
-              onClose={() => navigate(`?categoryId=${data.menuCategory.id}`)}
-            >
+            <Modal title="Agregar platillo" onClose={() => navigate(`?categoryId=${data.menuCategory.id}`)}>
               <label htmlFor="addItemImage" className="capitalize">
                 Imagen
               </label>
-              <input
-                type="url"
-                name="addItemImage"
-                id="addItemImage"
-                className="dark:bg-DARK_2 dark:ring-DARK_4 w-full rounded-full dark:ring-1"
-              />
+              <input type="url" name="addItemImage" id="addItemImage" className="dark:bg-DARK_2 dark:ring-DARK_4 w-full rounded-full dark:ring-1" />
               <label htmlFor="addItemName" className="capitalize">
                 Nombre
               </label>
-              <input
-                type="text"
-                name="addItemName"
-                id="addItemName"
-                className="dark:bg-DARK_2 dark:ring-DARK_4 w-full rounded-full dark:ring-1"
-              />
+              <input type="text" name="addItemName" id="addItemName" className="dark:bg-DARK_2 dark:ring-DARK_4 w-full rounded-full dark:ring-1" />
               <Button name="_action" value="addItem" type="submit">
                 Editar
               </Button>
             </Modal>
           )}
           {editItemId && !del && (
-            <Modal
-              title="Editar platillo"
-              onClose={() => navigate(`?categoryId=${data.menuCategory.id}`)}
-            >
+            <Modal title="Editar platillo" onClose={() => navigate(`?categoryId=${data.menuCategory.id}`)}>
               <label htmlFor="name" className="capitalize">
                 Nombre
               </label>
-              <input
-                type="text"
-                name="name"
-                id="name"
-                defaultValue={data.menuItem?.name}
-                className="dark:bg-DARK_2 dark:ring-DARK_4 w-full rounded-full dark:ring-1"
-              />
+              <input type="text" name="name" id="name" defaultValue={data.menuItem?.name} className="dark:bg-DARK_2 dark:ring-DARK_4 w-full rounded-full dark:ring-1" />
               <label htmlFor="image" className="capitalize">
                 Imagen
               </label>
-              <input
-                type="url"
-                name="image"
-                id="image"
-                defaultValue={data.menuItem?.image}
-                className="dark:bg-DARK_2 dark:ring-DARK_4 w-full rounded-full dark:ring-1"
-              />
+              <input type="url" name="image" id="image" defaultValue={data.menuItem?.image} className="dark:bg-DARK_2 dark:ring-DARK_4 w-full rounded-full dark:ring-1" />
               <label htmlFor="description" className="capitalize">
                 Descripcion
               </label>
@@ -473,10 +373,7 @@ export default function AdminMenuId() {
             </Modal>
           )}
           {editItemId && del && (
-            <Modal
-              title="Eliminar platillo"
-              onClose={() => navigate(`?categoryId=${data.menuCategory.id}`)}
-            >
+            <Modal title="Eliminar platillo" onClose={() => navigate(`?categoryId=${data.menuCategory.id}`)}>
               <p>¿Estas seguro de eliminar este platillo?</p>
               <Button name="_action" value="delete" variant="danger">
                 Delete
@@ -484,51 +381,23 @@ export default function AdminMenuId() {
             </Modal>
           )}
           {add && (
-            <Modal
-              title="Agregar platillo"
-              onClose={() => navigate(`?categoryId=${data.menuCategory.id}`)}
-            >
+            <Modal title="Agregar platillo" onClose={() => navigate(`?categoryId=${data.menuCategory.id}`)}>
               <label htmlFor="name" className="capitalize">
                 Nombre
               </label>
-              <input
-                type="text"
-                name="name"
-                id="name"
-                required
-                className="dark:bg-DARK_2 dark:ring-DARK_4 w-full rounded-full dark:ring-1"
-              />
+              <input type="text" name="name" id="name" required className="dark:bg-DARK_2 dark:ring-DARK_4 w-full rounded-full dark:ring-1" />
               <label htmlFor="image" className="capitalize">
                 Imagen
               </label>
-              <input
-                type="url"
-                name="image"
-                id="image"
-                required
-                className="dark:bg-DARK_2 dark:ring-DARK_4 w-full rounded-full dark:ring-1"
-              />
+              <input type="url" name="image" id="image" required className="dark:bg-DARK_2 dark:ring-DARK_4 w-full rounded-full dark:ring-1" />
               <label htmlFor="description" className="capitalize">
                 Descripcion
               </label>
-              <input
-                type="text"
-                name="description"
-                id="description"
-                required
-                className="dark:bg-DARK_2 dark:ring-DARK_4 w-full rounded-full dark:ring-1"
-              />
+              <input type="text" name="description" id="description" required className="dark:bg-DARK_2 dark:ring-DARK_4 w-full rounded-full dark:ring-1" />
               <label htmlFor="price" className="capitalize">
                 Precio
               </label>
-              <input
-                type="number"
-                step="0.01"
-                name="price"
-                id="price"
-                required
-                className="dark:bg-DARK_2 dark:ring-DARK_4 w-full rounded-full dark:ring-1"
-              />
+              <input type="number" step="0.01" name="price" id="price" required className="dark:bg-DARK_2 dark:ring-DARK_4 w-full rounded-full dark:ring-1" />
               <Button name="_action" value="add" type="submit">
                 Create
               </Button>
