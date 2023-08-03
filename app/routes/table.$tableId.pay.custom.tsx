@@ -67,6 +67,7 @@ export default function CustomPay() {
     </Modal>
   )
 }
+//ANCHOR Loader
 
 export async function loader({ request, params }: LoaderArgs) {
   const { tableId } = params
@@ -79,6 +80,7 @@ export async function loader({ request, params }: LoaderArgs) {
   return json({ paymentMethods, tipsPercentages, currency, amountLeft })
 }
 
+//ANCHOR action
 export async function action({ request, params }: ActionArgs) {
   const { tableId } = params
   invariant(tableId, 'No se encontró mesa')
@@ -115,7 +117,16 @@ export async function action({ request, params }: ActionArgs) {
   const isOrderAmountFullPaid = amountLeft <= total
 
   // ANCHOR Stripe component
-  const result = await handlePaymentProcessing(data.paymentMethod as string, total, tip, menuCurrency, isOrderAmountFullPaid, request, redirectTo, 'custom')
+  const result = await handlePaymentProcessing({
+    paymentMethod: data.paymentMethod as string,
+    total: total,
+    tip,
+    currency: menuCurrency,
+    isOrderAmountFullPaid,
+    request,
+    redirectTo,
+    typeOfPayment: 'custom',
+  })
 
   if (result.type === 'redirect') {
     return redirect(result.url)

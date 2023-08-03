@@ -1,51 +1,31 @@
-import type {
-  Branch,
-  Menu,
-  Order,
-  Table as TableProps,
-  User,
-} from '@prisma/client'
-import {json, type ActionArgs, type LoaderArgs} from '@remix-run/node'
-import {
-  Form,
-  Outlet,
-  isRouteErrorResponse,
-  useRouteError,
-  useSubmit,
-} from '@remix-run/react'
-import {useEffect, useState} from 'react'
+import type { Branch, Menu, Order, Table as TableProps, User } from '@prisma/client'
+import { json, type ActionArgs, type LoaderArgs } from '@remix-run/node'
+import { Form, Outlet, isRouteErrorResponse, useRouteError, useSubmit } from '@remix-run/react'
+import { useEffect, useState } from 'react'
 // * UTILS, MODELS, DB, HOOKS
-import {prisma} from '~/db.server'
-import {EVENTS} from '~/events'
-import {useSessionTimeout} from '~/hooks/use-session-timeout'
-import {getBranch} from '~/models/branch.server'
-import {getMenu} from '~/models/menu.server'
-import {getTable} from '~/models/table.server'
-import {getPaidUsers, getUsersOnTable} from '~/models/user.server'
-import {getSession, getUserDetails} from '~/session.server'
-import {getAmountLeftToPay, getCurrency, isOrderExpired} from '~/utils'
+import { prisma } from '~/db.server'
+import { EVENTS } from '~/events'
+import { useSessionTimeout } from '~/hooks/use-session-timeout'
+import { getBranch } from '~/models/branch.server'
+import { getMenu } from '~/models/menu.server'
+import { getTable } from '~/models/table.server'
+import { getPaidUsers, getUsersOnTable } from '~/models/user.server'
+import { getSession, getUserDetails } from '~/session.server'
+import { getAmountLeftToPay, getCurrency, isOrderExpired } from '~/utils'
 // * COMPONENTS
-import {UsersIcon} from '@heroicons/react/solid'
-import {motion} from 'framer-motion'
-import invariant from 'tiny-invariant'
-import {useLiveLoader} from '~/use-live-loader'
-// TODO React icons or heroicons ? :angry
-import {IoFastFood} from 'react-icons/io5'
-// * CUSTOM COMPONENTS
-import {
-  BillAmount,
-  Button,
-  FilterOrderView,
-  FilterUserView,
-  Help,
-  Spacer,
-  SwitchButton,
-} from '~/components/index'
 
-import {RestaurantInfoCard} from '~/components/restaurant-info-card'
-import {EmptyOrder} from '~/components/table/empty-order'
-import {SinglePayButton} from '~/components/table/single-pay-button'
-import {getOrder} from '~/models/order.server'
+import { motion } from 'framer-motion'
+import invariant from 'tiny-invariant'
+import { useLiveLoader } from '~/use-live-loader'
+// TODO React icons or heroicons ? :angry
+
+// * CUSTOM COMPONENTS
+import { BillAmount, Button, FilterOrderView, FilterUserView, Help, Spacer, SwitchButton, OrderIcon, UsersIcon } from '~/components/index'
+
+import { RestaurantInfoCard } from '~/components/restaurant-info-card'
+import { EmptyOrder } from '~/components/table/empty-order'
+import { SinglePayButton } from '~/components/table/single-pay-button'
+import { getOrder } from '~/models/order.server'
 
 type LoaderData = {
   order: Order & any
@@ -75,7 +55,7 @@ export default function Table() {
   //SOLUTIONS - Hacer que cuando el usuario cree el primer platillo, se cree una nueva orden, y redirija a order/$orderID
   useEffect(() => {
     if (data.orderExpired) {
-      submit('', {method: 'POST', action: 'processes/endOrder'})
+      submit('', { method: 'POST', action: 'processes/endOrder' })
     }
   }, [submit, data.orderExpired])
 
@@ -87,11 +67,7 @@ export default function Table() {
   const [filterPerUser, setFilterPerUser] = useState(false)
 
   const handleToggleUser = (userId: string) => {
-    setSelectedUsers((prevSelected: string[]) =>
-      prevSelected.includes(userId)
-        ? prevSelected.filter(id => id !== userId)
-        : [...prevSelected, userId],
-    )
+    setSelectedUsers((prevSelected: string[]) => (prevSelected.includes(userId) ? prevSelected.filter(id => id !== userId) : [...prevSelected, userId]))
   }
 
   const [collapse, setCollapse] = useState(false)
@@ -107,31 +83,19 @@ export default function Table() {
   if (data.order) {
     return (
       <motion.main className="no-scrollbar">
-        <RestaurantInfoCard
-          branch={data.branch}
-          menu={data.menu}
-          error={data.error}
-        />
+        <RestaurantInfoCard branch={data.branch} menu={data.menu} error={data.error} />
         <Spacer spaceY="4" />
-        <h3 className="text-secondaryTextDark flex shrink-0 justify-center text-sm">
-          {`Mesa ${data.table.table_number}`}
-        </h3>
+        <h3 className="text-secondaryTextDark flex shrink-0 justify-center text-sm">{`Mesa ${data.table.table_number}`}</h3>
         <Spacer spaceY="2" />
         <Help />
-        <BillAmount
-          amountLeft={data.amountLeft}
-          currency={data.currency}
-          paidUsers={data.paidUsers}
-          total={data.total}
-          userId={data.userId}
-        />
+        <BillAmount amountLeft={data.amountLeft} currency={data.currency} paidUsers={data.paidUsers} total={data.total} userId={data.userId} />
         <Spacer spaceY="2" />
         {/* NOTE: SWITCH BUTTON */}
         <div className="flex w-full justify-end">
           <SwitchButton
             state={filterPerUser}
             setToggle={handleToggle}
-            leftIcon={<IoFastFood className="h-4 w-4" />}
+            leftIcon={<OrderIcon className="h-4 w-4" />}
             rightIcon={<UsersIcon className="h-4 w-4" />}
             leftText="Ver por orden"
             rightText="Ver por usuario"
@@ -143,25 +107,13 @@ export default function Table() {
         {/* <Spacer className="py-[2px]" /> */}
         {/* NOTE: FILTER */}
         {filterPerUser ? (
-          <FilterUserView
-            order={data.order}
-            currency={data.currency}
-            handleToggleUser={handleToggleUser}
-            selectedUsers={selectedUsers}
-          />
+          <FilterUserView order={data.order} currency={data.currency} handleToggleUser={handleToggleUser} selectedUsers={selectedUsers} />
         ) : (
-          <FilterOrderView
-            order={data.order}
-            collapse={collapse}
-            handleCollapse={handleCollapse}
-          />
+          <FilterOrderView order={data.order} collapse={collapse} handleCollapse={handleCollapse} />
         )}
         <Spacer spaceY="2" />
         {data.amountLeft > 0 ? (
-          <SinglePayButton
-            showPaymentOptions={showPaymentOptions}
-            setShowPaymentOptions={setShowPaymentOptions}
-          />
+          <SinglePayButton showPaymentOptions={showPaymentOptions} setShowPaymentOptions={setShowPaymentOptions} />
         ) : (
           <Form method="POST">
             <Button
@@ -191,11 +143,11 @@ export default function Table() {
   }
 }
 
-export async function loader({request, params}: LoaderArgs) {
+export async function loader({ request, params }: LoaderArgs) {
   const session = await getSession(request)
   const user = await getUserDetails(session)
 
-  const {tableId} = params
+  const { tableId } = params
   invariant(tableId, 'No se encontró el ID de la mesa')
 
   const branch = await getBranch(tableId)
@@ -205,8 +157,8 @@ export async function loader({request, params}: LoaderArgs) {
 
   //TESTING - FUNCTION TO GET ORDER DYNAMICALLY
   const order = await getOrder(tableId, {
-    cartItems: {include: {user: true}},
-    users: {include: {cartItems: true}},
+    cartItems: { include: { user: true } },
+    users: { include: { cartItems: true } },
     payments: true,
   })
 
@@ -228,7 +180,7 @@ export async function loader({request, params}: LoaderArgs) {
         console.time(`🔌 Connected '${user.username}' to the table`)
 
         await prisma.user.update({
-          where: {id: user.userId},
+          where: { id: user.userId },
           data: {
             tableId: tableId,
             branchId: branch.id,
@@ -238,17 +190,13 @@ export async function loader({request, params}: LoaderArgs) {
         EVENTS.ISSUE_CHANGED(tableId)
         console.timeEnd(`🔌 Connected '${user.username}' to the table`)
       } catch (error) {
-        console.log(
-          '%cerror table.$tableId.tsx line:361 ',
-          'color: red; display: block; width: 100%;',
-          error,
-        )
+        console.log('%cerror table.$tableId.tsx line:361 ', 'color: red; display: block; width: 100%;', error)
         throw new Error(`No se pudo conectar al usuario con la mesa ${error}`)
       }
     }
 
     const isUserInOrder = await prisma.user.findFirst({
-      where: {id: user.userId, orderId: order?.id},
+      where: { id: user.userId, orderId: order?.id },
     })
 
     // * TODO por qué lo de la isUserInOrder
@@ -256,19 +204,15 @@ export async function loader({request, params}: LoaderArgs) {
       try {
         console.time(`🔌 Connected '${user.username}' to the order`)
         await prisma.order.update({
-          where: {id: order?.id},
+          where: { id: order?.id },
           data: {
-            users: {connect: {id: user.userId}},
+            users: { connect: { id: user.userId } },
           },
         })
         EVENTS.ISSUE_CHANGED(tableId)
         console.timeEnd(`🔌 Connected '${user.username}' to the order`)
       } catch (error) {
-        console.log(
-          '%cerror table.$tableId.tsx line:361 ',
-          'color: red; display: block; width: 100%;',
-          error,
-        )
+        console.log('%cerror table.$tableId.tsx line:361 ', 'color: red; display: block; width: 100%;', error)
         throw new Error(`No se pudo conectar al usuario con la orden ${error}`)
       }
     }
@@ -287,9 +231,7 @@ export async function loader({request, params}: LoaderArgs) {
     orderExpired = isOrderExpired(order.paidDate, 2)
   }
 
-  const error = !menu
-    ? `${branch?.name} no cuenta con un menu abierto en este horario.`
-    : null
+  const error = !menu ? `${branch?.name} no cuenta con un menu abierto en este horario.` : null
 
   const currency = await getCurrency(tableId)
 
@@ -308,8 +250,8 @@ export async function loader({request, params}: LoaderArgs) {
   })
 }
 
-export async function action({request, params}: ActionArgs) {
-  const {tableId} = params
+export async function action({ request, params }: ActionArgs) {
+  const { tableId } = params
   invariant(tableId, 'Mesa no encontrada!')
   const formData = await request.formData()
   const _action = formData.get('_action') as string
@@ -320,7 +262,7 @@ export async function action({request, params}: ActionArgs) {
       EVENTS.ISSUE_CHANGED(tableId, 'endOrder')
   }
 
-  return json({success: true})
+  return json({ success: true })
 }
 
 export const ErrorBoundary = () => {
@@ -344,7 +286,7 @@ export const ErrorBoundary = () => {
   } else {
     return (
       <main>
-        <p>{(error as {message: string}).message}</p>
+        <p>{(error as { message: string }).message}</p>
         <img
           src="https://media1.giphy.com/media/EFXGvbDPhLoWs/giphy.gif?cid=ecf05e47e4j9c0wtau2ep4e46x7dk654cz4c2370l34t9kwc&ep=v1_gifs_search&rid=giphy.gif&ct=g"
           alt="error page"
