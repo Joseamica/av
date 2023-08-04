@@ -189,45 +189,12 @@ export function CartPayment({ setShowPaymentOptions }: { setShowPaymentOptions: 
           <hr />
           <Spacer spaceY="2" />
 
-          <button className="flex flex-row items-center justify-between" type="button" onClick={() => setShowModal({ ...showModal, tip: true })}>
-            <H5>Propina</H5>
-            <FlexRow>
-              <FlexRow>
-                <H4 variant="secondary">{tipRadio}%</H4>
-                <H3>{formatCurrency(data.currency, tip)}</H3>
-              </FlexRow>
-              {showModal.tip ? (
-                <FlexRow className="rounded-full bg-gray_light px-2 py-1">
-                  <H6>Cerrar</H6>
-                  <ChevronUpIcon className="h-4 w-4" />
-                </FlexRow>
-              ) : (
-                <FlexRow className="rounded-full bg-gray_light px-2 py-1">
-                  <H6>Cambiar</H6>
-                  <ChevronRightIcon className="h-4 w-4" />
-                </FlexRow>
-              )}
-            </FlexRow>
-          </button>
+          <Payment.TipButton />
 
           <Spacer spaceY="2" />
-          <button className="flex flex-row items-center justify-between" type="button" onClick={() => setShowModal({ ...showModal, payment: true })}>
-            <H5>Método de pago</H5>
-            <FlexRow>
-              <H3>{Translate('es', paymentRadio)}</H3>
-              {showModal.payment ? (
-                <FlexRow className="rounded-full bg-gray_light px-2 py-1">
-                  <H6>Cerrar</H6>
-                  <ChevronUpIcon className="h-4 w-4" />
-                </FlexRow>
-              ) : (
-                <FlexRow className="rounded-full bg-gray_light px-2 py-1">
-                  <H6>Cambiar</H6>
-                  <ChevronRightIcon className="h-4 w-4" />
-                </FlexRow>
-              )}
-            </FlexRow>
-          </button>
+
+          <Payment.PayButton />
+
           <Spacer spaceY="2" />
           <hr />
           <Spacer spaceY="2" />
@@ -265,39 +232,11 @@ export function CartPayment({ setShowPaymentOptions }: { setShowPaymentOptions: 
         {/* )}
         </AnimatePresence> */}
       </div>
+
       {/* ANCHOR MODAL TIP */}
       {showModal.tip && <Payment.TipModal />}
 
-      {showModal.payment && (
-        <SubModal onClose={() => setShowModal({ ...showModal, payment: false })} title="Asignar método de pago">
-          <div className="space-y-2">
-            {data.paymentMethods.paymentMethods.map((paymentMethod: any) => {
-              const translate = Translate('es', paymentMethod)
-              return (
-                <label
-                  key={paymentMethod}
-                  className={clsx('flex w-full flex-row items-center justify-center space-x-2 rounded-lg border border-button-outline border-opacity-40 px-3 py-2 shadow-lg', {
-                    'text-2 rounded-full bg-button-primary px-2 py-1  text-white  ring-4   ring-button-outline': paymentRadio === paymentMethod,
-                  })}
-                >
-                  {translate}
-                  <input
-                    type="radio"
-                    name="paymentMethod"
-                    // defaultChecked={paymentMethod === 'cash'}
-                    value={paymentMethod}
-                    onChange={handleMethodChange}
-                    className="sr-only"
-                  />
-                </label>
-              )
-            })}
-            <Button fullWith={true} onClick={() => setShowModal({ ...showModal, payment: false })}>
-              Asignar
-            </Button>
-          </div>
-        </SubModal>
-      )}
+      {showModal.payment && <Payment.PayModal />}
       <input type="hidden" name="paymentMethod" value={paymentRadio} />
       <input type="hidden" name="tipPercentage" value={tipRadio} />
       <input type="hidden" name="cartItems" value={data.cartItems} />

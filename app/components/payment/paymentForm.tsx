@@ -72,7 +72,7 @@ export function PaymentForm() {
               <hr />
               <Spacer spaceY="2" />
 
-              <Payment.Tip />
+              <Payment.TipButton />
 
               <Spacer spaceY="2" />
 

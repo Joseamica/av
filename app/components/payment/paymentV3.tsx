@@ -48,7 +48,7 @@ export function usePayment() {
   return context
 }
 
-Payment.Tip = TipButton
+Payment.TipButton = TipButton
 Payment.Form = PaymentForm
 Payment.TipModal = TipModal
 Payment.PayModal = PayModal
