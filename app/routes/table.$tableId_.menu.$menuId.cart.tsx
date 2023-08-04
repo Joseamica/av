@@ -26,6 +26,7 @@ import { getDomainUrl, getStripeSession } from '~/utils/stripe.server'
 
 import { Button, ChevronRightIcon, ChevronUpIcon, FlexRow, H2, H3, H4, H5, H6, ItemContainer, Modal, QuantityButton, Spacer, Underline } from '~/components'
 import { SubModal } from '~/components/modal'
+import Payment, { usePayment } from '~/components/payment/paymentV3'
 
 export default function Cart() {
   const data = useLoaderData()
@@ -60,72 +61,82 @@ export default function Cart() {
   return (
     <>
       <Modal onClose={onClose} title="Carrito">
-        <fetcher.Form method="POST" preventScrollReset>
-          <div className="p-2">
-            {/* <H5 className="px-2 text-end">Tus platillos</H5> */}
-            <div className="space-y-2">
-              {data.cartItems?.map((items: CartItem, index: number) => {
-                return (
-                  <ItemContainer key={index} className="flex flex-row items-center justify-between space-x-2 ">
-                    <input type="hidden" name="variantId" value={item} />
-                    <FlexRow justify="between" className="w-full pr-2">
-                      <H4>{items.name}</H4>
-                      <H5 className="shrink-0">{formatCurrency(data.currency, items.price)}</H5>
-                    </FlexRow>
-                    <QuantityButton
-                      isForm={true}
-                      onDecrease={() => setItem(items.id)}
-                      onIncrease={() => setItem(items.id)}
-                      quantity={items.quantity}
-                      name="_action"
-                      decreaseValue="decreaseQuantity"
-                      increaseValue="increaseQuantity"
-                    />
-                  </ItemContainer>
-                )
-              })}
+        <Payment
+          state={{
+            amountLeft: data.amountLeft,
+            amountToPayState: cartItemsTotal,
+            currency: data.currency,
+            paymentMethods: data.paymentMethods,
+            tipsPercentages: data.tipsPercentages,
+          }}
+        >
+          <fetcher.Form method="POST" preventScrollReset>
+            <div className="p-2">
+              {/* <H5 className="px-2 text-end">Tus platillos</H5> */}
+              <div className="space-y-2">
+                {data.cartItems?.map((items: CartItem, index: number) => {
+                  return (
+                    <ItemContainer key={index} className="flex flex-row items-center justify-between space-x-2 ">
+                      <input type="hidden" name="variantId" value={item} />
+                      <FlexRow justify="between" className="w-full pr-2">
+                        <H4>{items.name}</H4>
+                        <H5 className="shrink-0">{formatCurrency(data.currency, items.price)}</H5>
+                      </FlexRow>
+                      <QuantityButton
+                        isForm={true}
+                        onDecrease={() => setItem(items.id)}
+                        onIncrease={() => setItem(items.id)}
+                        quantity={items.quantity}
+                        name="_action"
+                        decreaseValue="decreaseQuantity"
+                        increaseValue="increaseQuantity"
+                      />
+                    </ItemContainer>
+                  )
+                })}
+              </div>
             </div>
-          </div>
-          <Spacer spaceY="2" />
-          {!showPaymentOptions ? (
-            <div className="sticky bottom-0 rounded-t-lg border-x border-t bg-day-bg_principal p-2">
-              <FlexRow justify="between" className="px-2">
-                <H4>Numero de platillos: </H4>
-                <H3>{cartItemsQuantity}</H3>
-              </FlexRow>
-              <FlexRow justify="between" className="px-2">
-                <H4>Total: </H4>
-                <Underline>
-                  <H2>{formatCurrency(data.currency, cartItemsTotal)}</H2>
-                </Underline>
-              </FlexRow>
-              <Spacer spaceY="3" />
-              <Button name="_action" value="submitCart" type="submit" size="medium" disabled={isSubmitting || data.cartItems?.length === 0} className="w-full">
-                {isSubmitting ? (
-                  'Agregando platillos...'
-                ) : (
-                  <div>
-                    <span className="font-light">Ordenar y </span>
-                    {<span className="button-outline font-bold underline-offset-8">pagar después</span>}
-                  </div>
-                )}
-              </Button>
-              <Spacer spaceY="1" />
-              <Button
-                onClick={() => setShowPaymentOptions(true)}
-                className="w-full text-white"
-                type="button"
-                size="medium"
-                variant="custom"
-                custom="bg-success border-button-successOutline"
-              >
-                ¡ Quiero pagar ahora 👍🏼 !
-              </Button>
-            </div>
-          ) : (
-            <CartPayment setShowPaymentOptions={setShowPaymentOptions} />
-          )}
-        </fetcher.Form>
+            <Spacer spaceY="2" />
+            {!showPaymentOptions ? (
+              <div className="sticky bottom-0 rounded-t-lg border-x border-t bg-day-bg_principal p-2">
+                <FlexRow justify="between" className="px-2">
+                  <H4>Numero de platillos: </H4>
+                  <H3>{cartItemsQuantity}</H3>
+                </FlexRow>
+                <FlexRow justify="between" className="px-2">
+                  <H4>Total: </H4>
+                  <Underline>
+                    <H2>{formatCurrency(data.currency, cartItemsTotal)}</H2>
+                  </Underline>
+                </FlexRow>
+                <Spacer spaceY="3" />
+                <Button name="_action" value="submitCart" type="submit" size="medium" disabled={isSubmitting || data.cartItems?.length === 0} className="w-full">
+                  {isSubmitting ? (
+                    'Agregando platillos...'
+                  ) : (
+                    <div>
+                      <span className="font-light">Ordenar y </span>
+                      {<span className="button-outline font-bold underline-offset-8">pagar después</span>}
+                    </div>
+                  )}
+                </Button>
+                <Spacer spaceY="1" />
+                <Button
+                  onClick={() => setShowPaymentOptions(true)}
+                  className="w-full text-white"
+                  type="button"
+                  size="medium"
+                  variant="custom"
+                  custom="bg-success border-button-successOutline"
+                >
+                  ¡ Quiero pagar ahora 👍🏼 !
+                </Button>
+              </div>
+            ) : (
+              <CartPayment setShowPaymentOptions={setShowPaymentOptions} />
+            )}
+          </fetcher.Form>
+        </Payment>
       </Modal>
       <Outlet />
     </>
@@ -152,23 +163,13 @@ const variants = {
 
 export function CartPayment({ setShowPaymentOptions }: { setShowPaymentOptions: any }) {
   const data = useLoaderData()
-
   const navigation = useNavigation()
+  const { showModal, setShowModal, tip, tipRadio } = usePayment()
 
-  const [tipRadio, setTipRadio] = React.useState(12)
   const [paymentRadio, setPaymentRadio] = React.useState('cash')
-  const [showModal, setShowModal] = React.useState({
-    tip: false,
-    payment: false,
-  })
 
   const total = data.cartItemsTotal
-  const tip = Number(total) * (Number(tipRadio) / 100)
 
-  const handleTipChange = e => {
-    setTipRadio(Number(e.target.value))
-    // submit(e.target.form, {method: 'post'})
-  }
   const handleMethodChange = e => {
     setPaymentRadio(e.target.value)
   }
@@ -265,49 +266,7 @@ export function CartPayment({ setShowPaymentOptions }: { setShowPaymentOptions: 
         </AnimatePresence> */}
       </div>
       {/* ANCHOR MODAL TIP */}
-      {showModal.tip && (
-        <SubModal onClose={() => setShowModal({ ...showModal, tip: false })} title="Asignar propina">
-          <div className="flex flex-col space-y-2">
-            {data.tipsPercentages.map((tipPercentage: any) => (
-              <label
-                key={tipPercentage}
-                className={clsx(
-                  'flex w-full flex-row items-center justify-center space-x-2 rounded-lg border border-button-outline border-opacity-40 px-3 py-1 text-center shadow-lg',
-                  {
-                    'text-2 rounded-full bg-button-primary px-2 py-1  text-white  ring-4   ring-button-outline': tipRadio.toString() === tipPercentage,
-                  },
-                )}
-              >
-                <FlexRow justify="between" className="w-full">
-                  <H4>
-                    {tipPercentage >= 10 && tipPercentage < 12
-                      ? 'Muchas gracias!'
-                      : tipPercentage >= 12 && tipPercentage < 15
-                      ? 'Excelente servicio!'
-                      : tipPercentage >= 15 && tipPercentage < 18
-                      ? '❤️ Wow!'
-                      : tipPercentage >= 18
-                      ? 'Eres increible!'
-                      : tipPercentage === '0'
-                      ? 'No dejar propina'
-                      : 'otro'}
-                  </H4>
-                  <H3>{tipPercentage}%</H3>
-                </FlexRow>
-                <input type="radio" name="tipPercentage" value={tipPercentage} onChange={handleTipChange} className="sr-only" />
-              </label>
-            ))}
-          </div>
-          <Spacer spaceY="2" />
-          <H3 className="flex w-full flex-row justify-center">
-            <Underline>Estas dejando {formatCurrency(data.currency, (tipRadio * total) / 100)} de propina</Underline>
-          </H3>
-          <Spacer spaceY="2" />
-          <Button fullWith={true} onClick={() => setShowModal({ ...showModal, tip: false })}>
-            Asignar
-          </Button>
-        </SubModal>
-      )}
+      {showModal.tip && <Payment.TipModal />}
 
       {showModal.payment && (
         <SubModal onClose={() => setShowModal({ ...showModal, payment: false })} title="Asignar método de pago">
