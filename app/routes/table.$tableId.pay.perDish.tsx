@@ -21,7 +21,7 @@ import { handlePaymentProcessing } from '~/utils/payment-processing.server'
 import { FlexRow, H3, H4, H5, H6 } from '~/components'
 import { ItemContainer } from '~/components/containers/item-container'
 import { Modal } from '~/components/modal'
-import { PaymentV2 } from '~/components/payment/payment'
+import Payment from '~/components/payment/paymentV3'
 
 type LoaderData = {
   cartItems: CartItem[]
@@ -67,43 +67,40 @@ export default function PerDish() {
 
   return (
     <Modal onClose={() => navigate('..', { replace: true })} title="Dividir por platillo">
-      <Form method="POST" preventScrollReset>
-        <H5 className="px-2 text-end">Selecciona los platillos que deseas pagar</H5>
-        <div className="space-y-2 p-2">
-          {data.cartItems?.map((item: CartItem, index: number) => {
-            return (
-              <ItemContainer
-                key={index}
-                unActive={item.paid ? true : false}
-                // showCollapse={true}
-              >
-                <FlexRow>
-                  <H4>{item.quantity}</H4>
-                  <H3>{item.name}</H3>
-                </FlexRow>
+      <Payment
+        state={{ amountLeft: data.amountLeft, amountToPayState: amountToPay, currency: data.currency, paymentMethods: data.paymentMethods, tipsPercentages: data.tipsPercentages }}
+      >
+        <Form method="POST" preventScrollReset>
+          <H5 className="px-2 text-end">Selecciona los platillos que deseas pagar</H5>
+          <div className="space-y-2 p-2">
+            {data.cartItems?.map((item: CartItem, index: number) => {
+              return (
+                <ItemContainer
+                  key={index}
+                  unActive={item.paid ? true : false}
+                  // showCollapse={true}
+                >
+                  <FlexRow>
+                    <H4>{item.quantity}</H4>
+                    <H3>{item.name}</H3>
+                  </FlexRow>
 
-                <FlexRow>
-                  <H4 className={clsx({ ' line-through ': item.paid })}>{formatCurrency(data.currency, item.price * item.quantity)}</H4>
-                  {item.paid ? (
-                    <H6 className="rounded-full p-1 text-success">{`Pagado ${item.paidBy}`}</H6>
-                  ) : (
-                    <input type="checkbox" onChange={event => handleAmountChange(event, item.price * item.quantity)} name={`item-${item.id}`} className="h-5 w-5" />
-                  )}
-                  <input type="hidden" name={`price-${item.id}`} value={item.price * item.quantity} />
-                </FlexRow>
-              </ItemContainer>
-            )
-          })}
-        </div>
-
-        <PaymentV2
-          amountLeft={data.amountLeft}
-          amountToPayState={amountToPay}
-          currency={data.currency}
-          paymentMethods={data.paymentMethods}
-          tipsPercentages={data.tipsPercentages}
-        />
-      </Form>
+                  <FlexRow>
+                    <H4 className={clsx({ ' line-through ': item.paid })}>{formatCurrency(data.currency, item.price * item.quantity)}</H4>
+                    {item.paid ? (
+                      <H6 className="rounded-full p-1 text-success">{`Pagado ${item.paidBy}`}</H6>
+                    ) : (
+                      <input type="checkbox" onChange={event => handleAmountChange(event, item.price * item.quantity)} name={`item-${item.id}`} className="h-5 w-5" />
+                    )}
+                    <input type="hidden" name={`price-${item.id}`} value={item.price * item.quantity} />
+                  </FlexRow>
+                </ItemContainer>
+              )
+            })}
+          </div>
+          <Payment.Form />
+        </Form>
+      </Payment>
     </Modal>
   )
 }

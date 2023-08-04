@@ -19,7 +19,7 @@ import { formatCurrency, getAmountLeftToPay, getCurrency } from '~/utils'
 import { handlePaymentProcessing } from '~/utils/payment-processing.server'
 
 import { FlexRow, H2, H4, H5, ItemContainer, Modal, SectionContainer } from '~/components'
-import { PaymentV2 } from '~/components/payment/payment'
+import Payment from '~/components/payment/paymentV3'
 
 interface User {
   id: number
@@ -54,18 +54,23 @@ export default function PerPerson() {
     <Modal onClose={() => navigate('..')} title="Dividir por usuario">
       <H5 className="px-2 text-end">Selecciona a los usuarios que deseas pagar</H5>
       <Form method="POST" preventScrollReset>
-        {Object.values(data.userTotals).length > 0
-          ? Object.values(data.userTotals).map(user => (
-              <UserItemContainer key={user.user.id} handleAmountChange={handleAmountChange} {...{ user, handleCollapse, collapsedSections, data }} />
-            ))
-          : null}
-        <PaymentV2
-          amountLeft={data.amountLeft}
-          amountToPayState={amountToPay}
-          currency={data.currency}
-          paymentMethods={data.paymentMethods}
-          tipsPercentages={data.tipsPercentages}
-        />
+        <Payment
+          state={{
+            amountLeft: data.amountLeft,
+            amountToPayState: amountToPay,
+            currency: data.currency,
+            paymentMethods: data.paymentMethods,
+            tipsPercentages: data.tipsPercentages,
+          }}
+        >
+          {Object.values(data.userTotals).length > 0
+            ? Object.values(data.userTotals).map(user => (
+                <UserItemContainer key={user.user.id} handleAmountChange={handleAmountChange} {...{ user, handleCollapse, collapsedSections, data }} />
+              ))
+            : null}
+
+          <Payment.Form />
+        </Payment>
       </Form>
     </Modal>
   )

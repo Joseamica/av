@@ -20,7 +20,7 @@ import { handlePaymentProcessing } from '~/utils/payment-processing.server'
 
 import { H5, QuantityManagerButton } from '~/components'
 import { Modal } from '~/components/modal'
-import { PaymentV2 } from '~/components/payment/payment'
+import Payment from '~/components/payment/paymentV3'
 
 export async function action({ request, params }: ActionArgs) {
   const { tableId } = params
@@ -139,92 +139,90 @@ export default function EqualParts() {
       // fullScreen={true}
       title="Dividir en partes iguales"
     >
-      <Form
-        method="POST"
-        preventScrollReset
-        // onChange={handleChange}
-        className=""
+      <Payment
+        state={{ amountLeft: data.amountLeft, amountToPayState: perPerson, currency: data.currency, paymentMethods: data.paymentMethods, tipsPercentages: data.tipsPercentages }}
       >
-        <H5 variant="secondary" className="mr-2 text-end xs:text-sm">
-          Elige personas en mesa y cuántas pagarás.
-        </H5>
-        <div className=" p-4 xs:flex xs:h-1/4 xs:flex-row xs:items-center xs:p-2">
-          <div className="z-0 flex flex-row justify-center space-x-2 p-4 ">
-            {/* Add more circles with decreasing radius and increasing stroke width */}
+        <Form
+          method="POST"
+          preventScrollReset
+          // onChange={handleChange}
+          className=""
+        >
+          <H5 variant="secondary" className="mr-2 text-end xs:text-sm">
+            Elige personas en mesa y cuántas pagarás.
+          </H5>
+          <div className=" p-4 xs:flex xs:h-1/4 xs:flex-row xs:items-center xs:p-2">
+            <div className="z-0 flex flex-row justify-center space-x-2 p-4 ">
+              {/* Add more circles with decreasing radius and increasing stroke width */}
 
-            <AnimatePresence>
-              <div className="relative h-52 w-52 md:h-32 md:w-32 xs:h-16 xs:w-16 ">
-                <svg className="-rotate-90 fill-none" viewBox="0 0 36 36">
-                  <motion.circle
-                    initial={{ strokeDashoffset: 0, opacity: 0 }}
-                    animate={{
-                      strokeDasharray: `${percentForOne - gapSize} ,${gapSize}`,
-                      opacity: 1,
-                    }}
-                    cx="18"
-                    cy="18"
-                    r="15.9155"
-                    strokeWidth="2"
-                    pathLength="100"
-                    className=" stroke-componentBg dark:stroke-night-400"
-                  />
+              <AnimatePresence>
+                <div className="relative h-52 w-52 md:h-32 md:w-32 xs:h-16 xs:w-16 ">
+                  <svg className="-rotate-90 fill-none" viewBox="0 0 36 36">
+                    <motion.circle
+                      initial={{ strokeDashoffset: 0, opacity: 0 }}
+                      animate={{
+                        strokeDasharray: `${percentForOne - gapSize} ,${gapSize}`,
+                        opacity: 1,
+                      }}
+                      cx="18"
+                      cy="18"
+                      r="15.9155"
+                      strokeWidth="2"
+                      pathLength="100"
+                      className=" stroke-componentBg dark:stroke-night-400"
+                    />
 
-                  <motion.circle
-                    initial={{ strokeDashoffset: 0, opacity: 0 }}
-                    animate={{
-                      strokeDasharray: `${greenedPercent},${notGreenedPercent}`,
-                      opacity: 1,
-                    }}
-                    strokeLinecap="round" // aquí es donde se aplica
-                    cx="18"
-                    cy="18"
-                    r="15.9155"
-                    id="myPath"
-                    pathLength="100"
-                    strokeWidth="2"
-                    stroke="#10b981"
-                  />
-                </svg>
-                <div className="absolute inset-0 flex items-center justify-center p-8 text-center md:text-xs xs:hidden ">
-                  <p>
-                    Pagando por {payingFor} {payingFor > 1 ? 'personas' : 'persona'}
-                  </p>
+                    <motion.circle
+                      initial={{ strokeDashoffset: 0, opacity: 0 }}
+                      animate={{
+                        strokeDasharray: `${greenedPercent},${notGreenedPercent}`,
+                        opacity: 1,
+                      }}
+                      strokeLinecap="round" // aquí es donde se aplica
+                      cx="18"
+                      cy="18"
+                      r="15.9155"
+                      id="myPath"
+                      pathLength="100"
+                      strokeWidth="2"
+                      stroke="#10b981"
+                    />
+                  </svg>
+                  <div className="absolute inset-0 flex items-center justify-center p-8 text-center md:text-xs xs:hidden ">
+                    <p>
+                      Pagando por {payingFor} {payingFor > 1 ? 'personas' : 'persona'}
+                    </p>
+                  </div>
                 </div>
-              </div>
-            </AnimatePresence>
-          </div>
-
-          <div className="flex flex-col space-y-2 p-2 xs:space-y-1">
-            <div className="flex flex-row items-center justify-between space-y-2 xs:space-x-2 ">
-              <div className="flex flex-col items-center">
-                <p className="text-md shrink-0 xs:text-xs">Personas en</p>
-                <p className="text-md shrink-0 xs:text-xs"> la mesa</p>
-              </div>
-
-              <QuantityManagerButton quantity={personQuantity} setQuantity={setPersonQuantity} setPayingFor={setPayingFor} payingFor={payingFor} activate={activate} />
+              </AnimatePresence>
             </div>
 
-            {/* <Divider /> */}
-            <div className="flex flex-row items-center justify-between space-y-2 ">
-              <p className="text-md xs:text-xs">Pagando por</p>
-              <QuantityManagerButton
-                quantity={payingFor}
-                setQuantity={setPayingFor}
-                // tableNum={table.table_number}
-                disabledPlus={personQuantity === payingFor}
-              />
+            <div className="flex flex-col space-y-2 p-2 xs:space-y-1">
+              <div className="flex flex-row items-center justify-between space-y-2 xs:space-x-2 ">
+                <div className="flex flex-col items-center">
+                  <p className="text-md shrink-0 xs:text-xs">Personas en</p>
+                  <p className="text-md shrink-0 xs:text-xs"> la mesa</p>
+                </div>
+
+                <QuantityManagerButton quantity={personQuantity} setQuantity={setPersonQuantity} setPayingFor={setPayingFor} payingFor={payingFor} activate={activate} />
+              </div>
+
+              {/* <Divider /> */}
+              <div className="flex flex-row items-center justify-between space-y-2 ">
+                <p className="text-md xs:text-xs">Pagando por</p>
+                <QuantityManagerButton
+                  quantity={payingFor}
+                  setQuantity={setPayingFor}
+                  // tableNum={table.table_number}
+                  disabledPlus={personQuantity === payingFor}
+                />
+              </div>
             </div>
           </div>
-        </div>
-        <PaymentV2
-          amountLeft={data.amountLeft}
-          amountToPayState={perPerson}
-          currency={data.currency}
-          paymentMethods={data.paymentMethods as any}
-          tipsPercentages={data.tipsPercentages}
-        />
-        <input type="hidden" name="payingTotal" value={perPerson} />
-      </Form>
+
+          <input type="hidden" name="payingTotal" value={perPerson} />
+        </Form>
+      </Payment>
     </Modal>
   )
 }

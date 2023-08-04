@@ -17,7 +17,7 @@ import { handlePaymentProcessing } from '~/utils/payment-processing.server'
 
 import { Spacer } from '~/components'
 import { Modal } from '~/components/modal'
-import { PaymentV2 } from '~/components/payment/payment'
+import Payment from '~/components/payment/paymentV3'
 
 export default function CustomPay() {
   const data = useLoaderData()
@@ -34,36 +34,32 @@ export default function CustomPay() {
   return (
     <Modal onClose={() => navigate('..', { replace: true })} fullScreen={false} title="Pagar un monto personalizado">
       {actionData?.status === 400 && <div>Error message here</div>}
+      <Payment
+        state={{ amountLeft: data.amountLeft, amountToPayState: amountToPay, currency: data.currency, paymentMethods: data.paymentMethods, tipsPercentages: data.tipsPercentages }}
+      >
+        <Form method="POST" preventScrollReset>
+          <div className="bg-componentBg dark:bg-DARK_0 flex w-full flex-row items-center px-4 py-2  ">
+            <label htmlFor="custom" className={clsx('bg-componentBg dark:bg-DARK_0 dark:text-mainTextDark text-6xl text-[#9CA3AF]')}>
+              {data.currency}
+            </label>
+            <input
+              type="number"
+              name="amountToPay"
+              min="0"
+              id="custom"
+              inputMode="decimal"
+              onChange={handleAmountChange} // Handle input changes
+              className={clsx(`dark:bg-DARK-0 flex h-20 w-full bg-transparent text-6xl placeholder:p-2 placeholder:text-6xl focus:outline-none focus:ring-0`, {
+                'animate-pulse placeholder:text-warning': actionData?.amountToPay,
+              })}
+              placeholder="0.00"
+            />
+          </div>
 
-      <Form method="POST" preventScrollReset>
-        <div className="bg-componentBg dark:bg-DARK_0 flex w-full flex-row items-center px-4 py-2  ">
-          <label htmlFor="custom" className={clsx('bg-componentBg dark:bg-DARK_0 dark:text-mainTextDark text-6xl text-[#9CA3AF]')}>
-            {data.currency}
-          </label>
-          <input
-            type="number"
-            name="amountToPay"
-            min="0"
-            id="custom"
-            inputMode="decimal"
-            onChange={handleAmountChange} // Handle input changes
-            className={clsx(`dark:bg-DARK-0 flex h-20 w-full bg-transparent text-6xl placeholder:p-2 placeholder:text-6xl focus:outline-none focus:ring-0`, {
-              'animate-pulse placeholder:text-warning': actionData?.amountToPay,
-            })}
-            placeholder="0.00"
-          />
-        </div>
-
-        <Spacer spaceY="1" />
-
-        <PaymentV2
-          amountLeft={data.amountLeft}
-          amountToPayState={amountToPay}
-          currency={data.currency}
-          tipsPercentages={data.tipsPercentages}
-          paymentMethods={data.paymentMethods}
-        />
-      </Form>
+          <Spacer spaceY="1" />
+          <Payment.Form />
+        </Form>
+      </Payment>
     </Modal>
   )
 }

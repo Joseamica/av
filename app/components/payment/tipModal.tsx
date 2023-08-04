@@ -1,52 +1,27 @@
-import React from 'react'
-
 import clsx from 'clsx'
 
-import { ChevronRightIcon, ChevronUpIcon } from '../icons'
 import { SubModal } from '../modal'
 import { Button } from '../ui/buttons/button'
 import { FlexRow } from '../util/flexrow'
 import { Spacer } from '../util/spacer'
-import { H3, H4, H5, H6 } from '../util/typography'
+import { H3, H4 } from '../util/typography'
 import { Underline } from '../util/underline'
+import { usePayment } from './paymentV3'
 
 import { formatCurrency } from '~/utils'
 
-function useTip({ currency, tip, tipRadio, tipsPercentages, total, handleTipChange }) {
-  const [showModalTip, setShowModalTip] = React.useState(false)
+function TipModal() {
+  const { setShowModal, setTipRadio, tipRadio, currency, total, tipsPercentages } = usePayment()
 
   const handleModal = () => {
-    setShowModalTip(currentState => !currentState)
+    setShowModal(currentState => ({ ...currentState, tip: false }))
   }
 
-  const ButtonTip: React.FC = () => (
-    <>
-      <button className="flex flex-row items-center justify-between" type="button" onClick={handleModal}>
-        <H5>Propina</H5>
-        <FlexRow>
-          <FlexRow>
-            <H4 variant="secondary">{tipRadio}%</H4>
-            <H3>{formatCurrency(currency, tip)}</H3>
-          </FlexRow>
-          {showModalTip ? (
-            <FlexRow className="rounded-full bg-gray_light px-2 py-1">
-              <H6>Cerrar</H6>
-              <ChevronUpIcon className="h-4 w-4" />
-            </FlexRow>
-          ) : (
-            <FlexRow className="rounded-full bg-gray_light px-2 py-1">
-              <H6>Cambiar</H6>
-              <ChevronRightIcon className="h-4 w-4" />
-            </FlexRow>
-          )}
-        </FlexRow>
-      </button>
+  const handleTipChange = e => {
+    setTipRadio(Number(e.target.value))
+  }
 
-      <input type="hidden" name="tipPercentage" value={tipRadio} />
-    </>
-  )
-
-  const ModalTip: React.FC = () => (
+  return (
     <>
       <SubModal onClose={handleModal} title="Asignar propina">
         <div className="flex flex-col space-y-2">
@@ -86,14 +61,12 @@ function useTip({ currency, tip, tipRadio, tipsPercentages, total, handleTipChan
           <Underline>Estas dejando {formatCurrency(currency, (tipRadio * total) / 100)} de propina</Underline>
         </H3>
         <Spacer spaceY="2" />
-        <Button fullWith={true} onClick={currentState => setShowModalTip(!currentState)}>
+        <Button fullWith={true} onClick={handleModal}>
           Asignar
         </Button>
       </SubModal>
     </>
   )
-
-  return { ButtonTip, ModalTip, showModalTip }
 }
 
-export default useTip
+export default TipModal
