@@ -4,15 +4,16 @@ import React from 'react'
 import clsx from 'clsx'
 import { AnimatePresence, motion } from 'framer-motion'
 
+import { ChevronRightIcon, ChevronUpIcon } from '..'
 import { SubModal } from '../modal'
+import useTip from './tip'
 
 import { Translate, formatCurrency } from '~/utils'
 
 import { Button } from '~/components/ui/buttons/button'
 import { FlexRow } from '~/components/util/flexrow'
 import { Spacer } from '~/components/util/spacer'
-import { H2, H3, H4, H5, H6 } from '~/components/util/typography'
-import { ChevronRightIcon, ChevronUpIcon } from '..'
+import { H2, H3, H5, H6 } from '~/components/util/typography'
 
 const variants = {
   hidden: {
@@ -63,18 +64,19 @@ export function PaymentV2({
     payment: false,
   })
 
-  const navigation = useNavigation()
-
+  const tip = Number(amountToPayState) * (Number(tipRadio) / 100)
+  const total = Number(amountToPayState) + tip
   const handleTipChange = e => {
     setTipRadio(Number(e.target.value))
   }
 
+  const { ButtonTip, ModalTip, showModalTip } = useTip({ currency, tip, tipRadio, tipsPercentages, total, handleTipChange })
+
+  const navigation = useNavigation()
+
   const handleMethodChange = e => {
     setPaymentRadio(e.target.value)
   }
-
-  const tip = Number(amountToPayState) * (Number(tipRadio) / 100)
-  const total = Number(amountToPayState) + tip
 
   const isSubmitting = navigation.state !== 'idle'
 
@@ -94,27 +96,11 @@ export function PaymentV2({
             <motion.div variants={variants} initial="hidden" animate={showPayContent ? 'visible' : 'hidden'} exit="hidden" className="flex flex-col">
               <hr />
               <Spacer spaceY="2" />
-              <button className="flex flex-row items-center justify-between" type="button" onClick={() => setShowModal({ ...showModal, tip: true })}>
-                <H5>Propina</H5>
-                <FlexRow>
-                  <FlexRow>
-                    <H4 variant="secondary">{tipRadio}%</H4>
-                    <H3>{formatCurrency(currency, tip)}</H3>
-                  </FlexRow>
-                  {showModal.tip ? (
-                    <FlexRow className="rounded-full bg-gray_light px-2 py-1">
-                      <H6>Cerrar</H6>
-                      <ChevronUpIcon className="h-4 w-4" />
-                    </FlexRow>
-                  ) : (
-                    <FlexRow className="rounded-full bg-gray_light px-2 py-1">
-                      <H6>Cambiar</H6>
-                      <ChevronRightIcon className="h-4 w-4" />
-                    </FlexRow>
-                  )}
-                </FlexRow>
-              </button>
+
+              <ButtonTip />
+
               <Spacer spaceY="2" />
+
               <button className="flex flex-row items-center justify-between" type="button" onClick={() => setShowModal({ ...showModal, payment: true })}>
                 <H5>Método de pago</H5>
                 <FlexRow>
@@ -161,17 +147,7 @@ export function PaymentV2({
         </AnimatePresence>
       </div>
 
-      {showModal.tip && (
-        <AssignTipModal
-          amountToPay={amountToPayState}
-          currency={currency}
-          handleTipChange={handleTipChange}
-          setShowModal={setShowModal}
-          showModal={showModal}
-          tipPercentages={tipsPercentages}
-          tipRadio={tipRadio}
-        />
-      )}
+      {showModalTip && <ModalTip />}
 
       {showModal.payment && (
         <AssignPaymentMethodModal
@@ -184,7 +160,6 @@ export function PaymentV2({
       )}
 
       <input type="hidden" name="paymentMethod" value={paymentRadio} />
-      <input type="hidden" name="tipPercentage" value={tipRadio} />
     </>
   )
 }

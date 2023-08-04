@@ -1,11 +1,12 @@
 import { useNavigate } from '@remix-run/react'
-import clsx from 'clsx'
-import { AnimatePresence, motion } from 'framer-motion'
 import type { ReactNode } from 'react'
 import React from 'react'
 
-import { Button } from './ui/buttons/button'
+import clsx from 'clsx'
+import { AnimatePresence, motion } from 'framer-motion'
+
 import { ChevronLeftIcon, XIcon } from './icons'
+import { Button } from './ui/buttons/button'
 
 const effect = {
   hidden: {
@@ -133,7 +134,7 @@ export function Modal({
               <img alt="" src={imgHeader} className="dark:bg-secondaryDark max-h-72 w-full rounded-t-lg bg-white object-cover" loading="lazy" />
             </div>
           ) : (
-            <div className="dark:bg-night-bg_principal dark:text-night-text_principal sticky inset-x-0 top-0 z-[9999] mb-2 flex w-full flex-row items-center justify-between border-b-2 bg-day-bg_principal p-4">
+            <div className="dark:bg-night-bg_principal dark:text-night-text_principal sticky inset-x-0 top-0 z-10 mb-2 flex w-full flex-row items-center justify-between border-b-2 bg-day-bg_principal p-4">
               {goBack ? (
                 <Button onClick={NavigateBack} size="small">
                   <ChevronLeftIcon />
@@ -198,7 +199,7 @@ export function SubModal({
 
   return (
     <motion.main
-      className={clsx('bg-backdrop fixed  inset-0 z-[9999] flex max-h-screen flex-row items-center justify-center bg-black bg-opacity-90 backdrop-blur-sm backdrop-filter')}
+      className={clsx('bg-backdrop fixed  inset-0 z-50 flex max-h-screen h-full flex-row items-center justify-center bg-black bg-opacity-90 backdrop-blur-sm backdrop-filter')}
       onClick={onClose}
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}

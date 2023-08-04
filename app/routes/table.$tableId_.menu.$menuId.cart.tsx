@@ -1,305 +1,31 @@
-import type { CartItem, Order, PaymentMethod, User } from '@prisma/client'
-import { json, redirect } from '@remix-run/node'
 import { Outlet, useFetcher, useLoaderData, useNavigate, useNavigation, useParams } from '@remix-run/react'
+import React, { useState } from 'react'
+
+import { json, redirect } from '@remix-run/node'
 import type { ActionArgs, LoaderArgs } from '@remix-run/server-runtime'
+
+import type { CartItem, Order, PaymentMethod, User } from '@prisma/client'
 import clsx from 'clsx'
 import cuid from 'cuid'
 import { motion } from 'framer-motion'
-import React, { useState } from 'react'
 import invariant from 'tiny-invariant'
-import { Button, ChevronRightIcon, ChevronUpIcon, FlexRow, H2, H3, H4, H5, H6, ItemContainer, Modal, QuantityButton, Spacer, Underline } from '~/components'
-import { SubModal } from '~/components/modal'
 import { prisma } from '~/db.server'
-import { EVENTS } from '~/events'
+import { validateRedirect } from '~/redirect.server'
+import { getSession, sessionStorage, updateCartItem } from '~/session.server'
+
 import { getBranch, getBranchId, getPaymentMethods, getTipsPercentages } from '~/models/branch.server'
 import { getCartItems } from '~/models/cart.server'
 import { getDvctToken } from '~/models/deliverect.server'
 import { getOrderTotal } from '~/models/order.server'
 import { getTable } from '~/models/table.server'
 
-import { validateRedirect } from '~/redirect.server'
-import { getSession, sessionStorage, updateCartItem } from '~/session.server'
+import { EVENTS } from '~/events'
 
 import { Translate, createQueryString, formatCurrency, getAmountLeftToPay, getCurrency } from '~/utils'
 import { getDomainUrl, getStripeSession } from '~/utils/stripe.server'
 
-export async function loader({ request, params }: LoaderArgs) {
-  const { tableId, menuId } = params
-  invariant(tableId, 'No se encontró la mesa')
-
-  const branch = await getBranch(tableId)
-  invariant(branch, 'No se encontró la sucursal')
-
-  invariant(menuId, 'No existe el ID del menu')
-
-  const url = new URL(request.url)
-  const dishId = url.searchParams.get('dishId') || ''
-
-  const dish = await prisma.menuItem.findFirst({
-    where: { id: dishId },
-  })
-
-  const session = await getSession(request)
-
-  const categories = await prisma.menuCategory.findMany({
-    where: { menuId },
-    include: {
-      menuItems: true,
-    },
-  })
-  //Find users on table that are not the current user,
-  //this is to show users to share dishes with and you don't appear
-  const usersOnTable = await prisma.user.findMany({
-    where: { tableId, id: { not: session.get('userId') } },
-  })
-
-  const cart = JSON.parse(session.get('cart') || '[]') as CartItem[]
-
-  const cartItems = await getCartItems(cart)
-  const currency = await getCurrency(tableId)
-  let cartItemsTotal =
-    cartItems.reduce((acc, item) => {
-      return acc + Number(item.price) * item.quantity
-    }, 0) || 0
-
-  const amountLeft = await getAmountLeftToPay(tableId)
-  const tipsPercentages = await getTipsPercentages(tableId)
-  const paymentMethods = await getPaymentMethods(tableId)
-
-  return json({
-    categories,
-    cartItems,
-    usersOnTable,
-    dish,
-    currency,
-    cartItemsTotal,
-    amountLeft,
-    tipsPercentages,
-    paymentMethods,
-  })
-}
-
-export async function action({ request, params }: ActionArgs) {
-  const { tableId } = params
-  invariant(tableId, 'No se encontró la mesa')
-
-  const branchId = await getBranchId(tableId)
-  invariant(branchId, 'No se encontró la sucursal')
-
-  const formData = await request.formData()
-  const variantId = formData.get('variantId') as string
-  const _action = formData.get('_action') as string
-
-  const redirectTo = validateRedirect(request.redirect, `/table/${tableId}`)
-
-  const session = await getSession(request)
-  const shareDish = JSON.parse(session.get('shareUserIds') || false)
-  let cart = JSON.parse(session.get('cart') || '[]')
-  const quantityStr = cart.find((item: { variantId: string }) => item.variantId === variantId)?.quantity
-  const userId = session.get('userId')
-
-  const cartItems = await getCartItems(cart)
-
-  let cartItemsTotal =
-    cartItems.reduce((acc, item) => {
-      return acc + Number(item.price) * item.quantity
-    }, 0) || 0
-
-  switch (_action) {
-    case 'increaseQuantity':
-      if (!variantId || !quantityStr) {
-        break
-      }
-      cart = updateCartItem(cart, variantId, quantityStr + 1)
-      session.set('cart', JSON.stringify(cart))
-      break
-    case 'decreaseQuantity':
-      if (!variantId || !quantityStr) {
-        break
-      }
-      cart = updateCartItem(cart, variantId, quantityStr - 1)
-      session.set('cart', JSON.stringify(cart))
-      break
-    case 'submitCart':
-      let adjustedItems = cartItems.map(item => {
-        return {
-          plu: item.id,
-          price: Number(item.price) * 100,
-          quantity: item.quantity,
-          remark: item.comments ?? 'No remarks',
-          name: item.name,
-        }
-      })
-      //NOTE - Se usa porque deliverect no recibe puntos decimales, por lo que se multiplica por 100
-      const adjustedCartItemsTotal = cartItemsTotal * 100
-      //TODO SI ESTA VENCIDO EL TOKEN, HACER UN REFRESH en donde???
-      const token = await getDvctToken()
-      const table = await getTable(tableId)
-      let order:
-        | (Order & {
-            users?: User[]
-          })
-        | null = await prisma.order.findFirst({
-        where: {
-          branchId: branchId,
-          tableId: tableId,
-        },
-        include: {
-          users: {
-            where: { id: userId },
-          },
-        },
-      })
-      if (!order) {
-        order = await prisma.order.create({
-          data: {
-            branchId: branchId,
-            tableId: tableId,
-            creationDate: new Date(),
-            orderedDate: new Date(),
-            active: true,
-            paid: false,
-            total: cartItemsTotal,
-            users: {
-              connect: {
-                id: userId,
-              },
-            },
-          },
-        })
-        cartItemsTotal = 0
-      } else {
-        const orderTotal = (await getOrderTotal(order.id)) || { total: 0 }
-        await prisma.order.update({
-          where: { id: order.id },
-          data: {
-            total: Number(orderTotal.total) + Number(cartItemsTotal),
-            paid: false,
-            paidDate: null,
-          },
-        })
-        // Connect user if not connected
-        if (!order.users?.some((user: User) => user.id === userId)) {
-          await prisma.order.update({
-            where: { id: order.id },
-            data: {
-              users: {
-                connect: {
-                  id: userId,
-                },
-              },
-            },
-          })
-        }
-      }
-
-      // const createCartItems =
-      await Promise.all(
-        cartItems.map(item =>
-          prisma.cartItem.create({
-            data: {
-              image: item.image,
-              quantity: Number(item.quantity),
-              price: Number(item.price),
-              name: item.name,
-              menuItemId: item.id,
-              modifier: {
-                connect: item.modifiers.map(modifier => ({
-                  id: modifier.id,
-                })),
-              },
-
-              //if shareDish is not empty, connect the users to the cartItem
-              user: {
-                connect: shareDish.length > 0 ? [{ id: userId }, ...shareDish.map(id => ({ id: id }))] : { id: userId },
-              } as any,
-              activeOnOrder: true,
-              orderId: order?.id,
-              // make sure to include other necessary fields here
-            },
-          }),
-        ),
-      )
-      //NOTE - Aqui se usa el request.method para identificar que boton se esta usando
-      if (request.method === 'PATCH') {
-        const tipPercentage = formData.get('tipPercentage') as string
-        const paymentMethod = formData.get('paymentMethod') as PaymentMethod
-        const amountToPay = Number(formData.get('amountToPay'))
-
-        //FIX this \/
-        //@ts-expect-error
-        const tip = amountToPay * Number(tipPercentage / 100)
-
-        switch (paymentMethod) {
-          case 'cash':
-            const params = {
-              typeOfPayment: 'cartPay',
-              amount: amountToPay + tip,
-              tip: tip,
-              paymentMethod: paymentMethod,
-              // extraData: itemData ? JSON.stringify(itemData) : undefined,
-              isOrderAmountFullPaid: false,
-            }
-            const queryString = createQueryString(params)
-            return redirect(`${redirectTo}/payment/success?${queryString}`)
-          case 'card':
-            const stripeRedirectUrl = await getStripeSession(
-              amountToPay * 100 + tip * 100,
-              false,
-              getDomainUrl(request) + redirectTo,
-              //FIXME aqui tiene que tener congruencia con el currency del database, ya que stripe solo acepta ciertas monedas, puedo hacer una condicion o cambiar db a "eur"
-              'eur',
-              tip,
-              paymentMethod,
-              'cartPay',
-              //FIXME le estoy pasando mas de 500 characters y hay error.
-              //Es Para alterar los cartItems y que se vean quien pago
-              // cartItems,
-            )
-            return redirect(stripeRedirectUrl)
-        }
-      }
-
-      //TODO: cambiar el channelname y channelLinkId agarrandolos de la base de datos o api
-      const url = process.env.DELIVERECT_API_URL + '/joseantonioamieva/order/649c4d38770ee8288c5a8729'
-      const options = {
-        method: 'POST',
-        headers: {
-          accept: 'application/json',
-          'content-type': 'application/json',
-          authorization: 'Bearer ' + token,
-        },
-        body: JSON.stringify({
-          customer: { name: 'John ' },
-          orderIsAlreadyPaid: false,
-          payment: { amount: adjustedCartItemsTotal, type: 0 },
-          items: adjustedItems,
-          decimalDigits: 2,
-          // channelOrderId: order.id,
-          // channelOrderDisplayId: order.id + '12111',
-          channelOrderId: cuid(),
-          channelOrderDisplayId: '1234567ABC',
-          orderType: 3,
-          table: String(table.table_number),
-        }),
-      }
-      fetch(url, options)
-        .then(res => res.json())
-        .then(json => console.log(json))
-        .catch(err => console.error('error:' + err))
-
-      session.unset('cart')
-      EVENTS.ISSUE_CHANGED(tableId)
-
-      return redirect(redirectTo, {
-        headers: { 'Set-Cookie': await sessionStorage.commitSession(session) },
-      })
-  }
-
-  return redirect('', {
-    headers: { 'Set-Cookie': await sessionStorage.commitSession(session) },
-  })
-}
+import { Button, ChevronRightIcon, ChevronUpIcon, FlexRow, H2, H3, H4, H5, H6, ItemContainer, Modal, QuantityButton, Spacer, Underline } from '~/components'
+import { SubModal } from '~/components/modal'
 
 export default function Cart() {
   const data = useLoaderData()
@@ -619,4 +345,284 @@ export function CartPayment({ setShowPaymentOptions }: { setShowPaymentOptions: 
       <input type="hidden" name="amountToPay" value={data?.cartItemsTotal} />
     </>
   )
+}
+
+// ANCHOR LOADER
+export async function loader({ request, params }: LoaderArgs) {
+  const { tableId, menuId } = params
+  invariant(tableId, 'No se encontró la mesa')
+
+  const branch = await getBranch(tableId)
+  invariant(branch, 'No se encontró la sucursal')
+
+  invariant(menuId, 'No existe el ID del menu')
+
+  const url = new URL(request.url)
+  const dishId = url.searchParams.get('dishId') || ''
+
+  const dish = await prisma.menuItem.findFirst({
+    where: { id: dishId },
+  })
+
+  const session = await getSession(request)
+
+  const categories = await prisma.menuCategory.findMany({
+    where: { menuId },
+    include: {
+      menuItems: true,
+    },
+  })
+  //Find users on table that are not the current user,
+  //this is to show users to share dishes with and you don't appear
+  const usersOnTable = await prisma.user.findMany({
+    where: { tableId, id: { not: session.get('userId') } },
+  })
+
+  const cart = JSON.parse(session.get('cart') || '[]') as CartItem[]
+
+  const cartItems = await getCartItems(cart)
+  const currency = await getCurrency(tableId)
+  let cartItemsTotal =
+    cartItems.reduce((acc, item) => {
+      return acc + Number(item.price) * item.quantity
+    }, 0) || 0
+
+  const amountLeft = await getAmountLeftToPay(tableId)
+  const tipsPercentages = await getTipsPercentages(tableId)
+  const paymentMethods = await getPaymentMethods(tableId)
+
+  return json({
+    categories,
+    cartItems,
+    usersOnTable,
+    dish,
+    currency,
+    cartItemsTotal,
+    amountLeft,
+    tipsPercentages,
+    paymentMethods,
+  })
+}
+
+// ANCHOR ACTION
+export async function action({ request, params }: ActionArgs) {
+  const { tableId } = params
+  invariant(tableId, 'No se encontró la mesa')
+
+  const branchId = await getBranchId(tableId)
+  invariant(branchId, 'No se encontró la sucursal')
+
+  const formData = await request.formData()
+  const variantId = formData.get('variantId') as string
+  const _action = formData.get('_action') as string
+
+  const redirectTo = validateRedirect(request.redirect, `/table/${tableId}`)
+
+  const session = await getSession(request)
+  const shareDish = JSON.parse(session.get('shareUserIds') || false)
+  let cart = JSON.parse(session.get('cart') || '[]')
+  const quantityStr = cart.find((item: { variantId: string }) => item.variantId === variantId)?.quantity
+  const userId = session.get('userId')
+
+  const cartItems = await getCartItems(cart)
+
+  let cartItemsTotal =
+    cartItems.reduce((acc, item) => {
+      return acc + Number(item.price) * item.quantity
+    }, 0) || 0
+
+  switch (_action) {
+    case 'increaseQuantity':
+      if (!variantId || !quantityStr) {
+        break
+      }
+      cart = updateCartItem(cart, variantId, quantityStr + 1)
+      session.set('cart', JSON.stringify(cart))
+      break
+    case 'decreaseQuantity':
+      if (!variantId || !quantityStr) {
+        break
+      }
+      cart = updateCartItem(cart, variantId, quantityStr - 1)
+      session.set('cart', JSON.stringify(cart))
+      break
+    case 'submitCart':
+      let adjustedItems = cartItems.map(item => {
+        return {
+          plu: item.id,
+          price: Number(item.price) * 100,
+          quantity: item.quantity,
+          remark: item.comments ?? 'No remarks',
+          name: item.name,
+        }
+      })
+      //NOTE - Se usa porque deliverect no recibe puntos decimales, por lo que se multiplica por 100
+      const adjustedCartItemsTotal = cartItemsTotal * 100
+      //TODO SI ESTA VENCIDO EL TOKEN, HACER UN REFRESH en donde???
+      const token = await getDvctToken()
+      const table = await getTable(tableId)
+      let order:
+        | (Order & {
+            users?: User[]
+          })
+        | null = await prisma.order.findFirst({
+        where: {
+          branchId: branchId,
+          tableId: tableId,
+        },
+        include: {
+          users: {
+            where: { id: userId },
+          },
+        },
+      })
+      if (!order) {
+        order = await prisma.order.create({
+          data: {
+            branchId: branchId,
+            tableId: tableId,
+            creationDate: new Date(),
+            orderedDate: new Date(),
+            active: true,
+            paid: false,
+            total: cartItemsTotal,
+            users: {
+              connect: {
+                id: userId,
+              },
+            },
+          },
+        })
+        cartItemsTotal = 0
+      } else {
+        const orderTotal = (await getOrderTotal(order.id)) || { total: 0 }
+        await prisma.order.update({
+          where: { id: order.id },
+          data: {
+            total: Number(orderTotal.total) + Number(cartItemsTotal),
+            paid: false,
+            paidDate: null,
+          },
+        })
+        // Connect user if not connected
+        if (!order.users?.some((user: User) => user.id === userId)) {
+          await prisma.order.update({
+            where: { id: order.id },
+            data: {
+              users: {
+                connect: {
+                  id: userId,
+                },
+              },
+            },
+          })
+        }
+      }
+
+      // const createCartItems =
+      await Promise.all(
+        cartItems.map(item =>
+          prisma.cartItem.create({
+            data: {
+              image: item.image,
+              quantity: Number(item.quantity),
+              price: Number(item.price),
+              name: item.name,
+              menuItemId: item.id,
+              modifier: {
+                connect: item.modifiers.map(modifier => ({
+                  id: modifier.id,
+                })),
+              },
+
+              //if shareDish is not empty, connect the users to the cartItem
+              user: {
+                connect: shareDish.length > 0 ? [{ id: userId }, ...shareDish.map(id => ({ id: id }))] : { id: userId },
+              } as any,
+              activeOnOrder: true,
+              orderId: order?.id,
+              // make sure to include other necessary fields here
+            },
+          }),
+        ),
+      )
+      //NOTE - Aqui se usa el request.method para identificar que boton se esta usando
+      if (request.method === 'PATCH') {
+        const tipPercentage = formData.get('tipPercentage') as string
+        const paymentMethod = formData.get('paymentMethod') as PaymentMethod
+        const amountToPay = Number(formData.get('amountToPay'))
+
+        //FIX this \/
+        //@ts-expect-error
+        const tip = amountToPay * Number(tipPercentage / 100)
+
+        switch (paymentMethod) {
+          case 'cash':
+            const params = {
+              typeOfPayment: 'cartPay',
+              amount: amountToPay + tip,
+              tip: tip,
+              paymentMethod: paymentMethod,
+              // extraData: itemData ? JSON.stringify(itemData) : undefined,
+              isOrderAmountFullPaid: false,
+            }
+            const queryString = createQueryString(params)
+            return redirect(`${redirectTo}/payment/success?${queryString}`)
+          case 'card':
+            const stripeRedirectUrl = await getStripeSession(
+              amountToPay * 100 + tip * 100,
+              false,
+              getDomainUrl(request) + redirectTo,
+              //FIXME aqui tiene que tener congruencia con el currency del database, ya que stripe solo acepta ciertas monedas, puedo hacer una condicion o cambiar db a "eur"
+              'eur',
+              tip,
+              paymentMethod,
+              'cartPay',
+              //FIXME le estoy pasando mas de 500 characters y hay error.
+              //Es Para alterar los cartItems y que se vean quien pago
+              // cartItems,
+            )
+            return redirect(stripeRedirectUrl)
+        }
+      }
+
+      //TODO: cambiar el channelname y channelLinkId agarrandolos de la base de datos o api
+      const url = process.env.DELIVERECT_API_URL + '/joseantonioamieva/order/649c4d38770ee8288c5a8729'
+      const options = {
+        method: 'POST',
+        headers: {
+          accept: 'application/json',
+          'content-type': 'application/json',
+          authorization: 'Bearer ' + token,
+        },
+        body: JSON.stringify({
+          customer: { name: 'John ' },
+          orderIsAlreadyPaid: false,
+          payment: { amount: adjustedCartItemsTotal, type: 0 },
+          items: adjustedItems,
+          decimalDigits: 2,
+          // channelOrderId: order.id,
+          // channelOrderDisplayId: order.id + '12111',
+          channelOrderId: cuid(),
+          channelOrderDisplayId: '1234567ABC',
+          orderType: 3,
+          table: String(table.table_number),
+        }),
+      }
+      fetch(url, options)
+        .then(res => res.json())
+        .then(json => console.log(json))
+        .catch(err => console.error('error:' + err))
+
+      session.unset('cart')
+      EVENTS.ISSUE_CHANGED(tableId)
+
+      return redirect(redirectTo, {
+        headers: { 'Set-Cookie': await sessionStorage.commitSession(session) },
+      })
+  }
+
+  return redirect('', {
+    headers: { 'Set-Cookie': await sessionStorage.commitSession(session) },
+  })
 }
