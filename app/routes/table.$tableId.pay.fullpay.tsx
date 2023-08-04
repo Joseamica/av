@@ -20,7 +20,7 @@ import { handlePaymentProcessing } from '~/utils/payment-processing.server'
 
 import { BillAmount, Spacer } from '~/components'
 import { Modal } from '~/components/modal'
-import { PaymentV2 } from '~/components/payment/payment'
+import Payment from '~/components/payment/paymentV3'
 
 type LoaderData = {
   amountLeft: number
@@ -39,20 +39,17 @@ export default function FullPay() {
 
   return (
     <Modal onClose={() => navigate('..')} title="Pagar cuenta completa">
-      <div>
-        <BillAmount amountLeft={data.amountLeft} currency={data.currency} paidUsers={data.paidUsers} total={data.total} userId={data.userId} />
-        <Spacer spaceY="2" />
-        <Form method="POST" preventScrollReset>
-          {/* <Pay /> */}
-          <PaymentV2
-            currency={data.currency}
-            tipsPercentages={data.tipsPercentages}
-            paymentMethods={data.paymentMethods}
-            amountLeft={data.amountLeft}
-            amountToPayState={data.total}
-          />
-        </Form>
-      </div>
+      <Payment
+        state={{ amountLeft: data.amountLeft, amountToPayState: data.total, currency: data.currency, paymentMethods: data.paymentMethods, tipsPercentages: data.tipsPercentages }}
+      >
+        <div>
+          <BillAmount amountLeft={data.amountLeft} currency={data.currency} paidUsers={data.paidUsers} total={data.total} userId={data.userId} />
+          <Spacer spaceY="2" />
+          <Form method="POST" preventScrollReset>
+            <Payment.Form />
+          </Form>
+        </div>
+      </Payment>
     </Modal>
   )
 }
@@ -77,6 +74,7 @@ export async function loader({ request, params }: LoaderArgs) {
   }
 
   const currency = await getCurrency(tableId)
+  console.log('server currency', currency)
 
   const language = (await getBranch(tableId)).language
 
