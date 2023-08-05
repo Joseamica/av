@@ -69,4 +69,4 @@ function TipModal() {
   )
 }
 
-export default TipModal
+export { TipModal }

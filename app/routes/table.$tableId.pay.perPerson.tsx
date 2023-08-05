@@ -1,4 +1,4 @@
-import { Form, useNavigate } from '@remix-run/react'
+import { Form, useLoaderData, useNavigate } from '@remix-run/react'
 import React, { useState } from 'react'
 
 import type { ActionArgs, LoaderArgs } from '@remix-run/node'
@@ -9,8 +9,8 @@ import { clsx } from 'clsx'
 import invariant from 'tiny-invariant'
 import { prisma } from '~/db.server'
 import { validateRedirect } from '~/redirect.server'
-import { useLiveLoader } from '~/use-live-loader'
 
+// import { useLiveLoader } from '~/use-live-loader'
 import { getBranchId, getPaymentMethods, getTipsPercentages } from '~/models/branch.server'
 import { getMenu } from '~/models/menu.server'
 import { getOrder } from '~/models/order.server'
@@ -29,7 +29,7 @@ interface User {
 
 export default function PerPerson() {
   const navigate = useNavigate()
-  const data = useLiveLoader<typeof loader>()
+  const data = useLoaderData<typeof loader>()
   const [amountToPay, setAmountToPay] = React.useState(0)
 
   const handleAmountChange = (event: React.ChangeEvent<HTMLInputElement>, amount: number) => {

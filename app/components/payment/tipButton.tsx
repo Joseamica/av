@@ -40,4 +40,4 @@ function TipButton() {
   )
 }
 
-export default TipButton
+export { TipButton }

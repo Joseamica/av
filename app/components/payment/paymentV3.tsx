@@ -4,8 +4,8 @@ import { PayButton } from './payButton'
 import { PayModal } from './payModal'
 import { PayTotal } from './payTotal'
 import { PaymentForm } from './paymentForm'
-import TipButton from './tipButton'
-import TipModal from './tipModal'
+import { TipButton } from './tipButton'
+import { TipModal } from './tipModal'
 
 const PaymentContext = React.createContext(null)
 
@@ -19,7 +19,7 @@ function Payment({
     amountToPayState: number
     currency: string
     paymentMethods: string[]
-    tipsPercentages: number[]
+    tipsPercentages: string[]
   }
 }) {
   const [showModal, setShowModal] = React.useState({
