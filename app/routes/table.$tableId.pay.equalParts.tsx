@@ -22,86 +22,6 @@ import { H5, QuantityManagerButton } from '~/components'
 import { Modal } from '~/components/modal'
 import Payment from '~/components/payment/paymentV3'
 
-export async function action({ request, params }: ActionArgs) {
-  const { tableId } = params
-  invariant(tableId, 'No se encontró mesa')
-  const formData = await request.formData()
-  const branchId = await getBranchId(tableId)
-
-  const redirectTo = validateRedirect(request.redirect, `/table/${tableId}`)
-
-  const tipPercentage = formData.get('tipPercentage') as string
-  const paymentMethod = formData.get('paymentMethod') as PaymentMethod
-
-  const order = await getOrder(tableId)
-  invariant(order, 'No se encontró la orden, o aun no ha sido creada.')
-  invariant(branchId, 'No se encontró la sucursal')
-
-  const total = order.total
-
-  if (!total) {
-    return json({ error: 'No se ha seleccionado ningún platillo' }, { status: 400 })
-  }
-
-  const payingTotal = Number(formData.get('payingTotal')) as number
-  const tip = Number(payingTotal) * (Number(tipPercentage) / 100)
-  const amountLeft = (await getAmountLeftToPay(tableId)) || 0
-  const menuCurrency = await getMenu(branchId).then((menu: any) => menu?.currency || 'mxn')
-
-  if (payingTotal > Number(amountLeft)) {
-    const url = new URL(request.url)
-    const pathname = url.pathname
-    return redirect(`/table/${tableId}/pay/confirmExtra?total=${payingTotal}&tip=${tip <= 0 ? Number(payingTotal) * 0.12 : tip}&pMethod=${paymentMethod}&redirectTo=${pathname}`)
-  }
-
-  const isOrderAmountFullPaid = amountLeft <= payingTotal
-
-  const result = await handlePaymentProcessing({
-    paymentMethod: paymentMethod as string,
-    total: payingTotal,
-    tip,
-    currency: menuCurrency,
-    isOrderAmountFullPaid,
-    request,
-    redirectTo,
-    typeOfPayment: 'equalParts',
-  })
-
-  if (result.type === 'redirect') {
-    return redirect(result.url)
-  }
-}
-
-export async function loader({ request, params }: LoaderArgs) {
-  const { tableId } = params
-  invariant(tableId, 'No se encontró mesa')
-
-  const order = await getOrder(tableId)
-
-  invariant(order, 'No se encontró la orden, o aun no ha sido creada.')
-  const tipsPercentages = await getTipsPercentages(tableId)
-  const paymentMethods = await getPaymentMethods(tableId)
-
-  const cartItems = await prisma.cartItem.findMany({
-    // FIX
-    where: { orderId: order.id, activeOnOrder: true },
-    include: { menuItem: true, user: true },
-  })
-  const total = order.total
-
-  const currency = await getCurrency(tableId)
-  const amountLeft = await getAmountLeftToPay(tableId)
-
-  return json({
-    cartItems,
-    total,
-    tipsPercentages,
-    paymentMethods,
-    currency,
-    amountLeft,
-  })
-}
-
 export default function EqualParts() {
   const navigate = useNavigate()
   const data = useLiveLoader<typeof loader>()
@@ -220,9 +140,93 @@ export default function EqualParts() {
             </div>
           </div>
 
+          <Payment.Form />
+
           <input type="hidden" name="payingTotal" value={perPerson} />
         </Form>
       </Payment>
     </Modal>
   )
+}
+
+// ANCHOR ACTION
+export async function action({ request, params }: ActionArgs) {
+  const { tableId } = params
+  invariant(tableId, 'No se encontró mesa')
+  const formData = await request.formData()
+  const branchId = await getBranchId(tableId)
+
+  const redirectTo = validateRedirect(request.redirect, `/table/${tableId}`)
+
+  const tipPercentage = formData.get('tipPercentage') as string
+  const paymentMethod = formData.get('paymentMethod') as PaymentMethod
+
+  const order = await getOrder(tableId)
+  invariant(order, 'No se encontró la orden, o aun no ha sido creada.')
+  invariant(branchId, 'No se encontró la sucursal')
+
+  const total = order.total
+
+  if (!total) {
+    return json({ error: 'No se ha seleccionado ningún platillo' }, { status: 400 })
+  }
+
+  const payingTotal = Number(formData.get('payingTotal')) as number
+  const tip = Number(payingTotal) * (Number(tipPercentage) / 100)
+  const amountLeft = (await getAmountLeftToPay(tableId)) || 0
+  const menuCurrency = await getMenu(branchId).then((menu: any) => menu?.currency || 'mxn')
+
+  if (payingTotal > Number(amountLeft)) {
+    const url = new URL(request.url)
+    const pathname = url.pathname
+    return redirect(`/table/${tableId}/pay/confirmExtra?total=${payingTotal}&tip=${tip <= 0 ? Number(payingTotal) * 0.12 : tip}&pMethod=${paymentMethod}&redirectTo=${pathname}`)
+  }
+
+  const isOrderAmountFullPaid = amountLeft <= payingTotal
+
+  const result = await handlePaymentProcessing({
+    paymentMethod: paymentMethod as string,
+    total: payingTotal,
+    tip,
+    currency: menuCurrency,
+    isOrderAmountFullPaid,
+    request,
+    redirectTo,
+    typeOfPayment: 'equalParts',
+  })
+
+  if (result.type === 'redirect') {
+    return redirect(result.url)
+  }
+}
+
+// ANCHOR LOADER
+export async function loader({ request, params }: LoaderArgs) {
+  const { tableId } = params
+  invariant(tableId, 'No se encontró mesa')
+
+  const order = await getOrder(tableId)
+
+  invariant(order, 'No se encontró la orden, o aun no ha sido creada.')
+  const tipsPercentages = await getTipsPercentages(tableId)
+  const paymentMethods = await getPaymentMethods(tableId)
+
+  const cartItems = await prisma.cartItem.findMany({
+    // FIX
+    where: { orderId: order.id, activeOnOrder: true },
+    include: { menuItem: true, user: true },
+  })
+  const total = order.total
+
+  const currency = await getCurrency(tableId)
+  const amountLeft = await getAmountLeftToPay(tableId)
+
+  return json({
+    cartItems,
+    total,
+    tipsPercentages,
+    paymentMethods,
+    currency,
+    amountLeft,
+  })
 }
