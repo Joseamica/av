@@ -164,15 +164,10 @@ const variants = {
 export function CartPayment({ setShowPaymentOptions }: { setShowPaymentOptions: any }) {
   const data = useLoaderData()
   const navigation = useNavigation()
-  const { showModal, setShowModal, tip, tipRadio } = usePayment()
-
-  const [paymentRadio, setPaymentRadio] = React.useState('cash')
+  const { showModal, paymentRadio, tip, tipRadio } = usePayment()
 
   const total = data.cartItemsTotal
 
-  const handleMethodChange = e => {
-    setPaymentRadio(e.target.value)
-  }
   const isSubmitting = navigation.state !== 'idle'
 
   return (
@@ -237,6 +232,7 @@ export function CartPayment({ setShowPaymentOptions }: { setShowPaymentOptions: 
       {showModal.tip && <Payment.TipModal />}
 
       {showModal.payment && <Payment.PayModal />}
+
       <input type="hidden" name="paymentMethod" value={paymentRadio} />
       <input type="hidden" name="tipPercentage" value={tipRadio} />
       <input type="hidden" name="cartItems" value={data.cartItems} />
@@ -449,6 +445,8 @@ export async function action({ request, params }: ActionArgs) {
         const tipPercentage = formData.get('tipPercentage') as string
         const paymentMethod = formData.get('paymentMethod') as PaymentMethod
         const amountToPay = Number(formData.get('amountToPay'))
+
+        console.log('server', paymentMethod)
 
         //FIX this \/
         //@ts-expect-error
