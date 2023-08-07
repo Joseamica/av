@@ -1,31 +1,44 @@
-import type { Branch, Menu, Order, Table as TableProps, User } from '@prisma/client'
-import { json, type ActionArgs, type LoaderArgs } from '@remix-run/node'
-import { Form, Outlet, isRouteErrorResponse, useRouteError, useSubmit } from '@remix-run/react'
+import { Form, Outlet, isRouteErrorResponse, useFetcher, useRouteError, useSubmit } from '@remix-run/react'
 import { useEffect, useState } from 'react'
-// * UTILS, MODELS, DB, HOOKS
-import { prisma } from '~/db.server'
-import { EVENTS } from '~/events'
-import { useSessionTimeout } from '~/hooks/use-session-timeout'
-import { getBranch } from '~/models/branch.server'
-import { getMenu } from '~/models/menu.server'
-import { getTable } from '~/models/table.server'
-import { getPaidUsers, getUsersOnTable } from '~/models/user.server'
-import { getSession, getUserDetails } from '~/session.server'
-import { getAmountLeftToPay, getCurrency, isOrderExpired } from '~/utils'
-// * COMPONENTS
 
+import { type ActionArgs, type LoaderArgs, json } from '@remix-run/node'
+
+import type { Branch, Menu, Order, Table as TableProps, User } from '@prisma/client'
+// * COMPONENTS
 import { motion } from 'framer-motion'
 import invariant from 'tiny-invariant'
+// * UTILS, MODELS, DB, HOOKS
+import { prisma } from '~/db.server'
+import { useSessionTimeout } from '~/hooks/use-session-timeout'
+import { getSession, getUserDetails } from '~/session.server'
 import { useLiveLoader } from '~/use-live-loader'
-// TODO React icons or heroicons ? :angry
 
-// * CUSTOM COMPONENTS
-import { BillAmount, Button, FilterOrderView, FilterUserView, Help, Spacer, SwitchButton, OrderIcon, UsersIcon } from '~/components/index'
-
-import { RestaurantInfoCard } from '~/components/restaurant-info-card'
-import { EmptyOrder } from '~/components/table/empty-order'
-import { SinglePayButton } from '~/components/table/single-pay-button'
+import { getBranch } from '~/models/branch.server'
+import { getMenu } from '~/models/menu.server'
 import { getOrder } from '~/models/order.server'
+import { getTable } from '~/models/table.server'
+import { getPaidUsers, getUsersOnTable } from '~/models/user.server'
+
+import { EVENTS } from '~/events'
+
+import { getAmountLeftToPay, getCurrency, isOrderExpired } from '~/utils'
+
+// TODO React icons or heroicons ? :angry
+// * CUSTOM COMPONENTS
+import {
+  BillAmount,
+  Button,
+  EmptyOrder,
+  FilterOrderView,
+  FilterUserView,
+  Help,
+  OrderIcon,
+  RestaurantInfoCard,
+  SinglePayButton,
+  Spacer,
+  SwitchButton,
+  UsersIcon,
+} from '~/components/index'
 
 type LoaderData = {
   order: Order & any
@@ -45,9 +58,9 @@ type LoaderData = {
 }
 
 export default function Table() {
-  // const data = useLoaderData()
   const data = useLiveLoader<LoaderData>()
   const submit = useSubmit()
+  const fetcher = useFetcher()
 
   //NOTE - Se obtiene del useDataLoader si la orden esta expirada, si si, se envia el request para terminar la orden
   //TESTING
@@ -61,16 +74,17 @@ export default function Table() {
 
   useSessionTimeout()
 
-  // const data = useLiveLoader<LoaderData>()
+  const isSubmitting = fetcher.state !== 'idle'
 
   const [selectedUsers, setSelectedUsers] = useState<string[]>([])
-  const [filterPerUser, setFilterPerUser] = useState(false)
+  const [filterPerUser, setFilterPerUser] = useState<boolean>(false)
+  const [collapse, setCollapse] = useState<boolean>(false)
+  const [showPaymentOptions, setShowPaymentOptions] = useState<boolean>(false)
 
   const handleToggleUser = (userId: string) => {
     setSelectedUsers((prevSelected: string[]) => (prevSelected.includes(userId) ? prevSelected.filter(id => id !== userId) : [...prevSelected, userId]))
   }
 
-  const [collapse, setCollapse] = useState(false)
   const handleCollapse = () => {
     setCollapse(!collapse)
   }
@@ -78,7 +92,6 @@ export default function Table() {
   const handleToggle = () => {
     setFilterPerUser(!filterPerUser)
   }
-  const [showPaymentOptions, setShowPaymentOptions] = useState(false)
 
   if (data.order) {
     return (
@@ -104,7 +117,6 @@ export default function Table() {
             allCornersRounded={false}
           />
         </div>
-        {/* <Spacer className="py-[2px]" /> */}
         {/* NOTE: FILTER */}
         {filterPerUser ? (
           <FilterUserView order={data.order} currency={data.currency} handleToggleUser={handleToggleUser} selectedUsers={selectedUsers} />
@@ -115,16 +127,11 @@ export default function Table() {
         {data.amountLeft > 0 ? (
           <SinglePayButton showPaymentOptions={showPaymentOptions} setShowPaymentOptions={setShowPaymentOptions} />
         ) : (
-          <Form method="POST">
-            <Button
-              name="_action"
-              value="endOrder"
-              // onClick={handleValidate}
-              fullWith={true}
-            >
-              Terminar orden
+          <fetcher.Form method="POST">
+            <Button name="_action" value="endOrder" disabled={isSubmitting} fullWith={true}>
+              {isSubmitting ? 'Terminando orden...' : 'Terminar orden'}
             </Button>
-          </Form>
+          </fetcher.Form>
         )}
         <Outlet />
       </motion.main>

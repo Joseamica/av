@@ -1,15 +1,11 @@
-import introJs from "intro.js";
-import "intro.js/introjs.css";
-import { useEffect } from "react";
-// * MODELS
+import { useEffect } from 'react'
 
+import introJs from 'intro.js'
+import 'intro.js/introjs.css'
+
+// * MODELS
 // * CUSTOM COMPONENTS
-import { SectionContainer } from "../containers/section-container";
-import { RestaurantInfoCard } from "../restaurant-info-card";
-import { UserButton } from "../ui/buttons/UserButton";
-import { FlexRow } from "../util/flexrow";
-import { Spacer } from "../util/spacer";
-import { H4, H5 } from "../util/typography";
+import { FlexRow, H4, H5, RestaurantInfoCard, SectionContainer, Spacer, UserButton } from '~/components/'
 
 export function EmptyOrder({
   branch,
@@ -19,12 +15,12 @@ export function EmptyOrder({
   usersInTable,
   isOrderActive,
 }: {
-  branch: any;
-  menu: any;
-  error: string;
-  tableNumber: number;
-  usersInTable: any;
-  isOrderActive: boolean;
+  branch: any
+  menu: any
+  error: string
+  tableNumber: number
+  usersInTable: any
+  isOrderActive: boolean
 }) {
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -33,32 +29,22 @@ export function EmptyOrder({
           isActive: !isOrderActive ? true : false,
           showProgress: true,
           dontShowAgain: true,
-          dontShowAgainLabel: "No volver a mostrar",
+          dontShowAgainLabel: 'No volver a mostrar',
           dontShowAgainCookieDays: 1,
-          buttonClass: "bg-button-primary rounded-lg text-white px-4 py-2",
+          buttonClass: 'bg-button-primary rounded-lg text-white px-4 py-2',
         })
-        .start();
-    }, 1500); // 2 seconds delay
+        .start()
+    }, 1500) // 2 seconds delay
 
     // Cleanup function to clear the timer when the component unmounts or when isOrderActive changes
-    return () => clearTimeout(timer);
-  }, [isOrderActive]);
+    return () => clearTimeout(timer)
+  }, [isOrderActive])
 
   return (
     <main>
-      <RestaurantInfoCard
-        branch={branch}
-        menu={menu}
-        error={error}
-        isOrderActive={isOrderActive}
-      />
-      {/* <div className="flex items-center justify-center w-10 h-10 rounded-full shadow-sm dark:bg-secondaryDark dark:bg-night-bg_principal bg-day-bg_principal ">
-      <ChevronDoubleUpIcon className="w-5 h-5 motion-safe:animate-bounce" />
-    </div>*/}
+      <RestaurantInfoCard branch={branch} menu={menu} error={error} isOrderActive={isOrderActive} />
       <Spacer spaceY="2" />
-      <H5 className="flex w-full justify-center ">
-        Aún no existe una orden con platillos.
-      </H5>
+      <H5 className="flex w-full justify-center ">Aún no existe una orden con platillos.</H5>
       <Spacer spaceY="3">
         <h3 className="text-secondaryTextDark flex shrink-0 justify-center pr-2 text-sm">{`Mesa ${tableNumber}`}</h3>
       </Spacer>
@@ -74,26 +60,14 @@ export function EmptyOrder({
         </Spacer>
         {usersInTable &&
           usersInTable.map((user, index: number) => (
-            <FlexRow
-              className="w-full items-center justify-between space-x-2 space-y-2"
-              key={user.id}
-            >
+            <FlexRow className="w-full items-center justify-between space-x-2 space-y-2" key={user.id}>
               <FlexRow className="items-center space-x-2">
                 <UserButton userColor={user?.color} path={`user/${user?.id}`} />
                 {user?.name ? <H4>{user.name}</H4> : <H4>Desconectado</H4>}
               </FlexRow>
-              {/* <div>
-                <Link
-                  preventScrollReset
-                  to={`user/${user?.id}`}
-                  className="flex flex-row items-center justify-center px-2 py-1 rounded-full dark:bg-buttonBgDark bg-componentBg "
-                >
-                  Detalles
-                </Link>
-              </div> */}
             </FlexRow>
           ))}
       </SectionContainer>
     </main>
-  );
+  )
 }

@@ -1,27 +1,22 @@
-import type {ActionArgs, LoaderArgs} from '@remix-run/node'
-import {json, redirect} from '@remix-run/node'
-import {
-  Link,
-  Outlet,
-  isRouteErrorResponse,
-  useLoaderData,
-  useRouteError,
-} from '@remix-run/react'
+import { Link, Outlet, isRouteErrorResponse, useLoaderData, useRouteError } from '@remix-run/react'
+
+import type { ActionArgs, LoaderArgs } from '@remix-run/node'
+import { json, redirect } from '@remix-run/node'
+
 // * UTILS, DB, EVENTS
-import {prisma} from '~/db.server'
-import {EVENTS} from '~/events'
-import {findOrCreateUser} from '~/models/user.server'
-import {validateRedirect} from '~/redirect.server'
-import {
-  getSession,
-  getUserId,
-  getUsername,
-  sessionStorage,
-} from '~/session.server'
-import {getIsDvctTokenExpired, getTableIdFromUrl} from '~/utils'
+import { prisma } from '~/db.server'
+import { validateRedirect } from '~/redirect.server'
+import { getSession, getUserId, getUsername, sessionStorage } from '~/session.server'
+
+import { findOrCreateUser } from '~/models/user.server'
+
+import { EVENTS } from '~/events'
+
+import { getIsDvctTokenExpired, getTableIdFromUrl } from '~/utils'
+
 // * COMPONENTS
 // * CUSTOM COMPONENTS
-import {Header, Notification, UserForm} from '~/components'
+import { Header, Notification, UserForm } from '~/components'
 
 const SESSION_EXPIRATION_TIME = 1000 * 60 * 60 * 24 * 30 //30 days
 
@@ -41,7 +36,7 @@ export default function TableLayoutPath() {
   )
 }
 
-export const loader = async ({request}: LoaderArgs) => {
+export const loader = async ({ request }: LoaderArgs) => {
   const session = await getSession(request)
   const sessionId = session.get('sessionId')
   if (!sessionId) {
@@ -73,25 +68,21 @@ export const loader = async ({request}: LoaderArgs) => {
   const pathname = url.pathname
   const tableId = getTableIdFromUrl(pathname)
   if (!tableId) {
-    throw new Error(
-      'Procura acceder por medio del código QR, u obtener el link con el id de la mesa.',
-    )
+    throw new Error('Procura acceder por medio del código QR, u obtener el link con el id de la mesa.')
   }
   //NOTE - This is to validate if the token is expired
-  const isDvctTokenExpired = await getIsDvctTokenExpired()
-  if (isDvctTokenExpired) {
-    return redirect(`/api/dvct/oauth/token?redirectTo=${pathname}`)
-  }
+  //TODO Habilitar cuando usemos deliverect
+  // const isDvctTokenExpired = await getIsDvctTokenExpired()
+  // if (isDvctTokenExpired) {
+  //   return redirect(`/api/dvct/oauth/token?redirectTo=${pathname}`)
+  // }
 
   const notification = session.get('notification')
 
-  return json(
-    {username, pathname, user, isAdmin, notification},
-    {headers: {'Set-Cookie': await sessionStorage.commitSession(session)}},
-  )
+  return json({ username, pathname, user, isAdmin, notification }, { headers: { 'Set-Cookie': await sessionStorage.commitSession(session) } })
 }
 
-export const action = async ({request, params}: ActionArgs) => {
+export const action = async ({ request, params }: ActionArgs) => {
   let [body, session] = await Promise.all([request.text(), getSession(request)])
   let formData = new URLSearchParams(body)
 
@@ -114,7 +105,7 @@ export const action = async ({request, params}: ActionArgs) => {
     console.time(`✅ Creating session and user with name... ${name}`)
     searchParams.set('error', '')
     const isOrderActive = await prisma.order.findFirst({
-      where: {active: true, tableId: tableId},
+      where: { active: true, tableId: tableId },
     })
 
     const createdUser = await prisma.user.create({
@@ -129,12 +120,9 @@ export const action = async ({request, params}: ActionArgs) => {
           },
         },
       },
-      include: {sessions: true},
+      include: { sessions: true },
     })
-    console.log(
-      '\x1b[44m%s\x1b[0m',
-      'table.tsx line:125 ✅Created user from setName prompt',
-    )
+    console.log('\x1b[44m%s\x1b[0m', 'table.tsx line:125 ✅Created user from setName prompt')
     if (createdUser) {
       const sessionId = createdUser.sessions.find(session => session.id)?.id
       sessionId && session.set('sessionId', sessionId)
@@ -148,10 +136,7 @@ export const action = async ({request, params}: ActionArgs) => {
     // const expiryTime = formatISO(addHours(new Date(), 4))
     // session.set('expiryTime', expiryTime)
     if (tableId) {
-      console.log(
-        '\x1b[44m%s\x1b[0m',
-        'table.tsx line:147 SSE TRIGGER because tableId exists and user entered name',
-      )
+      console.log('\x1b[44m%s\x1b[0m', 'table.tsx line:147 SSE TRIGGER because tableId exists and user entered name')
       EVENTS.ISSUE_CHANGED(tableId)
       session.set('tableId', tableId)
     }
@@ -160,7 +145,7 @@ export const action = async ({request, params}: ActionArgs) => {
     console.timeEnd(`✅ Creating session and user with name... ${name}`)
 
     return redirect(redirectTo, {
-      headers: {'Set-Cookie': await sessionStorage.commitSession(session)},
+      headers: { 'Set-Cookie': await sessionStorage.commitSession(session) },
     })
   }
 
