@@ -6,6 +6,7 @@ import clsx from 'clsx'
 import { AnimatePresence, motion } from 'framer-motion'
 
 import { ChevronLeftIcon, XIcon } from './icons'
+import { BackButton } from './ui/buttons/back-button'
 import { Button } from './ui/buttons/button'
 
 const effect = {
@@ -135,13 +136,7 @@ export function Modal({
             </div>
           ) : (
             <div className="dark:bg-night-bg_principal dark:text-night-text_principal sticky inset-x-0 top-0 z-10 mb-2 flex w-full flex-row items-center justify-between border-b-2 bg-day-bg_principal p-4">
-              {goBack ? (
-                <Button onClick={NavigateBack} size="small">
-                  <ChevronLeftIcon />
-                </Button>
-              ) : (
-                <div />
-              )}
+              {goBack ? <BackButton url={''} /> : <div />}
               {title}
               <XIcon className="h-7 w-7 rounded-full p-1 shadow-lg dark:text-night-700" onClick={onClose} />
             </div>

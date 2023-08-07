@@ -1,35 +1,20 @@
-import type {CartItem} from '@prisma/client'
-import {json, redirect} from '@remix-run/node'
-import type {ActionArgs, LoaderArgs} from '@remix-run/node'
-import {
-  Form,
-  useActionData,
-  useFetcher,
-  useLoaderData,
-  useNavigate,
-  useSearchParams,
-  useSubmit,
-} from '@remix-run/react'
+import { Form, useActionData, useFetcher, useLoaderData, useNavigate, useSearchParams, useSubmit } from '@remix-run/react'
 import React from 'react'
-import invariant from 'tiny-invariant'
-import {
-  Button,
-  FlexRow,
-  H1,
-  H2,
-  H5,
-  ItemContainer,
-  Modal,
-  SendComments,
-  Spacer,
-} from '~/components'
-import {LinkButton} from '~/components/ui/buttons/button'
-import {prisma} from '~/db.server'
-import {validateRedirect} from '~/redirect.server'
-import {getSession, getUserId} from '~/session.server'
 
-export async function action({request, params}: ActionArgs) {
-  const {tableId} = params
+import { json, redirect } from '@remix-run/node'
+import type { ActionArgs, LoaderArgs } from '@remix-run/node'
+
+import type { CartItem } from '@prisma/client'
+import invariant from 'tiny-invariant'
+import { prisma } from '~/db.server'
+import { validateRedirect } from '~/redirect.server'
+import { getSession, getUserId } from '~/session.server'
+
+import { Button, FlexRow, H1, H2, H5, ItemContainer, Modal, SendComments, Spacer } from '~/components'
+import { LinkButton } from '~/components/ui/buttons/button'
+
+export async function action({ request, params }: ActionArgs) {
+  const { tableId } = params
   invariant(tableId, 'tableId is required')
   const formData = await request.formData()
   const redirectTo = validateRedirect(request.redirect, `/table/${tableId}`)
@@ -43,22 +28,12 @@ export async function action({request, params}: ActionArgs) {
 
   const selected = formData.getAll('selected') as string[]
 
-  if (
-    selected.length === 0 &&
-    reportType !== 'other' &&
-    reportType !== 'place'
-  ) {
-    return json(
-      {error: 'Debes seleccionar al menos un elemento para reportar'},
-      {status: 400},
-    )
+  if (selected.length === 0 && reportType !== 'other' && reportType !== 'place') {
+    return json({ error: 'Debes seleccionar al menos un elemento para reportar' }, { status: 400 })
   }
 
   if (!subject && reportType !== 'other') {
-    return json(
-      {error: 'Debes seleccionar cual fue el problema'},
-      {status: 400},
-    )
+    return json({ error: 'Debes seleccionar cual fue el problema' }, { status: 400 })
   }
 
   if (subject && reportType && proceed) {
@@ -71,7 +46,7 @@ export async function action({request, params}: ActionArgs) {
             type: `${reportType}-${comments}`,
             tableId: tableId,
             userId: userId,
-            cartItems: {connect: selected.map(id => ({id}))},
+            cartItems: { connect: selected.map(id => ({ id })) },
           },
         })
         break
@@ -83,7 +58,7 @@ export async function action({request, params}: ActionArgs) {
             type: `${reportType}-${comments}`,
             tableId: tableId,
             userId: userId,
-            employees: {connect: selected.map(id => ({id}))},
+            employees: { connect: selected.map(id => ({ id })) },
           },
         })
         break
@@ -115,28 +90,28 @@ export async function action({request, params}: ActionArgs) {
     return redirect(redirectTo)
   }
 
-  return json({subject, comments})
+  return json({ subject, comments })
 }
 
-export async function loader({request, params}: LoaderArgs) {
-  const {tableId} = params
+export async function loader({ request, params }: LoaderArgs) {
+  const { tableId } = params
   invariant(tableId, 'tableId is required')
   const session = await getSession(request)
   const userId = await getUserId(session)
 
   const cartItemsByUser = await prisma.cartItem.findMany({
-    where: {user: {some: {id: userId}}},
+    where: { user: { some: { id: userId } } },
   })
 
   const waiters = await prisma.employee.findMany({
-    where: {role: 'waiter', tables: {some: {id: tableId}}},
+    where: { role: 'waiter', tables: { some: { id: tableId } } },
   })
 
   const managers = await prisma.employee.findMany({
-    where: {role: 'manager', tables: {some: {id: tableId}}},
+    where: { role: 'manager', tables: { some: { id: tableId } } },
   })
 
-  return json({waiters, managers, cartItemsByUser})
+  return json({ waiters, managers, cartItemsByUser })
 }
 
 export const FOOD_REPORT_SUBJECTS = {
@@ -163,8 +138,7 @@ export default function Report() {
   const navigate = useNavigate()
   const fetcher = useFetcher()
 
-  let isSubmitting =
-    fetcher.state === 'submitting' || fetcher.state === 'loading'
+  let isSubmitting = fetcher.state === 'submitting' || fetcher.state === 'loading'
   const submitButton = isSubmitting ? 'Enviando...' : 'Enviar reporte'
 
   const onClose = () => {
@@ -172,7 +146,7 @@ export default function Report() {
   }
   const submit = useSubmit()
   function handleChange(event: React.FormEvent<HTMLFormElement>) {
-    submit(event.currentTarget, {replace: true})
+    submit(event.currentTarget, { replace: true })
   }
 
   const [searchParams] = useSearchParams()
@@ -190,18 +164,10 @@ export default function Report() {
     title = 'Reportar otro suceso'
   }
   return (
-    <Modal
-      title={by === 'No especificado' ? 'Reportar algún suceso' : title}
-      onClose={onClose}
-      goBack={by === 'No especificado' ? false : true}
-    >
+    <Modal title={by === 'No especificado' ? 'Reportar algún suceso' : title} onClose={onClose} goBack={by === 'No especificado' ? false : true}>
       {/* <Spacer spaceY="2" /> */}
 
-      <Form
-        method="POST"
-        onChange={handleChange}
-        className="flex w-full flex-col space-y-2 p-2"
-      >
+      <Form method="POST" onChange={handleChange} className="flex w-full flex-col space-y-2 p-2">
         <p className="text-center">Los reportes son totalmente anónimos </p>
 
         {by === 'waiter' ? (
@@ -211,35 +177,18 @@ export default function Report() {
                 <label htmlFor={waiter.id} className="text-xl">
                   {waiter.name}
                 </label>
-                <input
-                  id={waiter.id}
-                  type="checkbox"
-                  name="selected"
-                  value={waiter.id}
-                  className="h-5 w-5"
-                />
+                <input id={waiter.id} type="checkbox" name="selected" value={waiter.id} className="h-5 w-5" />
               </ItemContainer>
             ))}
             <Spacer spaceY="2" />
             <H2>Selecciona cual fue el problema</H2>
             {Object.entries(WAITER_REPORT_SUBJECTS).map(([key, value]) => (
-              <LinkButton
-                size="small"
-                to={`?by=waiter&subject=${value}`}
-                key={key}
-                variant={subject === value ? 'primary' : 'secondary'}
-                className="mx-1"
-              >
+              <LinkButton size="small" to={`?by=waiter&subject=${value}`} key={key} variant={subject === value ? 'primary' : 'secondary'} className="mx-1">
                 {value}
               </LinkButton>
             ))}
             <Spacer spaceY="2" />
-            <Button
-              name="_action"
-              value="proceed"
-              disabled={isSubmitting}
-              className="w-full"
-            >
+            <Button name="_action" value="proceed" disabled={isSubmitting} className="w-full">
               {submitButton}
             </Button>
           </div>
@@ -248,36 +197,19 @@ export default function Report() {
             {data.cartItemsByUser.map((cartItem: CartItem) => (
               <ItemContainer key={cartItem.id}>
                 <label htmlFor={cartItem.id}>{cartItem.name}</label>
-                <input
-                  id={cartItem.id}
-                  type="checkbox"
-                  name="selected"
-                  value={cartItem.id}
-                  className="h-5 w-5"
-                />
+                <input id={cartItem.id} type="checkbox" name="selected" value={cartItem.id} className="h-5 w-5" />
               </ItemContainer>
             ))}
             <Spacer spaceY="2" />
 
             <H1>Selecciona cual fue el problema</H1>
             {Object.entries(FOOD_REPORT_SUBJECTS).map(([key, value]) => (
-              <LinkButton
-                to={`?by=food&subject=${value}`}
-                key={key}
-                size="small"
-                className="mx-1"
-                variant={subject === value ? 'primary' : 'secondary'}
-              >
+              <LinkButton to={`?by=food&subject=${value}`} key={key} size="small" className="mx-1" variant={subject === value ? 'primary' : 'secondary'}>
                 {value}
               </LinkButton>
             ))}
             <Spacer spaceY="2" />
-            <Button
-              name="_action"
-              value="proceed"
-              disabled={isSubmitting}
-              className="w-full"
-            >
+            <Button name="_action" value="proceed" disabled={isSubmitting} className="w-full">
               {submitButton}
             </Button>
           </div>
@@ -287,35 +219,19 @@ export default function Report() {
               <H1>Selecciona cual fue el problema</H1>
             </FlexRow>
             {Object.entries(PLACE_REPORT_SUBJECTS).map(([key, value]) => (
-              <LinkButton
-                to={`?by=place&subject=${value}`}
-                key={key}
-                size="small"
-                className="mx-1"
-                variant={subject === value ? 'primary' : 'secondary'}
-              >
+              <LinkButton to={`?by=place&subject=${value}`} key={key} size="small" className="mx-1" variant={subject === value ? 'primary' : 'secondary'}>
                 {value}
               </LinkButton>
             ))}
             <Spacer spaceY="2" />
-            <Button
-              name="_action"
-              value="proceed"
-              disabled={isSubmitting}
-              className="w-full"
-            >
+            <Button name="_action" value="proceed" disabled={isSubmitting} className="w-full">
               {submitButton}
             </Button>
           </div>
         ) : by === 'other' ? (
           <div className="space-y-2">
             <SendComments />
-            <Button
-              name="_action"
-              value="proceed"
-              disabled={isSubmitting}
-              className="w-full"
-            >
+            <Button name="_action" value="proceed" disabled={isSubmitting} className="w-full">
               {submitButton}
             </Button>
           </div>
