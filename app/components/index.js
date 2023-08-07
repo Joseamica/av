@@ -1,5 +1,6 @@
 export { Modal } from './modal'
 export { Header } from './header'
+export { HeaderV2 } from './header'
 export { Payment } from './payment'
 export { RestaurantInfoCard } from './restaurant-info-card'
 export { MenuInfo } from './menu-info'

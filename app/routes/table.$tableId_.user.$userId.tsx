@@ -1,47 +1,44 @@
-import type { CartItem } from "@prisma/client";
-import type { LoaderArgs } from "@remix-run/node";
-import { json } from "@remix-run/node";
-import { Link, useLoaderData, useSearchParams } from "@remix-run/react";
-import invariant from "tiny-invariant";
-import {
-  Button,
-  FlexRow,
-  H1,
-  H2,
-  H3,
-  H4,
-  SectionContainer,
-  Spacer,
-} from "~/components";
-import { prisma } from "~/db.server";
-import { formatCurrency, getCurrency } from "~/utils";
+import { Link, useLoaderData, useSearchParams } from '@remix-run/react'
+
+import type { LoaderArgs } from '@remix-run/node'
+import { json } from '@remix-run/node'
+
+import type { CartItem } from '@prisma/client'
+import invariant from 'tiny-invariant'
+import { prisma } from '~/db.server'
+
+import { formatCurrency, getCurrency } from '~/utils'
+
+import { Button, FlexRow, H1, H2, H3, H4, SectionContainer, Spacer } from '~/components'
+
+export const handle = { backButton: true }
 
 export async function loader({ params, request }: LoaderArgs) {
-  const { branchId, tableId, userId } = params;
-  invariant(tableId, "No existe ninguna mesa con este id");
+  const { branchId, tableId, userId } = params
+  invariant(tableId, 'No existe ninguna mesa con este id')
 
-  invariant(userId, "No hay ningun userId");
+  invariant(userId, 'No hay ningun userId')
   const user = await prisma.user.findFirst({
     where: { id: userId },
     include: { orders: { select: { table: { include: { order: true } } } } },
-  });
+  })
   const orderId = await prisma.user.findFirst({
     where: { id: userId },
     select: { orderId: true },
-  });
+  })
   const getUsersTotalPaid = await prisma.user.aggregate({
     where: { orderId: orderId?.orderId },
     _sum: { paid: true, tip: true },
-  });
-  const totalPaid = getUsersTotalPaid._sum.paid;
-  const totalTip = getUsersTotalPaid._sum.tip;
+  })
+  const totalPaid = getUsersTotalPaid._sum.paid
+  const totalTip = getUsersTotalPaid._sum.tip
 
   const cartItems = await prisma.cartItem.findMany({
     where: { user: { some: { id: userId } } },
     include: { menuItem: true },
-  });
+  })
 
-  const currency = await getCurrency(tableId);
+  const currency = await getCurrency(tableId)
   return json({
     user,
     userId,
@@ -51,32 +48,25 @@ export async function loader({ params, request }: LoaderArgs) {
     cartItems,
     currency,
     totalTip,
-  });
+  })
 }
 
 export default function User() {
-  const data = useLoaderData();
-  const [searchParams] = useSearchParams();
-  const changeName = searchParams.get("changeName");
+  const data = useLoaderData()
+  const [searchParams] = useSearchParams()
+  const changeName = searchParams.get('changeName')
 
   return (
     <SectionContainer className="">
       <img src="" alt="profile_pic" className="h-20 w-20 rounded-full" />
       <div className="flex flex-col items-center justify-center space-y-2">
         <H1>{data.user.name}</H1>
-        <Link
-          to="?changeName=true"
-          className="rounded-full border border-gray_light px-2 py-1 text-xs"
-        >
+        <Link to="?changeName=true" className="rounded-full border border-gray_light px-2 py-1 text-xs">
           Cambiar nombre
         </Link>
         {changeName ? (
           <FlexRow>
-            <input
-              name="name"
-              placeholder="Escribe el nombre..."
-              className="h-10 rounded-full border pl-2 text-sm "
-            />
+            <input name="name" placeholder="Escribe el nombre..." className="h-10 rounded-full border pl-2 text-sm " />
             <Button size="small">Cambiar</Button>
           </FlexRow>
         ) : null}
@@ -118,7 +108,7 @@ export default function User() {
                   /> */}
                 </FlexRow>
               </FlexRow>
-            );
+            )
           })}
         </div>
         <Spacer spaceY="2" />
@@ -129,18 +119,14 @@ export default function User() {
         <div>
           <FlexRow justify="between">
             <H4>Propina:</H4>
-            <H2 boldVariant="semibold">
-              {formatCurrency(data.currency, data.totalTip)}
-            </H2>
+            <H2 boldVariant="semibold">{formatCurrency(data.currency, data.totalTip)}</H2>
           </FlexRow>
           <FlexRow justify="between">
             <H4>Total: </H4>
-            <H2 boldVariant="semibold">
-              {formatCurrency(data.currency, data.totalPaid)}
-            </H2>
+            <H2 boldVariant="semibold">{formatCurrency(data.currency, data.totalPaid)}</H2>
           </FlexRow>
         </div>
       </div>
     </SectionContainer>
-  );
+  )
 }

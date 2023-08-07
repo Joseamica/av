@@ -1,10 +1,14 @@
+import { Link, useLocation, useMatches } from '@remix-run/react'
+
 import type { User } from '@prisma/client'
-import { Link, useLocation } from '@remix-run/react'
 
 import { ChevronLeftIcon, SearchIcon, UserCircleIcon } from './icons'
+import { BackButton } from './ui/buttons/back-button'
 import { LinkButton } from './ui/buttons/button'
 import { FlexRow } from './util/flexrow'
-import { H1, H5 } from './util/typography'
+import { H1, H2, H5 } from './util/typography'
+
+import { getTableIdFromUrl, getUrl } from '~/utils'
 
 interface HeaderProps {
   user: User
@@ -61,6 +65,47 @@ export function Header({ user, isAdmin }: HeaderProps) {
           </LinkButton>
         </FlexRow>
       )}
+    </nav>
+  )
+}
+
+export function HeaderV2({ user }: { user: User }) {
+  const pathname = useLocation().pathname
+  const matches = useMatches()
+  const backButton = matches.find(match => match.handle)?.handle.backButton
+
+  const userProfile = getUrl('userProfile', pathname, { userId: user.id })
+  const mainPath = getUrl('main', pathname)
+  const back = getUrl('back', pathname)
+
+  const headerPositions = {
+    left: backButton ? (
+      <BackButton url={back} />
+    ) : (
+      <Link to={mainPath}>
+        <H1>Avoqado</H1>
+      </Link>
+    ),
+    center: '',
+    right: (
+      <LinkButton to={userProfile} size="small">
+        <i>
+          <UserCircleIcon className="h-5 w-5" fill={user.color || '#fff'} />
+        </i>
+        <H5>{user.name}</H5>
+      </LinkButton>
+    ),
+  }
+
+  return (
+    <nav
+      className={`fixed inset-x-0 top-0 z-30 mx-auto items-center 
+       flex w-full max-w-md flex-row justify-between rounded-b-2xl bg-day-bg_principal
+       p-3 drop-shadow-md sm:rounded-none`}
+    >
+      {headerPositions.left}
+      {headerPositions.center}
+      {headerPositions.right}
     </nav>
   )
 }

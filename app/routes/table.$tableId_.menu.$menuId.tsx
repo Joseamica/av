@@ -1,13 +1,24 @@
-import type { CartItem, MenuItem, ModifierGroup, Modifiers, User } from '@prisma/client'
-import { json, redirect } from '@remix-run/node'
 import { Link, Outlet, useActionData, useFetcher, useLoaderData, useSearchParams } from '@remix-run/react'
+import React, { useRef } from 'react'
+import { FaFilePdf } from 'react-icons/fa'
+
+import { json, redirect } from '@remix-run/node'
 import type { ActionArgs, LoaderArgs } from '@remix-run/server-runtime'
+
+import type { CartItem, MenuItem, ModifierGroup, Modifiers, User } from '@prisma/client'
 import clsx from 'clsx'
 import { motion } from 'framer-motion'
-import React, { useRef } from 'react'
-
-import { FaFilePdf } from 'react-icons/fa'
 import invariant from 'tiny-invariant'
+import { prisma } from '~/db.server'
+import { validateRedirect } from '~/redirect.server'
+import { addToCart, getSession, sessionStorage } from '~/session.server'
+
+import { getBranch, getBranchId } from '~/models/branch.server'
+import { getCartItems } from '~/models/cart.server'
+import { getMenu } from '~/models/menu.server'
+
+import { formatCurrency, getCurrency } from '~/utils'
+
 import {
   Button,
   CategoriesBar,
@@ -28,14 +39,6 @@ import {
   SwitchButton,
 } from '~/components'
 
-import { prisma } from '~/db.server'
-import { getBranch, getBranchId } from '~/models/branch.server'
-import { getCartItems } from '~/models/cart.server'
-import { getMenu } from '~/models/menu.server'
-import { validateRedirect } from '~/redirect.server'
-import { addToCart, getSession, sessionStorage } from '~/session.server'
-import { formatCurrency, getCurrency } from '~/utils'
-
 type MenuCategory = {
   id: string
   name: string
@@ -48,6 +51,8 @@ type MenuCategory = {
 interface ModifierGroups extends ModifierGroup {
   modifiers: Modifiers[]
 }
+
+export const handle = { backButton: true }
 
 export async function loader({ request, params }: LoaderArgs) {
   const { tableId, menuId } = params
@@ -103,7 +108,6 @@ export async function loader({ request, params }: LoaderArgs) {
     branch,
   })
 }
-export const handle = { disableUserButton: true }
 
 export async function action({ request, params }: ActionArgs) {
   const { tableId } = params

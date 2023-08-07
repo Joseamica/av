@@ -28,16 +28,7 @@
       "titleBar.inactiveForeground": "#e7e7e799"
     },
     "peacock.color": "000",
-    "cSpell.words": ["AVOQADO", "cerror", "Dvct", "Revalidator"],
-    "cSpell.enableFiletypes": [
-      "Log",
-      "copilotignore",
-      "dockercompose",
-      "dockerfile",
-      "jsx-tags",
-      "log",
-      "objective-cpp",
-      "tailwindcss"
-    ]
+    "cSpell.words": ["Avoqado", "AVOQADO", "cerror", "Dvct", "Revalidator"],
+    "cSpell.enableFiletypes": ["Log", "copilotignore", "dockercompose", "dockerfile", "jsx-tags", "log", "objective-cpp", "tailwindcss"]
   }
 }

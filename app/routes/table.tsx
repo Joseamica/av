@@ -16,7 +16,7 @@ import { getIsDvctTokenExpired, getTableIdFromUrl } from '~/utils'
 
 // * COMPONENTS
 // * CUSTOM COMPONENTS
-import { Header, Notification, UserForm } from '~/components'
+import { HeaderV2, Notification, UserForm } from '~/components'
 
 const SESSION_EXPIRATION_TIME = 1000 * 60 * 60 * 24 * 30 //30 days
 
@@ -29,13 +29,13 @@ export default function TableLayoutPath() {
 
   return (
     <>
-      <Header user={data.user} isAdmin={data.isAdmin} />
+      <HeaderV2 user={data.user} />
       <Notification message={data.notification} />
-      <Outlet></Outlet>
+      <Outlet />
     </>
   )
 }
-
+//ANCHOR LOADER
 export const loader = async ({ request }: LoaderArgs) => {
   const session = await getSession(request)
   const sessionId = session.get('sessionId')
@@ -82,6 +82,7 @@ export const loader = async ({ request }: LoaderArgs) => {
   return json({ username, pathname, user, isAdmin, notification }, { headers: { 'Set-Cookie': await sessionStorage.commitSession(session) } })
 }
 
+//ANCHOR ACTION
 export const action = async ({ request, params }: ActionArgs) => {
   let [body, session] = await Promise.all([request.text(), getSession(request)])
   let formData = new URLSearchParams(body)
@@ -152,7 +153,6 @@ export const action = async ({ request, params }: ActionArgs) => {
   return null
 }
 
-//TODO TEST ERROR BONDARY
 export const ErrorBoundary = () => {
   const error = useRouteError() as Error
 

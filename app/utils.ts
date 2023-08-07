@@ -1,11 +1,13 @@
-import type { Decimal } from '@prisma/client/runtime'
-import type { Order, Table } from '@prisma/client'
 import { useMatches } from '@remix-run/react'
 import { useMemo } from 'react'
 
+import type { Order, Table } from '@prisma/client'
+import type { Decimal } from '@prisma/client/runtime'
 import { format, utcToZonedTime } from 'date-fns-tz'
 import invariant from 'tiny-invariant'
+
 import type { User } from '~/models/user.server'
+
 import { prisma } from './db.server'
 import { getBranchId } from './models/branch.server'
 import { getMenu } from './models/menu.server'
@@ -247,4 +249,18 @@ export async function getIsDvctTokenExpired() {
   const isTokenExpired = dvct && dvctExpiration <= currentTime ? true : false
   console.log('isDvctTokenExpired', isTokenExpired === false ? '🟢 token is not expired' : '🔴 needs to refresh!')
   return isTokenExpired
+}
+
+export function getUrl(name: string, pathname: string, params?: { userId: string }) {
+  const tableId = getTableIdFromUrl(pathname)
+  const mainPath = `/table/${tableId}`
+
+  switch (name) {
+    case 'userProfile':
+      return `${mainPath}/user/${params.userId}?redirect=${pathname}`
+    case 'back':
+      return `${mainPath}`
+    case 'main':
+      return mainPath
+  }
 }
