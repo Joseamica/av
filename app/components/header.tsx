@@ -88,10 +88,8 @@ export function HeaderV2({ user }: { user: User }) {
     ),
     center: '',
     right: (
-      <LinkButton to={userProfile} size="small">
-        <i>
-          <UserCircleIcon className="h-5 w-5" fill={user.color || '#fff'} />
-        </i>
+      <LinkButton to={userProfile} size="small" custom="border-2" variant="custom">
+        <UserCircleIcon className="h-5 w-5" fill={user.color || '#fff'} />
         <H5>{user.name}</H5>
       </LinkButton>
     ),

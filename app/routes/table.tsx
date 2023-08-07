@@ -95,7 +95,6 @@ export const action = async ({ request, params }: ActionArgs) => {
   let redirectTo = validateRedirect(formData.get('redirect'), url)
   const tableId = getTableIdFromUrl(url)
 
-  // const userId = session.get('userId')
   const searchParams = new URLSearchParams(request.url)
 
   if (!name) {

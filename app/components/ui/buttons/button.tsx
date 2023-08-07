@@ -1,5 +1,7 @@
 import { Link } from '@remix-run/react'
+
 import clsx from 'clsx'
+
 import { DeleteIcon } from '~/components/icons'
 
 interface ButtonProps {
@@ -13,10 +15,11 @@ interface ButtonProps {
 
 interface LinkProps {
   fullWith?: boolean
-  variant?: 'primary' | 'secondary' | 'danger' | 'icon'
+  variant?: 'primary' | 'secondary' | 'danger' | 'icon' | 'payment' | 'custom'
   size?: 'small' | 'medium' | 'large' | 'icon'
   children: React.ReactNode | React.ReactNode[]
   to: string
+  custom?: string
   onClick?: () => void
 }
 
@@ -82,10 +85,10 @@ function Button({ children, fullWith, variant = 'primary', size = 'large', class
   )
 }
 
-function LinkButton({ children, fullWith, variant = 'primary', size = 'large', className, to = '/', onClick }: LinkProps & JSX.IntrinsicElements['button']) {
+function LinkButton({ children, fullWith, variant = 'primary', size = 'large', className, custom, to = '/', onClick }: LinkProps & JSX.IntrinsicElements['button']) {
   return (
     <Link onClick={onClick} to={to} preventScrollReset className={getClassName({ className, fullWith })}>
-      <ButtonInner variant={variant} size={size}>
+      <ButtonInner variant={variant} size={size} custom={custom}>
         {children}
       </ButtonInner>
     </Link>
