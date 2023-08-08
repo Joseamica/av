@@ -262,6 +262,7 @@ model Feedback {
   id           String     @id @default(cuid())
   type         String
   report       String
+  comments     String?
   creationDate String?
   branch       Branch?    @relation(fields: [branchId], references: [id])
   branchId     String?
