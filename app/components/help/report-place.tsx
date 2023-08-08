@@ -1,9 +1,9 @@
 import { AnimatePresence, motion } from 'framer-motion'
 
-import { Spacer } from '..'
+import { SendComments, Spacer } from '..'
 import { ReportSelections } from './ui/report-select-reports'
 
-export function ReportPlace({ subjects }) {
+export function ReportPlace({ subjects, error }: { subjects: {}; error?: string }) {
   return (
     <AnimatePresence>
       <motion.div
@@ -13,7 +13,9 @@ export function ReportPlace({ subjects }) {
         exit={{ opacity: 0, y: 20 }}
         transition={{ duration: 1 }}
       >
-        <ReportSelections subjects={subjects} />
+        <ReportSelections subjects={subjects} error={error} />
+
+        <SendComments />
 
         <Spacer spaceY="2" />
       </motion.div>

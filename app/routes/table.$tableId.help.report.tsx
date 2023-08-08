@@ -1,5 +1,5 @@
-import { useActionData, useFetcher, useLoaderData, useLocation, useNavigate, useSearchParams } from '@remix-run/react'
-import { useState } from 'react'
+import { useFetcher, useLoaderData, useLocation, useNavigate } from '@remix-run/react'
+import { useEffect, useState } from 'react'
 
 import type { ActionArgs, LoaderArgs } from '@remix-run/node'
 import { json, redirect } from '@remix-run/node'
@@ -7,7 +7,7 @@ import { json, redirect } from '@remix-run/node'
 import invariant from 'tiny-invariant'
 import { prisma } from '~/db.server'
 import { validateRedirect } from '~/redirect.server'
-import { getSession, getUserId } from '~/session.server'
+import { getSession, getUserId, sessionStorage } from '~/session.server'
 
 import { createFeedBack } from '~/models/feedback.server'
 
@@ -32,42 +32,41 @@ export async function action({ request, params }: ActionArgs) {
   const data = Object.fromEntries(formData.entries())
   console.log('data', data)
 
-  const comments = formData.get('sendComments') as string
-  const subject = formData.get('subject') as string
   const type = formData.get('type') as string
+  const reports = formData.get('reports') as string
+  const comments = formData.get('sendComments') as string
+  const selected = formData.getAll('selected') as string[]
   const proceed = formData.get('_action') === 'proceed'
 
-  const selected = formData.getAll('selected') as string[]
-
-  if (selected.length === 0 && type !== 'other' && type !== 'place') {
-    return json({ error: 'Debes seleccionar al menos un elemento para reportar' }, { status: 400 })
-  }
-
-  if (subject.length === 0 && type !== 'other') {
+  if (reports === '' && type !== 'other') {
+    //TODO return error {type: 'reports', message:'msg'} para que se muestre bonito en frontend
     return json({ error: 'Debes seleccionar cual fue el problema' }, { status: 400 })
   }
 
-  if (subject.length > 0 && type && proceed) {
+  if (type && proceed) {
     switch (type) {
-      case 'food':
-        await createFeedBack(subject, type, comments, tableId, userId, selected, 'cartItems')
-        break
       case 'waiter':
-        await createFeedBack(subject, type, comments, tableId, userId, selected, 'employees')
+        await createFeedBack(type, reports, comments, tableId, userId, selected, 'employees')
+        break
+      case 'food':
+        await createFeedBack(type, reports, comments, tableId, userId, selected, 'cartItems')
         break
       case 'place':
-        await createFeedBack(subject, type, comments, tableId, userId)
+        await createFeedBack(type, reports, comments, tableId, userId)
         break
       case 'other':
-        await createFeedBack(subject, type, comments, tableId, userId)
+        if (comments === '') {
+          return json({ error: 'Debes escribir que fue lo que sucedió' }, { status: 400 })
+        }
+        await createFeedBack(type, 'no-report', comments, tableId, userId)
         break
     }
     //COnnect if waiter then connect to a employee id, if dish then connect to a dish id
-
-    return redirect(redirectTo)
+    session.flash('notification', 'Gracias, revisaremos su reporte a la brevedad')
+    return redirect(redirectTo, { headers: { 'Set-Cookie': await sessionStorage.commitSession(session) } })
   }
 
-  return json({ subject, comments, selected })
+  return json({ success: false })
 }
 
 export async function loader({ request, params }: LoaderArgs) {
@@ -92,8 +91,8 @@ export async function loader({ request, params }: LoaderArgs) {
 }
 
 const TABS = [
-  { label: 'Platillo', query: 'food' },
   { label: 'Mesero', query: 'waiter' },
+  { label: 'Platillo', query: 'food' },
   { label: 'Lugar', query: 'place' },
   { label: 'Otro', query: 'other' },
 ]
@@ -130,6 +129,19 @@ export default function Report() {
 
   const navigate = useNavigate()
   const [activeTab, setActiveTab] = useState('No especificado')
+  const [selected, setSelected] = useState<string[]>([])
+  const [error, setError] = useState<string | null>(null) // Error state
+
+  const toggleSelected = value => {
+    // Check if the value is already in the reports array
+    if (selected.includes(value)) {
+      // If it is, remove it
+      setSelected(selected.filter(s => s !== value))
+    } else {
+      // If it's not, add it
+      setSelected([...selected, value])
+    }
+  }
 
   let isSubmitting = fetcher.state !== 'idle'
 
@@ -140,22 +152,35 @@ export default function Report() {
     navigate(mainPath)
   }
 
-  const title = REPORT_TITLES[activeTab] || 'Reportar algún suceso'
-  const disableButton = isSubmitting || activeTab === 'No especificado'
-  const error = fetcher.data?.error
+  const modalTitle = REPORT_TITLES[activeTab] || 'Reportar algún suceso'
+  const disableButton =
+    isSubmitting || activeTab === 'No especificado' || ((activeTab === 'food' || activeTab === 'waiter') && selected.length === 0)
 
-  const container = 'justify-between flex flex-row h-14 items-center text-zinc-400 p-2 bg-white shadow-md rounded-lg'
-  const fullScreen = (activeTab === 'waiter' && data.waiters.length >= 5) || (activeTab === 'food' && data.cartItemsByUser.length >= 5)
+  // Clear error when active tab changes
+  useEffect(() => {
+    setError(null)
+  }, [activeTab])
+
+  // Set error when fetcher's data changes
+  useEffect(() => {
+    if (fetcher.data?.error) {
+      setError(fetcher.data.error)
+    }
+  }, [fetcher.data])
+
+  const tabContainer = 'justify-between flex flex-row h-14 items-center text-zinc-400 p-2 bg-white shadow-md rounded-lg'
+  const modalFullScreen = (activeTab === 'waiter' && data.waiters.length >= 5) || (activeTab === 'food' && data.cartItemsByUser.length >= 5)
+
   return (
     <Modal
-      title={activeTab === 'No especificado' ? 'Reportar algún suceso' : title}
+      title={activeTab === 'No especificado' ? 'Reportar algún suceso' : modalTitle}
       onClose={onClose}
       // goBack={activeTab === 'No especificado' ? false : true}
       justify="start"
-      fullScreen={fullScreen}
+      fullScreen={modalFullScreen}
     >
       {activeTab !== 'No especificado' && (
-        <div className={container}>
+        <div className={tabContainer}>
           {TABS.map(tab => (
             <Tab key={tab.query} label={tab.label} query={tab.query} activeTab={activeTab} setActiveTab={setActiveTab} />
           ))}
@@ -163,25 +188,37 @@ export default function Report() {
       )}
 
       <fetcher.Form method="POST" className="flex flex-col justify-center px-2 pb-2">
-        {/* <p className="text-center items-center w-max self-center justify-center bg-button-textNotSelected text-white rounded-full px-2 py-1">
+        {/* <p className="items-center self-center justify-center px-2 py-1 text-center text-white rounded-full w-max bg-button-textNotSelected">
           Los reportes son totalmente anónimos
         </p> */}
         <Spacer spaceY="1" />
         {activeTab === 'waiter' ? (
-          <ReportWaiter subjects={WAITER_REPORT_SUBJECTS} waiters={data.waiters} />
+          <ReportWaiter waiters={data.waiters} subjects={WAITER_REPORT_SUBJECTS} toggleSelected={toggleSelected} error={error} />
         ) : activeTab === 'food' ? (
-          <ReportFood cartItemsByUser={data.cartItemsByUser} subjects={FOOD_REPORT_SUBJECTS} />
+          <ReportFood
+            cartItemsByUser={data.cartItemsByUser}
+            subjects={FOOD_REPORT_SUBJECTS}
+            toggleSelected={toggleSelected}
+            error={error}
+          />
         ) : activeTab === 'place' ? (
-          <ReportPlace subjects={PLACE_REPORT_SUBJECTS} />
+          <ReportPlace subjects={PLACE_REPORT_SUBJECTS} error={error} />
         ) : activeTab === 'other' ? (
-          <ReportOther />
+          <ReportOther error={error} />
         ) : (
           <ReportIntroButtons setActiveTab={setActiveTab} />
         )}
-        <H5 variant="error">{error}</H5>
+
+        <Spacer spaceY="1" />
+
+        <H5 variant="error" className="items-center self-center justify-center w-full text-center">
+          {error}
+        </H5>
+
+        <Spacer spaceY="1" />
 
         {activeTab !== 'No especificado' && (
-          <Button name="_action" value="proceed" disabled={disableButton} className="w-full sticky bottom-0">
+          <Button name="_action" value="proceed" disabled={disableButton} className="sticky bottom-0 w-full">
             {isSubmitting ? 'Enviando...' : 'Enviar reporte'}
           </Button>
         )}

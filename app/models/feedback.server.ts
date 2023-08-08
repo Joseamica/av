@@ -5,8 +5,8 @@ import { getBranchId } from './branch.server'
 import { getDateTime } from '~/utils'
 
 export async function createFeedBack(
-  report: string,
   type: string,
+  report: string,
   comments: string,
   tableId: string,
   userId: string,
