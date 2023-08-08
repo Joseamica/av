@@ -41,8 +41,7 @@ function ButtonInner({ children, variant, custom, size = 'large' }: ButtonProps 
             variant === 'custom' && custom
           }`,
           {
-            'border-2 border-button-outline bg-transparent group-hover:border-transparent group-focus:border-transparent':
-              variant === 'secondary' || variant === 'danger',
+            'border-2 border-button-outline bg-transparent ': variant === 'secondary' || variant === 'danger',
             danger: variant === 'danger',
             'shadow-md': variant === 'icon',
             'border-button-outline bg-button-primary': variant === 'primary',
