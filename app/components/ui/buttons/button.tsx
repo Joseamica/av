@@ -36,13 +36,18 @@ function ButtonInner({ children, variant, custom, size = 'large' }: ButtonProps 
   return (
     <>
       <div
-        className={clsx(`focus-ring  absolute inset-0 transform rounded-full  border-4 opacity-100  transition disabled:opacity-50 ${variant === 'custom' && custom}`, {
-          'border-2 border-button-outline bg-transparent group-hover:border-transparent group-focus:border-transparent': variant === 'secondary' || variant === 'danger',
-          danger: variant === 'danger',
-          'shadow-md': variant === 'icon',
-          'border-button-outline bg-button-primary': variant === 'primary',
-          'border-button-successBg bg-success text-white': variant === 'payment',
-        })}
+        className={clsx(
+          `focus-ring  absolute inset-0 transform rounded-full   opacity-100  transition disabled:opacity-50 ${
+            variant === 'custom' && custom
+          }`,
+          {
+            'border-2 border-button-outline bg-transparent ': variant === 'secondary' || variant === 'danger',
+            danger: variant === 'danger',
+            'shadow-md': variant === 'icon',
+            'border-button-outline bg-button-primary': variant === 'primary',
+            'border-button-successBg bg-success text-white': variant === 'payment',
+          },
+        )}
       />
 
       <div
@@ -75,7 +80,15 @@ function ButtonInner({ children, variant, custom, size = 'large' }: ButtonProps 
  * @param {function} onClick - The onClick function of the button
  */
 
-function Button({ children, fullWith, variant = 'primary', size = 'large', className, custom, ...buttonProps }: ButtonProps & JSX.IntrinsicElements['button']) {
+function Button({
+  children,
+  fullWith,
+  variant = 'primary',
+  size = 'large',
+  className,
+  custom,
+  ...buttonProps
+}: ButtonProps & JSX.IntrinsicElements['button']) {
   return (
     <button {...buttonProps} className={getClassName({ className, fullWith })}>
       <ButtonInner variant={variant} size={size} custom={custom}>
@@ -85,7 +98,16 @@ function Button({ children, fullWith, variant = 'primary', size = 'large', class
   )
 }
 
-function LinkButton({ children, fullWith, variant = 'primary', size = 'large', className, custom, to = '/', onClick }: LinkProps & JSX.IntrinsicElements['button']) {
+function LinkButton({
+  children,
+  fullWith,
+  variant = 'primary',
+  size = 'large',
+  className,
+  custom,
+  to = '/',
+  onClick,
+}: LinkProps & JSX.IntrinsicElements['button']) {
   return (
     <Link onClick={onClick} to={to} preventScrollReset className={getClassName({ className, fullWith })}>
       <ButtonInner variant={variant} size={size} custom={custom}>
@@ -115,25 +137,25 @@ function QuantityButton({
   increaseValue?: string
 }) {
   return (
-    <div className="flex w-32 items-center justify-between rounded-full p-1 dark:bg-button-primary">
+    <div className="flex items-center justify-between w-32 p-1 rounded-full dark:bg-button-primary">
       {/* NOTE - Esto es que si el componente isForm, entonces aparezca el icono de basura cuando este en quantity <= 1*/}
       {isForm ? (
         <>
           {quantity <= 1 ? (
             <button
               type={'submit'}
-              className="dark:bg-mainDark dark:text-night-text_principal flex h-10 w-10 items-center justify-center rounded-full bg-day-bg_principal text-2xl text-warning shadow-lg disabled:text-gray-300 xs:h-7 xs:w-7"
+              className="flex items-center justify-center w-10 h-10 text-2xl rounded-full shadow-lg dark:bg-mainDark dark:text-night-text_principal bg-day-bg_principal text-warning disabled:text-gray-300 xs:h-7 xs:w-7"
               onClick={onDecrease}
               disabled={disabled}
               name={name}
               value={decreaseValue}
             >
-              <DeleteIcon className="h-5 w-5 fill-warning" />
+              <DeleteIcon className="w-5 h-5 fill-warning" />
             </button>
           ) : (
             <button
               type={isForm ? 'submit' : 'button'}
-              className="dark:bg-mainDark dark:bg-night-bg_principal dark:text-night-text_principal h-10 w-10 rounded-full bg-day-bg_principal text-2xl shadow-lg disabled:text-gray-300 xs:h-7 xs:w-7"
+              className="w-10 h-10 text-2xl rounded-full shadow-lg dark:bg-mainDark dark:bg-night-bg_principal dark:text-night-text_principal bg-day-bg_principal disabled:text-gray-300 xs:h-7 xs:w-7"
               onClick={onDecrease}
               disabled={disabled}
               name={name}
@@ -146,7 +168,7 @@ function QuantityButton({
       ) : (
         <button
           type={isForm ? 'submit' : 'button'}
-          className="dark:bg-mainDark dark:bg-night-bg_principal dark:text-night-text_principal h-10 w-10 rounded-full bg-day-bg_principal text-2xl shadow-lg disabled:text-gray-300 xs:h-7 xs:w-7"
+          className="w-10 h-10 text-2xl rounded-full shadow-lg dark:bg-mainDark dark:bg-night-bg_principal dark:text-night-text_principal bg-day-bg_principal disabled:text-gray-300 xs:h-7 xs:w-7"
           onClick={onDecrease}
           disabled={disabled}
           name={name}
@@ -155,11 +177,11 @@ function QuantityButton({
           -
         </button>
       )}
-      <span className="flex w-7 justify-center px-3 py-2 text-white disabled:text-gray-200 xs:px-2 xs:py-1 xs:text-xs">{quantity}</span>
+      <span className="flex justify-center px-3 py-2 text-white w-7 disabled:text-gray-200 xs:px-2 xs:py-1 xs:text-xs">{quantity}</span>
       <button
         type={isForm ? 'submit' : 'button'}
         onClick={onIncrease}
-        className="dark:bg-mainDark dark:bg-night-bg_principal dark:text-night-text_principal h-10 w-10 rounded-full bg-day-bg_principal text-2xl shadow-lg xs:h-7 xs:w-7"
+        className="w-10 h-10 text-2xl rounded-full shadow-lg dark:bg-mainDark dark:bg-night-bg_principal dark:text-night-text_principal bg-day-bg_principal xs:h-7 xs:w-7"
         name={name}
         value={increaseValue}
       >

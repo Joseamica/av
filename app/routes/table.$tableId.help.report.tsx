@@ -1,17 +1,25 @@
-import { Form, useActionData, useFetcher, useLoaderData, useNavigate, useSearchParams, useSubmit } from '@remix-run/react'
-import React from 'react'
+import { useFetcher, useLoaderData, useLocation, useNavigate } from '@remix-run/react'
+import { useEffect, useState } from 'react'
 
-import { json, redirect } from '@remix-run/node'
 import type { ActionArgs, LoaderArgs } from '@remix-run/node'
+import { json, redirect } from '@remix-run/node'
 
-import type { CartItem } from '@prisma/client'
 import invariant from 'tiny-invariant'
 import { prisma } from '~/db.server'
 import { validateRedirect } from '~/redirect.server'
-import { getSession, getUserId } from '~/session.server'
+import { getSession, getUserId, sessionStorage } from '~/session.server'
 
-import { Button, FlexRow, H1, H2, H5, ItemContainer, Modal, SendComments, Spacer } from '~/components'
-import { LinkButton } from '~/components/ui/buttons/button'
+import { createFeedBack } from '~/models/feedback.server'
+
+import { getUrl } from '~/utils'
+
+import { Button, H3, H4, H5, Modal, SendComments, Spacer } from '~/components'
+import { ReportFood } from '~/components/help/report-food'
+import { ReportIntroButtons } from '~/components/help/report-intro-buttons'
+import { ReportOther } from '~/components/help/report-other'
+import { ReportPlace } from '~/components/help/report-place'
+import { ReportWaiter } from '~/components/help/report-waiter'
+import { Tab } from '~/components/help/ui/report-tab-buttons'
 
 export async function action({ request, params }: ActionArgs) {
   const { tableId } = params
@@ -21,76 +29,44 @@ export async function action({ request, params }: ActionArgs) {
   const session = await getSession(request)
   const userId = await getUserId(session)
 
+  const data = Object.fromEntries(formData.entries())
+  console.log('data', data)
+
+  const type = formData.get('type') as string
+  const reports = formData.get('reports') as string
   const comments = formData.get('sendComments') as string
-  const subject = formData.get('subject') as string
-  const reportType = formData.get('reportType') as string
+  const selected = formData.getAll('selected') as string[]
   const proceed = formData.get('_action') === 'proceed'
 
-  const selected = formData.getAll('selected') as string[]
-
-  if (selected.length === 0 && reportType !== 'other' && reportType !== 'place') {
-    return json({ error: 'Debes seleccionar al menos un elemento para reportar' }, { status: 400 })
-  }
-
-  if (!subject && reportType !== 'other') {
+  if (reports === '' && type !== 'other') {
+    //TODO return error {type: 'reports', message:'msg'} para que se muestre bonito en frontend
     return json({ error: 'Debes seleccionar cual fue el problema' }, { status: 400 })
   }
 
-  if (subject && reportType && proceed) {
-    switch (reportType) {
-      case 'food':
-        // const foodFeedback =
-        await prisma.feedback.create({
-          data: {
-            report: subject,
-            type: `${reportType}-${comments}`,
-            tableId: tableId,
-            userId: userId,
-            cartItems: { connect: selected.map(id => ({ id })) },
-          },
-        })
-        break
+  if (type && proceed) {
+    switch (type) {
       case 'waiter':
-        // const waiterFeedback =
-        await prisma.feedback.create({
-          data: {
-            report: subject,
-            type: `${reportType}-${comments}`,
-            tableId: tableId,
-            userId: userId,
-            employees: { connect: selected.map(id => ({ id })) },
-          },
-        })
+        await createFeedBack(type, reports, comments, tableId, userId, selected, 'employees')
+        break
+      case 'food':
+        await createFeedBack(type, reports, comments, tableId, userId, selected, 'cartItems')
         break
       case 'place':
-        // const placeFeedback =
-        await prisma.feedback.create({
-          data: {
-            report: subject,
-            type: `${reportType}-${comments}`,
-            tableId: tableId,
-            userId: userId,
-          },
-        })
+        await createFeedBack(type, reports, comments, tableId, userId)
         break
       case 'other':
-        // const otherFeedback =
-        await prisma.feedback.create({
-          data: {
-            report: subject,
-            type: `${reportType}-${comments}`,
-            tableId: tableId,
-            userId: userId,
-          },
-        })
+        if (comments === '') {
+          return json({ error: 'Debes escribir que fue lo que sucedió' }, { status: 400 })
+        }
+        await createFeedBack(type, 'no-report', comments, tableId, userId)
         break
     }
     //COnnect if waiter then connect to a employee id, if dish then connect to a dish id
-
-    return redirect(redirectTo)
+    session.flash('notification', 'Gracias, revisaremos su reporte a la brevedad')
+    return redirect(redirectTo, { headers: { 'Set-Cookie': await sessionStorage.commitSession(session) } })
   }
 
-  return json({ subject, comments })
+  return json({ success: false })
 }
 
 export async function loader({ request, params }: LoaderArgs) {
@@ -114,6 +90,13 @@ export async function loader({ request, params }: LoaderArgs) {
   return json({ waiters, managers, cartItemsByUser })
 }
 
+const TABS = [
+  { label: 'Mesero', query: 'waiter' },
+  { label: 'Platillo', query: 'food' },
+  { label: 'Lugar', query: 'place' },
+  { label: 'Otro', query: 'other' },
+]
+
 export const FOOD_REPORT_SUBJECTS = {
   1: 'Sabor',
   2: 'Presentación',
@@ -132,135 +115,128 @@ const PLACE_REPORT_SUBJECTS = {
   3: 'Ruido',
 }
 
+const REPORT_TITLES = {
+  waiter: 'Reportar a un mesero',
+  food: 'Reportar un platillo',
+  place: 'Reportar el lugar',
+  other: 'Reportar otro suceso',
+  'No especificado': 'Reportar algún suceso',
+}
+
 export default function Report() {
   const data = useLoaderData()
-  const actionData = useActionData()
-  const navigate = useNavigate()
   const fetcher = useFetcher()
 
-  let isSubmitting = fetcher.state === 'submitting' || fetcher.state === 'loading'
-  const submitButton = isSubmitting ? 'Enviando...' : 'Enviar reporte'
+  const navigate = useNavigate()
+  const [activeTab, setActiveTab] = useState('No especificado')
+  const [selected, setSelected] = useState<string[]>([])
+  const [error, setError] = useState<string | null>(null) // Error state
+
+  const toggleSelected = value => {
+    // Check if the value is already in the reports array
+    if (selected.includes(value)) {
+      // If it is, remove it
+      setSelected(selected.filter(s => s !== value))
+    } else {
+      // If it's not, add it
+      setSelected([...selected, value])
+    }
+  }
+
+  let isSubmitting = fetcher.state !== 'idle'
+
+  const pathname = useLocation().pathname
+  const mainPath = getUrl('main', pathname)
 
   const onClose = () => {
-    navigate('..')
-  }
-  const submit = useSubmit()
-  function handleChange(event: React.FormEvent<HTMLFormElement>) {
-    submit(event.currentTarget, { replace: true })
+    navigate(mainPath)
   }
 
-  const [searchParams] = useSearchParams()
-  const by = searchParams.get('by') || 'No especificado'
-  const subject = searchParams.get('subject') || undefined
+  const modalTitle = REPORT_TITLES[activeTab] || 'Reportar algún suceso'
+  const disableButton =
+    isSubmitting || activeTab === 'No especificado' || ((activeTab === 'food' || activeTab === 'waiter') && selected.length === 0)
 
-  let title = ''
-  if (by === 'waiter') {
-    title = 'Reportar a un mesero'
-  } else if (by === 'food') {
-    title = 'Reportar un platillo'
-  } else if (by === 'place') {
-    title = 'Reportar el lugar'
-  } else if (by === 'other') {
-    title = 'Reportar otro suceso'
-  }
+  // Clear error when active tab changes
+  useEffect(() => {
+    setError(null)
+  }, [activeTab])
+
+  // Set error when fetcher's data changes
+  useEffect(() => {
+    if (fetcher.data?.error) {
+      setError(fetcher.data.error)
+    }
+  }, [fetcher.data])
+
+  const tabContainer = ' divide-x justify-between flex flex-row items-center text-zinc-400 border border-black rounded-xl'
+  const modalFullScreen = (activeTab === 'waiter' && data.waiters.length >= 5) || (activeTab === 'food' && data.cartItemsByUser.length >= 5)
+
   return (
-    <Modal title={by === 'No especificado' ? 'Reportar algún suceso' : title} onClose={onClose} goBack={by === 'No especificado' ? false : true}>
-      {/* <Spacer spaceY="2" /> */}
+    <Modal
+      title={activeTab === 'No especificado' ? 'Reportar algún suceso' : modalTitle}
+      onClose={onClose}
+      // goBack={activeTab === 'No especificado' ? false : true}
+      justify="start"
+      fullScreen={modalFullScreen}
+    >
+      <fetcher.Form method="POST" className="flex flex-col justify-center p-2 ">
+        {/* <p className="items-center self-center justify-center px-2 py-1 text-center text-white rounded-full w-max bg-button-textNotSelected">
+          Los reportes son totalmente anónimos
+        </p> */}
 
-      <Form method="POST" onChange={handleChange} className="flex w-full flex-col space-y-2 p-2">
-        <p className="text-center">Los reportes son totalmente anónimos </p>
-
-        {by === 'waiter' ? (
-          <div className="space-y-2">
-            {data.waiters.map((waiter: CartItem) => (
-              <ItemContainer key={waiter.id}>
-                <label htmlFor={waiter.id} className="text-xl">
-                  {waiter.name}
-                </label>
-                <input id={waiter.id} type="checkbox" name="selected" value={waiter.id} className="h-5 w-5" />
-              </ItemContainer>
-            ))}
-            <Spacer spaceY="2" />
-            <H2>Selecciona cual fue el problema</H2>
-            {Object.entries(WAITER_REPORT_SUBJECTS).map(([key, value]) => (
-              <LinkButton size="small" to={`?by=waiter&subject=${value}`} key={key} variant={subject === value ? 'primary' : 'secondary'} className="mx-1">
-                {value}
-              </LinkButton>
-            ))}
-            <Spacer spaceY="2" />
-            <Button name="_action" value="proceed" disabled={isSubmitting} className="w-full">
-              {submitButton}
-            </Button>
-          </div>
-        ) : by === 'food' ? (
-          <div className="space-y-2">
-            {data.cartItemsByUser.map((cartItem: CartItem) => (
-              <ItemContainer key={cartItem.id}>
-                <label htmlFor={cartItem.id}>{cartItem.name}</label>
-                <input id={cartItem.id} type="checkbox" name="selected" value={cartItem.id} className="h-5 w-5" />
-              </ItemContainer>
-            ))}
-            <Spacer spaceY="2" />
-
-            <H1>Selecciona cual fue el problema</H1>
-            {Object.entries(FOOD_REPORT_SUBJECTS).map(([key, value]) => (
-              <LinkButton to={`?by=food&subject=${value}`} key={key} size="small" className="mx-1" variant={subject === value ? 'primary' : 'secondary'}>
-                {value}
-              </LinkButton>
-            ))}
-            <Spacer spaceY="2" />
-            <Button name="_action" value="proceed" disabled={isSubmitting} className="w-full">
-              {submitButton}
-            </Button>
-          </div>
-        ) : by === 'place' ? (
-          <div className="space-y-2">
-            <FlexRow>
-              <H1>Selecciona cual fue el problema</H1>
-            </FlexRow>
-            {Object.entries(PLACE_REPORT_SUBJECTS).map(([key, value]) => (
-              <LinkButton to={`?by=place&subject=${value}`} key={key} size="small" className="mx-1" variant={subject === value ? 'primary' : 'secondary'}>
-                {value}
-              </LinkButton>
-            ))}
-            <Spacer spaceY="2" />
-            <Button name="_action" value="proceed" disabled={isSubmitting} className="w-full">
-              {submitButton}
-            </Button>
-          </div>
-        ) : by === 'other' ? (
-          <div className="space-y-2">
-            <SendComments />
-            <Button name="_action" value="proceed" disabled={isSubmitting} className="w-full">
-              {submitButton}
-            </Button>
-          </div>
-        ) : (
-          <div>
-            {/* <H4>Seleccione una opción para reportar algún suceso en la mesa</H4> */}
-            {/* <Spacer spaceY="2" /> */}
-            <div className="flex flex-col space-y-2">
-              <LinkButton to="?by=waiter" size="medium">
-                Mesero
-              </LinkButton>
-              <LinkButton to="?by=food" size="medium">
-                Platillo
-              </LinkButton>
-              <LinkButton to="?by=place" size="medium">
-                Lugar
-              </LinkButton>
-              <LinkButton to="?by=other" size="medium">
-                Otro
-              </LinkButton>
+        {activeTab !== 'No especificado' && (
+          <>
+            <H4>Tipo de reporte</H4>
+            <Spacer spaceY="1" />
+            <div className={tabContainer}>
+              {TABS.map((tab, index) => (
+                <Tab
+                  key={tab.query}
+                  label={tab.label}
+                  query={tab.query}
+                  activeTab={activeTab}
+                  setActiveTab={setActiveTab}
+                  isFirst={index === 0}
+                  isLast={index === TABS.length - 1}
+                />
+              ))}
             </div>
-          </div>
+          </>
         )}
-        <H5 variant="error">{actionData?.error}</H5>
-        {/* <SendComments /> */}
 
-        <input type="hidden" name="reportType" value={by} />
-        <input type="hidden" name="subject" value={subject || ''} />
-      </Form>
+        {activeTab === 'waiter' ? (
+          <ReportWaiter waiters={data.waiters} subjects={WAITER_REPORT_SUBJECTS} toggleSelected={toggleSelected} error={error} />
+        ) : activeTab === 'food' ? (
+          <ReportFood
+            cartItemsByUser={data.cartItemsByUser}
+            subjects={FOOD_REPORT_SUBJECTS}
+            toggleSelected={toggleSelected}
+            error={error}
+          />
+        ) : activeTab === 'place' ? (
+          <ReportPlace subjects={PLACE_REPORT_SUBJECTS} error={error} />
+        ) : activeTab === 'other' ? (
+          <ReportOther error={error} />
+        ) : (
+          <ReportIntroButtons setActiveTab={setActiveTab} />
+        )}
+
+        <Spacer spaceY="1" />
+
+        <H4 variant="error" className="items-center self-center justify-center w-full text-center">
+          {error}
+        </H4>
+
+        <Spacer spaceY="1" />
+
+        {activeTab !== 'No especificado' && (
+          <Button name="_action" value="proceed" disabled={disableButton} className="sticky bottom-0 w-full">
+            {isSubmitting ? 'Enviando...' : 'Enviar reporte'}
+          </Button>
+        )}
+
+        <input type="hidden" name="type" value={activeTab} />
+      </fetcher.Form>
     </Modal>
   )
 }

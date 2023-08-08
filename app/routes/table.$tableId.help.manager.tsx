@@ -57,7 +57,8 @@ export default function Help() {
       <Form method="POST" className="space-y-2 p-2">
         {data.managers?.map((manager: Employee) => (
           <ItemContainer key={manager.id} className="flex flex-row">
-            <FlexRow className="space-x-4">
+            <FlexRow className="space-x-4 items-center">
+              <img className="rounded-full w-10 h-10" src={manager.image} alt={manager.name} />
               <label className="text-xl" htmlFor={manager.id}>
                 {manager.name}
               </label>
