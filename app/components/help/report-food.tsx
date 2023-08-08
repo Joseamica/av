@@ -52,7 +52,13 @@ export function ReportFood({
           <SendComments />
         </div>
       ) : (
-        <H2 className="text-center text-white rounded-full bg-warning">No cuentas con platillos para reportar</H2>
+        <>
+          <Spacer spaceY="0" size="md" />
+          <H2 className="text-center " variant="secondary">
+            No cuentas con productos para reportar
+          </H2>
+          <Spacer spaceY="0" size="md" />
+        </>
       )}
     </AnimatePresence>
   )

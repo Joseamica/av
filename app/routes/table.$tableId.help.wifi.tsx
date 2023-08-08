@@ -1,53 +1,63 @@
-import type { LoaderArgs } from "@remix-run/node";
-import { json } from "@remix-run/node";
-import { useLoaderData, useNavigate } from "@remix-run/react";
-import invariant from "tiny-invariant";
-import { FlexRow, H2, H6, Modal } from "~/components";
-import { prisma } from "~/db.server";
-import { getBranchId } from "~/models/branch.server";
+import { useFetcher, useLoaderData, useNavigate } from '@remix-run/react'
 
-export async function loader({ request, params }: LoaderArgs) {
-  const { tableId } = params;
-  invariant(tableId, "tableId is required");
-  const branchId = await getBranchId(tableId);
+import type { ActionArgs, LoaderArgs } from '@remix-run/node'
+import { json } from '@remix-run/node'
+
+import invariant from 'tiny-invariant'
+import { prisma } from '~/db.server'
+import { getSession, sessionStorage } from '~/session.server'
+
+import { getBranchId } from '~/models/branch.server'
+
+import { FlexRow, H2, H4, Modal } from '~/components'
+
+export async function action({ request }: ActionArgs) {
+  const session = await getSession(request)
+  session.flash('notification', '🎉 Se ha copiado la clave de la red wifi')
+
+  return json({ success: true }, { headers: { 'Set-Cookie': await sessionStorage.commitSession(session) } })
+}
+export async function loader({ params }: LoaderArgs) {
+  const { tableId } = params
+  invariant(tableId, 'tableId is required')
+  const branchId = await getBranchId(tableId)
   const wifiDetails = await prisma.branch.findFirst({
     where: { id: branchId },
     select: { wifiName: true, wifipwd: true },
-  });
+  })
 
-  return json({ wifiDetails });
+  return json({ wifiDetails })
 }
 
 export default function Help() {
-  const data = useLoaderData();
-  const navigate = useNavigate();
+  const data = useLoaderData()
+  const navigate = useNavigate()
+  const fetcher = useFetcher()
 
   const onClose = () => {
-    navigate("..");
-  };
+    navigate('..')
+  }
 
   return (
     <Modal title="Wifi" onClose={onClose}>
-      <div className="text js-copy-to-clip flex flex-col space-y-4 p-5 text-xl">
+      <fetcher.Form className="flex flex-col p-5 space-y-4 text-xl text js-copy-to-clip" method="POST">
         <div className="flex flex-col items-center justify-between space-y-1">
-          <H6>Nombre de red:</H6>
-          <H2>{data.wifiDetails.wifiName}</H2>
+          <H4>Nombre de red:</H4>
+          <H2 className="px-4 py-2 border rounded-full">{data.wifiDetails.wifiName}</H2>
         </div>
         <div className="flex flex-col items-center justify-between space-y-1 ">
-          <H6>Clave:</H6>
-          <FlexRow className="items-center space-x-2">
+          <H4>Clave:</H4>
+          <FlexRow className="items-center p-2 space-x-2 border rounded-full">
             <H2>{data.wifiDetails.wifipwd}</H2>
             <button
-              onClick={() =>
-                navigator.clipboard.writeText(data.wifiDetails.wifipwd)
-              }
-              className="bg-principal flex flex-row items-center space-x-2 rounded-full border-button-outline px-2 py-1 text-sm text-white dark:bg-button-primary"
+              onClick={() => navigator.clipboard.writeText(data.wifiDetails.wifipwd)}
+              className="flex flex-row items-center px-2 py-1 space-x-2 text-sm text-white rounded-full bg-principal border-button-outline dark:bg-button-primary"
             >
               Copiar
             </button>
           </FlexRow>
         </div>
-      </div>
+      </fetcher.Form>
     </Modal>
-  );
+  )
 }
