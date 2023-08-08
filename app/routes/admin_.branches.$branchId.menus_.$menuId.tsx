@@ -1,10 +1,13 @@
-import type { MenuCategory } from '@prisma/client'
-import { json, redirect, type ActionArgs, type LoaderArgs } from '@remix-run/node'
 import { Form, Link, useLoaderData, useNavigate, useSearchParams } from '@remix-run/react'
 import { AiFillDelete, AiFillEdit } from 'react-icons/ai'
 import { IoChevronBack } from 'react-icons/io5'
-import { Button, FlexRow, H1, H3, LinkButton, Modal, Spacer } from '~/components'
+
+import { type ActionArgs, type LoaderArgs, json, redirect } from '@remix-run/node'
+
+import type { MenuCategory } from '@prisma/client'
 import { prisma } from '~/db.server'
+
+import { Button, FlexRow, H1, H3, LinkButton, Modal, Spacer } from '~/components'
 
 export async function loader({ request, params }: LoaderArgs) {
   const { branchId, menuId } = params
@@ -28,7 +31,6 @@ export async function loader({ request, params }: LoaderArgs) {
     return json({ menu, menuCategory, menuItem })
   }
   const rawData = await request.text()
-  const [dvctMenu] = JSON.parse(rawData)
 
   return json({ menu })
 }
@@ -207,7 +209,7 @@ export default function AdminMenuId() {
               }}
               title="Add category"
             >
-              <div className="space-y-2 p-2">
+              <div className="p-2 space-y-2">
                 <label>Name</label>
                 <input type="text" name="name" />
                 <Button name="_action" value="addCategory" fullWith={true} type="submit">
@@ -224,7 +226,7 @@ export default function AdminMenuId() {
               }}
               title="Edit menu"
             >
-              <div className="space-y-2 p-2">
+              <div className="p-2 space-y-2">
                 {Object.entries(data.menu)
                   .filter(([key, value]) => key !== 'id' && key !== 'menuCategories') // Exclude 'id' from the keys
                   .map(([key, value]) => {
@@ -232,14 +234,19 @@ export default function AdminMenuId() {
                       return (
                         <FlexRow key={key}>
                           <label>{key}</label>
-                          <input type="checkbox" name={key} defaultChecked={value} className="h-5 w-5" />
+                          <input type="checkbox" name={key} defaultChecked={value} className="w-5 h-5" />
                         </FlexRow>
                       )
                     } else {
                       return (
                         <FlexRow key={key}>
                           <label className="capitalize">{key}</label>
-                          <input type="text" name={key} defaultValue={value} className="dark:bg-DARK_2 dark:ring-DARK_4 w-full rounded-full p-2 dark:ring-1" />
+                          <input
+                            type="text"
+                            name={key}
+                            defaultValue={value}
+                            className="w-full p-2 rounded-full dark:bg-DARK_2 dark:ring-DARK_4 dark:ring-1"
+                          />
                         </FlexRow>
                       )
                     }
@@ -258,7 +265,7 @@ export default function AdminMenuId() {
               }}
               title="Delete menu"
             >
-              <div className="space-y-3 bg-white p-2">
+              <div className="p-2 space-y-3 bg-white">
                 <p>Are you sure you want to delete this menu?</p>
                 <Button variant="danger" name="_action" value="deleteMenu" fullWith={true}>
                   Eliminar
@@ -271,23 +278,54 @@ export default function AdminMenuId() {
               <label htmlFor="name" className="capitalize">
                 Nombre
               </label>
-              <input type="text" required name="name" id="name" className="dark:bg-DARK_2 dark:ring-DARK_4 w-full rounded-full dark:ring-1" />
+              <input
+                type="text"
+                required
+                name="name"
+                id="name"
+                className="w-full rounded-full dark:bg-DARK_2 dark:ring-DARK_4 dark:ring-1"
+              />
               <label htmlFor="type" className="capitalize">
                 Tipo de menu
               </label>
-              <input type="text" required name="type" id="type" className="dark:bg-DARK_2 dark:ring-DARK_4 w-full rounded-full dark:ring-1" />
+              <input
+                type="text"
+                required
+                name="type"
+                id="type"
+                className="w-full rounded-full dark:bg-DARK_2 dark:ring-DARK_4 dark:ring-1"
+              />
               <label htmlFor="image" className="capitalize">
                 Imagen
               </label>
-              <input type="url" required name="image" id="image" className="dark:bg-DARK_2 dark:ring-DARK_4 w-full rounded-full dark:ring-1" />
+              <input
+                type="url"
+                required
+                name="image"
+                id="image"
+                className="w-full rounded-full dark:bg-DARK_2 dark:ring-DARK_4 dark:ring-1"
+              />
               <label htmlFor="currency" className="capitalize">
                 Moneda
               </label>
-              <input type="text" required name="currency" id="currency" className="dark:bg-DARK_2 dark:ring-DARK_4 w-full rounded-full dark:ring-1" placeholder="euro" />
+              <input
+                type="text"
+                required
+                name="currency"
+                id="currency"
+                className="w-full rounded-full dark:bg-DARK_2 dark:ring-DARK_4 dark:ring-1"
+                placeholder="euro"
+              />
               <label htmlFor="allDay" className="capitalize">
                 Todo el dia?
               </label>
-              <input type="checkBox" required name="allDay" id="allDay" className="dark:bg-DARK_2 dark:ring-DARK_4 w-full rounded-full dark:ring-1" />
+              <input
+                type="checkBox"
+                required
+                name="allDay"
+                id="allDay"
+                className="w-full rounded-full dark:bg-DARK_2 dark:ring-DARK_4 dark:ring-1"
+              />
               <Button name="_action" value="createMenu">
                 Crear menu
               </Button>
@@ -326,11 +364,21 @@ export default function AdminMenuId() {
               <label htmlFor="addItemImage" className="capitalize">
                 Imagen
               </label>
-              <input type="url" name="addItemImage" id="addItemImage" className="dark:bg-DARK_2 dark:ring-DARK_4 w-full rounded-full dark:ring-1" />
+              <input
+                type="url"
+                name="addItemImage"
+                id="addItemImage"
+                className="w-full rounded-full dark:bg-DARK_2 dark:ring-DARK_4 dark:ring-1"
+              />
               <label htmlFor="addItemName" className="capitalize">
                 Nombre
               </label>
-              <input type="text" name="addItemName" id="addItemName" className="dark:bg-DARK_2 dark:ring-DARK_4 w-full rounded-full dark:ring-1" />
+              <input
+                type="text"
+                name="addItemName"
+                id="addItemName"
+                className="w-full rounded-full dark:bg-DARK_2 dark:ring-DARK_4 dark:ring-1"
+              />
               <Button name="_action" value="addItem" type="submit">
                 Editar
               </Button>
@@ -341,11 +389,23 @@ export default function AdminMenuId() {
               <label htmlFor="name" className="capitalize">
                 Nombre
               </label>
-              <input type="text" name="name" id="name" defaultValue={data.menuItem?.name} className="dark:bg-DARK_2 dark:ring-DARK_4 w-full rounded-full dark:ring-1" />
+              <input
+                type="text"
+                name="name"
+                id="name"
+                defaultValue={data.menuItem?.name}
+                className="w-full rounded-full dark:bg-DARK_2 dark:ring-DARK_4 dark:ring-1"
+              />
               <label htmlFor="image" className="capitalize">
                 Imagen
               </label>
-              <input type="url" name="image" id="image" defaultValue={data.menuItem?.image} className="dark:bg-DARK_2 dark:ring-DARK_4 w-full rounded-full dark:ring-1" />
+              <input
+                type="url"
+                name="image"
+                id="image"
+                defaultValue={data.menuItem?.image}
+                className="w-full rounded-full dark:bg-DARK_2 dark:ring-DARK_4 dark:ring-1"
+              />
               <label htmlFor="description" className="capitalize">
                 Descripcion
               </label>
@@ -354,7 +414,7 @@ export default function AdminMenuId() {
                 name="description"
                 id="description"
                 defaultValue={data.menuItem?.description}
-                className="dark:bg-DARK_2 dark:ring-DARK_4 w-full rounded-full dark:ring-1"
+                className="w-full rounded-full dark:bg-DARK_2 dark:ring-DARK_4 dark:ring-1"
               />
               <label htmlFor="price" className="capitalize">
                 Precio
@@ -365,7 +425,7 @@ export default function AdminMenuId() {
                 name="price"
                 id="price"
                 defaultValue={data.menuItem?.price}
-                className="dark:bg-DARK_2 dark:ring-DARK_4 w-full rounded-full dark:ring-1"
+                className="w-full rounded-full dark:bg-DARK_2 dark:ring-DARK_4 dark:ring-1"
               />
               <Button name="_action" value="edit" type="submit">
                 Editar
@@ -385,19 +445,44 @@ export default function AdminMenuId() {
               <label htmlFor="name" className="capitalize">
                 Nombre
               </label>
-              <input type="text" name="name" id="name" required className="dark:bg-DARK_2 dark:ring-DARK_4 w-full rounded-full dark:ring-1" />
+              <input
+                type="text"
+                name="name"
+                id="name"
+                required
+                className="w-full rounded-full dark:bg-DARK_2 dark:ring-DARK_4 dark:ring-1"
+              />
               <label htmlFor="image" className="capitalize">
                 Imagen
               </label>
-              <input type="url" name="image" id="image" required className="dark:bg-DARK_2 dark:ring-DARK_4 w-full rounded-full dark:ring-1" />
+              <input
+                type="url"
+                name="image"
+                id="image"
+                required
+                className="w-full rounded-full dark:bg-DARK_2 dark:ring-DARK_4 dark:ring-1"
+              />
               <label htmlFor="description" className="capitalize">
                 Descripcion
               </label>
-              <input type="text" name="description" id="description" required className="dark:bg-DARK_2 dark:ring-DARK_4 w-full rounded-full dark:ring-1" />
+              <input
+                type="text"
+                name="description"
+                id="description"
+                required
+                className="w-full rounded-full dark:bg-DARK_2 dark:ring-DARK_4 dark:ring-1"
+              />
               <label htmlFor="price" className="capitalize">
                 Precio
               </label>
-              <input type="number" step="0.01" name="price" id="price" required className="dark:bg-DARK_2 dark:ring-DARK_4 w-full rounded-full dark:ring-1" />
+              <input
+                type="number"
+                step="0.01"
+                name="price"
+                id="price"
+                required
+                className="w-full rounded-full dark:bg-DARK_2 dark:ring-DARK_4 dark:ring-1"
+              />
               <Button name="_action" value="add" type="submit">
                 Create
               </Button>

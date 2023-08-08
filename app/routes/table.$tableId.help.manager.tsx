@@ -54,15 +54,17 @@ export default function Help() {
 
   return (
     <Modal title="Llama al Gerente" onClose={onClose}>
-      <Form method="POST" className="space-y-2 p-2">
+      <Form method="POST" className="p-2 space-y-2">
         {data.managers?.map((manager: Employee) => (
           <ItemContainer key={manager.id} className="flex flex-row">
-            <FlexRow className="space-x-4 items-center">
-              <img className="rounded-full w-10 h-10" src={manager.image} alt={manager.name} />
+            <FlexRow className="items-center space-x-4">
+              <img className="w-10 h-10 rounded-full" src={manager.image} alt={manager.name} />
               <label className="text-xl" htmlFor={manager.id}>
                 {manager.name}
               </label>
-              <span className="rounded-full bg-button-primary px-2 text-sm text-white ring ring-button-outline">{manager.role ? 'Gerente' : ''}</span>
+              <span className="px-2 text-sm text-white rounded-full bg-button-primary ring ring-button-outline">
+                {manager.role ? 'Gerente' : ''}
+              </span>
             </FlexRow>
             <input type="checkbox" name="managers" id={manager.id} value={manager.id} />
           </ItemContainer>

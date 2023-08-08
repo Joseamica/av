@@ -1,35 +1,38 @@
-import type { Branch, Restaurant } from "@prisma/client";
-import type { LoaderArgs } from "@remix-run/node";
-import { json, redirect } from "@remix-run/node";
-import { Outlet, useLoaderData, useSearchParams } from "@remix-run/react";
-import { H1, H2, H5, LinkButton, Spacer } from "~/components";
-import { prisma } from "~/db.server";
-import { getSession } from "~/session.server";
+import { Link, Outlet, useLoaderData, useSearchParams } from '@remix-run/react'
+
+import type { LoaderArgs } from '@remix-run/node'
+import { json, redirect } from '@remix-run/node'
+
+import type { Branch, Restaurant } from '@prisma/client'
+import { prisma } from '~/db.server'
+import { getSession } from '~/session.server'
+
+import { Button, FlexRow, H1, H2, H5, LinkButton, Spacer } from '~/components'
 
 export async function loader({ request, params }: LoaderArgs) {
-  const session = await getSession(request);
-  const userId = session.get("userId");
-  const url = new URL(request.url);
-  const searchParams = new URLSearchParams(url.search);
-  const restId = searchParams.get("restId") || "";
+  const session = await getSession(request)
+  const userId = session.get('userId')
+  const url = new URL(request.url)
+  const searchParams = new URLSearchParams(url.search)
+  const restId = searchParams.get('restId') || ''
 
   const restaurant = await prisma.restaurant.findUnique({
     where: { id: restId },
     include: { branches: true },
-  });
+  })
 
   const isAdmin = await prisma.user.findFirst({
     where: {
       id: userId,
-      role: "admin",
+      role: 'admin',
     },
-  });
+  })
   if (!isAdmin) {
-    return redirect("/unauthorized");
+    return redirect('/unauthorized')
   }
 
-  const restaurants = await prisma.restaurant.findMany();
-  return json({ restaurants, restaurant });
+  const restaurants = await prisma.restaurant.findMany()
+  return json({ restaurants, restaurant })
 }
 
 // const LINKS = {
@@ -41,13 +44,18 @@ export async function loader({ request, params }: LoaderArgs) {
 // }
 
 export default function Admin() {
-  const data = useLoaderData();
-  const [searchParams] = useSearchParams();
-  const restId = searchParams.get("restId");
+  const data = useLoaderData()
+  const [searchParams] = useSearchParams()
+  const restId = searchParams.get('restId')
   return (
     <div>
       TODO - MAKE A ADMIN FOR CREATORS AND ADMIN FOR ADMIN OF EACH RESTAURANT
-      <H1>Restaurantes</H1>
+      <FlexRow>
+        <H1>Restaurantes</H1>
+        <Link className="px-2 border rounded-full" to="add-rest?type=table">
+          Add
+        </Link>
+      </FlexRow>
       <Spacer spaceY="2" />
       {restId ? (
         <div>
@@ -58,35 +66,28 @@ export default function Admin() {
 
           {data.restaurant.branches.map((branch: Branch) => {
             return (
-              <LinkButton
-                size="small"
-                to={`branches/${branch.id}`}
-                key={branch.id}
-              >
+              <LinkButton size="small" to={`branches/${branch.id}`} key={branch.id}>
                 {branch.name}
               </LinkButton>
-            );
+            )
           })}
-          <H5>
-            {data.restaurant.branches.length === 0 && "No hay sucursales"}
-          </H5>
+          <H5>{data.restaurant.branches.length === 0 && 'No hay sucursales'}</H5>
+          <LinkButton to="add-branch" className="mt-2" size="small">
+            Agregar sucursal
+          </LinkButton>
         </div>
       ) : (
         <div className="flex flex-col space-y-2 ">
           {data.restaurants.map((restaurant: Restaurant) => {
             return (
-              <LinkButton
-                size="small"
-                key={restaurant.id}
-                to={`?restId=${restaurant.id}`}
-              >
+              <LinkButton size="small" key={restaurant.id} to={`?restId=${restaurant.id}`}>
                 {restaurant.name}
               </LinkButton>
-            );
+            )
           })}
         </div>
       )}
       <Outlet />
     </div>
-  );
+  )
 }
