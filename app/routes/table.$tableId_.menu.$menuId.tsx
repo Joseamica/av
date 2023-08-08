@@ -302,7 +302,7 @@ export default function Menu() {
                 })}
             </div>
             {data.cartItems?.length > 0 ? (
-              <LinkButton to="cart" disabled={isSubmitting} className="sticky inset-x-0 bottom-0 w-full mb-2">
+              <LinkButton to="cart" disabled={isSubmitting} className="sticky inset-x-0 w-full mb-2 bottom-4">
                 {isSubmitting ? `Agregando platillos... (${cartItemsAdded})` : `Ir al carrito (${cartItemsAdded})`}
               </LinkButton>
             ) : null}

@@ -1,29 +1,30 @@
-import type {Config} from 'tailwindcss'
+import type { Config } from 'tailwindcss'
+
 const defaultTheme = require('tailwindcss/defaultTheme')
 
 export default {
   content: ['./app/**/*.{js,jsx,ts,tsx}'],
   theme: {
     fontFamily: {
-      sans: ['Matter', ...defaultTheme.fontFamily.sans],
-      // sans: ['Nunito Sans', ...defaultTheme.fontFamily.sans],
+      // sans: ['Matter', ...defaultTheme.fontFamily.sans],
+      sans: ['Nunito Sans', ...defaultTheme.fontFamily.sans],
     },
     screens: {
-      '2xl': {max: '1535px'},
+      '2xl': { max: '1535px' },
       // => @media (max-width: 1535px) { ... }
 
-      xl: {max: '1279px'},
+      xl: { max: '1279px' },
       // => @media (max-width: 1279px) { ... }
 
-      lg: {max: '1280px'}, // 1136 WEB
+      lg: { max: '1280px' }, // 1136 WEB
       // => @media (max-width: 1023px) { ... }
 
-      md: {max: '425px'}, // 720 TABLET
+      md: { max: '425px' }, // 720 TABLET
       // => @media (max-width: 767px) { ... }
 
-      sm: {max: '375px'}, // 312 MOBILE
+      sm: { max: '375px' }, // 312 MOBILE
       // => @media (max-width: 639px) { ... }
-      xs: {max: '350px'}, // 312 MOBILE
+      xs: { max: '350px' }, // 312 MOBILE
       // => @media (max-width: 639px) { ... }
     },
     extend: {

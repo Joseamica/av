@@ -82,7 +82,9 @@ export default function Table() {
   const [showPaymentOptions, setShowPaymentOptions] = useState<boolean>(false)
 
   const handleToggleUser = (userId: string) => {
-    setSelectedUsers((prevSelected: string[]) => (prevSelected.includes(userId) ? prevSelected.filter(id => id !== userId) : [...prevSelected, userId]))
+    setSelectedUsers((prevSelected: string[]) =>
+      prevSelected.includes(userId) ? prevSelected.filter(id => id !== userId) : [...prevSelected, userId],
+    )
   }
 
   const handleCollapse = () => {
@@ -95,21 +97,27 @@ export default function Table() {
 
   if (data.order) {
     return (
-      <motion.main className="no-scrollbar">
+      <motion.main className="pb-4 no-scrollbar">
         <RestaurantInfoCard branch={data.branch} menu={data.menu} error={data.error} />
         <Spacer spaceY="4" />
-        <h3 className="text-secondaryTextDark flex shrink-0 justify-center text-sm">{`Mesa ${data.table.table_number}`}</h3>
+        <h3 className="flex justify-center text-sm text-secondaryTextDark shrink-0">{`Mesa ${data.table.table_number}`}</h3>
         <Spacer spaceY="2" />
         <Help />
-        <BillAmount amountLeft={data.amountLeft} currency={data.currency} paidUsers={data.paidUsers} total={data.total} userId={data.userId} />
+        <BillAmount
+          amountLeft={data.amountLeft}
+          currency={data.currency}
+          paidUsers={data.paidUsers}
+          total={data.total}
+          userId={data.userId}
+        />
         <Spacer spaceY="2" />
         {/* NOTE: SWITCH BUTTON */}
-        <div className="flex w-full justify-end">
+        <div className="flex justify-end w-full">
           <SwitchButton
             state={filterPerUser}
             setToggle={handleToggle}
-            leftIcon={<OrderIcon className="h-4 w-4" />}
-            rightIcon={<UsersIcon className="h-4 w-4" />}
+            leftIcon={<OrderIcon className="w-4 h-4" />}
+            rightIcon={<UsersIcon className="w-4 h-4" />}
             leftText="Ver por orden"
             rightText="Ver por usuario"
             stretch
