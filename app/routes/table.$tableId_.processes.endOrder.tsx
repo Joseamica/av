@@ -1,12 +1,15 @@
-import {redirect, type LoaderArgs, type ActionArgs} from '@remix-run/node'
-import invariant from 'tiny-invariant'
-import {prisma} from '~/db.server'
-import {EVENTS} from '~/events'
-import {cleanUserData} from '~/models/user.server'
-import {getSession, sessionStorage} from '~/session.server'
+import { type ActionArgs, redirect } from '@remix-run/node'
 
-export const action = async ({request, params}: ActionArgs) => {
-  const {tableId} = params
+import invariant from 'tiny-invariant'
+import { prisma } from '~/db.server'
+import { getSession, sessionStorage } from '~/session.server'
+
+import { cleanUserData } from '~/models/user.server'
+
+import { EVENTS } from '~/events'
+
+export const action = async ({ request, params }: ActionArgs) => {
+  const { tableId } = params
   invariant(tableId, 'Mesa no encontrada!')
   const session = await getSession(request)
 
@@ -30,7 +33,7 @@ export const action = async ({request, params}: ActionArgs) => {
       id: tableId,
     },
     data: {
-      users: {set: []},
+      users: { set: [] },
     },
   })
   await prisma.order.update({
@@ -39,8 +42,8 @@ export const action = async ({request, params}: ActionArgs) => {
     },
     data: {
       active: false,
-      table: {disconnect: true},
-      users: {set: []},
+      table: { disconnect: true },
+      users: { set: [] },
     },
   })
   session.unset('cart')
@@ -48,7 +51,7 @@ export const action = async ({request, params}: ActionArgs) => {
   // session.unset('tableSession')
   EVENTS.ISSUE_CHANGED(tableId)
   return redirect('/thankyou', {
-    headers: {'Set-Cookie': await sessionStorage.commitSession(session)},
+    headers: { 'Set-Cookie': await sessionStorage.commitSession(session) },
   })
 }
 // export async function loader({ request, params }: LoaderArgs) {

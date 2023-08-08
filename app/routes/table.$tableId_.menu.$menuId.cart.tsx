@@ -5,8 +5,6 @@ import { json, redirect } from '@remix-run/node'
 import type { ActionArgs, LoaderArgs } from '@remix-run/server-runtime'
 
 import type { CartItem, Order, PaymentMethod, User } from '@prisma/client'
-import clsx from 'clsx'
-import cuid from 'cuid'
 import { motion } from 'framer-motion'
 import invariant from 'tiny-invariant'
 import { prisma } from '~/db.server'
@@ -14,18 +12,16 @@ import { validateRedirect } from '~/redirect.server'
 import { getSession, sessionStorage, updateCartItem } from '~/session.server'
 
 import { getBranch, getBranchId, getPaymentMethods, getTipsPercentages } from '~/models/branch.server'
-import { getCartItems } from '~/models/cart.server'
-import { getDvctToken } from '~/models/deliverect.server'
+import { createCartItems, getCartItems } from '~/models/cart.server'
+import { getMenu } from '~/models/menu.server'
 import { getOrderTotal } from '~/models/order.server'
-import { getTable } from '~/models/table.server'
 
 import { EVENTS } from '~/events'
 
-import { Translate, createQueryString, formatCurrency, getAmountLeftToPay, getCurrency } from '~/utils'
-import { getDomainUrl, getStripeSession } from '~/utils/stripe.server'
+import { formatCurrency, getAmountLeftToPay, getCurrency } from '~/utils'
+import { handlePaymentProcessing } from '~/utils/payment-processing.server'
 
-import { Button, ChevronRightIcon, ChevronUpIcon, FlexRow, H2, H3, H4, H5, H6, ItemContainer, Modal, QuantityButton, Spacer, Underline } from '~/components'
-import { SubModal } from '~/components/modal'
+import { Button, FlexRow, H2, H3, H4, H5, ItemContainer, Modal, QuantityButton, Spacer, Underline } from '~/components'
 import Payment, { usePayment } from '~/components/payment/paymentV3'
 
 export default function Cart() {
@@ -72,7 +68,6 @@ export default function Cart() {
         >
           <fetcher.Form method="POST" preventScrollReset>
             <div className="p-2">
-              {/* <H5 className="px-2 text-end">Tus platillos</H5> */}
               <div className="space-y-2">
                 {data.cartItems?.map((items: CartItem, index: number) => {
                   return (
@@ -110,7 +105,14 @@ export default function Cart() {
                   </Underline>
                 </FlexRow>
                 <Spacer spaceY="3" />
-                <Button name="_action" value="submitCart" type="submit" size="medium" disabled={isSubmitting || data.cartItems?.length === 0} className="w-full">
+                <Button
+                  name="_action"
+                  value="submitCart"
+                  type="submit"
+                  size="medium"
+                  disabled={isSubmitting || data.cartItems?.length === 0}
+                  className="w-full"
+                >
                   {isSubmitting ? (
                     'Agregando platillos...'
                   ) : (
@@ -217,7 +219,7 @@ export function CartPayment({ setShowPaymentOptions }: { setShowPaymentOptions: 
             custom="bg-button-successOutline border-green-700"
             className="text-button-successBg"
           >
-            {isSubmitting ? 'Procesando...' : 'Pagar y ordenar'}{' '}
+            {isSubmitting ? 'Procesando...' : 'Pagar y ordenar'}
           </Button>
           <Spacer spaceY="1" />
           <Button onClick={() => setShowPaymentOptions(false)} to="" variant={'danger'}>
@@ -276,14 +278,17 @@ export async function loader({ request, params }: LoaderArgs) {
 
   const cartItems = await getCartItems(cart)
   const currency = await getCurrency(tableId)
+
   let cartItemsTotal =
     cartItems.reduce((acc, item) => {
       return acc + Number(item.price) * item.quantity
     }, 0) || 0
 
-  const amountLeft = await getAmountLeftToPay(tableId)
-  const tipsPercentages = await getTipsPercentages(tableId)
-  const paymentMethods = await getPaymentMethods(tableId)
+  const [amountLeft, tipsPercentages, paymentMethods] = await Promise.all([
+    getAmountLeftToPay(tableId),
+    getTipsPercentages(tableId),
+    getPaymentMethods(tableId),
+  ])
 
   return json({
     categories,
@@ -341,25 +346,21 @@ export async function action({ request, params }: ActionArgs) {
       session.set('cart', JSON.stringify(cart))
       break
     case 'submitCart':
-      let adjustedItems = cartItems.map(item => {
-        return {
-          plu: item.id,
-          price: Number(item.price) * 100,
-          quantity: item.quantity,
-          remark: item.comments ?? 'No remarks',
-          name: item.name,
-        }
-      })
-      //NOTE - Se usa porque deliverect no recibe puntos decimales, por lo que se multiplica por 100
-      const adjustedCartItemsTotal = cartItemsTotal * 100
-      //TODO SI ESTA VENCIDO EL TOKEN, HACER UN REFRESH en donde???
-      const token = await getDvctToken()
-      const table = await getTable(tableId)
-      let order:
-        | (Order & {
-            users?: User[]
-          })
-        | null = await prisma.order.findFirst({
+      // let adjustedItems = cartItems.map(item => {
+      //   return {
+      //     plu: item.id,
+      //     price: Number(item.price) * 100,
+      //     quantity: item.quantity,
+      //     remark: item.comments ?? 'No remarks',
+      //     name: item.name,
+      //   }
+      // })
+      // //NOTE - Se usa porque deliverect no recibe puntos decimales, por lo que se multiplica por 100
+      // const adjustedCartItemsTotal = cartItemsTotal * 100
+      // //TODO SI ESTA VENCIDO EL TOKEN, HACER UN REFRESH en donde???
+      // const token = await getDvctToken()
+      // const table = await getTable(tableId)
+      let order: (Order & { users?: User[] }) | null = await prisma.order.findFirst({
         where: {
           branchId: branchId,
           tableId: tableId,
@@ -413,102 +414,60 @@ export async function action({ request, params }: ActionArgs) {
         }
       }
 
-      // const createCartItems =
-      await Promise.all(
-        cartItems.map(item =>
-          prisma.cartItem.create({
-            data: {
-              image: item.image,
-              quantity: Number(item.quantity),
-              price: Number(item.price),
-              name: item.name,
-              menuItemId: item.id,
-              modifier: {
-                connect: item.modifiers.map(modifier => ({
-                  id: modifier.id,
-                })),
-              },
-
-              //if shareDish is not empty, connect the users to the cartItem
-              user: {
-                connect: shareDish.length > 0 ? [{ id: userId }, ...shareDish.map(id => ({ id: id }))] : { id: userId },
-              } as any,
-              activeOnOrder: true,
-              orderId: order?.id,
-              // make sure to include other necessary fields here
-            },
-          }),
-        ),
-      )
-      //NOTE - Aqui se usa el request.method para identificar que boton se esta usando
+      //createCartItems
+      await createCartItems(cartItems, shareDish, userId, order.id)
+      //Aqui se usa el request.method para identificar que boton se esta usando, en este caso Patch es que se esta pagando
       if (request.method === 'PATCH') {
         const tipPercentage = formData.get('tipPercentage') as string
         const paymentMethod = formData.get('paymentMethod') as PaymentMethod
         const amountToPay = Number(formData.get('amountToPay'))
 
-        console.log('server', paymentMethod)
+        const tip = amountToPay * (Number(tipPercentage) / 100)
+        const menuCurrency = await getMenu(branchId).then((menu: any) => menu?.currency || 'mxn')
 
-        //FIX this \/
-        //@ts-expect-error
-        const tip = amountToPay * Number(tipPercentage / 100)
+        const result = await handlePaymentProcessing({
+          paymentMethod: paymentMethod as string,
+          total: amountToPay,
+          tip,
+          currency: menuCurrency,
+          isOrderAmountFullPaid: false,
+          request,
+          redirectTo,
+          typeOfPayment: 'cartPay',
+        })
 
-        switch (paymentMethod) {
-          case 'cash':
-            const params = {
-              typeOfPayment: 'cartPay',
-              amount: amountToPay + tip,
-              tip: tip,
-              paymentMethod: paymentMethod,
-              // extraData: itemData ? JSON.stringify(itemData) : undefined,
-              isOrderAmountFullPaid: false,
-            }
-            const queryString = createQueryString(params)
-            return redirect(`${redirectTo}/payment/success?${queryString}`)
-          case 'card':
-            const stripeRedirectUrl = await getStripeSession(
-              amountToPay * 100 + tip * 100,
-              false,
-              getDomainUrl(request) + redirectTo,
-              //FIXME aqui tiene que tener congruencia con el currency del database, ya que stripe solo acepta ciertas monedas, puedo hacer una condicion o cambiar db a "eur"
-              'eur',
-              tip,
-              paymentMethod,
-              'cartPay',
-              //FIXME le estoy pasando mas de 500 characters y hay error.
-              //Es Para alterar los cartItems y que se vean quien pago
-              // cartItems,
-            )
-            return redirect(stripeRedirectUrl)
+        if (result.type === 'redirect') {
+          return redirect(result.url)
         }
       }
 
-      //TODO: cambiar el channelname y channelLinkId agarrandolos de la base de datos o api
-      const url = process.env.DELIVERECT_API_URL + '/joseantonioamieva/order/649c4d38770ee8288c5a8729'
-      const options = {
-        method: 'POST',
-        headers: {
-          accept: 'application/json',
-          'content-type': 'application/json',
-          authorization: 'Bearer ' + token,
-        },
-        body: JSON.stringify({
-          customer: { name: 'John ' },
-          orderIsAlreadyPaid: false,
-          payment: { amount: adjustedCartItemsTotal, type: 0 },
-          items: adjustedItems,
-          decimalDigits: 2,
-          // channelOrderId: order.id,
-          // channelOrderDisplayId: order.id + '12111',
-          channelOrderId: cuid(),
-          channelOrderDisplayId: '1234567ABC',
-          orderType: 3,
-          table: String(table.table_number),
-        }),
-      }
-      fetch(url, options)
-        .then(res => res.json())
-        .then(json => console.log(json))
-        .catch(err => console.error('error:' + err))
+      // //TODO: cambiar el channelname y channelLinkId agarrandolos de la base de datos o api
+      // const url = process.env.DELIVERECT_API_URL + '/joseantonioamieva/order/649c4d38770ee8288c5a8729'
+      // const options = {
+      //   method: 'POST',
+      //   headers: {
+      //     accept: 'application/json',
+      //     'content-type': 'application/json',
+      //     authorization: 'Bearer ' + token,
+      //   },
+      //   body: JSON.stringify({
+      //     customer: { name: 'John ' },
+      //     orderIsAlreadyPaid: false,
+      //     payment: { amount: adjustedCartItemsTotal, type: 0 },
+      //     items: adjustedItems,
+      //     decimalDigits: 2,
+      //     // channelOrderId: order.id,
+      //     // channelOrderDisplayId: order.id + '12111',
+      //     channelOrderId: cuid(),
+      //     channelOrderDisplayId: '1234567ABC',
+      //     orderType: 3,
+      //     table: String(table.table_number),
+      //   }),
+      // }
+      // fetch(url, options)
+      //   .then(res => res.json())
+      //   .then(json => console.log(json))
+      //   .catch(err => console.error('error:' + err))
 
       session.unset('cart')
       EVENTS.ISSUE_CHANGED(tableId)
@@ -518,7 +477,5 @@ export async function action({ request, params }: ActionArgs) {
       })
   }
 
-  return redirect('', {
-    headers: { 'Set-Cookie': await sessionStorage.commitSession(session) },
-  })
+  return json({ success: true }, { headers: { 'Set-Cookie': await sessionStorage.commitSession(session) } })
 }
