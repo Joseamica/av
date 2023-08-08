@@ -1,6 +1,7 @@
 import { type CartItem } from '@prisma/client'
 import { AnimatePresence, motion } from 'framer-motion'
 
+import { H4 } from '..'
 import { ItemContainer } from '../containers/item-container'
 import { SendComments } from '../send-comments'
 import { Spacer } from '../util/spacer'
@@ -20,11 +21,14 @@ export function ReportWaiter({
   return (
     <AnimatePresence>
       <div>
+        <Spacer spaceY="0" size="md" />
+        <H4>Selecciona a los meseros que deseas reportar</H4>
+        <Spacer spaceY="0" size="md" />
         <motion.div
           className="space-y-2"
-          initial={{ opacity: 0, height: 0 }}
-          animate={{ opacity: 1, height: 'auto' }}
-          transition={{ duration: 0.4, ease: 'easeInOut' }}
+          initial={{ opacity: 0, x: -20 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ x: { duration: 0.4, ease: [0.04, 0.62, 0.23, 0.98] }, opacity: { duration: 0.1, ease: 'easeInOut' } }}
         >
           {waiters.map((waiter: CartItem) => (
             <ItemContainer key={waiter.id}>
@@ -42,13 +46,18 @@ export function ReportWaiter({
             </ItemContainer>
           ))}
         </motion.div>
-        <Spacer spaceY="2" />
+
+        <Spacer spaceY="0" size="md" />
 
         <ReportSelections subjects={subjects} error={error} />
 
-        <SendComments />
+        <Spacer spaceY="0" size="md" />
 
-        <Spacer spaceY="2" />
+        <H4>Déjanos un comentario de lo sucedido</H4>
+
+        <Spacer spaceY="0" size="md" />
+
+        <SendComments />
       </div>
     </AnimatePresence>
   )

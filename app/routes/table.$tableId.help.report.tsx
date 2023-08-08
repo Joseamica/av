@@ -13,7 +13,7 @@ import { createFeedBack } from '~/models/feedback.server'
 
 import { getUrl } from '~/utils'
 
-import { Button, H5, Modal, Spacer } from '~/components'
+import { Button, H3, H4, H5, Modal, SendComments, Spacer } from '~/components'
 import { ReportFood } from '~/components/help/report-food'
 import { ReportIntroButtons } from '~/components/help/report-intro-buttons'
 import { ReportOther } from '~/components/help/report-other'
@@ -168,7 +168,7 @@ export default function Report() {
     }
   }, [fetcher.data])
 
-  const tabContainer = 'justify-between flex flex-row h-14 items-center text-zinc-400 p-2 bg-white shadow-md rounded-lg'
+  const tabContainer = ' divide-x justify-between flex flex-row items-center text-zinc-400 border border-black rounded-xl'
   const modalFullScreen = (activeTab === 'waiter' && data.waiters.length >= 5) || (activeTab === 'food' && data.cartItemsByUser.length >= 5)
 
   return (
@@ -179,19 +179,31 @@ export default function Report() {
       justify="start"
       fullScreen={modalFullScreen}
     >
-      {activeTab !== 'No especificado' && (
-        <div className={tabContainer}>
-          {TABS.map(tab => (
-            <Tab key={tab.query} label={tab.label} query={tab.query} activeTab={activeTab} setActiveTab={setActiveTab} />
-          ))}
-        </div>
-      )}
-
-      <fetcher.Form method="POST" className="flex flex-col justify-center px-2 pb-2">
+      <fetcher.Form method="POST" className="flex flex-col justify-center p-2 ">
         {/* <p className="items-center self-center justify-center px-2 py-1 text-center text-white rounded-full w-max bg-button-textNotSelected">
           Los reportes son totalmente anónimos
         </p> */}
-        <Spacer spaceY="1" />
+
+        {activeTab !== 'No especificado' && (
+          <>
+            <H4>Tipo de reporte</H4>
+            <Spacer spaceY="1" />
+            <div className={tabContainer}>
+              {TABS.map((tab, index) => (
+                <Tab
+                  key={tab.query}
+                  label={tab.label}
+                  query={tab.query}
+                  activeTab={activeTab}
+                  setActiveTab={setActiveTab}
+                  isFirst={index === 0}
+                  isLast={index === TABS.length - 1}
+                />
+              ))}
+            </div>
+          </>
+        )}
+
         {activeTab === 'waiter' ? (
           <ReportWaiter waiters={data.waiters} subjects={WAITER_REPORT_SUBJECTS} toggleSelected={toggleSelected} error={error} />
         ) : activeTab === 'food' ? (
@@ -211,9 +223,9 @@ export default function Report() {
 
         <Spacer spaceY="1" />
 
-        <H5 variant="error" className="items-center self-center justify-center w-full text-center">
+        <H4 variant="error" className="items-center self-center justify-center w-full text-center">
           {error}
-        </H5>
+        </H4>
 
         <Spacer spaceY="1" />
 

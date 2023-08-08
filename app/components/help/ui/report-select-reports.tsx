@@ -4,7 +4,9 @@ import clsx from 'clsx'
 import { AnimatePresence, motion } from 'framer-motion'
 
 import { Button } from '../../ui/buttons/button'
-import { H2 } from '../../util/typography'
+import { H3, H4 } from '../../util/typography'
+
+import { Spacer } from '~/components'
 
 export function ReportSelections({ subjects, error }: { subjects: {}; error?: string }) {
   const [reports, setReports] = useState([])
@@ -21,25 +23,23 @@ export function ReportSelections({ subjects, error }: { subjects: {}; error?: st
   }
   return (
     <AnimatePresence>
-      <motion.div
-        className={clsx('space-y-2 bg-white rounded-xl p-2')}
-        // initial={{ opacity: 0, height: -0 }}
-        // animate={{ opacity: 1, height: 'auto' }}
-        // exit={{ opacity: 0, y: 20 }}
-        // transition={{ duration: 0.4, ease: 'easeInOut' }}
-      >
-        <H2>
+      <motion.div className={clsx(' rounded-xl')}>
+        <Spacer spaceY="0" size="md" />
+        <H4>
           Selecciona cual fue el problema <span className="text-red-500">*</span>
-        </H2>
+        </H4>
+        <Spacer spaceY="0" size="md" />
+
         {Object.entries(subjects).map(([key, value]: [string, string]) => (
           <Button
             // to={`?by=place&subject=${value}`}
+            custom="border-2 border-warning "
             type="button"
             onClick={() => toggleReport(value)}
             key={key}
             size="small"
             className={clsx('mx-1', { 'fill-warning': error })}
-            variant={reports.includes(value) ? 'primary' : error ? 'danger' : 'secondary'}
+            variant={reports.includes(value) ? 'primary' : error ? 'custom' : 'secondary'}
           >
             {value}
           </Button>

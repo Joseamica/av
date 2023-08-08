@@ -1,9 +1,8 @@
-export const Tab = ({ label, query, activeTab, setActiveTab }) => {
+export const Tab = ({ label, query, activeTab, setActiveTab, isFirst, isLast }) => {
   const isActive = query === activeTab
-  const active =
-    'flex bg-day-principal h-12 w-1/4 justify-center items-center text-white text-lg rounded-xl font-medium shrink-0 transition-all duration-200 ease-in-out'
-  const inactive =
-    'flex h-12 w-1/4 justify-center items-center text-button-textNotSelected text-sm  shrink-0 transition-all duration-200 ease-in-out hover:bg-gray-200'
+  const baseClass = 'flex h-12 w-1/4 justify-center items-center shrink-0 transition-all duration-200 ease-in-out'
+  const active = baseClass + ' bg-day-principal text-white text-lg' + (isFirst ? ' rounded-l-xl' : isLast ? ' rounded-r-xl' : '')
+  const inactive = baseClass + ' text-button-textNotSelected text-sm hover:bg-gray-200'
 
   const className = isActive ? active : inactive
 
