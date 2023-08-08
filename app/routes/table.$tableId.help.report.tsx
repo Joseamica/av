@@ -1,16 +1,18 @@
-import { Form, useActionData, useFetcher, useLoaderData, useNavigate, useSearchParams, useSubmit } from '@remix-run/react'
-import React from 'react'
+import { useActionData, useFetcher, useLoaderData, useLocation, useNavigate, useSearchParams } from '@remix-run/react'
 
-import { json, redirect } from '@remix-run/node'
 import type { ActionArgs, LoaderArgs } from '@remix-run/node'
+import { json, redirect } from '@remix-run/node'
 
-import type { CartItem } from '@prisma/client'
 import invariant from 'tiny-invariant'
 import { prisma } from '~/db.server'
 import { validateRedirect } from '~/redirect.server'
 import { getSession, getUserId } from '~/session.server'
 
-import { Button, FlexRow, H1, H2, H5, ItemContainer, Modal, SendComments, Spacer } from '~/components'
+import { getUrl } from '~/utils'
+
+import { Button, FlexRow, H1, H5, Modal, SendComments, Spacer } from '~/components'
+import { ReportFood } from '~/components/help/report-food'
+import { ReportWaiter } from '~/components/help/report-waiter'
 import { LinkButton } from '~/components/ui/buttons/button'
 
 export async function action({ request, params }: ActionArgs) {
@@ -135,132 +137,129 @@ const PLACE_REPORT_SUBJECTS = {
 export default function Report() {
   const data = useLoaderData()
   const actionData = useActionData()
-  const navigate = useNavigate()
   const fetcher = useFetcher()
 
-  let isSubmitting = fetcher.state === 'submitting' || fetcher.state === 'loading'
+  let isSubmitting = fetcher.state !== 'idle'
   const submitButton = isSubmitting ? 'Enviando...' : 'Enviar reporte'
-
-  const onClose = () => {
-    navigate('..')
-  }
-  const submit = useSubmit()
-  function handleChange(event: React.FormEvent<HTMLFormElement>) {
-    submit(event.currentTarget, { replace: true })
-  }
 
   const [searchParams] = useSearchParams()
   const by = searchParams.get('by') || 'No especificado'
   const subject = searchParams.get('subject') || undefined
 
-  let title = ''
-  if (by === 'waiter') {
-    title = 'Reportar a un mesero'
-  } else if (by === 'food') {
-    title = 'Reportar un platillo'
-  } else if (by === 'place') {
-    title = 'Reportar el lugar'
-  } else if (by === 'other') {
-    title = 'Reportar otro suceso'
-  }
   return (
-    <Modal title={by === 'No especificado' ? 'Reportar algún suceso' : title} onClose={onClose} goBack={by === 'No especificado' ? false : true}>
-      {/* <Spacer spaceY="2" /> */}
-
-      <Form method="POST" onChange={handleChange} className="flex w-full flex-col space-y-2 p-2">
-        <p className="text-center">Los reportes son totalmente anónimos </p>
-
-        {by === 'waiter' ? (
-          <div className="space-y-2">
-            {data.waiters.map((waiter: CartItem) => (
-              <ItemContainer key={waiter.id}>
-                <label htmlFor={waiter.id} className="text-xl">
-                  {waiter.name}
-                </label>
-                <input id={waiter.id} type="checkbox" name="selected" value={waiter.id} className="h-5 w-5" />
-              </ItemContainer>
-            ))}
-            <Spacer spaceY="2" />
-            <H2>Selecciona cual fue el problema</H2>
-            {Object.entries(WAITER_REPORT_SUBJECTS).map(([key, value]) => (
-              <LinkButton size="small" to={`?by=waiter&subject=${value}`} key={key} variant={subject === value ? 'primary' : 'secondary'} className="mx-1">
-                {value}
-              </LinkButton>
-            ))}
-            <Spacer spaceY="2" />
-            <Button name="_action" value="proceed" disabled={isSubmitting} className="w-full">
-              {submitButton}
-            </Button>
-          </div>
-        ) : by === 'food' ? (
-          <div className="space-y-2">
-            {data.cartItemsByUser.map((cartItem: CartItem) => (
-              <ItemContainer key={cartItem.id}>
-                <label htmlFor={cartItem.id}>{cartItem.name}</label>
-                <input id={cartItem.id} type="checkbox" name="selected" value={cartItem.id} className="h-5 w-5" />
-              </ItemContainer>
-            ))}
-            <Spacer spaceY="2" />
-
+    <HelpContainer fetcher={fetcher}>
+      {by === 'waiter' ? (
+        <ReportWaiter subjects={WAITER_REPORT_SUBJECTS} waiters={data.waiters} submitButton={submitButton} isSubmitting={isSubmitting} subject={subject} />
+      ) : by === 'food' ? (
+        <ReportFood cartItemsByUser={data.cartItemsByUser} isSubmitting={isSubmitting} subject={subject} subjects={FOOD_REPORT_SUBJECTS} submitButton={submitButton} />
+      ) : by === 'place' ? (
+        <div className="space-y-2">
+          <FlexRow>
             <H1>Selecciona cual fue el problema</H1>
-            {Object.entries(FOOD_REPORT_SUBJECTS).map(([key, value]) => (
-              <LinkButton to={`?by=food&subject=${value}`} key={key} size="small" className="mx-1" variant={subject === value ? 'primary' : 'secondary'}>
-                {value}
-              </LinkButton>
-            ))}
-            <Spacer spaceY="2" />
-            <Button name="_action" value="proceed" disabled={isSubmitting} className="w-full">
-              {submitButton}
-            </Button>
-          </div>
-        ) : by === 'place' ? (
-          <div className="space-y-2">
-            <FlexRow>
-              <H1>Selecciona cual fue el problema</H1>
-            </FlexRow>
-            {Object.entries(PLACE_REPORT_SUBJECTS).map(([key, value]) => (
-              <LinkButton to={`?by=place&subject=${value}`} key={key} size="small" className="mx-1" variant={subject === value ? 'primary' : 'secondary'}>
-                {value}
-              </LinkButton>
-            ))}
-            <Spacer spaceY="2" />
-            <Button name="_action" value="proceed" disabled={isSubmitting} className="w-full">
-              {submitButton}
-            </Button>
-          </div>
-        ) : by === 'other' ? (
-          <div className="space-y-2">
-            <SendComments />
-            <Button name="_action" value="proceed" disabled={isSubmitting} className="w-full">
-              {submitButton}
-            </Button>
-          </div>
-        ) : (
-          <div>
-            {/* <H4>Seleccione una opción para reportar algún suceso en la mesa</H4> */}
-            {/* <Spacer spaceY="2" /> */}
-            <div className="flex flex-col space-y-2">
-              <LinkButton to="?by=waiter" size="medium">
-                Mesero
-              </LinkButton>
-              <LinkButton to="?by=food" size="medium">
-                Platillo
-              </LinkButton>
-              <LinkButton to="?by=place" size="medium">
-                Lugar
-              </LinkButton>
-              <LinkButton to="?by=other" size="medium">
-                Otro
-              </LinkButton>
-            </div>
-          </div>
-        )}
-        <H5 variant="error">{actionData?.error}</H5>
-        {/* <SendComments /> */}
+          </FlexRow>
+          {Object.entries(PLACE_REPORT_SUBJECTS).map(([key, value]) => (
+            <LinkButton to={`?by=place&subject=${value}`} key={key} size="small" className="mx-1" variant={subject === value ? 'primary' : 'secondary'}>
+              {value}
+            </LinkButton>
+          ))}
+          <Spacer spaceY="2" />
+          <Button name="_action" value="proceed" disabled={isSubmitting} className="w-full">
+            {submitButton}
+          </Button>
+        </div>
+      ) : by === 'other' ? (
+        <div className="space-y-2">
+          <SendComments />
+          <Button name="_action" value="proceed" disabled={isSubmitting} className="w-full">
+            {submitButton}
+          </Button>
+        </div>
+      ) : (
+        <div className="flex flex-col space-y-2">
+          <LinkButton to="?by=waiter" size="medium">
+            Mesero
+          </LinkButton>
+          <LinkButton to="?by=food" size="medium">
+            Platillo
+          </LinkButton>
+          <LinkButton to="?by=place" size="medium">
+            Lugar
+          </LinkButton>
+          <LinkButton to="?by=other" size="medium">
+            Otro
+          </LinkButton>
+        </div>
+      )}
+      <H5 variant="error">{actionData?.error}</H5>
+      {/* <SendComments /> */}
 
-        <input type="hidden" name="reportType" value={by} />
-        <input type="hidden" name="subject" value={subject || ''} />
-      </Form>
+      <input type="hidden" name="reportType" value={by} />
+      <input type="hidden" name="subject" value={subject || ''} />
+    </HelpContainer>
+  )
+}
+
+function HelpContainer({ children, fetcher }) {
+  const navigate = useNavigate()
+  const [searchParams, setSearchParams] = useSearchParams()
+  const by = searchParams.get('by') || 'No especificado'
+
+  const pathname = useLocation().pathname
+  const mainPath = getUrl('main', pathname)
+
+  const onClose = () => {
+    // searchParams.delete('by')
+    // setSearchParams(searchParams)
+    navigate(mainPath)
+  }
+
+  let title = ''
+  switch (by) {
+    case 'waiter':
+      title = 'Reportar a un mesero'
+      break
+    case 'food':
+      title = 'Reportar un platillo'
+      break
+    case 'place':
+      title = 'Reportar el lugar'
+      break
+    case 'other':
+      title = 'Reportar otro suceso'
+      break
+    case 'No especificado':
+      title = 'Reportar algún suceso'
+      break
+  }
+
+  const active = 'flex bg-day-principal h-12 w-1/4 justify-center items-center text-white text-lg  font-medium  shrink-0'
+  const inactive = 'flex  h-12 w-1/4 justify-center items-center text-button-textNotSelected text-sm   border-l shrink-0'
+
+  return (
+    <Modal title={by === 'No especificado' ? 'Reportar algún suceso' : title} onClose={onClose} goBack={by === 'No especificado' ? false : true} justify="start">
+      {/* <div className=" justify-between flex flex-row  h-14 items-center button text-zinc-400 p-2 bg-white">
+        <Link to={`?by=food`} className={by === 'food' ? active : inactive}>
+          Platillo
+        </Link>
+        <Link to={`?by=waiter`} className={by === 'waiter' ? active : inactive}>
+          Mes
+        </Link>
+        <Link to={`?by=place`} className={by === 'place' ? active : inactive}>
+          Lugar
+        </Link>
+        <Link to={`?by=other`} className={by === 'other' ? active : inactive}>
+          Otro
+        </Link>
+      </div> */}
+      <fetcher.Form method="POST" className="flex flex-col justify-center px-2 pb-2">
+        <p className="text-center items-center w-max self-center justify-center bg-button-textNotSelected text-white rounded-full px-2 py-1">
+          Los reportes son totalmente anónimos
+        </p>
+        <Spacer spaceY="1" />
+        {children}
+
+        {/* <H5 variant="error">{actionData?.error}</H5> */}
+      </fetcher.Form>
     </Modal>
   )
 }
