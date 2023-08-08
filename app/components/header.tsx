@@ -6,9 +6,9 @@ import { ChevronLeftIcon, SearchIcon, UserCircleIcon } from './icons'
 import { BackButton } from './ui/buttons/back-button'
 import { LinkButton } from './ui/buttons/button'
 import { FlexRow } from './util/flexrow'
-import { H1, H2, H5 } from './util/typography'
+import { H1, H5 } from './util/typography'
 
-import { getTableIdFromUrl, getUrl } from '~/utils'
+import { getUrl } from '~/utils'
 
 interface HeaderProps {
   user: User
@@ -26,7 +26,7 @@ export function Header({ user, isAdmin }: HeaderProps) {
       {!isAdmin ? (
         <>
           {!isTablePathOnly ? (
-            <Link to={`${location.pathname.split('/')[2]}`} className="flex h-7 w-7 items-center justify-center rounded-full shadow-md">
+            <Link to={`${location.pathname.split('/')[2]}`} className="flex items-center justify-center rounded-full shadow-md h-7 w-7">
               <ChevronLeftIcon />
             </Link>
           ) : (
@@ -38,18 +38,21 @@ export function Header({ user, isAdmin }: HeaderProps) {
             <FlexRow className="space-x-4">
               <LinkButton to={`table/${location.pathname.split('/')[2]}/user/${user.id}`} size="small">
                 <i>
-                  <UserCircleIcon className="h-5 w-5" fill={user.color || '#fff'} />
+                  <UserCircleIcon className="w-5 h-5" fill={user.color || '#fff'} />
                 </i>
                 <H5>{user.name}</H5>
               </LinkButton>
-              <Link to={`${location.pathname}/search`} className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-gray_light bg-white p-1 shadow-md`}>
-                <SearchIcon className="h-5 w-5" />
+              <Link
+                to={`${location.pathname}/search`}
+                className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-gray_light bg-white p-1 shadow-md`}
+              >
+                <SearchIcon className="w-5 h-5" />
               </Link>
             </FlexRow>
           ) : (
             <LinkButton to={`${location.pathname.split('/')[2]}/user/${user.id}`} size="small">
               <i>
-                <UserCircleIcon className="h-5 w-5" fill={user.color || '#fff'} />
+                <UserCircleIcon className="w-5 h-5" fill={user.color || '#fff'} />
               </i>
               <H5>{user.name}</H5>
             </LinkButton>
@@ -73,10 +76,12 @@ export function HeaderV2({ user }: { user: User }) {
   const pathname = useLocation().pathname
   const matches = useMatches()
   const backButton = matches.find(match => match.handle)?.handle.backButton
+  const searchButton = matches.find(match => match.handle)?.handle.searchButton
 
   const userProfile = getUrl('userProfile', pathname, { userId: user.id })
   const mainPath = getUrl('main', pathname)
   const back = getUrl('back', pathname)
+  const search = getUrl('search', pathname)
 
   const headerPositions = {
     left: backButton ? (
@@ -88,10 +93,20 @@ export function HeaderV2({ user }: { user: User }) {
     ),
     center: '',
     right: (
-      <LinkButton to={userProfile} size="small" custom="border-2" variant="custom">
-        <UserCircleIcon className="h-5 w-5" fill={user.color || '#fff'} />
-        <H5>{user.name}</H5>
-      </LinkButton>
+      <FlexRow>
+        {searchButton && (
+          <Link
+            to={search}
+            className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-gray_light bg-white p-1 shadow-md`}
+          >
+            <SearchIcon className="w-5 h-5" />
+          </Link>
+        )}
+        <LinkButton to={userProfile} size="small" custom="border-2" variant="custom">
+          <UserCircleIcon className="w-5 h-5" fill={user.color || '#fff'} />
+          <H5>{user.name}</H5>
+        </LinkButton>
+      </FlexRow>
     ),
   }
 

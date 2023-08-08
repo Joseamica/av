@@ -1,5 +1,3 @@
-import {cssBundleHref} from '@remix-run/css-bundle'
-import type {LinksFunction} from '@remix-run/node'
 import {
   Links,
   LiveReload,
@@ -11,40 +9,46 @@ import {
   useNavigation,
   useRouteError,
 } from '@remix-run/react'
+
+import { cssBundleHref } from '@remix-run/css-bundle'
+import type { LinksFunction } from '@remix-run/node'
+
+// * CUSTOM COMPONENTS
+import { useSpinDelay } from 'spin-delay'
 // * STYLES
 import tailwindStylesheetUrl from '~/styles/tailwind.css'
-// * CUSTOM COMPONENTS
-import {useSpinDelay} from 'spin-delay'
+
 import Error from './components/util/error'
 import appStylesheetUrl from './styles/app.css'
+import fontStylestylesheetUrl from './styles/font.css'
 
 export const links: LinksFunction = () => [
-  {
-    rel: 'preload',
-    as: 'font',
-    href: '/fonts/Matter-Medium.woff2',
-    type: 'font/woff2',
-    crossOrigin: 'anonymous',
-  },
-  {
-    rel: 'preload',
-    as: 'font',
-    href: '/fonts/Matter-Regular.woff2',
-    type: 'font/woff2',
-    crossOrigin: 'anonymous',
-  },
-  {rel: 'stylesheet', href: tailwindStylesheetUrl},
-  {rel: 'stylesheet', href: appStylesheetUrl},
-  ...(cssBundleHref ? [{rel: 'stylesheet', href: cssBundleHref}] : []),
+  // {
+  //   rel: 'preload',
+  //   as: 'font',
+  //   href: '/fonts/Matter-Medium.woff2',
+  //   type: 'font/woff2',
+  //   crossOrigin: 'anonymous',
+  // },
+  { rel: 'preload', href: fontStylestylesheetUrl, as: 'style' },
+  { rel: 'preload', href: fontStylestylesheetUrl, as: 'style' },
+  { rel: 'preload', href: appStylesheetUrl, as: 'style' },
+
+  // {
+  //   rel: 'preload',
+  //   as: 'font',
+  //   href: '/fonts/Matter-Regular.woff2',
+  //   type: 'font/woff2',
+  //   crossOrigin: 'anonymous',
+  // },
+  { rel: 'stylesheet', href: tailwindStylesheetUrl },
+  { rel: 'stylesheet', href: appStylesheetUrl },
+  { rel: 'stylesheet', href: fontStylestylesheetUrl },
+
+  ...(cssBundleHref ? [{ rel: 'stylesheet', href: cssBundleHref }] : []),
 ]
 
-function Document({
-  title,
-  children,
-}: {
-  title?: string
-  children: React.ReactNode
-}) {
+function Document({ title, children }: { title?: string; children: React.ReactNode }) {
   const navigation = useNavigation()
 
   const showLoader = useSpinDelay(Boolean(navigation.state !== 'idle'), {
@@ -63,7 +67,7 @@ function Document({
       <body className="hide-scrollbar no-scrollbar  mx-auto h-full max-w-md bg-[#F3F4F6] px-2 pt-16">
         {/* {showLoader && (
         <div className="fixed left-0 top-0 z-[9999] flex h-full w-full items-center justify-center bg-black bg-opacity-90">
-          <div className="h-16 w-16 animate-spin rounded-full border-4 border-blue-500" />
+          <div className="w-16 h-16 border-4 border-blue-500 rounded-full animate-spin" />
         </div>
       )} */}
         <div id="modal-root" />

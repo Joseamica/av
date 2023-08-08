@@ -52,7 +52,7 @@ interface ModifierGroups extends ModifierGroup {
   modifiers: Modifiers[]
 }
 
-export const handle = { backButton: true }
+export const handle = { backButton: true, searchButton: true }
 
 export async function loader({ request, params }: LoaderArgs) {
   const { tableId, menuId } = params
@@ -235,7 +235,7 @@ export default function Menu() {
             .map((category: MenuCategory) => (
               <div key={category.id}>
                 <div className="overflow-hidden">
-                  <img alt="" className="transform rounded-xl object-cover " src={category.imageUrl} />
+                  <img alt="" className="object-cover transform rounded-xl " src={category.imageUrl} />
                 </div>
               </div>
             ))}
@@ -247,7 +247,11 @@ export default function Menu() {
             {/* CATEGORIES BAR */}
             <CategoriesBar
               categoryId={currentCategory}
-              categories={!seePdf ? data.categories.filter((category: MenuCategory) => !category.pdf) : data.categories.filter(category => category.pdf)}
+              categories={
+                !seePdf
+                  ? data.categories.filter((category: MenuCategory) => !category.pdf)
+                  : data.categories.filter(category => category.pdf)
+              }
               isSticky={isSticky}
             />
             <Spacer spaceY="2" />
@@ -281,7 +285,7 @@ export default function Menu() {
                                   whileTap={{ scale: 0.8 }}
                                   src={dish.image ? dish.image : data.branch.ppt_image}
                                   // onError={() => console.log('image error')}
-                                  className="dark:bg-secondaryDark h-28 max-h-28 w-28 shrink-0 rounded-lg bg-white object-cover"
+                                  className="object-cover bg-white rounded-lg dark:bg-secondaryDark h-28 max-h-28 w-28 shrink-0"
                                   loading="lazy"
                                   width="112"
                                   height="112"
@@ -298,22 +302,28 @@ export default function Menu() {
                 })}
             </div>
             {data.cartItems?.length > 0 ? (
-              <LinkButton to="cart" disabled={isSubmitting} className="sticky inset-x-0 bottom-0 mb-2 w-full">
+              <LinkButton to="cart" disabled={isSubmitting} className="sticky inset-x-0 bottom-0 w-full mb-2">
                 {isSubmitting ? `Agregando platillos... (${cartItemsAdded})` : `Ir al carrito (${cartItemsAdded})`}
               </LinkButton>
             ) : null}
             {/* MODAL */}
             {dish && (
               <Modal onClose={onClose} title={data.dish.name} imgHeader={data.dish.image}>
-                <div className="w-full space-y-2 overflow-auto p-4">
+                <div className="w-full p-4 space-y-2 overflow-auto">
                   <H2 boldVariant="semibold">{data.dish.name}</H2>
                   <H3> {formatCurrency(data.currency, data.dish?.price)}</H3>
                   <H4 variant="secondary">{data.dish.description}</H4>
                   {data.usersOnTable.length > 0 && <H4>¿Quieres compartir?</H4>}
                   {data.usersOnTable.map((user: User) => {
                     return (
-                      <div key={user.id} className="mt-2 flex items-center">
-                        <input type="checkbox" id={`shareDish-${user.id}`} name="shareDish" value={user.id} className="h-5 w-5 rounded text-blue-600" />
+                      <div key={user.id} className="flex items-center mt-2">
+                        <input
+                          type="checkbox"
+                          id={`shareDish-${user.id}`}
+                          name="shareDish"
+                          value={user.id}
+                          className="w-5 h-5 text-blue-600 rounded"
+                        />
                         <label htmlFor={`shareDish-${user.id}`} className="ml-2 text-sm text-gray-700">
                           {user.name}
                         </label>
@@ -321,7 +331,12 @@ export default function Menu() {
                     )
                   })}
                   <Spacer spaceY="1" />
-                  <QuantityButton onDecrease={() => setQuantity(quantity - 1)} onIncrease={() => setQuantity(quantity + 1)} quantity={quantity} disabled={quantity <= 1} />
+                  <QuantityButton
+                    onDecrease={() => setQuantity(quantity - 1)}
+                    onIncrease={() => setQuantity(quantity + 1)}
+                    quantity={quantity}
+                    disabled={quantity <= 1}
+                  />
                   <div className="space-y-4">
                     {data.modifierGroup.map((modifierGroup: ModifierGroups) => {
                       return (
@@ -329,7 +344,9 @@ export default function Menu() {
                           <Spacer spaceY="1" />
                           <FlexRow>
                             <H2 variant="secondary">{modifierGroup.name}</H2>
-                            <span className="rounded-full bg-button-primary px-2 text-white ">{modifierGroup?.isMandatory ? 'Requerido' : 'Opcional'}</span>
+                            <span className="px-2 text-white rounded-full bg-button-primary ">
+                              {modifierGroup?.isMandatory ? 'Requerido' : 'Opcional'}
+                            </span>
                           </FlexRow>
                           <div className="flex flex-col space-y-2">
                             {modifierGroup.modifiers.map((modifier: Modifiers) => {

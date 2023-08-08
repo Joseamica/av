@@ -208,6 +208,13 @@ export function getTableIdFromUrl(pathname: string) {
   return tableId
 }
 
+export function getMenuIdFromUrl(pathname: string) {
+  let segments = pathname.split('/')
+  let menuIndex = segments.indexOf('menu')
+  let menuId = segments[menuIndex + 1]
+  return menuId
+}
+
 const TRANSLATIONS = {
   en: {
     card: 'Card',
@@ -251,9 +258,11 @@ export async function getIsDvctTokenExpired() {
   return isTokenExpired
 }
 
-export function getUrl(name: string, pathname: string, params?: { userId: string }) {
+export function getUrl(name: string, pathname: string, params?: { userId?: string }) {
   const tableId = getTableIdFromUrl(pathname)
+  const menuId = getMenuIdFromUrl(pathname)
   const mainPath = `/table/${tableId}`
+  const menuIdPath = `${mainPath}/menu/${menuId}`
 
   switch (name) {
     case 'userProfile':
@@ -262,5 +271,7 @@ export function getUrl(name: string, pathname: string, params?: { userId: string
       return `${mainPath}`
     case 'main':
       return mainPath
+    case 'search':
+      return `${menuIdPath}/search`
   }
 }

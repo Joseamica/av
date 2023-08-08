@@ -1,19 +1,38 @@
-import type { CartItem, MenuItem, ModifierGroup, Modifiers, User } from '@prisma/client'
+import { Link, useActionData, useLoaderData, useNavigate, useSearchParams } from '@remix-run/react'
+import React from 'react'
+
 import type { ActionArgs, LoaderArgs } from '@remix-run/node'
 import { json, redirect } from '@remix-run/node'
-import { Link, useActionData, useLoaderData, useNavigate, useSearchParams } from '@remix-run/react'
+
+import type { CartItem, MenuItem, ModifierGroup, Modifiers, User } from '@prisma/client'
 import clsx from 'clsx'
 import { AnimatePresence, motion } from 'framer-motion'
-import React from 'react'
 import invariant from 'tiny-invariant'
-import { Button, CheckIcon, ChevronLeftIcon, FlexRow, H2, H3, H4, H5, Modal, SectionContainer, SendComments, Spacer } from '~/components'
 import { prisma } from '~/db.server'
+import { validateRedirect } from '~/redirect.server'
+import { addToCart, getSession } from '~/session.server'
+
 import { getBranch, getBranchId } from '~/models/branch.server'
 import { getCartItems } from '~/models/cart.server'
 import { getMenu } from '~/models/menu.server'
-import { validateRedirect } from '~/redirect.server'
-import { addToCart, getSession } from '~/session.server'
+
 import { formatCurrency, getCurrency } from '~/utils'
+
+import {
+  Button,
+  CheckIcon,
+  ChevronLeftIcon,
+  FlexRow,
+  H2,
+  H3,
+  H4,
+  H5,
+  Modal,
+  SectionContainer,
+  SendComments,
+  Spacer,
+  XIcon,
+} from '~/components'
 
 export async function loader({ request, params }: LoaderArgs) {
   const { tableId, menuId } = params
@@ -140,30 +159,38 @@ export default function Search() {
         // onSubmit={handleSubmit}
         // onChange={handleChange}
       >
-        <label htmlFor="search" className="dark:bg-mainDark sticky top-0 z-50 flex w-full flex-row bg-white p-2 focus:border focus:ring-1 ">
-          <button className="flex items-center justify-center rounded-l-full bg-gray_light p-3 dark:bg-gray_light " onClick={onClose}>
-            <ChevronLeftIcon className="h-5 w-5" />
+        <label htmlFor="search" className="sticky top-0 z-50 flex flex-row w-full p-2 bg-white dark:bg-mainDark focus:border focus:ring-1 ">
+          <button className="flex items-center justify-center p-3 rounded-l-full bg-gray_light dark:bg-gray_light " onClick={onClose}>
+            <ChevronLeftIcon className="w-5 h-5" />
           </button>
           <motion.input
             id="search"
-            type="search"
+            type="text"
             initial="hidden"
             name="search"
             autoFocus={true}
             value={searchText}
             onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleChange(e)}
             placeholder="Buscar platillo"
-            className="flex w-full rounded-r-full bg-gray_light p-3 px-3 py-3 text-sm focus:border-none focus:outline-none focus:ring-0 dark:bg-gray_light"
+            className="flex w-full p-3 px-3 py-3 text-sm rounded-r-full bg-gray_light focus:border-none focus:outline-none focus:ring-0 dark:bg-gray_light"
+            style={{ fontSize: '16px' }}
           />
+          {searchText && (
+            <button className="p-2" onClick={() => setSearchText('')}>
+              <XIcon className="w-5 h-5" />
+            </button>
+          )}
         </label>
-        <div className="flex flex-col space-y-2 p-2">
+        <div className="flex flex-col p-2 space-y-2">
           {data.categories.map((categories: any) => {
-            const filteredItems = categories.menuItems.filter((menuItem: MenuItem) => (searchText === '' ? null : menuItem.name.toLowerCase().includes(searchText)))
+            const filteredItems = categories.menuItems.filter((menuItem: MenuItem) =>
+              searchText === '' ? null : menuItem.name.toLowerCase().includes(searchText),
+            )
             return (
               <div key={categories.id}>
                 {filteredItems.length > 0 ? (
                   <SectionContainer key={categories.id} divider={true}>
-                    <H3 className="sticky top-12 w-full bg-white p-4 shadow-md dark:shadow-none ">{categories.name}</H3>
+                    <H3 className="sticky w-full p-4 bg-white shadow-md top-12 dark:shadow-none ">{categories.name}</H3>
                     {/* //~~>All menu items<~~// */}
                     <AnimatePresence initial={false}>
                       <div className="">
@@ -174,7 +201,7 @@ export default function Search() {
                               initial={{ opacity: 0, height: 0 }}
                               animate={{ opacity: 1, height: 'auto' }}
                               exit={{ opacity: 0, height: 0 }}
-                              className="space-y-1 overflow-hidden bg-white p-2 dark:bg-transparent"
+                              className="p-2 space-y-1 overflow-hidden bg-white dark:bg-transparent"
                             >
                               <Link key={dish.id} preventScrollReset to={`?dishId=${dish.id}`} className="p-2">
                                 <FlexRow justify="between">
@@ -189,7 +216,7 @@ export default function Search() {
                                     whileTap={{ scale: 0.8 }}
                                     src={dish.image ? dish.image : ''}
                                     // onError={() => console.log('image error')}
-                                    className="dark:bg-secondaryDark max-h-24 w-24 shrink-0 rounded-lg bg-white object-cover"
+                                    className="object-cover w-24 bg-white rounded-lg dark:bg-secondaryDark max-h-24 shrink-0"
                                     loading="lazy"
                                   />
                                 </FlexRow>
@@ -215,14 +242,20 @@ export default function Search() {
           imgHeader={data.dish.image}
           // fullScreen={true}
         >
-          <div className="w-full space-y-2 overflow-auto p-4">
+          <div className="w-full p-4 space-y-2 overflow-auto">
             <H2 boldVariant="semibold">{data.dish.name}</H2>
             <H3> {formatCurrency(data.currency, data.dish?.price)}</H3>
             <H4 variant="secondary">{data.dish.description}</H4>
             {data.usersOnTable.map((user: User) => {
               return (
-                <div key={user.id} className="mt-2 flex items-center">
-                  <input type="checkbox" id={`shareDish-${user.id}`} name="shareDish" value={user.id} className="h-5 w-5 rounded text-blue-600" />
+                <div key={user.id} className="flex items-center mt-2">
+                  <input
+                    type="checkbox"
+                    id={`shareDish-${user.id}`}
+                    name="shareDish"
+                    value={user.id}
+                    className="w-5 h-5 text-blue-600 rounded"
+                  />
                   <label htmlFor={`shareDish-${user.id}`} className="ml-2 text-sm text-gray-700">
                     {user.name}
                   </label>
@@ -236,7 +269,9 @@ export default function Search() {
                     <Spacer spaceY="1" />
                     <FlexRow>
                       <H2 variant="secondary">{modifierGroup.name}</H2>
-                      <span className="rounded-full bg-button-primary px-2 text-white ">{modifierGroup?.isMandatory ? 'Requerido' : 'Opcional'}</span>
+                      <span className="px-2 text-white rounded-full bg-button-primary ">
+                        {modifierGroup?.isMandatory ? 'Requerido' : 'Opcional'}
+                      </span>
                     </FlexRow>
                     <div className="flex flex-col space-y-2">
                       {modifierGroup.modifiers.map((modifier: Modifiers) => {
