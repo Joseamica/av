@@ -28,11 +28,11 @@ export default function TableLayoutPath() {
   }
 
   return (
-    <>
+    <div className="hide-scrollbar no-scrollbar  mx-auto h-full max-w-md bg-[#F3F4F6] px-2 pt-16">
       <HeaderV2 user={data.user} />
       <Notification message={data.notification} />
       <Outlet />
-    </>
+    </div>
   )
 }
 //ANCHOR LOADER
@@ -79,7 +79,10 @@ export const loader = async ({ request }: LoaderArgs) => {
 
   const notification = session.get('notification')
 
-  return json({ username, pathname, user, isAdmin, notification }, { headers: { 'Set-Cookie': await sessionStorage.commitSession(session) } })
+  return json(
+    { username, pathname, user, isAdmin, notification },
+    { headers: { 'Set-Cookie': await sessionStorage.commitSession(session) } },
+  )
 }
 
 //ANCHOR ACTION
@@ -166,10 +169,10 @@ export const ErrorBoundary = () => {
   }
 
   return (
-    <main className="bg-night-500 text-white">
+    <main className="text-white bg-night-500">
       <h1>Rayos y centellas!</h1>
       <p>{error?.message}</p>
-      <button className="bg-warning text-white">
+      <button className="text-white bg-warning">
         Back to <Link to={'/table'}> safety! </Link>
       </button>
     </main>

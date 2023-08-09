@@ -20,6 +20,7 @@ model Restaurant {
   adminEmail    String?
   branches      Branch[]
   User          User[]
+  admins        Admin[]
 }
 
 model Branch {
@@ -55,6 +56,7 @@ model Branch {
   payments        Payments[]
   restaurant      Restaurant @relation(fields: [restaurantId], references: [id], onDelete: Cascade, onUpdate: Cascade)
   restaurantId    String
+  admins          Admin[]
 }
 
 model Table {
@@ -70,6 +72,7 @@ model Table {
   users             User[]
   employees         Employee[]
   feedbacks         Feedback[]
+  admins            Admin[]
 }
 
 model Menu {
@@ -146,6 +149,7 @@ model Order {
   branchId     String?
   cartItems    CartItem[]
   payments     Payments[]
+  admins       Admin[]
 }
 
 model CartItem {
@@ -204,6 +208,18 @@ model ModifierGroup {
   cartItemId          String?
 }
 
+model Admin {
+  id String @id @default(cuid())
+
+  access      Int?
+  userId      String
+  user        User         @relation(fields: [userId], references: [id])
+  restaurants Restaurant[]
+  branches    Branch[]
+  tables      Table[]
+  orders      Order[]
+}
+
 model User {
   id           String    @id @default(cuid())
   name         String?
@@ -230,6 +246,7 @@ model User {
   payments     Payments[]
   restaurant   Restaurant? @relation(fields: [restaurantId], references: [id])
   restaurantId String?
+  admins       Admin[]
 }
 
 model Password {

@@ -64,7 +64,7 @@ function Document({ title, children }: { title?: string; children: React.ReactNo
         <Meta />
         <Links />
       </head>
-      <body className="hide-scrollbar no-scrollbar  mx-auto h-full max-w-md bg-[#F3F4F6] px-2 pt-16">
+      <body className=" bg-[#F3F4F6] ">
         {/* {showLoader && (
         <div className="fixed left-0 top-0 z-[9999] flex h-full w-full items-center justify-center bg-black bg-opacity-90">
           <div className="w-16 h-16 border-4 border-blue-500 rounded-full animate-spin" />

@@ -1,93 +1,142 @@
-import { Link, Outlet, useLoaderData, useSearchParams } from '@remix-run/react'
+import { Link, useLoaderData, useSearchParams } from '@remix-run/react'
 
-import type { LoaderArgs } from '@remix-run/node'
-import { json, redirect } from '@remix-run/node'
+import { type LoaderArgs, json, redirect } from '@remix-run/node'
 
-import type { Branch, Restaurant } from '@prisma/client'
+import { type Restaurant } from '@prisma/client'
 import { prisma } from '~/db.server'
-import { getSession } from '~/session.server'
+import { getSession, getUserId } from '~/session.server'
 
-import { Button, FlexRow, H1, H2, H5, LinkButton, Spacer } from '~/components'
+import MainAdminContainer from '~/components/admin/main-container'
+import { RestLogo } from '~/components/admin/ui/rest-logo'
 
-export async function loader({ request, params }: LoaderArgs) {
+export const loader = async ({ request }: LoaderArgs) => {
   const session = await getSession(request)
-  const userId = session.get('userId')
-  const url = new URL(request.url)
-  const searchParams = new URLSearchParams(url.search)
-  const restId = searchParams.get('restId') || ''
-
-  const restaurant = await prisma.restaurant.findUnique({
-    where: { id: restId },
-    include: { branches: true },
-  })
-
-  const isAdmin = await prisma.user.findFirst({
+  const userId = await getUserId(session)
+  const isAdmin = await prisma.admin.findFirst({
     where: {
-      id: userId,
-      role: 'admin',
+      userId: userId,
+      access: { gte: 2 },
+    },
+    include: {
+      user: true,
+      branches: true,
+      orders: true,
+      restaurants: true,
+      tables: true,
     },
   })
+
   if (!isAdmin) {
-    return redirect('/unauthorized')
+    return redirect(`/unauthorized`)
   }
 
-  const restaurants = await prisma.restaurant.findMany()
-  return json({ restaurants, restaurant })
-}
+  // const url = new URL(request.url)
+  // const searchParams = new URLSearchParams(url.search)
+  // const restId = searchParams.get('restId')
 
-// const LINKS = {
-//   restaurants: 'Restaurants',
-//   branches: 'Branches',
-//   users: 'Users',
-//   tables: 'Tables',
-//   menu: 'Menus',
-// }
+  return json({ isAdmin })
+}
 
 export default function Admin() {
   const data = useLoaderData()
+
   const [searchParams] = useSearchParams()
   const restId = searchParams.get('restId')
-  return (
-    <div>
-      TODO - MAKE A ADMIN FOR CREATORS AND ADMIN FOR ADMIN OF EACH RESTAURANT
-      <FlexRow>
-        <H1>Restaurantes</H1>
-        <Link className="px-2 border rounded-full" to="add-rest?type=table">
-          Add
-        </Link>
-      </FlexRow>
-      <Spacer spaceY="2" />
-      {restId ? (
-        <div>
-          <H1>{data.restaurant.name}</H1>
-          <Spacer spaceY="2" />
-          <H2>Sucursales</H2>
-          <Spacer spaceY="2" />
 
-          {data.restaurant.branches.map((branch: Branch) => {
-            return (
-              <LinkButton size="small" to={`branches/${branch.id}`} key={branch.id}>
-                {branch.name}
-              </LinkButton>
-            )
-          })}
-          <H5>{data.restaurant.branches.length === 0 && 'No hay sucursales'}</H5>
-          <LinkButton to="add-branch" className="mt-2" size="small">
-            Agregar sucursal
-          </LinkButton>
-        </div>
-      ) : (
-        <div className="flex flex-col space-y-2 ">
-          {data.restaurants.map((restaurant: Restaurant) => {
-            return (
-              <LinkButton size="small" key={restaurant.id} to={`?restId=${restaurant.id}`}>
-                {restaurant.name}
-              </LinkButton>
-            )
-          })}
-        </div>
-      )}
-      <Outlet />
-    </div>
+  if (restId) {
+    return <RestId />
+  }
+
+  return (
+    <MainAdminContainer>
+      {data.isAdmin.restaurants.map((restaurant: Restaurant) => {
+        return (
+          <Link to={`/admin?restId=${restaurant.id}`} key={restaurant.id}>
+            <div className="flex flex-col items-center justify-center w-32 h-32 bg-white rounded-lg shadow-lg">
+              <div className="text-2xl font-bold text-gray-800">{restaurant.name}</div>
+            </div>
+          </Link>
+        )
+      })}
+    </MainAdminContainer>
   )
 }
+
+const REST_LINKS = ['Menu']
+
+function RestId() {
+  return (
+    <MainAdminContainer>
+      <div className="col-start-1 col-end-3 bg-blue-200">{/* <RestLogo imgSrc={restaurant.logo} /> */}</div>
+      <div className="col-start-3 col-end-8 bg-green-200">b</div>
+    </MainAdminContainer>
+  )
+}
+
+// import { Link, Outlet, useLoaderData } from '@remix-run/react'
+
+// import { type LoaderArgs, json, redirect } from '@remix-run/node'
+
+// import { prisma } from '~/db.server'
+// import { getSession, getUserId } from '~/session.server'
+
+// import MainAdminContainer from '~/components/admin/main-container'
+
+// export const loader = async ({ request }: LoaderArgs) => {
+//   const session = await getSession(request)
+//   const userId = await getUserId(session)
+//   const isAdmin = await prisma.admin.findFirst({
+//     where: {
+//       userId: userId,
+//       access: { gte: 2 },
+//     },
+//     include: {
+//       user: true,
+//       branches: true,
+//       orders: true,
+//       restaurants: true,
+//       tables: true,
+//     },
+//   })
+
+//   if (!isAdmin) {
+//     return redirect(`/unauthorized`)
+//   }
+
+//   // const url = new URL(request.url)
+//   // const searchParams = new URLSearchParams(url.search)
+//   // const restId = searchParams.get('restId')
+
+//   return json({ isAdmin })
+// }
+
+// const MENU_LINKS = [
+//   { name: 'Restaurants', link: 'restaurants' },
+//   { name: 'Orders', link: 'orders' },
+//   { name: 'Branches', link: 'branches' },
+//   { name: 'Tables', link: 'tables' },
+//   { name: 'Users', link: 'users' },
+//   { name: 'Admins', link: 'admins' },
+// ]
+
+// export default function Admin() {
+//   const data = useLoaderData()
+
+//   return (
+//     <MainAdminContainer>
+//       {/* <div className="flex flex-col">
+//         {MENU_LINKS.map(link => (
+//           <Link key={link.name} to={link.link}>
+//             {link.name}
+//           </Link>
+//         ))}
+//       </div> */}
+//       {data.isAdmin.restaurants.map(restaurant => (
+//         <div key={restaurant.id}>
+//           <Link to={`/admin/restaurants/${restaurant.id}`}>{restaurant.name}</Link>
+//         </div>
+//       ))}
+//       <Outlet />
+//     </MainAdminContainer>
+//   )
+// }
