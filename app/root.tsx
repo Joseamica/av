@@ -22,31 +22,32 @@ import Error from './components/util/error'
 import appStylesheetUrl from './styles/app.css'
 import fontStylestylesheetUrl from './styles/font.css'
 
-export const links: LinksFunction = () => [
-  // {
-  //   rel: 'preload',
-  //   as: 'font',
-  //   href: '/fonts/Matter-Medium.woff2',
-  //   type: 'font/woff2',
-  //   crossOrigin: 'anonymous',
-  // },
-  { rel: 'preload', href: fontStylestylesheetUrl, as: 'style' },
-  { rel: 'preload', href: fontStylestylesheetUrl, as: 'style' },
-  { rel: 'preload', href: appStylesheetUrl, as: 'style' },
+export const links: LinksFunction = () =>
+  [
+    // {
+    //   rel: 'preload',
+    //   as: 'font',
+    //   href: '/fonts/Matter-Medium.woff2',
+    //   type: 'font/woff2',
+    //   crossOrigin: 'anonymous',
+    // },
+    { rel: 'preload', href: fontStylestylesheetUrl, as: 'style' },
+    { rel: 'preload', href: appStylesheetUrl, as: 'style' },
+    cssBundleHref ? { rel: 'preload', href: cssBundleHref, as: 'style' } : null,
 
-  // {
-  //   rel: 'preload',
-  //   as: 'font',
-  //   href: '/fonts/Matter-Regular.woff2',
-  //   type: 'font/woff2',
-  //   crossOrigin: 'anonymous',
-  // },
-  { rel: 'stylesheet', href: tailwindStylesheetUrl },
-  { rel: 'stylesheet', href: appStylesheetUrl },
-  { rel: 'stylesheet', href: fontStylestylesheetUrl },
+    // {
+    //   rel: 'preload',
+    //   as: 'font',
+    //   href: '/fonts/Matter-Regular.woff2',
+    //   type: 'font/woff2',
+    //   crossOrigin: 'anonymous',
+    // },
+    { rel: 'stylesheet', href: tailwindStylesheetUrl },
+    { rel: 'stylesheet', href: appStylesheetUrl },
+    { rel: 'stylesheet', href: fontStylestylesheetUrl },
 
-  ...(cssBundleHref ? [{ rel: 'stylesheet', href: cssBundleHref }] : []),
-]
+    ...(cssBundleHref ? [{ rel: 'stylesheet', href: cssBundleHref }] : []),
+  ].filter(Boolean)
 
 function Document({ title, children }: { title?: string; children: React.ReactNode }) {
   const navigation = useNavigation()

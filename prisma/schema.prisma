@@ -209,8 +209,7 @@ model ModifierGroup {
 }
 
 model Admin {
-  id String @id @default(cuid())
-
+  id          String       @id @default(cuid())
   access      Int?
   userId      String
   user        User         @relation(fields: [userId], references: [id])

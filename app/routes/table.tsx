@@ -12,7 +12,7 @@ import { findOrCreateUser } from '~/models/user.server'
 
 import { EVENTS } from '~/events'
 
-import { getIsDvctTokenExpired, getTableIdFromUrl } from '~/utils'
+import { getTableIdFromUrl } from '~/utils'
 
 // * COMPONENTS
 // * CUSTOM COMPONENTS
