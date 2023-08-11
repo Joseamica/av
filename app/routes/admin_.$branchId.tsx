@@ -2,6 +2,7 @@ import { Link, Outlet, useMatches } from '@remix-run/react'
 
 import { type LoaderArgs, json, redirect } from '@remix-run/node'
 
+import { Prisma } from '@prisma/client'
 import clsx from 'clsx'
 import { prisma } from '~/db.server'
 import { getSession, getUserId } from '~/session.server'
@@ -11,31 +12,49 @@ import { isUserAdmin } from '~/models/admin.server'
 import MainAdminContainer from '~/components/admin/main-container'
 
 export async function loader({ request, params }: LoaderArgs) {
+  const { branchId } = params
+
   const session = await getSession(request)
   const userId = await getUserId(session)
   const isAdmin = await isUserAdmin(userId)
+
   if (!isAdmin) {
     return redirect(`/login`)
   }
-  const admin = await prisma.admin.findFirst({
+
+  const branch = await prisma.branch.findFirst({
     where: {
-      userId,
+      id: branchId,
     },
     include: {
-      branches: true,
-      orders: true,
+      employees: true,
+      feedbacks: true,
       tables: true,
-      restaurants: true,
-      user: true,
+      menus: {
+        include: {
+          menuCategories: {
+            include: {
+              menuItems: true,
+            },
+          },
+        },
+      },
+      orders: {
+        include: {
+          cartItems: true,
+        },
+      },
+      payments: true,
+      users: true,
     },
   })
 
-  return json({ admin })
+  return json({ branch })
 }
 
 export default function AdminBranch() {
   const matches = useMatches()
-
+  console.log('useMatches', matches)
   const active = matches.find(match => match.handle)?.handle?.active
 
   // const showRestLogo = matches.find(match => match.handle)?.handle?.showRestLogo
@@ -52,7 +71,7 @@ export default function AdminBranch() {
           </Link>
         ))}
       </div>
-      <div className="col-start-3 col-end-10 ">
+      <div className="col-start-3 col-end-10 p-4">
         <Outlet />
       </div>
     </MainAdminContainer>
@@ -60,6 +79,7 @@ export default function AdminBranch() {
 }
 const MENU_LINKS = [
   // { name: 'Restaurants', link: 'restaurants' },
+  { name: 'Menus', link: 'menus' },
   { name: 'Tables', link: 'tables' },
   { name: 'Orders', link: 'orders' },
   { name: 'Users', link: 'users' },

@@ -19,11 +19,11 @@ export async function action({ request, params }: ActionArgs) {
 }
 
 type RouteLoaderData = {
-  admin: any // Replace with the correct type for 'admin'
+  branch: any // Replace with the correct type for 'admin'
 }
 
 export default function Name() {
-  const { admin } = useRouteLoaderData('routes/admin_.branch') as RouteLoaderData
+  const { branch } = useRouteLoaderData('routes/admin_.$branchId') as RouteLoaderData
 
   return (
     <div className="p-4">
@@ -53,7 +53,7 @@ export default function Name() {
       <HeaderSection addQuery="?addOrder=true" backPath=".." title="Orders" />
       <Spacer size="sm" />
       <div className="flex flex-wrap gap-2 ">
-        {admin.orders.map((order: Order) => (
+        {branch.orders.map((order: Order) => (
           <Container editQuery="?editOrder=true" name={order.id.slice(-4)} accessQuery={`?orderId=${order.id}`} key={order.id} />
         ))}
       </div>

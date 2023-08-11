@@ -48,7 +48,7 @@ model Branch {
   tipsPercentages Decimal[]  @default([10, 12, 15])
   paymentMethods  String[]   @default(["cash", "card"])
   menus           Menu[]
-  table           Table[]
+  tables          Table[]
   orders          Order[]
   users           User[]
   employees       Employee[]
@@ -61,11 +61,11 @@ model Branch {
 
 model Table {
   id                String     @id @default(cuid())
-  table_number      Int
+  number            Int
   floorId           String?
   locationId        String?
   seats             Int?
-  order_in_progress Boolean
+  order_in_progress Boolean    @default(false)
   branch            Branch     @relation(fields: [branchId], references: [id], onDelete: Cascade, onUpdate: Cascade)
   branchId          String
   order             Order?
@@ -217,6 +217,7 @@ model Admin {
   branches    Branch[]
   tables      Table[]
   orders      Order[]
+  employees   Employee[]
 }
 
 model User {
@@ -265,6 +266,8 @@ model Employee {
   feedbacks Feedback[]
   branch    Branch?    @relation(fields: [branchId], references: [id])
   branchId  String?
+  admin     Admin?     @relation(fields: [adminId], references: [id])
+  adminId   String?
 }
 
 enum Role {

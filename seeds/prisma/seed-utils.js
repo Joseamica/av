@@ -62,7 +62,7 @@ async function createTables(branchId, numberOfTables) {
     for (let i = 1; i <= numberOfTables; i++) {
         const table = await db_server_1.prisma.table.create({
             data: {
-                table_number: i,
+                number: i,
                 order_in_progress: false,
                 branch: { connect: { id: branchId } },
                 // employees: {

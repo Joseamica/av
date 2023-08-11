@@ -461,7 +461,7 @@ export async function action({ request, params }: ActionArgs) {
       //     channelOrderId: cuid(),
       //     channelOrderDisplayId: '1234567ABC',
       //     orderType: 3,
-      //     table: String(table.table_number),
+      //     table: String(table.number),
       //   }),
       // }
       // fetch(url, options)

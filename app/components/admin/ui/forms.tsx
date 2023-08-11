@@ -31,10 +31,17 @@ export function Field({
   const fallbackId = useId()
   const id = inputProps.id ?? fallbackId
   const errorId = errors?.length ? `${id}-error` : undefined
+  const errorExist = errors[0] !== undefined
   return (
     <div className={className}>
       <Label htmlFor={id} {...labelProps} />
-      <Input id={id} aria-invalid={errorId ? true : undefined} aria-describedby={errorId} {...inputProps} />
+      <Input
+        id={id}
+        error={errorExist ? true : false}
+        aria-invalid={errorId ? true : undefined}
+        aria-describedby={errorId}
+        {...inputProps}
+      />
       <div className="min-h-[32px] px-4 pb-3 pt-1">{errorId ? <ErrorList id={errorId} errors={errors} /> : null}</div>
     </div>
   )

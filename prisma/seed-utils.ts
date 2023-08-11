@@ -1,5 +1,6 @@
 import { faker } from '@faker-js/faker'
 import { prisma } from '~/db.server'
+
 // const {faker} = require('@faker-js/faker')
 export async function createUsers(totalUsers) {
   console.time(`👤 Created ${totalUsers} users...`)
@@ -62,7 +63,7 @@ export async function createTables(branchId: string, numberOfTables: number) {
   for (let i = 1; i <= numberOfTables; i++) {
     const table = await prisma.table.create({
       data: {
-        table_number: i,
+        number: i,
         order_in_progress: false,
         branch: { connect: { id: branchId } },
         // employees: {
@@ -89,7 +90,8 @@ export function createMenu(branchId: string) {
       name: 'DESAYUNO',
       type: 'breakfast',
       branchId: branchId,
-      image: 'https://firebasestorage.googleapis.com/v0/b/avoqado-d0a24.appspot.com/o/kuikku%2FKuikku%20General.JPG?alt=media&token=e585a90e-59dd-499d-97b6-b059a031ff8b',
+      image:
+        'https://firebasestorage.googleapis.com/v0/b/avoqado-d0a24.appspot.com/o/kuikku%2FKuikku%20General.JPG?alt=media&token=e585a90e-59dd-499d-97b6-b059a031ff8b',
       // allday: true,
       currency: 'eur',
     },

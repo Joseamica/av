@@ -1,16 +1,15 @@
-import {json} from '@remix-run/node'
-import type {LoaderArgs} from '@remix-run/node'
+import { json } from '@remix-run/node'
+import type { LoaderArgs } from '@remix-run/node'
+
 import cuid from 'cuid'
+import { prisma } from '~/db.server'
 
-import {prisma} from '~/db.server'
-import {getTableIdFromUrl} from '~/utils'
+import { getTableIdFromUrl } from '~/utils'
 
-export async function loader({request, params}: LoaderArgs) {
-  const {locationId} = params
+export async function loader({ request, params }: LoaderArgs) {
+  const { locationId } = params
 
-  const token = await prisma.deliverect
-    .findFirst({})
-    .then(res => res?.deliverectToken)
+  const token = await prisma.deliverect.findFirst({}).then(res => res?.deliverectToken)
   console.log('token', token)
   const pathname = new URL(request.url).pathname
   const tableId = getTableIdFromUrl(pathname)
@@ -33,9 +32,9 @@ export async function loader({request, params}: LoaderArgs) {
       const tableNumber = Number(table.id.replace(/\D/g, ''))
 
       await prisma.table.upsert({
-        where: {id: table.id},
+        where: { id: table.id },
         update: {
-          table_number: tableNumber,
+          number: tableNumber,
           floorId: table.floorId,
           seats: table.seats,
           locationId: locationId,
@@ -44,7 +43,7 @@ export async function loader({request, params}: LoaderArgs) {
         create: {
           id: cuid(),
           // id: table.id,
-          table_number: tableNumber,
+          number: tableNumber,
           floorId: table.floorId,
           seats: table.seats,
           locationId: locationId,
@@ -57,7 +56,7 @@ export async function loader({request, params}: LoaderArgs) {
     // return redirect(`/table/${tableId}`, {status: 303})
   } catch (err) {
     console.error('error:' + err)
-    return json({tokenAssign: false}) // Or throw an error, or return some other value indicating the request failed.
+    return json({ tokenAssign: false }) // Or throw an error, or return some other value indicating the request failed.
   }
 }
 //

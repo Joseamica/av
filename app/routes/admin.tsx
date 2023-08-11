@@ -52,7 +52,7 @@ export async function action({ request, params }: ActionArgs) {
   const formData = await request.formData()
   const branchId = formData.get('branchId')
 
-  return redirect(`branch/${branchId}`)
+  return redirect(`${branchId}`)
 }
 
 export default function Admin() {

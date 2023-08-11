@@ -27,7 +27,7 @@ export async function action({ request, params }: ActionArgs) {
     })
     .then(managers => managers.map(manager => manager.phone))
 
-  const sendNotification = SendWhatsApp('14155238886', managers, `Llamada de la mesa ${table?.table_number} test`)
+  const sendNotification = SendWhatsApp('14155238886', managers, `Llamada de la mesa ${table?.number} test`)
 
   // const sendNotification = sendWhatsapp()
 

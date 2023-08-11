@@ -1,7 +1,10 @@
-import {redirect, type ActionArgs} from '@remix-run/node'
-import {Form, useLoaderData, useSearchParams} from '@remix-run/react'
-import {Button, FlexRow, Spacer} from '~/components'
-import {prisma} from '~/db.server'
+import { Form, useLoaderData, useSearchParams } from '@remix-run/react'
+
+import { type ActionArgs, redirect } from '@remix-run/node'
+
+import { prisma } from '~/db.server'
+
+import { Button, FlexRow, Spacer } from '~/components'
 
 // await prisma.menu.create({
 //     data: {
@@ -14,8 +17,8 @@ import {prisma} from '~/db.server'
 //     },
 //   })
 
-export async function action({request, params}: ActionArgs) {
-  const {branchId} = params
+export async function action({ request, params }: ActionArgs) {
+  const { branchId } = params
   const formData = await request.formData()
 
   const _create = formData.get('_create') as string
@@ -43,7 +46,7 @@ export async function action({request, params}: ActionArgs) {
       const number = formData.get('tableNumber') as string
       await prisma.table.create({
         data: {
-          table_number: Number(number),
+          number: Number(number),
           branchId: branchId,
           order_in_progress: false,
         },
@@ -126,33 +129,15 @@ export function AddMenu() {
       <label htmlFor="name" className="capitalize">
         Nombre
       </label>
-      <input
-        type="text"
-        required
-        name="name"
-        id="name"
-        className="dark:bg-DARK_2 dark:ring-DARK_4 w-full rounded-full px-3 dark:ring-1"
-      />
+      <input type="text" required name="name" id="name" className="dark:bg-DARK_2 dark:ring-DARK_4 w-full rounded-full px-3 dark:ring-1" />
       <label htmlFor="type" className="capitalize">
         Tipo de menu
       </label>
-      <input
-        type="text"
-        required
-        name="type"
-        id="type"
-        className="dark:bg-DARK_2 dark:ring-DARK_4 w-full rounded-full px-3 dark:ring-1"
-      />
+      <input type="text" required name="type" id="type" className="dark:bg-DARK_2 dark:ring-DARK_4 w-full rounded-full px-3 dark:ring-1" />
       <label htmlFor="image" className="capitalize">
         Imagen
       </label>
-      <input
-        type="url"
-        required
-        name="image"
-        id="image"
-        className="dark:bg-DARK_2 dark:ring-DARK_4 w-full rounded-full px-3 dark:ring-1"
-      />
+      <input type="url" required name="image" id="image" className="dark:bg-DARK_2 dark:ring-DARK_4 w-full rounded-full px-3 dark:ring-1" />
       <label htmlFor="currency" className="capitalize">
         Moneda
       </label>
@@ -168,13 +153,7 @@ export function AddMenu() {
         <label htmlFor="allDay" className="shrink-0">
           Todo el dia?
         </label>
-        <input
-          type="checkBox"
-          required
-          name="allday"
-          id="allDay"
-          className="dark:bg-DARK_2 dark:ring-DARK_4 w-full "
-        />
+        <input type="checkBox" required name="allday" id="allDay" className="dark:bg-DARK_2 dark:ring-DARK_4 w-full " />
       </FlexRow>
       <Button name="_create" value="menu" fullWith={true}>
         Crear menu

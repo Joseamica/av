@@ -275,3 +275,7 @@ export function getUrl(name: string, pathname: string, params?: { userId?: strin
       return `${menuIdPath}/search`
   }
 }
+
+export function getSearchParams({ request }) {
+  return new URL(request.url).searchParams
+}

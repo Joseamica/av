@@ -1,51 +1,55 @@
-import type { ActionArgs, LoaderArgs } from "@remix-run/node";
-import { Form, useLoaderData } from "@remix-run/react";
-import { json, redirect } from "@remix-run/node";
-import { Button, H2, LinkButton } from "~/components";
-import { prisma } from "~/db.server";
-import { getSession } from "~/session.server";
+import { Form, useLoaderData } from '@remix-run/react'
+
+import type { ActionArgs, LoaderArgs } from '@remix-run/node'
+import { json, redirect } from '@remix-run/node'
+
+import type { Table } from '@prisma/client'
+import { prisma } from '~/db.server'
+import { getSession } from '~/session.server'
+
+import { Button, H2, LinkButton } from '~/components'
 
 export async function loader({ request, params }: LoaderArgs) {
-  const session = await getSession(request);
-  const userId = session.get("userId");
-  const isName = session.has("username");
+  const session = await getSession(request)
+  const userId = session.get('userId')
+  const isName = session.has('username')
   const isAdmin = await prisma.user.findFirst({
     where: {
       id: userId,
-      role: "admin",
+      role: 'admin',
     },
-  });
+  })
 
   if (!isName) {
-    return redirect("/");
+    return redirect('/')
   }
   if (isAdmin) {
-    return redirect("/admin");
+    return redirect('/admin')
   }
-  const tables = await prisma.table.findMany({});
-  return json({ tables });
+  const tables = await prisma.table.findMany({})
+  return json({ tables })
 }
 
 export async function action({ request, params }: ActionArgs) {
-  const session = await getSession(request);
-  const userId = session.get("userId");
+  const session = await getSession(request)
+  const userId = session.get('userId')
 
   const updateUserToAdmin = await prisma.user.update({
     where: { id: userId },
     data: {
-      role: "admin",
+      role: 'admin',
     },
-  });
-  return redirect("/admin");
+  })
+  return redirect('/admin')
 }
 
 export default function Secret() {
-  const data = useLoaderData();
+  const data = useLoaderData()
   return (
     <>
       {data.tables.map((table: Table) => (
         <LinkButton size="small" key={table.id} to={`/table/${table.id}`}>
-          {table.table_number}
+          {table.number}
         </LinkButton>
       ))}
       <Form method="post">
@@ -55,5 +59,5 @@ export default function Secret() {
         <Button type="submit">Submit</Button>
       </Form>
     </>
-  );
+  )
 }

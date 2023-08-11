@@ -1,10 +1,10 @@
-import type {Branch, Table} from '@prisma/client'
-import {prisma} from '~/db.server'
+import type { Branch, Table } from '@prisma/client'
+import { prisma } from '~/db.server'
 
 export function getBranch(tableId: string) {
   return prisma.branch.findFirst({
     where: {
-      table: {
+      tables: {
         some: {
           id: tableId,
         },
@@ -23,18 +23,17 @@ export async function getTipsPercentages(tableId: Table['id']) {
   return (
     prisma.branch
       .findFirst({
-        where: {id: branchId},
-        select: {tipsPercentages: true},
+        where: { id: branchId },
+        select: { tipsPercentages: true },
       })
-      .then(branch => branch?.tipsPercentages) ??
-    {tipsPercentages: ['10', '12', '15']}.tipsPercentages
+      .then(branch => branch?.tipsPercentages) ?? { tipsPercentages: ['10', '12', '15'] }.tipsPercentages
   )
 }
 
 export async function getPaymentMethods(tableId: Table['id']) {
   const branchId = await getBranchId(tableId)
   const result = await prisma.branch.findFirst({
-    where: {id: branchId},
+    where: { id: branchId },
     select: {
       // firstPaymentMethod: true,
       // secondPaymentMethod: true,

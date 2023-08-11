@@ -97,9 +97,11 @@ export function ErrorBoundary() {
     return (
       <div>
         <h1>Oops</h1>
-        <p>Status: {error.status}</p>
-        <p>{error.data.message}</p>
-        <Error title={error.data.message}>
+        <p>
+          Status: {error.status} {error.statusText}
+        </p>
+
+        <Error title={error.data}>
           <h1>Uh oh ...</h1>
           <p>Something went wrong.</p>
         </Error>

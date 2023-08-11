@@ -100,7 +100,7 @@ export default function Table() {
       <motion.main className="pb-4 no-scrollbar">
         <RestaurantInfoCard branch={data.branch} menu={data.menu} error={data.error} />
         <Spacer spaceY="4" />
-        <h3 className="flex justify-center text-sm text-secondaryTextDark shrink-0">{`Mesa ${data.table.table_number}`}</h3>
+        <h3 className="flex justify-center text-sm text-secondaryTextDark shrink-0">{`Mesa ${data.table.number}`}</h3>
         <Spacer spaceY="2" />
         <Help />
         <BillAmount
@@ -150,7 +150,7 @@ export default function Table() {
         branch={data.branch}
         menu={data.menu}
         error={data.error}
-        tableNumber={data.table.table_number}
+        tableNumber={data.table.number}
         usersInTable={data.usersInTable}
         isOrderActive={data.order?.active}
       />

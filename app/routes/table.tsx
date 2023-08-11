@@ -163,7 +163,7 @@ export const ErrorBoundary = () => {
       <main className="bg-night-600">
         <p>No information</p>
         <p>Status: {error.status}</p>
-        <p>{error?.data.message}</p>
+        <p>{error?.data}</p>
       </main>
     )
   }

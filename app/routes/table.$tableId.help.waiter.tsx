@@ -34,12 +34,12 @@ export async function action({ request, params }: ActionArgs) {
       .then(waiters => waiters.map(waiter => waiter.phone))
 
     if (waitersNumbers.length > 0) {
-      SendWhatsApp('14155238886', waitersNumbers, `Te llaman de la mesa ${table?.table_number}`)
+      SendWhatsApp('14155238886', waitersNumbers, `Te llaman de la mesa ${table?.number}`)
     }
   }
 
   // console.dir(
-  //   `CALL ~> Llaman al mesero ${waiters} de la mesa ${table?.table_number}`,
+  //   `CALL ~> Llaman al mesero ${waiters} de la mesa ${table?.number}`,
   // )
 
   return redirect(redirectTo)
@@ -73,7 +73,9 @@ export default function Help() {
               <label className="text-xl" htmlFor={waiter.id}>
                 {waiter.name}
               </label>
-              <span className="rounded-full bg-button-primary px-2 text-sm text-white ring ring-button-outline">{waiter.role ? 'Mesero' : ''}</span>
+              <span className="rounded-full bg-button-primary px-2 text-sm text-white ring ring-button-outline">
+                {waiter.role ? 'Mesero' : ''}
+              </span>
             </FlexRow>
             <input type="checkbox" className="h-5 w-5" name="waiters" id={waiter.id} value={waiter.id} />
           </ItemContainer>

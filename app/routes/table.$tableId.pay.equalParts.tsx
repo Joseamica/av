@@ -60,7 +60,13 @@ export default function EqualParts() {
       title="Dividir en partes iguales"
     >
       <Payment
-        state={{ amountLeft: data.amountLeft, amountToPayState: perPerson, currency: data.currency, paymentMethods: data.paymentMethods, tipsPercentages: data.tipsPercentages }}
+        state={{
+          amountLeft: data.amountLeft,
+          amountToPayState: perPerson,
+          currency: data.currency,
+          paymentMethods: data.paymentMethods,
+          tipsPercentages: data.tipsPercentages,
+        }}
       >
         <Form
           method="POST"
@@ -124,18 +130,19 @@ export default function EqualParts() {
                   <p className="text-md shrink-0 xs:text-xs"> la mesa</p>
                 </div>
 
-                <QuantityManagerButton quantity={personQuantity} setQuantity={setPersonQuantity} setPayingFor={setPayingFor} payingFor={payingFor} activate={activate} />
+                <QuantityManagerButton
+                  quantity={personQuantity}
+                  setQuantity={setPersonQuantity}
+                  setPayingFor={setPayingFor}
+                  payingFor={payingFor}
+                  activate={activate}
+                />
               </div>
 
               {/* <Divider /> */}
               <div className="flex flex-row items-center justify-between space-y-2 ">
                 <p className="text-md xs:text-xs">Pagando por</p>
-                <QuantityManagerButton
-                  quantity={payingFor}
-                  setQuantity={setPayingFor}
-                  // tableNum={table.table_number}
-                  disabledPlus={personQuantity === payingFor}
-                />
+                <QuantityManagerButton quantity={payingFor} setQuantity={setPayingFor} disabledPlus={personQuantity === payingFor} />
               </div>
             </div>
           </div>
@@ -179,7 +186,11 @@ export async function action({ request, params }: ActionArgs) {
   if (payingTotal > Number(amountLeft)) {
     const url = new URL(request.url)
     const pathname = url.pathname
-    return redirect(`/table/${tableId}/pay/confirmExtra?total=${payingTotal}&tip=${tip <= 0 ? Number(payingTotal) * 0.12 : tip}&pMethod=${paymentMethod}&redirectTo=${pathname}`)
+    return redirect(
+      `/table/${tableId}/pay/confirmExtra?total=${payingTotal}&tip=${
+        tip <= 0 ? Number(payingTotal) * 0.12 : tip
+      }&pMethod=${paymentMethod}&redirectTo=${pathname}`,
+    )
   }
 
   const isOrderAmountFullPaid = amountLeft <= payingTotal

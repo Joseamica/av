@@ -4,7 +4,18 @@ import React from 'react'
 
 import { XIcon } from '~/components/icons'
 
-export function QueryDialog({ title, description, children, query, ...props }) {
+export function QueryDialog({
+  title,
+  description,
+  children,
+  query,
+  ...props
+}: {
+  title?: string
+  description?: string
+  children: React.ReactNode
+  query: string
+}) {
   const [searchParams, setSearchParams] = useSearchParams()
   const getQuery = searchParams.get(query)
 
@@ -25,7 +36,7 @@ export function QueryDialog({ title, description, children, query, ...props }) {
         <Dialog.Close className="absolute top-0 right-0 m-3">
           <XIcon />
         </Dialog.Close>
-        <Dialog.Title className="text-mauve12 m-0 text-[17px] font-medium">{title}</Dialog.Title>
+        <Dialog.Title className="text-mauve12 m-0 text-[17px] font-medium">{title ? title : getQuery}</Dialog.Title>
         <Dialog.Description className="text-mauve11 mt-[10px] mb-5 text-[15px] leading-normal">{description}</Dialog.Description>
         {children}
       </Dialog.Content>
