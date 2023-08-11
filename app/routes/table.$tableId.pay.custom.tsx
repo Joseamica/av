@@ -13,9 +13,9 @@ import { getOrder } from '~/models/order.server'
 import { validateCustom } from '~/models/validations.server'
 
 import { getAmountLeftToPay, getCurrency } from '~/utils'
-import { handlePaymentProcessing } from '~/utils/payment-processing.server'
+import { handlePaymentProcessing } from '~/utils/payment/payment-processing.server'
 
-import { Spacer } from '~/components'
+import { Notification, Spacer } from '~/components'
 import { Modal } from '~/components/modal'
 import Payment from '~/components/payment/paymentV3'
 
@@ -23,19 +23,28 @@ export default function CustomPay() {
   const data = useLoaderData()
   const actionData = useActionData()
   const [amountToPay, setAmountToPay] = React.useState(0)
-
-  //todo translate cash,card, a espanol
+  const navigate = useNavigate()
+  const actionResponse = useActionData()
 
   const handleAmountChange = e => {
     setAmountToPay(Number(e.target.value))
   }
-  const navigate = useNavigate()
+
+  if (actionResponse && actionResponse.type === 'PAY_CASH_SUCCESS') {
+    return <Notification message="Pago en efectivo en espera de confirmación" />
+  }
 
   return (
     <Modal onClose={() => navigate('..', { replace: true })} fullScreen={false} title="Pagar un monto personalizado">
       {actionData?.status === 400 && <div>Error message here</div>}
       <Payment
-        state={{ amountLeft: data.amountLeft, amountToPayState: amountToPay, currency: data.currency, paymentMethods: data.paymentMethods, tipsPercentages: data.tipsPercentages }}
+        state={{
+          amountLeft: data.amountLeft,
+          amountToPayState: amountToPay,
+          currency: data.currency,
+          paymentMethods: data.paymentMethods,
+          tipsPercentages: data.tipsPercentages,
+        }}
       >
         <Form method="POST" preventScrollReset>
           <div className="bg-componentBg dark:bg-DARK_0 flex w-full flex-row items-center px-4 py-2  ">
@@ -49,9 +58,12 @@ export default function CustomPay() {
               id="custom"
               inputMode="decimal"
               onChange={handleAmountChange} // Handle input changes
-              className={clsx(`dark:bg-DARK-0 flex h-20 w-full bg-transparent text-6xl placeholder:p-2 placeholder:text-6xl focus:outline-none focus:ring-0`, {
-                'animate-pulse placeholder:text-warning': actionData?.amountToPay,
-              })}
+              className={clsx(
+                `dark:bg-DARK-0 flex h-20 w-full bg-transparent text-6xl placeholder:p-2 placeholder:text-6xl focus:outline-none focus:ring-0`,
+                {
+                  'animate-pulse placeholder:text-warning': actionData?.amountToPay,
+                },
+              )}
               placeholder="0.00"
             />
           </div>
@@ -107,10 +119,18 @@ export async function action({ request, params }: ActionArgs) {
   if (amountLeft && amountLeft < Number(total)) {
     const url = new URL(request.url)
     const pathname = url.pathname
-    return redirect(`/table/${tableId}/pay/confirmExtra?total=${total}&tip=${tip <= 0 ? total * 0.12 : tip}&pMethod=${data.paymentMethod}&redirectTo=${pathname}`)
+    return redirect(
+      `/table/${tableId}/pay/confirmExtra?total=${total}&tip=${tip <= 0 ? total * 0.12 : tip}&pMethod=${
+        data.paymentMethod
+      }&redirectTo=${pathname}`,
+    )
   }
 
   const isOrderAmountFullPaid = amountLeft <= total
+
+  if (data.paymentMethod === 'cash') {
+    return json({ type: 'PAY_CASH_SUCCESS', status: 300 })
+  }
 
   // ANCHOR Stripe component
   const result = await handlePaymentProcessing({

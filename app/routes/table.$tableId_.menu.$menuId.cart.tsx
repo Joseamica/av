@@ -19,7 +19,7 @@ import { getOrderTotal } from '~/models/order.server'
 import { EVENTS } from '~/events'
 
 import { formatCurrency, getAmountLeftToPay, getCurrency } from '~/utils'
-import { handlePaymentProcessing } from '~/utils/payment-processing.server'
+import { handlePaymentProcessing } from '~/utils/payment/payment-processing.server'
 
 import { Button, FlexRow, H2, H3, H4, H5, ItemContainer, Modal, QuantityButton, Spacer, Underline } from '~/components'
 import Payment, { usePayment } from '~/components/payment/paymentV3'

@@ -68,7 +68,13 @@ export function PaymentForm() {
         <Spacer spaceY="1" />
         <AnimatePresence initial={false}>
           {showPayContent && (
-            <motion.div variants={variants} initial="hidden" animate={showPayContent ? 'visible' : 'hidden'} exit="hidden" className="flex flex-col">
+            <motion.div
+              variants={variants}
+              initial="hidden"
+              animate={showPayContent ? 'visible' : 'hidden'}
+              exit="hidden"
+              className="flex flex-col"
+            >
               <hr />
               <Spacer spaceY="2" />
 

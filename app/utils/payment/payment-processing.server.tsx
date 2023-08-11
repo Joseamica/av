@@ -1,5 +1,5 @@
 // PaymentProcessing.js
-import { getDomainUrl, getStripeSession } from './stripe.server'
+import { getDomainUrl, getStripeSession } from '../stripe.server'
 
 import { createQueryString } from '~/utils'
 

@@ -1,4 +1,4 @@
-import { Form, useLoaderData, useNavigate } from '@remix-run/react'
+import { Form, useActionData, useLoaderData, useNavigate } from '@remix-run/react'
 import React, { useState } from 'react'
 
 import type { ActionArgs, LoaderArgs } from '@remix-run/node'
@@ -16,9 +16,9 @@ import { getMenu } from '~/models/menu.server'
 import { getOrder } from '~/models/order.server'
 
 import { formatCurrency, getAmountLeftToPay, getCurrency } from '~/utils'
-import { handlePaymentProcessing } from '~/utils/payment-processing.server'
+import { handlePaymentProcessing } from '~/utils/payment/payment-processing.server'
 
-import { FlexRow, H2, H4, H5, ItemContainer, Modal, SectionContainer } from '~/components'
+import { FlexRow, H2, H4, H5, ItemContainer, Modal, Notification, SectionContainer } from '~/components'
 import Payment from '~/components/payment/paymentV3'
 
 interface User {
@@ -31,6 +31,7 @@ export default function PerPerson() {
   const navigate = useNavigate()
   const data = useLoaderData<typeof loader>()
   const [amountToPay, setAmountToPay] = React.useState(0)
+  const actionResponse = useActionData()
 
   const handleAmountChange = (event: React.ChangeEvent<HTMLInputElement>, amount: number) => {
     if (event.target.checked) {
@@ -50,6 +51,10 @@ export default function PerPerson() {
     }))
   }
 
+  if (actionResponse && actionResponse.type === 'PAY_CASH_SUCCESS') {
+    return <Notification message="Pago en efectivo en espera de confirmación" />
+  }
+
   return (
     <Modal onClose={() => navigate('..')} title="Dividir por usuario">
       <H5 className="px-2 text-end">Selecciona a los usuarios que deseas pagar</H5>
@@ -65,7 +70,11 @@ export default function PerPerson() {
         >
           {Object.values(data.userTotals).length > 0
             ? Object.values(data.userTotals).map(user => (
-                <UserItemContainer key={user.user.id} handleAmountChange={handleAmountChange} {...{ user, handleCollapse, collapsedSections, data }} />
+                <UserItemContainer
+                  key={user.user.id}
+                  handleAmountChange={handleAmountChange}
+                  {...{ user, handleCollapse, collapsedSections, data }}
+                />
               ))
             : null}
 
@@ -229,9 +238,17 @@ export async function action({ request, params }: ActionArgs) {
   if (payingExtra) {
     const url = new URL(request.url)
     const pathname = url.pathname
-    return redirect(`/table/${tableId}/pay/confirmExtra?total=${total}&tip=${tip <= 0 ? total * 0.12 : tip}&pMethod=${data.paymentMethod}&redirectTo=${pathname}`)
+    return redirect(
+      `/table/${tableId}/pay/confirmExtra?total=${total}&tip=${tip <= 0 ? total * 0.12 : tip}&pMethod=${
+        data.paymentMethod
+      }&redirectTo=${pathname}`,
+    )
   }
   const isOrderAmountFullPaid = amountLeft <= total
+
+  if (data.paymentMethod === 'cash') {
+    return json({ type: 'PAY_CASH_SUCCESS', status: 300 })
+  }
 
   const result = await handlePaymentProcessing({
     paymentMethod: data.paymentMethod as string,

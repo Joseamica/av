@@ -1,4 +1,4 @@
-import { Form, useNavigate } from '@remix-run/react'
+import { Form, useActionData, useNavigate } from '@remix-run/react'
 import React from 'react'
 
 import type { ActionArgs, LoaderArgs } from '@remix-run/node'
@@ -16,9 +16,9 @@ import { getMenu } from '~/models/menu.server'
 import { getOrder } from '~/models/order.server'
 
 import { getAmountLeftToPay, getCurrency } from '~/utils'
-import { handlePaymentProcessing } from '~/utils/payment-processing.server'
+import { handlePaymentProcessing } from '~/utils/payment/payment-processing.server'
 
-import { H5, QuantityManagerButton } from '~/components'
+import { H5, Notification, QuantityManagerButton } from '~/components'
 import { Modal } from '~/components/modal'
 import Payment from '~/components/payment/paymentV3'
 
@@ -28,11 +28,12 @@ export default function EqualParts() {
 
   const [personQuantity, setPersonQuantity] = React.useState(2)
   const [activate, setActivate] = React.useState(false)
-  const [perPerson, setPerPerson] = React.useState(Number(data.total))
+  const [perPerson, setPerPerson] = React.useState(Number(data.amountLeft))
   const [payingFor, setPayingFor] = React.useState(1)
+  const actionResponse = useActionData()
 
   React.useEffect(() => {
-    let amountPerPerson = Number(data.total) / personQuantity
+    let amountPerPerson = Number(data.amountLeft) / personQuantity
     let perPerson = amountPerPerson * payingFor
     setPerPerson(perPerson)
 
@@ -53,6 +54,10 @@ export default function EqualParts() {
   let greenedPercent = percentForOne * payingFor - gapSize
   let notGreenedPercent = percentForOne * (personQuantity - payingFor) + gapSize
 
+  if (actionResponse && actionResponse.type === 'PAY_CASH_SUCCESS') {
+    return <Notification message="Pago en efectivo en espera de confirmación" />
+  }
+
   return (
     <Modal
       onClose={() => navigate('..')}
@@ -60,7 +65,13 @@ export default function EqualParts() {
       title="Dividir en partes iguales"
     >
       <Payment
-        state={{ amountLeft: data.amountLeft, amountToPayState: perPerson, currency: data.currency, paymentMethods: data.paymentMethods, tipsPercentages: data.tipsPercentages }}
+        state={{
+          amountLeft: data.amountLeft,
+          amountToPayState: perPerson,
+          currency: data.currency,
+          paymentMethods: data.paymentMethods,
+          tipsPercentages: data.tipsPercentages,
+        }}
       >
         <Form
           method="POST"
@@ -124,7 +135,13 @@ export default function EqualParts() {
                   <p className="text-md shrink-0 xs:text-xs"> la mesa</p>
                 </div>
 
-                <QuantityManagerButton quantity={personQuantity} setQuantity={setPersonQuantity} setPayingFor={setPayingFor} payingFor={payingFor} activate={activate} />
+                <QuantityManagerButton
+                  quantity={personQuantity}
+                  setQuantity={setPersonQuantity}
+                  setPayingFor={setPayingFor}
+                  payingFor={payingFor}
+                  activate={activate}
+                />
               </div>
 
               {/* <Divider /> */}
@@ -179,10 +196,18 @@ export async function action({ request, params }: ActionArgs) {
   if (payingTotal > Number(amountLeft)) {
     const url = new URL(request.url)
     const pathname = url.pathname
-    return redirect(`/table/${tableId}/pay/confirmExtra?total=${payingTotal}&tip=${tip <= 0 ? Number(payingTotal) * 0.12 : tip}&pMethod=${paymentMethod}&redirectTo=${pathname}`)
+    return redirect(
+      `/table/${tableId}/pay/confirmExtra?total=${payingTotal}&tip=${
+        tip <= 0 ? Number(payingTotal) * 0.12 : tip
+      }&pMethod=${paymentMethod}&redirectTo=${pathname}`,
+    )
   }
 
   const isOrderAmountFullPaid = amountLeft <= payingTotal
+
+  if (paymentMethod === 'cash') {
+    return json({ type: 'PAY_CASH_SUCCESS', status: 300 })
+  }
 
   const result = await handlePaymentProcessing({
     paymentMethod: paymentMethod as string,

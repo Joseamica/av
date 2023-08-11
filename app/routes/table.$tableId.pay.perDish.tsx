@@ -1,4 +1,4 @@
-import { Form, useNavigate } from '@remix-run/react'
+import { Form, useActionData, useNavigate } from '@remix-run/react'
 import React from 'react'
 
 import type { ActionArgs, LoaderArgs } from '@remix-run/node'
@@ -16,9 +16,9 @@ import { getMenu } from '~/models/menu.server'
 import { getOrder } from '~/models/order.server'
 
 import { formatCurrency, getAmountLeftToPay, getCurrency } from '~/utils'
-import { handlePaymentProcessing } from '~/utils/payment-processing.server'
+import { handlePaymentProcessing } from '~/utils/payment/payment-processing.server'
 
-import { FlexRow, H3, H4, H5, H6 } from '~/components'
+import { FlexRow, H3, H4, H5, H6, Notification } from '~/components'
 import { ItemContainer } from '~/components/containers/item-container'
 import { Modal } from '~/components/modal'
 import Payment from '~/components/payment/paymentV3'
@@ -54,6 +54,7 @@ const getItemsAndTotalFromFormData = (formData: FormData) => {
 export default function PerDish() {
   const navigate = useNavigate()
   const data = useLiveLoader<LoaderData>()
+  const actionResponse = useActionData()
 
   const [amountToPay, setAmountToPay] = React.useState(0)
 
@@ -65,10 +66,20 @@ export default function PerDish() {
     }
   }
 
+  if (actionResponse && actionResponse.type === 'PAY_CASH_SUCCESS') {
+    return <Notification message="Pago en efectivo en espera de confirmación" />
+  }
+
   return (
     <Modal onClose={() => navigate('..', { replace: true })} title="Dividir por platillo">
       <Payment
-        state={{ amountLeft: data.amountLeft, amountToPayState: amountToPay, currency: data.currency, paymentMethods: data.paymentMethods, tipsPercentages: data.tipsPercentages }}
+        state={{
+          amountLeft: data.amountLeft,
+          amountToPayState: amountToPay,
+          currency: data.currency,
+          paymentMethods: data.paymentMethods,
+          tipsPercentages: data.tipsPercentages,
+        }}
       >
         <Form method="POST" preventScrollReset>
           <H5 className="px-2 text-end">Selecciona los platillos que deseas pagar</H5>
@@ -90,7 +101,12 @@ export default function PerDish() {
                     {item.paid ? (
                       <H6 className="rounded-full p-1 text-success">{`Pagado ${item.paidBy}`}</H6>
                     ) : (
-                      <input type="checkbox" onChange={event => handleAmountChange(event, item.price * item.quantity)} name={`item-${item.id}`} className="h-5 w-5" />
+                      <input
+                        type="checkbox"
+                        onChange={event => handleAmountChange(event, item.price * item.quantity)}
+                        name={`item-${item.id}`}
+                        className="h-5 w-5"
+                      />
                     )}
                     <input type="hidden" name={`price-${item.id}`} value={item.price * item.quantity} />
                   </FlexRow>
@@ -129,10 +145,18 @@ export async function action({ request, params }: ActionArgs) {
   if (amountLeft < total) {
     const url = new URL(request.url)
     const pathname = url.pathname
-    return redirect(`/table/${tableId}/pay/confirmExtra?total=${total}&tip=${tip <= 0 ? total * 0.12 : tip}&pMethod=${data.paymentMethod}&redirectTo=${pathname}`)
+    return redirect(
+      `/table/${tableId}/pay/confirmExtra?total=${total}&tip=${tip <= 0 ? total * 0.12 : tip}&pMethod=${
+        data.paymentMethod
+      }&redirectTo=${pathname}`,
+    )
   }
 
   const isOrderAmountFullPaid = amountLeft <= total
+
+  if (data.paymentMethod === 'cash') {
+    return json({ type: 'PAY_CASH_SUCCESS', status: 300 })
+  }
 
   const result = await handlePaymentProcessing({
     paymentMethod: data.paymentMethod as string,

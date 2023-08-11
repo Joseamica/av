@@ -1,4 +1,4 @@
-import { Form, useNavigate } from '@remix-run/react'
+import { Form, useActionData, useNavigate } from '@remix-run/react'
 
 import type { ActionArgs, LoaderArgs } from '@remix-run/node'
 import { json, redirect } from '@remix-run/node'
@@ -16,9 +16,9 @@ import { getPaidUsers } from '~/models/user.server'
 import { validateFullPay } from '~/models/validations.server'
 
 import { getAmountLeftToPay, getCurrency } from '~/utils'
-import { handlePaymentProcessing } from '~/utils/payment-processing.server'
+import { handlePaymentProcessing } from '~/utils/payment/payment-processing.server'
 
-import { BillAmount, Spacer } from '~/components'
+import { BillAmount, Notification, Spacer } from '~/components'
 import { Modal } from '~/components/modal'
 import Payment from '~/components/payment/paymentV3'
 
@@ -36,14 +36,31 @@ type LoaderData = {
 export default function FullPay() {
   const data = useLiveLoader<LoaderData>()
   const navigate = useNavigate()
+  const actionResponse = useActionData()
+
+  if (actionResponse && actionResponse.type === 'PAY_CASH_SUCCESS') {
+    return <Notification message="Pago en efectivo en espera de confirmación" />
+  }
 
   return (
     <Modal onClose={() => navigate('..')} title="Pagar cuenta completa">
       <Payment
-        state={{ amountLeft: data.amountLeft, amountToPayState: data.total, currency: data.currency, paymentMethods: data.paymentMethods, tipsPercentages: data.tipsPercentages }}
+        state={{
+          amountLeft: data.amountLeft,
+          amountToPayState: data.total,
+          currency: data.currency,
+          paymentMethods: data.paymentMethods,
+          tipsPercentages: data.tipsPercentages,
+        }}
       >
         <div>
-          <BillAmount amountLeft={data.amountLeft} currency={data.currency} paidUsers={data.paidUsers} total={data.total} userId={data.userId} />
+          <BillAmount
+            amountLeft={data.amountLeft}
+            currency={data.currency}
+            paidUsers={data.paidUsers}
+            total={data.total}
+            userId={data.userId}
+          />
           <Spacer spaceY="2" />
           <Form method="POST" preventScrollReset>
             <Payment.Form />
@@ -124,6 +141,10 @@ export async function action({ request, params }: ActionArgs) {
   //FIX this \/
   //@ts-expect-error
   const tip = amountLeft * Number(tipPercentage / 100)
+
+  if (paymentMethod === 'cash') {
+    return json({ type: 'PAY_CASH_SUCCESS', status: 300 })
+  }
 
   const result = await handlePaymentProcessing({
     paymentMethod: paymentMethod as string,
