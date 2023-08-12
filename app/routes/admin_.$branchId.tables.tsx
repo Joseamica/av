@@ -1,16 +1,15 @@
 import { useFetcher, useLoaderData, useRouteLoaderData, useSearchParams } from '@remix-run/react'
 
-import { type ActionArgs, type LoaderArgs, json } from '@remix-run/node'
+import { type ActionArgs, type LoaderArgs, json, redirect } from '@remix-run/node'
 
 import type { Table } from '@prisma/client'
-import { prisma } from '~/db.server'
+import { safeRedirect } from 'remix-utils'
 
-import { getExistingTable } from '~/models/admin/table/table.server'
-import { getTable } from '~/models/table.server'
+import { getTable, handleAddAction, handleDeleteAction, handleEditAction } from '~/models/admin/table/table.server'
 
 import { getSearchParams } from '~/utils'
 
-import { Button, H1, Spacer } from '~/components'
+import { Button, Spacer } from '~/components'
 import Container from '~/components/admin/ui/container'
 import { QueryDialog } from '~/components/admin/ui/dialogs/dialog'
 import { Field } from '~/components/admin/ui/forms'
@@ -19,47 +18,24 @@ import Item from '~/components/admin/ui/item'
 
 export const handle = { active: 'Tables' }
 
-function isValidNumber(number: number) {
-  return number > 0 && !isNaN(number)
-}
-
-function isValidSeats(seats: number) {
-  console.log('seats', seats)
-  return seats > 0 && !isNaN(seats)
-}
-
-function isExistingTable(existingTable: Table | null) {
-  return existingTable === null
-}
-export function validateCreateTables(input: any, existingTable: Table | null) {
-  let validationErrors = {} as any
-
-  if (!isValidNumber(Number(input.number))) {
-    validationErrors.number = 'El numero de mesa debe ser mayor o igual 0'
-  }
-
-  if (!isValidSeats(input.seats)) {
-    validationErrors.seats = 'El numero de asientos debe ser mayor a 0'
-  }
-
-  if (!isExistingTable(existingTable)) {
-    validationErrors.number = 'El numero de mesa ya existe'
-  }
-
-  if (Object.keys(validationErrors).length > 0) {
-    throw validationErrors
-  }
+const ACTIONS = {
+  ADD: 'add',
+  EDIT: 'edit',
+  DELETE: 'del',
 }
 
 export async function loader({ request, params }: LoaderArgs) {
   const searchParams = getSearchParams({ request })
-  const data = Object.fromEntries(searchParams)
+  const searchParamsData = Object.fromEntries(searchParams)
 
-  const tableId = data.access
+  const tableId = searchParamsData.itemId ?? searchParamsData.editItem
+
   if (tableId) {
-    const table = await prisma.table.findFirst({
-      where: { id: tableId },
-      include: { employees: true, feedbacks: true, order: true, users: true },
+    const table = await getTable(tableId, {
+      users: true,
+      order: true,
+      employees: true,
+      feedbacks: true,
     })
 
     return json({ table })
@@ -71,45 +47,45 @@ export async function loader({ request, params }: LoaderArgs) {
 export async function action({ request, params }: ActionArgs) {
   const { branchId } = params
   const formData = await request.formData()
-  const data = Object.fromEntries(formData.entries())
+  const formValues = Object.fromEntries(formData.entries())
+  console.log('data', formValues)
 
-  const existingTable = await getExistingTable(String(data.number), branchId)
+  const searchParams = getSearchParams({ request })
+  const searchParamsValues = Object.fromEntries(searchParams)
+  console.log('searchParamsData', searchParamsValues)
+  const tableId = searchParamsValues.itemId ?? searchParamsValues.editItem
+  const redirectTo = safeRedirect(formData.get('redirectTo'), '')
 
-  try {
-    validateCreateTables(data, existingTable)
-  } catch (error) {
-    console.log('error', error)
-    return error
+  switch (formValues._action) {
+    case ACTIONS.ADD:
+      return handleAddAction(formValues, branchId, redirectTo)
+    case ACTIONS.EDIT:
+      return handleEditAction(tableId, formValues, redirectTo)
+    case ACTIONS.DELETE:
+      return handleDeleteAction(tableId, redirectTo)
+    default:
+      return redirect(redirectTo)
   }
-
-  await prisma.table.create({
-    data: {
-      number: Number(data.number),
-      seats: Number(data.seats),
-      branchId,
-    },
-  })
-  return json({ success: true })
 }
 
 type RouteLoaderData = {
-  branch: any // Replace with the correct type for 'admin'
+  branch: any
 }
 
-export default function Name() {
+export default function Tables() {
   const data = useLoaderData()
-  console.log('data', data)
+
   const { branch } = useRouteLoaderData('routes/admin_.$branchId') as RouteLoaderData
   const fetcher = useFetcher()
-  const [searchParams, setSearchParams] = useSearchParams()
+  const [searchParams] = useSearchParams()
   const errors = fetcher.data
   const isSubmitting = fetcher.state !== 'idle'
-  const access = searchParams.get('access')
+  const itemId = searchParams.get('itemId')
 
-  if (access) {
+  if (itemId) {
     return (
       <div>
-        <HeaderSection backPath="" title="Tables" breadcrumb={access} />
+        <HeaderSection backPath="" title="Tables" breadcrumb={itemId} />
         <Item title="Users" itemToMap={data.table.users} params={['name', 'tip', 'paid', 'total']} />
         <Item title="Employees" itemToMap={data.table.employees} params={['name', 'role']} />
         <Item title="Feedbacks" itemToMap={data.table.feedbacks} params={['name', 'role']} />
@@ -120,15 +96,35 @@ export default function Name() {
 
   return (
     <div>
-      <QueryDialog title="Edit Table" description="Edit the following fields" query="editTable">
-        {/* TODO contenido edit table */}{' '}
-        <QueryDialog title="Edit Table" description="Edit the following fields" query="editTable">
-          {/* TODO contenido edit table */}
-        </QueryDialog>
-      </QueryDialog>
-
-      <QueryDialog description="Edit the following fields" query="tableId">
-        {/* TODO contenido access table */}
+      <QueryDialog title="Edit Table" description="Edit the following fields" query="editItem">
+        <fetcher.Form method="POST">
+          {/* TODO contenido add table */}
+          <Field
+            labelProps={{ htmlFor: 'number', children: 'Table Number' }}
+            inputProps={{
+              id: 'number',
+              type: 'number',
+              name: 'number',
+              defaultValue: data.table?.number,
+              required: true,
+            }}
+            errors={[errors?.number]}
+          />
+          <Field
+            labelProps={{ htmlFor: 'seats', children: '# of Seats' }}
+            inputProps={{
+              id: 'seats',
+              type: 'number',
+              name: 'seats',
+              defaultValue: data.table?.seats,
+              required: true,
+            }}
+            errors={[errors?.seats]}
+          />
+          <Button size="medium" type="submit" variant="secondary" name="_action" value="edit">
+            {isSubmitting ? 'Edit tables...' : 'Edit table'}
+          </Button>
+        </fetcher.Form>
       </QueryDialog>
 
       <QueryDialog title="Add Table" description="Add the following fields" query="addTable">
@@ -156,7 +152,7 @@ export default function Name() {
             }}
             errors={[errors?.seats]}
           />
-          <Button size="medium" type="submit" variant="secondary">
+          <Button size="medium" type="submit" variant="secondary" name="_action" value="add">
             {isSubmitting ? 'Adding tables...' : 'Add table'}
           </Button>
         </fetcher.Form>
@@ -166,7 +162,7 @@ export default function Name() {
       <Spacer size="sm" />
       <div className="flex flex-wrap gap-2 ">
         {branch.tables.map((table: Table) => (
-          <Container editQuery="?editTable=true" name={table.number} accessQuery={`?access=${table.id}`} key={table.id} />
+          <Container editQuery={`?editItem=${table.id}`} name={table.number} itemIdQuery={`?itemId=${table.id}`} key={table.id} />
         ))}
       </div>
     </div>

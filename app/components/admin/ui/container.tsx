@@ -1,11 +1,11 @@
 import { Link } from '@remix-run/react'
 import { FaEdit } from 'react-icons/fa'
 
-export default function Container({ name, accessQuery, editQuery }) {
+export default function Container({ name, itemIdQuery, editQuery }: { name: string | number; itemIdQuery: string; editQuery: string }) {
   return (
     <div className="flex flex-col space-y-2 items-center">
-      <Link to={accessQuery} className="w-24 h-24  flex justify-center items-center bg-white rounded-xl shadow">
-        {name}
+      <Link to={itemIdQuery} className="w-24 h-24  flex justify-center items-center bg-white rounded-xl shadow">
+        {String(name).slice(-4).toUpperCase()}
       </Link>
       <Link
         to={editQuery}

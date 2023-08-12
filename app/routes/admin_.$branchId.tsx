@@ -1,8 +1,7 @@
 import { Link, Outlet, useMatches } from '@remix-run/react'
 
-import { type LoaderArgs, json, redirect } from '@remix-run/node'
+import { type LoaderArgs, type V2_MetaFunction, json, redirect } from '@remix-run/node'
 
-import { Prisma } from '@prisma/client'
 import clsx from 'clsx'
 import { prisma } from '~/db.server'
 import { getSession, getUserId } from '~/session.server'
@@ -54,7 +53,7 @@ export async function loader({ request, params }: LoaderArgs) {
 
 export default function AdminBranch() {
   const matches = useMatches()
-  console.log('useMatches', matches)
+  // console.log('useMatches', matches)
   const active = matches.find(match => match.handle)?.handle?.active
 
   // const showRestLogo = matches.find(match => match.handle)?.handle?.showRestLogo
@@ -89,3 +88,13 @@ const MENU_LINKS = [
   { name: 'Payments', link: 'payments' },
   { name: 'Notifications', link: 'notifications' },
 ]
+
+export const meta: V2_MetaFunction<typeof loader> = ({ data, params }) => {
+  return [
+    { title: `${'a'} | Epic Notes` },
+    {
+      name: 'description',
+      content: `Profile of ${'a'} on Epic Notes`,
+    },
+  ]
+}
