@@ -2,10 +2,17 @@ import { Link } from '@remix-run/react'
 import { FaEdit } from 'react-icons/fa'
 
 export default function Container({ name, itemIdQuery, editQuery }: { name: string | number; itemIdQuery: string; editQuery: string }) {
+  let displayText = ''
+  if (String(name).startsWith('cll')) {
+    displayText = String(name).slice(-4).toUpperCase()
+  } else {
+    displayText = String(name).toUpperCase()
+  }
+
   return (
     <div className="flex flex-col space-y-2 items-center">
-      <Link to={itemIdQuery} className="w-24 h-24  flex justify-center items-center bg-white rounded-xl shadow">
-        {String(name).slice(-4).toUpperCase()}
+      <Link to={itemIdQuery} className="w-24 h-24 flex justify-center items-center bg-white break-all rounded-xl shadow text-sm p-1 ">
+        <div className="text-center ">{displayText}</div>
       </Link>
       <Link
         to={editQuery}

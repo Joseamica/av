@@ -6,8 +6,7 @@ import {
   createDeliverect,
   createEmployees,
   createMenu,
-  createProductsAndModifiers,
-  // createModifiers,
+  createProductsAndModifiers, // createModifiers,
   createRestaurant,
   createTables,
   createUsers,
@@ -26,8 +25,8 @@ async function seed() {
   await createEmployees(branch.id, tableIds)
   const menu = await createMenu(branch.id)
   await createAvailabilities(menu.id)
-  const categories = await createCategories(menu.id)
-  await createProductsAndModifiers(categories)
+  const categories = await createCategories(menu.id, branch.id)
+  await createProductsAndModifiers(categories, branch.id)
 
   // await createModifiers(menu.id)
 }

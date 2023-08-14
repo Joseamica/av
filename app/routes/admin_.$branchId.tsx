@@ -29,6 +29,8 @@ export async function loader({ request, params }: LoaderArgs) {
       employees: true,
       feedbacks: true,
       tables: true,
+      menuCategories: true,
+      menuItems: true,
       menus: {
         include: {
           menuCategories: {

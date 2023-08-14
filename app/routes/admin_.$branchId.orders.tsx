@@ -126,7 +126,7 @@ export default function Orders() {
       <div>
         <HeaderSection backPath="" title="Orders" breadcrumb={itemId} />
 
-        <ItemInfo title="Users" orderObject={data.order} />
+        <ItemInfo title="Users" itemObject={data.order} />
       </div>
     )
   }
@@ -194,7 +194,7 @@ export default function Orders() {
         </fetcher.Form>
       </QueryDialog>
 
-      <QueryDialog title="Add Order" description="Add the following fields" query="addOrder">
+      <QueryDialog title="Add Order" description="Add the following fields" query="addItem">
         <fetcher.Form method="POST">
           {/* TODO contenido add order */}
           <Button size="medium" type="submit" variant="secondary" name="_action" value="add">
@@ -203,7 +203,7 @@ export default function Orders() {
         </fetcher.Form>
       </QueryDialog>
 
-      <HeaderSection addQuery="?addTable=true" backPath=".." title="Orders" />
+      <HeaderSection addQuery="?addItem=true" backPath=".." title="Orders" />
       <Spacer size="sm" />
       <div className="flex flex-wrap gap-2 ">
         {branch.orders.map((order: Order) => (

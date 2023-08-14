@@ -98,7 +98,7 @@ export function createMenu(branchId: string) {
   })
 }
 
-export async function createCategories(menuId: string) {
+export async function createCategories(menuId: string, branchId: string) {
   console.log("🍔 Created the menu's categories...")
   return Promise.all(
     [
@@ -122,13 +122,14 @@ export async function createCategories(menuId: string) {
           pdf: index === 0, // This will be true for the first category and false for the rest
           // nameTranslations: {en},
           imageUrl: AVOQADO_LOGO,
+          branch: { connect: { id: branchId } },
         },
       }),
     ),
   )
 }
 
-export async function createProductsAndModifiers(categories: any) {
+export async function createProductsAndModifiers(categories: any, branchId: string) {
   const modifierGroup = await prisma.modifierGroup.create({
     data: {
       max: 3,
@@ -174,6 +175,7 @@ export async function createProductsAndModifiers(categories: any) {
             available: true,
             menuCategory: { connect: { id: category.id } },
             modifierGroups: { connect: { id: modifierGroup.id } },
+            branch: { connect: { id: branchId } },
           },
         }),
       ),

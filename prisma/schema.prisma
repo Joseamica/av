@@ -24,12 +24,12 @@ model Restaurant {
 }
 
 model Branch {
-  id              String     @id @default(cuid())
+  id              String         @id @default(cuid())
   name            String
   updated         String?
   created         String?
   timezone        String?
-  language        String?    @default("en")
+  language        String?        @default("en")
   ppt_image       String
   email           String
   phone           String?
@@ -42,11 +42,11 @@ model Branch {
   wifiName        String?
   wifipwd         String?
   coordinates     Json?
-  social          Json[]     @default([])
+  social          Json[]         @default([])
   open            Int?
   close           Int?
-  tipsPercentages Decimal[]  @default([10, 12, 15])
-  paymentMethods  String[]   @default(["cash", "card"])
+  tipsPercentages Decimal[]      @default([10, 12, 15])
+  paymentMethods  String[]       @default(["cash", "card"])
   menus           Menu[]
   tables          Table[]
   orders          Order[]
@@ -54,7 +54,9 @@ model Branch {
   employees       Employee[]
   feedbacks       Feedback[]
   payments        Payments[]
-  restaurant      Restaurant @relation(fields: [restaurantId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  menuCategories  MenuCategory[]
+  menuItems       MenuItem[]
+  restaurant      Restaurant     @relation(fields: [restaurantId], references: [id], onDelete: Cascade, onUpdate: Cascade)
   restaurantId    String
   admins          Admin[]
 }
@@ -100,6 +102,8 @@ model Availabilities {
   menu           Menu          @relation(fields: [menuId], references: [id], onDelete: Cascade, onUpdate: Cascade)
   menuCategory   MenuCategory? @relation(fields: [menuCategoryId], references: [id])
   menuCategoryId String?
+  admin          Admin?        @relation(fields: [adminId], references: [id])
+  adminId        String?
 
   @@unique([dayOfWeek, startTime, endTime, menuId])
 }
@@ -117,6 +121,8 @@ model MenuCategory {
   menuId         String
   menu           Menu             @relation(fields: [menuId], references: [id], onDelete: Cascade, onUpdate: Cascade)
   menuItems      MenuItem[]
+  branch         Branch?          @relation(fields: [branchId], references: [id])
+  branchId       String?
 }
 
 model MenuItem {
@@ -131,6 +137,8 @@ model MenuItem {
   menuCategory   MenuCategory?   @relation(fields: [menuCategoryId], references: [id], onDelete: Cascade, onUpdate: Cascade)
   modifierGroups ModifierGroup[]
   cartItems      CartItem[]
+  branch         Branch?         @relation(fields: [branchId], references: [id])
+  branchId       String?
 }
 
 model Order {
@@ -209,15 +217,16 @@ model ModifierGroup {
 }
 
 model Admin {
-  id          String       @id @default(cuid())
-  access      Int?
-  userId      String
-  user        User         @relation(fields: [userId], references: [id])
-  restaurants Restaurant[]
-  branches    Branch[]
-  tables      Table[]
-  orders      Order[]
-  employees   Employee[]
+  id             String           @id @default(cuid())
+  access         Int?
+  userId         String
+  user           User             @relation(fields: [userId], references: [id])
+  restaurants    Restaurant[]
+  branches       Branch[]
+  tables         Table[]
+  orders         Order[]
+  employees      Employee[]
+  availabilities Availabilities[]
 }
 
 model User {

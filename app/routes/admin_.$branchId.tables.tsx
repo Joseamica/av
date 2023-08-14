@@ -127,7 +127,7 @@ export default function Tables() {
         </fetcher.Form>
       </QueryDialog>
 
-      <QueryDialog title="Add Table" description="Add the following fields" query="addTable">
+      <QueryDialog title="Add Table" description="Add the following fields" query="addItem">
         <fetcher.Form method="POST">
           {/* TODO contenido add table */}
           <Field
@@ -158,7 +158,7 @@ export default function Tables() {
         </fetcher.Form>
       </QueryDialog>
 
-      <HeaderSection addQuery="?addTable=true" backPath=".." title="Tables" />
+      <HeaderSection addQuery="?addItem=true" backPath=".." title="Tables" />
       <Spacer size="sm" />
       <div className="flex flex-wrap gap-2 ">
         {branch.tables.map((table: Table) => (
