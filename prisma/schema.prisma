@@ -144,13 +144,13 @@ model MenuCategory {
   pdf            Boolean?         @default(false)
   // descriptionTranslations Json?
   availabilities Availabilities[]
-  menuId         String
-  menu           Menu             @relation(fields: [menuId], references: [id], onDelete: Cascade, onUpdate: Cascade)
-  menuItems      MenuItem[]
-  branch         Branch?          @relation(fields: [branchId], references: [id])
-  branchId       String?
-  adminId        String?          @default("cllb3d9b90003cedclcthud41")
-  admin          Admin?           @relation(fields: [adminId], references: [id])
+
+  menu      Menu[]
+  menuItems MenuItem[]
+  branch    Branch?    @relation(fields: [branchId], references: [id])
+  branchId  String?
+  adminId   String?    @default("cllb3d9b90003cedclcthud41")
+  admin     Admin?     @relation(fields: [adminId], references: [id])
 }
 
 model MenuItem {

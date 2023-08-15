@@ -228,7 +228,7 @@ export async function createAvailabilities(menuId: string) {
         dayOfWeek: i,
         startTime: '05:00',
         endTime: '23:00',
-        menuId: menuId,
+        menu: { connect: { id: menuId } },
       },
     })
   }
@@ -256,6 +256,7 @@ export async function cleanDatabase() {
     'modifiers',
     'cartItem',
     'session',
+    'password',
     'user',
     'order',
     'feedback',

@@ -75,8 +75,6 @@ export async function action({ request, params }: ActionArgs) {
 
   switch (formValues._action) {
     case ACTIONS.ADD:
-      const selectedItemsAsString = formValues.selectedItems.map(id => String(id))
-
       await prisma.menuCategory.create({
         data: {
           name: formValues.name,
@@ -114,6 +112,9 @@ export async function action({ request, params }: ActionArgs) {
           imageUrl: formValues.image && formValues.image,
           pdf: formValues.pdf === 'on',
           description: formValues.description && formValues.description,
+          menu: {
+            connect: { id: formValues.menu },
+          },
           menuItems: {
             connect: connectIds.map(id => ({ id })),
             disconnect: disconnectIds.map(id => ({ id })),
@@ -168,7 +169,7 @@ export default function Categories() {
 
   return (
     <div>
-      <EditCategoryDialog form={form} fields={fields} branchChild={branch.menuItems} dataChild={data.category} />
+      <EditCategoryDialog form={form} fields={fields} branchChild={branch.menuItems} dataChild={data.category} menus={branch.menus} />
       <AddCategoryDialog form={form} fields={fields} branchChild={branch.menuItems} dataChild={data.category} menus={branch.menus} />
 
       <HeaderSection addQuery="?addItem=true" backPath=".." title="Categories" />
