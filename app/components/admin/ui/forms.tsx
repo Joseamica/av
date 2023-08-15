@@ -1,5 +1,5 @@
 import { useInputEvent } from '@conform-to/react'
-import React, { useEffect, useId, useRef } from 'react'
+import React, { useId, useRef } from 'react'
 
 import { Checkbox, type CheckboxProps } from './checkbox'
 import { Input } from './input'

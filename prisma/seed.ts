@@ -1,5 +1,6 @@
 import {
   cleanDatabase,
+  createAdmin,
   createAvailabilities,
   createBranch,
   createCategories,
@@ -17,6 +18,7 @@ async function seed() {
   console.time(`🌱 Database has been seeded`)
 
   await cleanDatabase()
+  await createAdmin()
   await createDeliverect()
   await createUsers(1)
   const restaurant = await createRestaurant()

@@ -1,18 +1,21 @@
-import { useFetcher, useLoaderData, useRouteLoaderData, useSearchParams } from '@remix-run/react'
+import { useForm } from '@conform-to/react'
+import { useActionData, useLoaderData, useRouteLoaderData, useSearchParams } from '@remix-run/react'
 
 import { type ActionArgs, type LoaderArgs, json, redirect } from '@remix-run/node'
 
+import { getFieldsetConstraint, parse } from '@conform-to/zod'
 import type { Table } from '@prisma/client'
 import { safeRedirect } from 'remix-utils'
+import { z } from 'zod'
 
 import { getTable, handleAddAction, handleDeleteAction, handleEditAction } from '~/models/admin/table/table.server'
 
 import { getSearchParams } from '~/utils'
 
-import { Button, Spacer } from '~/components'
+import { Spacer } from '~/components'
+import { AddTableDialog } from '~/components/admin/tables/dialogs/add'
+import { EditTableDialog } from '~/components/admin/tables/dialogs/edit'
 import Container from '~/components/admin/ui/container'
-import { QueryDialog } from '~/components/admin/ui/dialogs/dialog'
-import { Field } from '~/components/admin/ui/forms'
 import HeaderSection from '~/components/admin/ui/header-section'
 import Item from '~/components/admin/ui/item'
 
@@ -23,6 +26,11 @@ const ACTIONS = {
   EDIT: 'edit',
   DELETE: 'del',
 }
+
+const categoriesFormSchema = z.object({
+  number: z.number().min(1).max(100),
+  seats: z.number().min(1).max(100),
+})
 
 export async function loader({ request, params }: LoaderArgs) {
   const searchParams = getSearchParams({ request })
@@ -48,11 +56,10 @@ export async function action({ request, params }: ActionArgs) {
   const { branchId } = params
   const formData = await request.formData()
   const formValues = Object.fromEntries(formData.entries())
-  console.log('data', formValues)
 
   const searchParams = getSearchParams({ request })
   const searchParamsValues = Object.fromEntries(searchParams)
-  console.log('searchParamsData', searchParamsValues)
+
   const tableId = searchParamsValues.itemId ?? searchParamsValues.editItem
   const redirectTo = safeRedirect(formData.get('redirectTo'), '')
 
@@ -74,12 +81,21 @@ type RouteLoaderData = {
 
 export default function Tables() {
   const data = useLoaderData()
+  const actionData = useActionData<typeof action>()
+
+  const [form, fields] = useForm({
+    id: 'tables',
+    constraint: getFieldsetConstraint(categoriesFormSchema),
+    lastSubmission: actionData?.submission ?? data.submission,
+    onValidate({ formData }) {
+      return parse(formData, { schema: categoriesFormSchema })
+    },
+    shouldRevalidate: 'onBlur',
+  })
 
   const { branch } = useRouteLoaderData('routes/admin_.$branchId') as RouteLoaderData
-  const fetcher = useFetcher()
   const [searchParams] = useSearchParams()
-  const errors = fetcher.data
-  const isSubmitting = fetcher.state !== 'idle'
+
   const itemId = searchParams.get('itemId')
 
   if (itemId) {
@@ -96,67 +112,9 @@ export default function Tables() {
 
   return (
     <div>
-      <QueryDialog title="Edit Table" description="Edit the following fields" query="editItem">
-        <fetcher.Form method="POST">
-          {/* TODO contenido add table */}
-          <Field
-            labelProps={{ htmlFor: 'number', children: 'Table Number' }}
-            inputProps={{
-              id: 'number',
-              type: 'number',
-              name: 'number',
-              defaultValue: data.table?.number,
-              required: true,
-            }}
-            errors={[errors?.number]}
-          />
-          <Field
-            labelProps={{ htmlFor: 'seats', children: '# of Seats' }}
-            inputProps={{
-              id: 'seats',
-              type: 'number',
-              name: 'seats',
-              defaultValue: data.table?.seats,
-              required: true,
-            }}
-            errors={[errors?.seats]}
-          />
-          <Button size="medium" type="submit" variant="secondary" name="_action" value="edit">
-            {isSubmitting ? 'Edit tables...' : 'Edit table'}
-          </Button>
-        </fetcher.Form>
-      </QueryDialog>
+      <EditTableDialog form={form} fields={fields} table={data.table} />
 
-      <QueryDialog title="Add Table" description="Add the following fields" query="addItem">
-        <fetcher.Form method="POST">
-          {/* TODO contenido add table */}
-          <Field
-            labelProps={{ htmlFor: 'number', children: 'Table Number' }}
-            inputProps={{
-              id: 'number',
-              type: 'number',
-              name: 'number',
-              defaultValue: 'admin',
-              required: true,
-            }}
-            errors={[errors?.number]}
-          />
-          <Field
-            labelProps={{ htmlFor: 'seats', children: '# of Seats' }}
-            inputProps={{
-              id: 'seats',
-              type: 'number',
-              name: 'seats',
-              defaultValue: 'admin',
-              required: true,
-            }}
-            errors={[errors?.seats]}
-          />
-          <Button size="medium" type="submit" variant="secondary" name="_action" value="add">
-            {isSubmitting ? 'Adding tables...' : 'Add table'}
-          </Button>
-        </fetcher.Form>
-      </QueryDialog>
+      <AddTableDialog form={form} fields={fields} table={data.table} />
 
       <HeaderSection addQuery="?addItem=true" backPath=".." title="Tables" />
       <Spacer size="sm" />

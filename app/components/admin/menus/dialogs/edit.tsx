@@ -4,7 +4,7 @@ import { useFetcher } from '@remix-run/react'
 import { useEffect, useState } from 'react'
 
 import { QueryDialog } from '../../ui/dialogs/dialog'
-import { CheckboxField, Field } from '../../ui/forms'
+import { Field } from '../../ui/forms'
 
 import { Button } from '~/components/ui/buttons/button'
 import { Spacer } from '~/components/util/spacer'
@@ -67,7 +67,7 @@ export function EditMenuDialog({ form, fields, dataChild, branchChild }) {
           }}
           errors={[fields?.image.errors]}
         />
-        <Label>Add products to this category</Label>
+        <Label>Add availabilities</Label>
         <button type="button" onClick={() => setIsOpen(!isOpen)} className="ml-2 text-white bg-zinc-400  text-xs rounded-full px-2 py-1">
           {isOpen ? 'Hide all products' : 'Show all products'}
         </button>
@@ -84,7 +84,9 @@ export function EditMenuDialog({ form, fields, dataChild, branchChild }) {
                     name="selectedItems"
                     value={item.id}
                   />
-                  <H5>{item.name}</H5>
+                  <H5>
+                    {item.dayOfWeek} = {item.startTime} & {item.endTime}
+                  </H5>
                 </label>
               ))}
           </div>

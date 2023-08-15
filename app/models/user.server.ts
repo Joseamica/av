@@ -1,24 +1,26 @@
-import type {Order, Password, Table, User} from '@prisma/client'
+import type { Order, Password, Table, User } from '@prisma/client'
 import bcrypt from 'bcryptjs'
+import { prisma } from '~/db.server'
 
-import {prisma} from '~/db.server'
-
-export type {User} from '@prisma/client'
+export type { User } from '@prisma/client'
 
 export async function getUserById(id: User['id']) {
-  return prisma.user.findUnique({where: {id}})
+  return prisma.user.findUnique({ where: { id } })
 }
 
 export async function getUserByEmail(email: User['email']) {
-  return prisma.user.findUnique({where: {email}})
+  return prisma.user.findUnique({ where: { email } })
 }
 
-export async function createUser(email: User['email'], password: string) {
+export async function createUser(username: User['name'], email: User['email'], password: string, color: string) {
   const hashedPassword = await bcrypt.hash(password, 10)
 
   return prisma.user.create({
     data: {
       email,
+      name: username,
+      color,
+      role: 'user',
       password: {
         create: {
           hash: hashedPassword,
@@ -29,15 +31,12 @@ export async function createUser(email: User['email'], password: string) {
 }
 
 export async function deleteUserByEmail(email: User['email']) {
-  return prisma.user.delete({where: {email}})
+  return prisma.user.delete({ where: { email } })
 }
 
-export async function verifyLogin(
-  email: User['email'],
-  password: Password['hash'],
-) {
+export async function verifyLogin(email: User['email'], password: Password['hash']) {
   const userWithPassword = await prisma.user.findUnique({
-    where: {email},
+    where: { email },
     include: {
       password: true,
     },
@@ -53,16 +52,12 @@ export async function verifyLogin(
     return null
   }
 
-  const {password: _password, ...userWithoutPassword} = userWithPassword
+  const { password: _password, ...userWithoutPassword } = userWithPassword
 
   return userWithoutPassword
 }
 
-export async function findOrCreateUser(
-  userId: User['id'],
-  username: string,
-  user_color?: string,
-) {
+export async function findOrCreateUser(userId: User['id'], username: string, user_color?: string) {
   const user = await prisma.user.findFirst({
     where: {
       id: userId,
@@ -70,10 +65,7 @@ export async function findOrCreateUser(
   })
 
   if (!user && username) {
-    console.log(
-      '✅ Creating from findOrCreateUser func -> user with name:',
-      username,
-    )
+    console.log('✅ Creating from findOrCreateUser func -> user with name:', username)
     return prisma.user.create({
       data: {
         id: userId,
@@ -107,7 +99,7 @@ export async function getPaidUsers(orderId: Order['id']) {
       paid: true,
       tip: true,
       total: true,
-      payments: {where: {orderId}},
+      payments: { where: { orderId } },
     },
   })
   return users.length > 0 ? users : null
@@ -123,13 +115,9 @@ export async function getUsersOnTable(tableId: Table['id']) {
   return users.length > 0 ? users : null
 }
 
-export async function assignUserNewPayments(
-  userId: User['id'],
-  amount: number,
-  tip: number,
-) {
+export async function assignUserNewPayments(userId: User['id'], amount: number, tip: number) {
   const userPrevPaidData = await prisma.user.findUnique({
-    where: {id: userId},
+    where: { id: userId },
     select: {
       total: true,
       tip: true,
@@ -138,7 +126,7 @@ export async function assignUserNewPayments(
   })
 
   return prisma.user.update({
-    where: {id: userId},
+    where: { id: userId },
     data: {
       paid: Number(userPrevPaidData?.paid) + amount,
       tip: Number(userPrevPaidData?.tip) + tip,
@@ -156,8 +144,8 @@ export function cleanUserData(userId: string) {
       tip: 0,
       paid: 0,
       total: 0,
-      orders: {disconnect: true},
-      cartItems: {set: []},
+      orders: { disconnect: true },
+      cartItems: { set: [] },
 
       // tableId: null,
       // tables: {disconnect: true},

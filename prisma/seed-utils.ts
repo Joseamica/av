@@ -2,6 +2,16 @@ import { faker } from '@faker-js/faker'
 import { prisma } from '~/db.server'
 
 // const {faker} = require('@faker-js/faker')
+
+export function createAdmin() {
+  console.log('👤 Created the admin...')
+  return prisma.admin.create({
+    data: {
+      id: 'cllb3d9b90003cedclcthud41',
+      access: 3,
+    },
+  })
+}
 export async function createUsers(totalUsers) {
   console.time(`👤 Created ${totalUsers} users...`)
   for (let i = 0; i < totalUsers; i++) {
@@ -234,6 +244,7 @@ export function createDeliverect() {
 export async function cleanDatabase() {
   console.time('🧹 Cleaned up the database...')
   const tablesToClean = [
+    'admin',
     'restaurant',
     'branch',
     'table',

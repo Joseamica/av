@@ -3,7 +3,11 @@ import { prisma } from '~/db.server'
 export function isUserAdmin(userId: string) {
   return prisma.admin.findFirst({
     where: {
-      userId: userId,
+      user: {
+        some: {
+          id: userId,
+        },
+      },
       access: { gte: 2 },
     },
   })

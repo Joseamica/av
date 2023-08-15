@@ -1,4 +1,4 @@
-import { Link, isRouteErrorResponse, useLoaderData, useMatches, useRouteError } from '@remix-run/react'
+import { Link, isRouteErrorResponse, useLoaderData, useRouteError } from '@remix-run/react'
 import { FaEdit } from 'react-icons/fa'
 
 import { type ActionArgs, type LoaderArgs, json, redirect } from '@remix-run/node'
@@ -23,11 +23,7 @@ export const loader = async ({ request }: LoaderArgs) => {
 
   const restaurants = await prisma.restaurant.findMany({
     where: {
-      admins: {
-        some: {
-          id: isAdmin.id,
-        },
-      },
+      adminId: isAdmin.id,
     },
   })
 

@@ -1,5 +1,5 @@
-import { conform, useForm } from '@conform-to/react'
-import { useActionData, useFetcher, useLoaderData, useRouteLoaderData, useSearchParams } from '@remix-run/react'
+import { useForm } from '@conform-to/react'
+import { useActionData, useLoaderData, useRouteLoaderData, useSearchParams } from '@remix-run/react'
 
 import { type ActionArgs, type LoaderArgs, json, redirect } from '@remix-run/node'
 
@@ -14,10 +14,9 @@ import { getOrder } from '~/models/admin/order/order.server'
 import { getSearchParams } from '~/utils'
 import { checkboxSchema } from '~/utils/zod-extensions'
 
-import { Button, Spacer } from '~/components'
+import { Spacer } from '~/components'
+import { EditOrderDialog } from '~/components/admin/orders/dialogs/edit'
 import Container from '~/components/admin/ui/container'
-import { QueryDialog } from '~/components/admin/ui/dialogs/dialog'
-import { CheckboxField, Field } from '~/components/admin/ui/forms'
 import HeaderSection from '~/components/admin/ui/header-section'
 import ItemInfo from '~/components/admin/ui/selected-item-info'
 
@@ -100,7 +99,6 @@ type RouteLoaderData = {
 export default function Orders() {
   const data = useLoaderData()
   const actionData = useActionData<typeof action>()
-  const fetcher = useFetcher()
 
   const [form, fields] = useForm({
     id: 'orders',
@@ -114,17 +112,15 @@ export default function Orders() {
   })
 
   const { branch } = useRouteLoaderData('routes/admin_.$branchId') as RouteLoaderData
-  // console.log('branch', branch)
+
   const [searchParams] = useSearchParams()
-  const errors = fetcher.data
-  const isSubmitting = fetcher.state !== 'idle'
+
   const itemId = searchParams.get('itemId')
-  console.log('data.order', data.order)
 
   if (itemId) {
     return (
       <div>
-        <HeaderSection backPath="" title="Orders" breadcrumb={itemId} />
+        <HeaderSection backPath="" title="Orders" breadcrumb={itemId} showAdd={false} />
 
         <ItemInfo title="Users" itemObject={data.order} />
       </div>
@@ -133,77 +129,9 @@ export default function Orders() {
 
   return (
     <div>
-      <QueryDialog title="Edit Order" description="Edit the following fields" query="editItem">
-        <fetcher.Form method="POST" {...form.props}>
-          {/* TODO contenido add table */}
-          <Field
-            labelProps={{ htmlFor: fields.tip.id, children: 'Tip' }}
-            inputProps={{
-              ...conform.input(fields.tip, { type: 'number' }),
-              autoComplete: data.order?.tip ?? 0,
-              defaultValue: data.order?.tip ?? 0,
-            }}
-            errors={[fields?.tip.errors]}
-          />
-          <CheckboxField
-            labelProps={{ htmlFor: 'paid', children: 'Order is paid?' }}
-            buttonProps={{
-              ...conform.input(fields.paid, { type: 'checkbox' }),
-              defaultChecked: data.order?.paid ?? false,
-            }}
-            errors={fields.paid.errors}
-          />
-          <Field
-            labelProps={{ htmlFor: fields.total.id, children: 'Total amount' }}
-            inputProps={{
-              ...conform.input(fields.total, { type: 'number' }),
-              autoComplete: data.order?.total ?? 0,
-              defaultValue: data.order?.total ?? 0,
-            }}
-            errors={[fields?.total.errors]}
-          />
-          <Field
-            labelProps={{ htmlFor: 'creationDate', children: 'creationDate' }}
-            inputProps={{
-              ...conform.input(fields.creationDate, { type: 'date' }),
-              defaultValue: data.order?.creationDate ? new Date(data.order.creationDate).toISOString().split('T')[0] : '',
-            }}
-            errors={[errors?.paid]}
-          />
-          {data.order?.paid && (
-            <Field
-              labelProps={{ htmlFor: 'paidDate', children: 'paidDate' }}
-              inputProps={{
-                ...conform.input(fields.paidDate, { type: 'date' }),
-                defaultValue: data.order?.paidDate ? new Date(data.order.paidDate).toISOString().split('T')[0] : '',
-              }}
-              errors={[errors?.paid]}
-            />
-          )}
-          <CheckboxField
-            labelProps={{ htmlFor: 'active', children: 'Order is active?' }}
-            buttonProps={{
-              ...conform.input(fields.active, { type: 'checkbox' }),
-              defaultChecked: data.order?.active ?? false,
-            }}
-            errors={fields.active.errors}
-          />
-          <Button size="medium" type="submit" variant="secondary" name="_action" value="edit">
-            {isSubmitting ? 'Edit order...' : 'Edit order'}
-          </Button>
-        </fetcher.Form>
-      </QueryDialog>
+      <EditOrderDialog form={form} fields={fields} order={data.order} />
 
-      <QueryDialog title="Add Order" description="Add the following fields" query="addItem">
-        <fetcher.Form method="POST">
-          {/* TODO contenido add order */}
-          <Button size="medium" type="submit" variant="secondary" name="_action" value="add">
-            {isSubmitting ? 'Adding tables...' : 'Add table'}
-          </Button>
-        </fetcher.Form>
-      </QueryDialog>
-
-      <HeaderSection addQuery="?addItem=true" backPath=".." title="Orders" />
+      <HeaderSection addQuery="?addItem=true" backPath=".." title="Orders" showAdd={false} />
       <Spacer size="sm" />
       <div className="flex flex-wrap gap-2 ">
         {branch.orders.map((order: Order) => (

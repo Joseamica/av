@@ -4,6 +4,7 @@ import { useActionData, useLoaderData, useRouteLoaderData, useSearchParams } fro
 import { type ActionArgs, type LoaderArgs, json, redirect } from '@remix-run/node'
 
 import { getFieldsetConstraint, parse } from '@conform-to/zod'
+import { type } from 'node:os'
 import { safeRedirect } from 'remix-utils'
 import { z } from 'zod'
 import { prisma } from '~/db.server'
@@ -13,7 +14,7 @@ import { checkboxSchema } from '~/utils/zod-extensions'
 
 import { Spacer } from '~/components'
 import { AddCategoryDialog } from '~/components/admin/categories/dialogs/add'
-import { EditCategoryDialog } from '~/components/admin/categories/dialogs/edit'
+import { AddMenuDialog } from '~/components/admin/menus/dialogs/add'
 import { EditMenuDialog } from '~/components/admin/menus/dialogs/edit'
 import Container from '~/components/admin/ui/container'
 import HeaderSection from '~/components/admin/ui/header-section'
@@ -22,11 +23,10 @@ import ItemInfo from '~/components/admin/ui/selected-item-info'
 type FormValues = {
   _action: 'add' | 'edit' | 'del' | string // other possible values
   name: string
+  type: string
   image: string
-  pdf: string
-  description: string
+  currency: string
   selectedItems: FormDataEntryValue[]
-  menu: string
   // other properties as needed...
 }
 export const handle = { active: 'Menus' }
@@ -78,8 +78,32 @@ export async function action({ request, params }: ActionArgs) {
     case ACTIONS.ADD:
       return redirect(redirectTo)
     case ACTIONS.EDIT:
-      // Fetch the current category to get the existing selected items
+      const currentCategory = await prisma.menu.findUnique({
+        where: { id: menuId },
+        include: { availabilities: true },
+      })
 
+      // Extract the existing selected item IDs
+      const prevSelectedItems = currentCategory?.availabilities.map(item => item.id) || []
+
+      // Determine the items to connect and disconnect
+      const connectIds = formValues.selectedItems.filter(id => !prevSelectedItems.includes(String(id))).map(id => String(id))
+      const disconnectIds = prevSelectedItems.filter(id => !formValues.selectedItems.includes(id)).map(id => String(id))
+
+      // Fetch the current category to get the existing selected items
+      await prisma.menu.update({
+        where: { id: menuId },
+        data: {
+          name: formValues.name,
+          type: formValues.type,
+          currency: formValues.currency,
+          image: formValues.image,
+          availabilities: {
+            connect: connectIds.map(id => ({ id })),
+            disconnect: disconnectIds.map(id => ({ id })),
+          },
+        },
+      })
       return redirect(redirectTo)
 
     case ACTIONS.DELETE:
@@ -111,6 +135,7 @@ export default function Menus() {
   })
 
   const { branch } = useRouteLoaderData('routes/admin_.$branchId') as RouteLoaderData
+  console.log('branch', branch)
 
   const [searchParams] = useSearchParams()
 
@@ -120,7 +145,6 @@ export default function Menus() {
     return (
       <div>
         <HeaderSection backPath="" title="Menus" breadcrumb={itemId} />
-
         <ItemInfo title="Menu" itemObject={data.menu} />
       </div>
     )
@@ -129,7 +153,7 @@ export default function Menus() {
   return (
     <div>
       <EditMenuDialog form={form} fields={fields} branchChild={branch.availabilities} dataChild={data.menu} />
-      <AddCategoryDialog form={form} fields={fields} branchChild={branch.menuItems} dataChild={data.category} menus={branch.menus} />
+      <AddMenuDialog form={form} fields={fields} branchChild={branch.availabilities} dataChild={data.category} />
 
       <HeaderSection addQuery="?addItem=true" backPath=".." title="Menus" />
       <Spacer size="sm" />

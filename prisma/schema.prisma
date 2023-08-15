@@ -7,6 +7,26 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+model Admin {
+  id             String           @id @default("cllb3d9b90003cedclcthud41")
+  access         Int?
+  user           User[]
+  restaurants    Restaurant[]
+  branches       Branch[]
+  tables         Table[]
+  orders         Order[]
+  employees      Employee[]
+  availabilities Availabilities[]
+  feedbacks      Feedback[]
+  menuCategories MenuCategory[]
+  menuItems      MenuItem[]
+  modifierGroups ModifierGroup[]
+  modifiers      Modifiers[]
+  cartItems      CartItem[]
+  payments       Payments[]
+  menus          Menu[]
+}
+
 model Restaurant {
   id            String   @id @default(cuid())
   name          String
@@ -20,7 +40,8 @@ model Restaurant {
   adminEmail    String?
   branches      Branch[]
   User          User[]
-  admins        Admin[]
+  adminId       String?  @default("cllb3d9b90003cedclcthud41")
+  admin         Admin?   @relation(fields: [adminId], references: [id])
 }
 
 model Branch {
@@ -58,7 +79,8 @@ model Branch {
   menuItems       MenuItem[]
   restaurant      Restaurant     @relation(fields: [restaurantId], references: [id], onDelete: Cascade, onUpdate: Cascade)
   restaurantId    String
-  admins          Admin[]
+  adminId         String?        @default("cllb3d9b90003cedclcthud41")
+  admin           Admin?         @relation(fields: [adminId], references: [id])
 }
 
 model Table {
@@ -74,7 +96,8 @@ model Table {
   users             User[]
   employees         Employee[]
   feedbacks         Feedback[]
-  admins            Admin[]
+  adminId           String?    @default("cllb3d9b90003cedclcthud41")
+  admin             Admin?     @relation(fields: [adminId], references: [id])
 }
 
 model Menu {
@@ -91,6 +114,9 @@ model Menu {
   personalizeMenu Boolean?         @default(false)
   image           String?
   availabilities  Availabilities[]
+  adminId         String?          @default("cllb3d9b90003cedclcthud41")
+  // automatically add table also on admin model
+  admin           Admin?           @relation(fields: [adminId], references: [id])
 }
 
 model Availabilities {
@@ -98,12 +124,12 @@ model Availabilities {
   dayOfWeek      Int?
   startTime      String?
   endTime        String?
-  menuId         String
-  menu           Menu          @relation(fields: [menuId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  menuId         String?
+  menu           Menu?         @relation(fields: [menuId], references: [id], onDelete: Cascade, onUpdate: Cascade)
   menuCategory   MenuCategory? @relation(fields: [menuCategoryId], references: [id])
   menuCategoryId String?
+  adminId        String?       @default("cllb3d9b90003cedclcthud41")
   admin          Admin?        @relation(fields: [adminId], references: [id])
-  adminId        String?
 
   @@unique([dayOfWeek, startTime, endTime, menuId])
 }
@@ -123,6 +149,8 @@ model MenuCategory {
   menuItems      MenuItem[]
   branch         Branch?          @relation(fields: [branchId], references: [id])
   branchId       String?
+  adminId        String?          @default("cllb3d9b90003cedclcthud41")
+  admin          Admin?           @relation(fields: [adminId], references: [id])
 }
 
 model MenuItem {
@@ -139,6 +167,8 @@ model MenuItem {
   cartItems      CartItem[]
   branch         Branch?         @relation(fields: [branchId], references: [id])
   branchId       String?
+  adminId        String?         @default("cllb3d9b90003cedclcthud41")
+  admin          Admin?          @relation(fields: [adminId], references: [id])
 }
 
 model Order {
@@ -157,7 +187,8 @@ model Order {
   branchId     String?
   cartItems    CartItem[]
   payments     Payments[]
-  admins       Admin[]
+  adminId      String?    @default("cllb3d9b90003cedclcthud41")
+  admin        Admin?     @relation(fields: [adminId], references: [id])
 }
 
 model CartItem {
@@ -182,6 +213,8 @@ model CartItem {
   user          User[]
   activeOnOrder Boolean?
   rating        String?
+  adminId       String?     @default("cllb3d9b90003cedclcthud41")
+  admin         Admin?      @relation(fields: [adminId], references: [id])
 }
 
 model Modifiers {
@@ -196,6 +229,8 @@ model Modifiers {
   modifierGroupId         String?
   cartItems               CartItem[]
   cartItemId              String?
+  adminId                 String?        @default("cllb3d9b90003cedclcthud41")
+  admin                   Admin?         @relation(fields: [adminId], references: [id])
 }
 
 model ModifierGroup {
@@ -214,19 +249,8 @@ model ModifierGroup {
   modifiers           Modifiers[]
   menuItems           MenuItem[]
   cartItemId          String?
-}
-
-model Admin {
-  id             String           @id @default(cuid())
-  access         Int?
-  userId         String
-  user           User             @relation(fields: [userId], references: [id])
-  restaurants    Restaurant[]
-  branches       Branch[]
-  tables         Table[]
-  orders         Order[]
-  employees      Employee[]
-  availabilities Availabilities[]
+  adminId             String?     @default("cllb3d9b90003cedclcthud41")
+  admin               Admin?      @relation(fields: [adminId], references: [id])
 }
 
 model User {
@@ -255,7 +279,8 @@ model User {
   payments     Payments[]
   restaurant   Restaurant? @relation(fields: [restaurantId], references: [id])
   restaurantId String?
-  admins       Admin[]
+  adminId      String?
+  admin        Admin?      @relation(fields: [adminId], references: [id])
 }
 
 model Password {
@@ -275,8 +300,8 @@ model Employee {
   feedbacks Feedback[]
   branch    Branch?    @relation(fields: [branchId], references: [id])
   branchId  String?
+  adminId   String?    @default("cllb3d9b90003cedclcthud41")
   admin     Admin?     @relation(fields: [adminId], references: [id])
-  adminId   String?
 }
 
 enum Role {
@@ -300,6 +325,8 @@ model Feedback {
   cartItems    CartItem[]
   user         User?      @relation(fields: [userId], references: [id])
   userId       String?
+  adminId      String?    @default("cllb3d9b90003cedclcthud41")
+  admin        Admin?     @relation(fields: [adminId], references: [id])
 }
 
 model Session {
@@ -323,6 +350,8 @@ model Payments {
   order     Order?        @relation(fields: [orderId], references: [id])
   userId    String?
   user      User?         @relation(fields: [userId], references: [id])
+  adminId   String?       @default("cllb3d9b90003cedclcthud41")
+  admin     Admin?        @relation(fields: [adminId], references: [id])
 }
 
 enum PaymentMethod {

@@ -21,14 +21,17 @@ export async function loader({ request, params }: LoaderArgs) {
     return redirect(`/login`)
   }
 
-  const branch = await prisma.branch.findFirst({
+  const admin = await prisma.admin.findFirst({
     where: {
-      id: branchId,
+      access: { gte: 2 },
+      branches: {
+        some: {
+          id: branchId,
+        },
+      },
     },
     include: {
-      employees: true,
-      feedbacks: true,
-      tables: true,
+      availabilities: true,
       menuCategories: true,
       menuItems: true,
       menus: {
@@ -46,9 +49,14 @@ export async function loader({ request, params }: LoaderArgs) {
         },
       },
       payments: true,
-      users: true,
+      feedbacks: true,
+      tables: true,
+      employees: true,
+      branches: true,
     },
   })
+
+  const branch = admin
 
   return json({ branch })
 }

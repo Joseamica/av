@@ -1,166 +1,154 @@
-import type { ActionArgs, LoaderArgs, V2_MetaFunction } from "@remix-run/node";
-import { json, redirect } from "@remix-run/node";
-import { Form, Link, useActionData, useSearchParams } from "@remix-run/react";
-import { useEffect, useRef } from "react";
+import { conform, useForm } from '@conform-to/react'
+import { Form, useActionData, useFormAction, useNavigation } from '@remix-run/react'
 
-import { createUser, getUserByEmail } from "~/models/user.server";
-import { createUserSession, getUserId } from "~/session.server";
-import { safeRedirect, validateEmail } from "~/utils";
+import { type DataFunctionArgs, type LoaderArgs, type V2_MetaFunction, json } from '@remix-run/node'
 
-export const loader = async ({ request }: LoaderArgs) => {
-  const userId = await getUserId(request);
-  if (userId) return redirect("/");
-  return json({});
-};
+import { getFieldsetConstraint, parse } from '@conform-to/zod'
+import { z } from 'zod'
+import { prisma } from '~/db.server'
+import { createUserSession } from '~/session.server'
 
-export const action = async ({ request }: ActionArgs) => {
-  const formData = await request.formData();
-  const email = formData.get("email");
-  const password = formData.get("password");
-  const redirectTo = safeRedirect(formData.get("redirectTo"), "/");
+import { createUser } from '~/models/user.server'
 
-  if (!validateEmail(email)) {
-    return json(
-      { errors: { email: "Email is invalid", password: null } },
-      { status: 400 }
-    );
+import { getRandomColor, safeRedirect } from '~/utils'
+import { emailSchema, passwordSchema, usernameSchema } from '~/utils/user-validation'
+
+import { ErrorList, Field } from '~/components/admin/ui/forms'
+import { StatusButton } from '~/components/ui/buttons/status-button'
+
+const signupSchema = z.object({
+  username: usernameSchema,
+  password: passwordSchema,
+  email: emailSchema,
+  color: z.string().optional(),
+})
+
+export const meta: V2_MetaFunction = () => {
+  return [{ title: 'Sign Up | Epic Notes' }]
+}
+
+export async function loader({ request, params }: LoaderArgs) {
+  return json({ success: true })
+}
+export async function action({ request }: DataFunctionArgs) {
+  const formData = await request.formData()
+  const redirectTo = safeRedirect(formData.get('redirectTo'), '/')
+
+  const submission = await parse(formData, {
+    schema: () => {
+      return signupSchema.superRefine(async (data, ctx) => {
+        const existingUser = await prisma.user.findUnique({
+          where: { email: data.email },
+          select: { id: true },
+        })
+        if (existingUser) {
+          ctx.addIssue({
+            path: ['email'],
+            code: z.ZodIssueCode.custom,
+            message: 'A user already exists with this email',
+          })
+          return
+        }
+      })
+    },
+    // acceptMultipleErrors: () => true,
+    async: true,
+  })
+
+  if (submission.intent !== 'submit') {
+    return json({ status: 'idle', submission } as const)
   }
-
-  if (typeof password !== "string" || password.length === 0) {
-    return json(
-      { errors: { email: null, password: "Password is required" } },
-      { status: 400 }
-    );
-  }
-
-  if (password.length < 8) {
-    return json(
-      { errors: { email: null, password: "Password is too short" } },
-      { status: 400 }
-    );
-  }
-
-  const existingUser = await getUserByEmail(email);
-  if (existingUser) {
+  if (!submission.value) {
     return json(
       {
-        errors: {
-          email: "A user already exists with this email",
-          password: null,
-        },
-      },
-      { status: 400 }
-    );
+        status: 'error',
+        submission,
+      } as const,
+      { status: 400 },
+    )
   }
-
-  const user = await createUser(email, password);
+  console.log('submission', submission)
+  const user = await createUser(submission.value.username, submission.value.email, submission.value.password, submission.value.color)
 
   return createUserSession({
     redirectTo,
     remember: false,
     request,
     userId: user.id,
-  });
-};
+  })
+}
 
-export const meta: V2_MetaFunction = () => [{ title: "Sign Up" }];
+export default function Name() {
+  const actionData = useActionData()
+  const formAction = useFormAction()
+  const navigation = useNavigation()
+  const isSubmitting = navigation.formAction === formAction
+  const [form, fields] = useForm({
+    id: 'signup-form',
+    constraint: getFieldsetConstraint(signupSchema),
+    lastSubmission: actionData?.submission,
+    onValidate({ formData }) {
+      const result = parse(formData, { schema: signupSchema })
+      return result
+    },
+    shouldRevalidate: 'onBlur',
+  })
 
-export default function Join() {
-  const [searchParams] = useSearchParams();
-  const redirectTo = searchParams.get("redirectTo") ?? undefined;
-  const actionData = useActionData<typeof action>();
-  const emailRef = useRef<HTMLInputElement>(null);
-  const passwordRef = useRef<HTMLInputElement>(null);
-
-  useEffect(() => {
-    if (actionData?.errors?.email) {
-      emailRef.current?.focus();
-    } else if (actionData?.errors?.password) {
-      passwordRef.current?.focus();
-    }
-  }, [actionData]);
+  const randomColor = getRandomColor()
 
   return (
-    <div className="flex min-h-full flex-col justify-center">
-      <div className="mx-auto w-full max-w-md px-8">
-        <Form method="post" className="space-y-6">
-          <div>
-            <label
-              htmlFor="email"
-              className="block text-sm font-medium text-gray-700"
-            >
-              Email address
-            </label>
-            <div className="mt-1">
-              <input
-                ref={emailRef}
-                id="email"
-                required
-                autoFocus={true}
-                name="email"
-                type="email"
-                autoComplete="email"
-                aria-invalid={actionData?.errors?.email ? true : undefined}
-                aria-describedby="email-error"
-                className="w-full rounded border border-gray-500 px-2 py-1 text-lg"
-              />
-              {actionData?.errors?.email ? (
-                <div className="pt-1 text-red-700" id="email-error">
-                  {actionData.errors.email}
-                </div>
-              ) : null}
-            </div>
-          </div>
-
-          <div>
-            <label
-              htmlFor="password"
-              className="block text-sm font-medium text-gray-700"
-            >
-              Password
-            </label>
-            <div className="mt-1">
-              <input
-                id="password"
-                ref={passwordRef}
-                name="password"
-                type="password"
-                autoComplete="new-password"
-                aria-invalid={actionData?.errors?.password ? true : undefined}
-                aria-describedby="password-error"
-                className="w-full rounded border border-gray-500 px-2 py-1 text-lg"
-              />
-              {actionData?.errors?.password ? (
-                <div className="pt-1 text-red-700" id="password-error">
-                  {actionData.errors.password}
-                </div>
-              ) : null}
-            </div>
-          </div>
-
-          <input type="hidden" name="redirectTo" value={redirectTo} />
-          <button
-            type="submit"
-            className="w-full rounded bg-blue-500 px-4 py-2 text-white hover:bg-blue-600 focus:bg-blue-400"
-          >
-            Create Account
-          </button>
-          <div className="flex items-center justify-center">
-            <div className="text-center text-sm text-gray-500">
-              Already have an account?{" "}
-              <Link
-                className="text-blue-500 underline"
-                to={{
-                  pathname: "/login",
-                  search: searchParams.toString(),
-                }}
-              >
-                Log in
-              </Link>
-            </div>
-          </div>
-        </Form>
+    <div className="container mx-auto flex flex-col justify-center pb-32 pt-20">
+      <div className="text-center">
+        <h1 className="text-5xl">Let's start your journey!</h1>
+        <p className="mt-3 text-body-md text-muted-foreground">Please enter your email.</p>
       </div>
+      <Form method="POST" className="mx-auto mt-16 min-w-[368px] max-w-sm" {...form.props}>
+        <Field
+          labelProps={{ htmlFor: fields.username.id, children: 'Username' }}
+          inputProps={{
+            ...conform.input(fields.username),
+            autoFocus: true,
+          }}
+          errors={[fields?.username.errors]}
+        />
+        <Field
+          labelProps={{
+            htmlFor: fields.email.id,
+            children: 'Email',
+          }}
+          inputProps={{ ...conform.input(fields.email) }}
+          errors={[fields?.email.errors]}
+        />
+        <Field
+          labelProps={{
+            htmlFor: fields.password.id,
+            children: 'Password',
+          }}
+          inputProps={{ ...conform.input(fields.password), type: 'password' }}
+          errors={[fields?.password.errors]}
+        />
+        <Field
+          labelProps={{
+            htmlFor: fields.color.id,
+            children: 'Choose your color',
+          }}
+          inputProps={{
+            ...conform.input(fields.color, { type: 'color' }),
+            defaultValue: randomColor,
+          }}
+          errors={[fields?.color.errors]}
+        />
+
+        <ErrorList errors={form.errors} id={form.errorId} />
+        <StatusButton
+          className="w-full"
+          status={isSubmitting ? 'pending' : actionData?.status ?? 'idle'}
+          type="submit"
+          disabled={isSubmitting}
+        >
+          Submit
+        </StatusButton>
+      </Form>
     </div>
-  );
+  )
 }

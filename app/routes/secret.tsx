@@ -13,10 +13,15 @@ export async function loader({ request, params }: LoaderArgs) {
   const session = await getSession(request)
   const userId = session.get('userId')
   const isName = session.has('username')
-  const isAdmin = await prisma.user.findFirst({
+  const admin = await prisma.admin.findFirst({})
+  const isAdmin = await prisma.admin.findFirst({
     where: {
-      id: userId,
-      role: 'admin',
+      id: admin.id,
+      user: {
+        some: {
+          id: userId,
+        },
+      },
     },
   })
 
@@ -34,10 +39,16 @@ export async function action({ request, params }: ActionArgs) {
   const session = await getSession(request)
   const userId = session.get('userId')
 
-  const updateUserToAdmin = await prisma.user.update({
-    where: { id: userId },
+  const admin = await prisma.admin.findFirst({})
+
+  const updateUserToAdmin = await prisma.admin.update({
+    where: { id: admin.id },
     data: {
-      role: 'admin',
+      user: {
+        connect: {
+          id: userId,
+        },
+      },
     },
   })
   return redirect('/admin')

@@ -12,11 +12,13 @@ export default function HeaderSection({
   title,
   breadcrumb,
   addQuery,
+  showAdd = true,
 }: {
   backPath: string
   title: string
   breadcrumb?: string
   addQuery?: string
+  showAdd?: boolean
 }) {
   const [searchParams, setSearchParams] = useSearchParams()
 
@@ -69,12 +71,16 @@ export default function HeaderSection({
       <div className="flex items-center">
         <H1>{title}</H1>
       </div>
-      <div className="flex-grow" /> {/* This will push the Add button to the right */}
-      <Link to={addQuery}>
-        <FlexRow className="rounded-full border-2 bg-white px-4 py-2">
-          Add <PlusIcon className="w-6 h-6" />
-        </FlexRow>
-      </Link>
+      {showAdd && (
+        <>
+          <div className="flex-grow" /> {/* This will push the Add button to the right */}
+          <Link to={addQuery}>
+            <FlexRow className="rounded-full border-2 bg-white px-4 py-2">
+              Add <PlusIcon className="w-6 h-6" />
+            </FlexRow>
+          </Link>
+        </>
+      )}
     </FlexRow>
   )
 }
