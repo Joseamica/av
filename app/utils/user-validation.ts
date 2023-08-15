@@ -8,8 +8,14 @@ export const usernameSchema = z
     message: 'Username can only include letters, numbers, and underscores',
   })
 
-export const passwordSchema = z.string().min(6, { message: 'Password is too short' }).max(100, { message: 'Password is too long' })
-export const nameSchema = z.string().min(3, { message: 'Name is too short' }).max(40, { message: 'Name is too long' })
+export const passwordSchema = z.string().min(6, { message: 'Password is too short..' }).max(100, { message: 'Password is too long' })
+export const nameSchema = z
+  .string()
+  .min(3, { message: 'El nombre es muy corto' })
+  .max(40, { message: 'Name is too long' })
+  .regex(/^[a-zA-Z0-9_]+$/, {
+    message: 'Username can only include letters, numbers, and underscores',
+  })
 export const emailSchema = z
   .string()
   .email({ message: 'Email is invalid' })

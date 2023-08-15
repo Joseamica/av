@@ -57,107 +57,6 @@ type LoaderData = {
   orderExpired: boolean
 }
 
-export default function Table() {
-  const data = useLiveLoader<LoaderData>()
-  const submit = useSubmit()
-  const fetcher = useFetcher()
-
-  //NOTE - Se obtiene del useDataLoader si la orden esta expirada, si si, se envia el request para terminar la orden
-  //TESTING
-  //FIXME El problema es que si un usuario se une a la mesa, y la orden ya esta expirada, lo va a redirigir a la thankyou page, y el problema es que si es un usuario nuevo, no podra acceder
-  //SOLUTIONS - Hacer que cuando el usuario cree el primer platillo, se cree una nueva orden, y redirija a order/$orderID
-  useEffect(() => {
-    if (data.orderExpired) {
-      submit('', { method: 'POST', action: 'processes/endOrder' })
-    }
-  }, [submit, data.orderExpired])
-
-  useSessionTimeout()
-
-  const isSubmitting = fetcher.state !== 'idle'
-
-  const [selectedUsers, setSelectedUsers] = useState<string[]>([])
-  const [filterPerUser, setFilterPerUser] = useState<boolean>(false)
-  const [collapse, setCollapse] = useState<boolean>(false)
-  const [showPaymentOptions, setShowPaymentOptions] = useState<boolean>(false)
-
-  const handleToggleUser = (userId: string) => {
-    setSelectedUsers((prevSelected: string[]) =>
-      prevSelected.includes(userId) ? prevSelected.filter(id => id !== userId) : [...prevSelected, userId],
-    )
-  }
-
-  const handleCollapse = () => {
-    setCollapse(!collapse)
-  }
-
-  const handleToggle = () => {
-    setFilterPerUser(!filterPerUser)
-  }
-
-  if (data.order) {
-    return (
-      <motion.main className="pb-4 no-scrollbar">
-        <RestaurantInfoCard branch={data.branch} menu={data.menu} error={data.error} />
-        <Spacer spaceY="4" />
-        <h3 className="flex justify-center text-sm text-secondaryTextDark shrink-0">{`Mesa ${data.table.number}`}</h3>
-        <Spacer spaceY="2" />
-        <Help />
-        <BillAmount
-          amountLeft={data.amountLeft}
-          currency={data.currency}
-          paidUsers={data.paidUsers}
-          total={data.total}
-          userId={data.userId}
-        />
-        <Spacer spaceY="2" />
-        {/* NOTE: SWITCH BUTTON */}
-        <div className="flex justify-end w-full">
-          <SwitchButton
-            state={filterPerUser}
-            setToggle={handleToggle}
-            leftIcon={<OrderIcon className="w-4 h-4" />}
-            rightIcon={<UsersIcon className="w-4 h-4" />}
-            leftText="Ver por orden"
-            rightText="Ver por usuario"
-            stretch
-            height="medium"
-            allCornersRounded={false}
-          />
-        </div>
-        {/* NOTE: FILTER */}
-        {filterPerUser ? (
-          <FilterUserView order={data.order} currency={data.currency} handleToggleUser={handleToggleUser} selectedUsers={selectedUsers} />
-        ) : (
-          <FilterOrderView order={data.order} collapse={collapse} handleCollapse={handleCollapse} />
-        )}
-        <Spacer spaceY="2" />
-        {data.amountLeft > 0 ? (
-          <SinglePayButton showPaymentOptions={showPaymentOptions} setShowPaymentOptions={setShowPaymentOptions} />
-        ) : (
-          <fetcher.Form method="POST">
-            <Button name="_action" value="endOrder" disabled={isSubmitting} fullWith={true}>
-              {isSubmitting ? 'Terminando orden...' : 'Terminar orden'}
-            </Button>
-          </fetcher.Form>
-        )}
-        <Outlet />
-      </motion.main>
-    )
-  } else {
-    return (
-      <EmptyOrder
-        branch={data.branch}
-        menu={data.menu}
-        error={data.error}
-        tableNumber={data.table.number}
-        usersInTable={data.usersInTable}
-        isOrderActive={data.order?.active}
-      />
-    )
-  }
-}
-
 export async function loader({ request, params }: LoaderArgs) {
   const session = await getSession(request)
   const user = await getUserDetails(session)
@@ -278,6 +177,107 @@ export async function action({ request, params }: ActionArgs) {
   }
 
   return json({ success: true })
+}
+
+export default function Table() {
+  const data = useLiveLoader<LoaderData>()
+  const submit = useSubmit()
+  const fetcher = useFetcher()
+
+  //NOTE - Se obtiene del useDataLoader si la orden esta expirada, si si, se envia el request para terminar la orden
+  //TESTING
+  //FIXME El problema es que si un usuario se une a la mesa, y la orden ya esta expirada, lo va a redirigir a la thankyou page, y el problema es que si es un usuario nuevo, no podra acceder
+  //SOLUTIONS - Hacer que cuando el usuario cree el primer platillo, se cree una nueva orden, y redirija a order/$orderID
+  useEffect(() => {
+    if (data.orderExpired) {
+      submit('', { method: 'POST', action: 'processes/endOrder' })
+    }
+  }, [submit, data.orderExpired])
+
+  useSessionTimeout()
+
+  const isSubmitting = fetcher.state !== 'idle'
+
+  const [selectedUsers, setSelectedUsers] = useState<string[]>([])
+  const [filterPerUser, setFilterPerUser] = useState<boolean>(false)
+  const [collapse, setCollapse] = useState<boolean>(false)
+  const [showPaymentOptions, setShowPaymentOptions] = useState<boolean>(false)
+
+  const handleToggleUser = (userId: string) => {
+    setSelectedUsers((prevSelected: string[]) =>
+      prevSelected.includes(userId) ? prevSelected.filter(id => id !== userId) : [...prevSelected, userId],
+    )
+  }
+
+  const handleCollapse = () => {
+    setCollapse(!collapse)
+  }
+
+  const handleToggle = () => {
+    setFilterPerUser(!filterPerUser)
+  }
+
+  if (data.order) {
+    return (
+      <motion.main className="pb-4 no-scrollbar">
+        <RestaurantInfoCard branch={data.branch} menu={data.menu} error={data.error} />
+        <Spacer spaceY="4" />
+        <h3 className="flex justify-center text-sm text-secondaryTextDark shrink-0">{`Mesa ${data.table.number}`}</h3>
+        <Spacer spaceY="2" />
+        <Help />
+        <BillAmount
+          amountLeft={data.amountLeft}
+          currency={data.currency}
+          paidUsers={data.paidUsers}
+          total={data.total}
+          userId={data.userId}
+        />
+        <Spacer spaceY="2" />
+        {/* NOTE: SWITCH BUTTON */}
+        <div className="flex justify-end w-full">
+          <SwitchButton
+            state={filterPerUser}
+            setToggle={handleToggle}
+            leftIcon={<OrderIcon className="w-4 h-4" />}
+            rightIcon={<UsersIcon className="w-4 h-4" />}
+            leftText="Ver por orden"
+            rightText="Ver por usuario"
+            stretch
+            height="medium"
+            allCornersRounded={false}
+          />
+        </div>
+        {/* NOTE: FILTER */}
+        {filterPerUser ? (
+          <FilterUserView order={data.order} currency={data.currency} handleToggleUser={handleToggleUser} selectedUsers={selectedUsers} />
+        ) : (
+          <FilterOrderView order={data.order} collapse={collapse} handleCollapse={handleCollapse} />
+        )}
+        <Spacer spaceY="2" />
+        {data.amountLeft > 0 ? (
+          <SinglePayButton showPaymentOptions={showPaymentOptions} setShowPaymentOptions={setShowPaymentOptions} />
+        ) : (
+          <fetcher.Form method="POST">
+            <Button name="_action" value="endOrder" disabled={isSubmitting} fullWith={true}>
+              {isSubmitting ? 'Terminando orden...' : 'Terminar orden'}
+            </Button>
+          </fetcher.Form>
+        )}
+        <Outlet />
+      </motion.main>
+    )
+  } else {
+    return (
+      <EmptyOrder
+        branch={data.branch}
+        menu={data.menu}
+        error={data.error}
+        tableNumber={data.table.number}
+        usersInTable={data.usersInTable}
+        isOrderActive={data.order?.active}
+      />
+    )
+  }
 }
 
 export const ErrorBoundary = () => {

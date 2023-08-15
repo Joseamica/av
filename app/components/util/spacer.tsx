@@ -1,5 +1,6 @@
 const spacerSizes = {
-  sm: 'h-2',
+  xs: 'h-2',
+  sm: 'h-3',
   md: 'h-4',
   lg: 'h-6',
 }

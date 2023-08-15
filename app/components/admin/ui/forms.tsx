@@ -7,13 +7,19 @@ import { Label } from './label'
 
 export type ListOfErrors = Array<string | null | undefined> | null | undefined
 
-export function ErrorList({ id, errors }: { errors?: any; id?: string }) {
+const sizes = {
+  sm: 'text-sm',
+  md: 'text-base',
+  lg: 'text-lg',
+}
+
+export function ErrorList({ id, errors, size }: { errors?: any; id?: string; size?: string }) {
   const errorsToRender = errors?.filter(Boolean)
   if (!errorsToRender?.length) return null
   return (
     <ul id={id} className="space-y-1">
       {errorsToRender.map(e => (
-        <li key={e} className="text-[10px] text-foreground-danger">
+        <li key={e} className={`text-[10px] text-warning ${sizes[size]}`}>
           {e}
         </li>
       ))}
@@ -35,7 +41,7 @@ export function Field({
   const fallbackId = useId()
   const id = inputProps.id ?? fallbackId
   const errorId = errors?.length ? `${id}-error` : undefined
-  const errorExist = errors[0] !== undefined
+  const errorExist = errors?.length && errors[0] !== undefined
   return (
     <div className={className}>
       <Label htmlFor={id} {...labelProps} />

@@ -12,7 +12,7 @@ import { findOrCreateUser } from '~/models/user.server'
 
 import { EVENTS } from '~/events'
 
-import { getTableIdFromUrl } from '~/utils'
+import { getSearchParams, getTableIdFromUrl } from '~/utils'
 
 // * COMPONENTS
 // * CUSTOM COMPONENTS
@@ -20,42 +20,29 @@ import { HeaderV2, Notification, UserForm } from '~/components'
 
 const SESSION_EXPIRATION_TIME = 1000 * 60 * 60 * 24 * 30 //30 days
 
-export default function TableLayoutPath() {
-  const data = useLoaderData()
-
-  if (!data.username) {
-    return <UserForm />
-  }
-
-  return (
-    <div className="hide-scrollbar no-scrollbar  mx-auto h-full max-w-md bg-[#F3F4F6] px-2 pt-16">
-      <HeaderV2 user={data.user} />
-      <Notification message={data.notification} />
-      <Outlet />
-    </div>
-  )
-}
 //ANCHOR LOADER
 export const loader = async ({ request }: LoaderArgs) => {
   const session = await getSession(request)
-  const sessionId = session.get('sessionId')
-  if (!sessionId) {
-    console.log('No sessionID ❌error expected')
-    redirect('/logout')
-  }
+  // const sessionId = session.get('sessionId')
+  // if (!sessionId) {
+  //   console.log('No sessionID ❌error expected')
+  //   redirect('/logout')
+  // }
   // invariant(sessionId, 'Session ID is required Error in table.tsx line 47')
   const userId = await getUserId(session)
 
   let user = null
+  //NOTE - This is to validate if the user is scanning from QR
+  const url = new URL(request.url)
+  const pathname = url.pathname
+  const tableId = getTableIdFromUrl(pathname)
 
-  //ADMIN PURPOSES
-  const isAdmin = await prisma.user.findFirst({
-    where: {
-      id: userId,
-      role: 'admin',
-    },
-  })
   const username = await getUsername(session)
+  const searchParams = getSearchParams({ request })
+
+  if (!username) {
+    searchParams.set('redirectTo', `${pathname}`)
+  }
   const user_color = session.get('user_color')
 
   // NOTE - Verify if user is on the database or create
@@ -63,10 +50,6 @@ export const loader = async ({ request }: LoaderArgs) => {
     user = await findOrCreateUser(userId, username, user_color)
   }
 
-  //NOTE - This is to validate if the user is scanning from QR
-  const url = new URL(request.url)
-  const pathname = url.pathname
-  const tableId = getTableIdFromUrl(pathname)
   if (!tableId) {
     throw new Error('Procura acceder por medio del código QR, u obtener el link con el id de la mesa.')
   }
@@ -79,10 +62,7 @@ export const loader = async ({ request }: LoaderArgs) => {
 
   const notification = session.get('notification')
 
-  return json(
-    { username, pathname, user, isAdmin, notification },
-    { headers: { 'Set-Cookie': await sessionStorage.commitSession(session) } },
-  )
+  return json({ username, pathname, user, notification }, { headers: { 'Set-Cookie': await sessionStorage.commitSession(session) } })
 }
 
 //ANCHOR ACTION
@@ -153,6 +133,22 @@ export const action = async ({ request, params }: ActionArgs) => {
   }
 
   return null
+}
+
+export default function TableLayoutPath() {
+  const data = useLoaderData()
+
+  if (!data.username) {
+    return <UserForm />
+  }
+
+  return (
+    <div className="hide-scrollbar no-scrollbar  mx-auto h-full max-w-md bg-[#F3F4F6] px-2 pt-16">
+      <HeaderV2 user={data.user} />
+      <Notification message={data.notification} />
+      <Outlet />
+    </div>
+  )
 }
 
 export const ErrorBoundary = () => {

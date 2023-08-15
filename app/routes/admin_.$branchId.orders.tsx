@@ -83,10 +83,14 @@ export async function action({ request, params }: ActionArgs) {
           creationDate: new Date(formValues.creationDate as string),
         },
       })
+      return redirect(redirectTo)
+
     case ACTIONS.DELETE:
       await prisma.order.delete({
         where: { id: orderId },
       })
+      return redirect(redirectTo)
+
     default:
       return redirect(redirectTo)
   }

@@ -1,5 +1,5 @@
 import { conform, useForm } from '@conform-to/react'
-import { Form, useActionData, useFormAction, useNavigation } from '@remix-run/react'
+import { Form, Link, useActionData, useFormAction, useNavigation } from '@remix-run/react'
 
 import { type DataFunctionArgs, type LoaderArgs, type V2_MetaFunction, json } from '@remix-run/node'
 
@@ -67,7 +67,7 @@ export async function action({ request }: DataFunctionArgs) {
       { status: 400 },
     )
   }
-  console.log('submission', submission)
+
   const user = await createUser(submission.value.username, submission.value.email, submission.value.password, submission.value.color)
 
   return createUserSession({
@@ -97,12 +97,12 @@ export default function Name() {
   const randomColor = getRandomColor()
 
   return (
-    <div className="container mx-auto flex flex-col justify-center pb-32 pt-20">
+    <div className="container mx-auto flex flex-col justify-center pb-32 pt-20 ">
       <div className="text-center">
-        <h1 className="text-5xl">Let's start your journey!</h1>
+        <h1 className="text-h1">Let's start your journey!</h1>
         <p className="mt-3 text-body-md text-muted-foreground">Please enter your email.</p>
       </div>
-      <Form method="POST" className="mx-auto mt-16 min-w-[368px] max-w-sm" {...form.props}>
+      <Form method="POST" className="mx-auto mt-16 min-w-[368px]  max-w-md px-8" {...form.props}>
         <Field
           labelProps={{ htmlFor: fields.username.id, children: 'Username' }}
           inputProps={{
@@ -148,6 +148,10 @@ export default function Name() {
         >
           Submit
         </StatusButton>
+        <div className="flex items-center justify-center gap-2 pt-6">
+          <span className="text-muted-foreground">Already have an account?</span>
+          <Link to="/login">Login</Link>
+        </div>
       </Form>
     </div>
   )
