@@ -54,7 +54,7 @@ export const StatusButton = React.forwardRef<HTMLButtonElement, ButtonProps & { 
       idle: null,
     }[status]
     return (
-      <Button ref={ref} className={cn('flex justify-center gap-4 border bg-white', className)} {...props}>
+      <Button ref={ref} className={cn('flex justify-center gap-4', className)} {...props}>
         <div>{children}</div>
         {companion}
       </Button>

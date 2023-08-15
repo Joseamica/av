@@ -208,7 +208,7 @@ export default function Menu() {
     }, 0)
 
   return (
-    <>
+    <div className="no-scrollbar">
       <Spacer spaceY="2" />
       <MenuInfo menu={data.menu} branch={data.branch} />
       <Spacer spaceY="2" />
@@ -394,6 +394,6 @@ export default function Menu() {
           <Outlet />
         </>
       )}
-    </>
+    </div>
   )
 }

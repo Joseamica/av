@@ -15,12 +15,12 @@ import type { LinksFunction } from '@remix-run/node'
 
 // * CUSTOM COMPONENTS
 import { useSpinDelay } from 'spin-delay'
-// * STYLES
-import tailwindStylesheetUrl from '~/styles/tailwind.css'
 
 import Error from './components/util/error'
 import appStylesheetUrl from './styles/app.css'
 import fontStylestylesheetUrl from './styles/font.css'
+// * STYLES
+import tailwindStylesheetUrl from './styles/tailwind.css'
 
 export const links: LinksFunction = () =>
   [
