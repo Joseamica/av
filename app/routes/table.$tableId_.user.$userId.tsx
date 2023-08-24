@@ -1,4 +1,4 @@
-import { Link, useLoaderData, useSearchParams } from '@remix-run/react'
+import { Form, Link, useLoaderData, useSearchParams } from '@remix-run/react'
 
 import type { LoaderArgs } from '@remix-run/node'
 import { json } from '@remix-run/node'
@@ -127,6 +127,9 @@ export default function User() {
           </FlexRow>
         </div>
       </div>
+      <Form action="/logout" method="POST">
+        <button type="submit">Logout</button>
+      </Form>
     </SectionContainer>
   )
 }

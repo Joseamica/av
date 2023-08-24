@@ -15,9 +15,9 @@ import { getSearchParams } from '~/utils'
 import { checkboxSchema } from '~/utils/zod-extensions'
 
 import { Spacer } from '~/components'
+import { HeaderSection } from '~/components/admin/headers'
 import { EditOrderDialog } from '~/components/admin/orders/dialogs/edit'
 import Container from '~/components/admin/ui/container'
-import HeaderSection from '~/components/admin/ui/header-section'
 import ItemInfo from '~/components/admin/ui/selected-item-info'
 
 export const handle = { active: 'Orders' }
@@ -60,7 +60,6 @@ export async function loader({ request, params }: LoaderArgs) {
 export async function action({ request, params }: ActionArgs) {
   const formData = await request.formData()
   const formValues = Object.fromEntries(formData.entries())
-  console.log('data', formValues)
 
   const searchParams = getSearchParams({ request })
   const searchParamsValues = Object.fromEntries(searchParams)

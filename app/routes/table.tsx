@@ -38,6 +38,7 @@ export const loader = async ({ request }: LoaderArgs) => {
   const tableId = getTableIdFromUrl(pathname)
 
   const username = await getUsername(session)
+
   const searchParams = getSearchParams({ request })
 
   if (!username) {

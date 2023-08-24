@@ -21,8 +21,7 @@ export default function ItemInfo({
 
 function CollapsibleItem({ item }: { item: any }) {
   const [isOpen, setIsOpen] = useState(false)
-  console.log('item', item)
-  console.log('hola')
+
   return (
     <div className="my-2">
       <button

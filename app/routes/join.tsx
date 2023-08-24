@@ -72,6 +72,7 @@ export async function action({ request }: DataFunctionArgs) {
 
   return createUserSession({
     redirectTo,
+    username: submission.value.username,
     remember: false,
     request,
     userId: user.id,

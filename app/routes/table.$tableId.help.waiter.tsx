@@ -17,26 +17,12 @@ export async function action({ request, params }: ActionArgs) {
   const { tableId } = params
   invariant(tableId, 'tableId is required')
   const formData = await request.formData()
-  const waiters = formData.getAll('waiters') || []
+  const phones = formData.getAll('waiters') as string[]
   const redirectTo = validateRedirect(request.redirect, `..`)
 
   const table = await getTable(tableId)
-
-  if (waiters.length > 0) {
-    const waitersNumbers = await prisma.employee
-      .findMany({
-        where: {
-          id: { in: waiters },
-          NOT: { phone: null },
-          tables: { some: { id: tableId } },
-        },
-      })
-      .then(waiters => waiters.map(waiter => waiter.phone))
-
-    if (waitersNumbers.length > 0) {
-      SendWhatsApp('14155238886', waitersNumbers, `Te llaman de la mesa ${table?.number}`)
-    }
-  }
+  console.log('llaman al mesero')
+  SendWhatsApp('14155238886', phones, `Te llaman de la mesa ${table?.number}`)
 
   // console.dir(
   //   `CALL ~> Llaman al mesero ${waiters} de la mesa ${table?.number}`,
@@ -77,7 +63,7 @@ export default function Help() {
                 {waiter.role ? 'Mesero' : ''}
               </span>
             </FlexRow>
-            <input type="checkbox" className="h-5 w-5" name="waiters" id={waiter.id} value={waiter.id} />
+            <input type="checkbox" className="h-5 w-5" name="waiters" id={waiter.id} value={waiter.phone} />
           </ItemContainer>
         ))}
         {data.waiters?.length === 0 && <p className="text-center">Esta mesa no tiene meseros asignados</p>}

@@ -1,15 +1,35 @@
 export function BookIcon({ size = 24 }: { size?: number } = {}) {
   return (
     <svg width={size} height={size} fill="none" viewBox="0 0 24 24">
-      <path d="M19.25 15.25v-9.5a1 1 0 00-1-1H6.75a2 2 0 00-2 2v10" stroke="currentColor" strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round" />
-      <path d="M19.25 15.25H6.75a2 2 0 100 4h12.5v-4z" stroke="currentColor" strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round" />
+      <path
+        d="M19.25 15.25v-9.5a1 1 0 00-1-1H6.75a2 2 0 00-2 2v10"
+        stroke="currentColor"
+        strokeWidth={1.5}
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      <path
+        d="M19.25 15.25H6.75a2 2 0 100 4h12.5v-4z"
+        stroke="currentColor"
+        strokeWidth={1.5}
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
     </svg>
   )
 }
 
 export function CashIcon({ size = 24, stroke = 'currentColor', className }: { size?: number; stroke?: string; className?: string } = {}) {
   return (
-    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke={stroke} strokeWidth="2" className={className} aria-hidden="true">
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke={stroke}
+      strokeWidth="2"
+      className={className}
+      aria-hidden="true"
+    >
       <path
         strokeLinecap="round"
         strokeLinejoin="round"
@@ -21,7 +41,15 @@ export function CashIcon({ size = 24, stroke = 'currentColor', className }: { si
 
 export function XCashIcon({ size = 24, stroke = 'currentColor', className }: { size?: number; stroke?: string; className?: string } = {}) {
   return (
-    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke={stroke} strokeWidth="2" className={className} aria-hidden="true">
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke={stroke}
+      strokeWidth="2"
+      className={className}
+      aria-hidden="true"
+    >
       <path
         strokeLinecap="round"
         strokeLinejoin="round"
@@ -130,6 +158,20 @@ export function EyeIcon({ size = 24 }: { size?: number }) {
   )
 }
 
+export function EditIcon({ className }: { className?: string }) {
+  return (
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" id="edit" width="24px" className={className}>
+      <g data-name="Layer 2">
+        <path
+          fill="currentColor"
+          d="M19.4 7.34 16.66 4.6A2 2 0 0 0 14 4.53l-9 9a2 2 0 0 0-.57 1.21L4 18.91a1 1 0 0 0 .29.8A1 1 0 0 0 5 20h.09l4.17-.38a2 2 0 0 0 1.21-.57l9-9a1.92 1.92 0 0 0-.07-2.71zM9.08 17.62l-3 .28.27-3L12 9.32l2.7 2.7zM16 10.68 13.32 8l1.95-2L18 8.73z"
+          data-name="edit"
+        ></path>
+      </g>
+    </svg>
+  )
+}
+
 export function FeedBackIcon({ className }: { className?: string }) {
   return (
     <svg height="24px" viewBox="0 0 24 24" width="24px" fill="#fff" xmlns="http://www.w3.org/2000/svg" className={className}>
@@ -141,7 +183,15 @@ export function FeedBackIcon({ className }: { className?: string }) {
 
 export function HamburgerIcon({ size = 24, fill = '#000', className }: { size?: number; fill?: string; className?: string } = {}) {
   return (
-    <svg xmlns="http://www.w3.org/2000/svg" enableBackground="new 0 0 24 24" height={size} viewBox="0 0 24 24" width={size} fill={fill} className={className}>
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      enableBackground="new 0 0 24 24"
+      height={size}
+      viewBox="0 0 24 24"
+      width={size}
+      fill={fill}
+      className={className}
+    >
       <g>
         <rect fill="none" height="24" width="24" />
       </g>
@@ -158,7 +208,15 @@ export function HamburgerIcon({ size = 24, fill = '#000', className }: { size?: 
 
 export function XHamburgerIcon({ size = 24, fill = '#000', className }: { size?: number; fill?: string; className?: string } = {}) {
   return (
-    <svg xmlns="http://www.w3.org/2000/svg" enableBackground="new 0 0 24 24" height={size} viewBox="0 0 24 24" width={size} fill={fill} className={className}>
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      enableBackground="new 0 0 24 24"
+      height={size}
+      viewBox="0 0 24 24"
+      width={size}
+      fill={fill}
+      className={className}
+    >
       <g>
         <rect fill="none" height="24" width="24" />
       </g>
@@ -177,7 +235,15 @@ export function XHamburgerIcon({ size = 24, fill = '#000', className }: { size?:
 }
 export function ManagerIcon({ className, ...props }: { className?: string }) {
   return (
-    <svg width="1em" height="1em" viewBox="0 0 122.88 122.66" fill="none" xmlns="http://www.w3.org/2000/svg" className={className} {...props}>
+    <svg
+      width="1em"
+      height="1em"
+      viewBox="0 0 122.88 122.66"
+      fill="none"
+      xmlns="http://www.w3.org/2000/svg"
+      className={className}
+      {...props}
+    >
       <path
         fillRule="evenodd"
         clipRule="evenodd"
@@ -215,7 +281,15 @@ export function MenuIcon() {
 
 export function RestMenuIcon({ className }: { className?: string }) {
   return (
-    <svg xmlns="http://www.w3.org/2000/svg" enableBackground="new 0 0 24 24" height="24px" viewBox="0 0 24 24" width="24px" fill="#000000" className={className}>
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      enableBackground="new 0 0 24 24"
+      height="24px"
+      viewBox="0 0 24 24"
+      width="24px"
+      fill="#000000"
+      className={className}
+    >
       <g>
         <rect fill="none" height="24" width="24" />
       </g>
@@ -264,7 +338,12 @@ export function SearchIcon({ className }: { className?: string }) {
   )
 }
 
-export function ShoppingCartIcon({ size = 24, fillColor, cartColor, className }: { size?: number; fillColor?: string; cartColor?: string; className?: string } = {}) {
+export function ShoppingCartIcon({
+  size = 24,
+  fillColor,
+  cartColor,
+  className,
+}: { size?: number; fillColor?: string; cartColor?: string; className?: string } = {}) {
   return (
     <svg xmlns="http://www.w3.org/2000/svg" height={size} viewBox="0 0 24 24" width={size} fill={fillColor} className={className}>
       <path d="M0 0h24v24H0V0z" fill="none" />
@@ -346,8 +425,20 @@ export function RefreshIcon({ size = 24, title = 'Refresh' }: { size?: number; t
   return (
     <svg width={size} height={size} fill="none" viewBox="0 0 24 24">
       <title>{title}</title>
-      <path stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M11.25 4.75 8.75 7l2.5 2.25M12.75 19.25l2.5-2.25-2.5-2.25" />
-      <path stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9.75 7h3.5a6 6 0 0 1 6 6v.25M14.25 17h-3.5a6 6 0 0 1-6-6v-.25" />
+      <path
+        stroke="currentColor"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        strokeWidth={1.5}
+        d="M11.25 4.75 8.75 7l2.5 2.25M12.75 19.25l2.5-2.25-2.5-2.25"
+      />
+      <path
+        stroke="currentColor"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        strokeWidth={1.5}
+        d="M9.75 7h3.5a6 6 0 0 1 6 6v.25M14.25 17h-3.5a6 6 0 0 1-6-6v-.25"
+      />
     </svg>
   )
 }

@@ -1,6 +1,8 @@
 import { Link } from '@remix-run/react'
 import { FaEdit } from 'react-icons/fa'
 
+import { EditIcon } from '~/components/icons'
+
 export default function Container({ name, itemIdQuery, editQuery }: { name: string | number; itemIdQuery: string; editQuery: string }) {
   let displayText = ''
   if (String(name).startsWith('cll')) {
@@ -18,7 +20,7 @@ export default function Container({ name, itemIdQuery, editQuery }: { name: stri
         to={editQuery}
         className="text-zinc-400 flex-row space-x-2 text-violet11 shadow-blackA7 hover:bg-mauve3 flex h-[35px] items-center justify-center rounded-full bg-white px-[15px] font-medium leading-none  focus:shadow-[0_0_0_2px] focus:shadow-black focus:outline-none border-2"
       >
-        <FaEdit />
+        <EditIcon />
         {/* <p>Edit</p> */}
       </Link>
     </div>

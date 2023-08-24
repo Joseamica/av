@@ -7,10 +7,11 @@ import { QueryDialog } from '../../ui/dialogs/dialog'
 import { Field } from '../../ui/forms'
 
 import { Button } from '~/components/ui/buttons/button'
+import { FlexRow } from '~/components/util/flexrow'
 import { Spacer } from '~/components/util/spacer'
 import { H5 } from '~/components/util/typography'
 
-export function EditMenuDialog({ form, fields, dataChild, branchChild }) {
+export function EditMenuDialog({ form, fields, dataChild, branchChild, data }) {
   const fetcher = useFetcher()
   const [isOpen, setIsOpen] = useState(true)
 
@@ -67,30 +68,40 @@ export function EditMenuDialog({ form, fields, dataChild, branchChild }) {
           }}
           errors={[fields?.image.errors]}
         />
-        <Label>Add availabilities</Label>
-        <button type="button" onClick={() => setIsOpen(!isOpen)} className="ml-2 text-white bg-zinc-400  text-xs rounded-full px-2 py-1">
-          {isOpen ? 'Hide all products' : 'Show all products'}
-        </button>
-        {isOpen && (
-          <div className="overflow-y-scroll h-40 mt-2">
-            {branchChild
-              .sort((a, b) => (selectedItems.includes(b.id) ? 1 : -1) - (selectedItems.includes(a.id) ? 1 : -1))
-              .map(item => (
-                <label key={item.id} className="flex space-x-2 items-center">
-                  <input
-                    type="checkbox"
-                    checked={selectedItems.includes(item.id)}
-                    onChange={() => toggleItem(item)}
-                    name="selectedItems"
-                    value={item.id}
-                  />
-                  <H5>
-                    {item.dayOfWeek} = {item.startTime} & {item.endTime}
-                  </H5>
-                </label>
-              ))}
-          </div>
-        )}
+        <FlexRow>
+          <Field
+            labelProps={{ htmlFor: fields.dayOfWeek.id, children: 'Day of the week (1 is Monday)' }}
+            inputProps={{
+              ...conform.input(fields.dayOfWeek, { type: 'number' }),
+              autoComplete: dataChild?.dayOfWeek,
+              defaultValue: dataChild?.dayOfWeek,
+            }}
+            errors={[fields?.dayOfWeek.errors]}
+          />
+          <Field
+            labelProps={{ htmlFor: fields.startTime.id, children: 'Start Time' }}
+            inputProps={{
+              ...conform.input(fields.startTime, { type: 'time' }),
+              autoComplete: dataChild?.startTime,
+              defaultValue: dataChild?.startTime,
+            }}
+            errors={[fields?.startTime.errors]}
+          />
+          <Field
+            labelProps={{ htmlFor: fields.endTime.id, children: 'End Time' }}
+            inputProps={{
+              ...conform.input(fields.endTime, { type: 'time' }),
+              autoComplete: dataChild?.endTime,
+              defaultValue: dataChild?.endTime,
+            }}
+            errors={[fields?.endTime.errors]}
+          />
+        </FlexRow>
+        <Button size="small" type="button" className="self-end">
+          Add availability
+        </Button>
+        <Spacer size="sm" />
+
         <Spacer size="sm" />
         <Button size="medium" type="submit" variant="secondary" name="_action" value="edit">
           {isSubmitting ? 'Editing menu...' : 'Edit menu'}

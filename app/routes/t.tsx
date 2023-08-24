@@ -14,9 +14,9 @@ export const loader = async ({ request }: LoaderArgs) => {
   const username = session.get('username')
   const pathname = new URL(request.url).pathname
 
-  if (!username) {
-    return redirect(`/auth/setDetails?redirectTo=${pathname}`)
-  }
+  // if (!username) {
+  //   return redirect(`/auth/setDetails?redirectTo=${pathname}`)
+  // }
   return json({ tables })
 }
 

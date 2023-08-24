@@ -1,19 +1,16 @@
 import { useNavigation } from '@remix-run/react'
-import React from 'react'
 
 import clsx from 'clsx'
 import { AnimatePresence, motion } from 'framer-motion'
 
-import { ChevronRightIcon, ChevronUpIcon } from '..'
-import { SubModal } from '../modal'
 import Payment, { usePayment } from './paymentV3'
 
-import { Translate, formatCurrency } from '~/utils'
+import { formatCurrency } from '~/utils'
 
 import { Button } from '~/components/ui/buttons/button'
 import { FlexRow } from '~/components/util/flexrow'
 import { Spacer } from '~/components/util/spacer'
-import { H2, H3, H5, H6 } from '~/components/util/typography'
+import { H2, H3, H5 } from '~/components/util/typography'
 
 const variants = {
   hidden: {
@@ -68,7 +65,13 @@ export function PaymentForm() {
         <Spacer spaceY="1" />
         <AnimatePresence initial={false}>
           {showPayContent && (
-            <motion.div variants={variants} initial="hidden" animate={showPayContent ? 'visible' : 'hidden'} exit="hidden" className="flex flex-col">
+            <motion.div
+              variants={variants}
+              initial="hidden"
+              animate={showPayContent ? 'visible' : 'hidden'}
+              exit="hidden"
+              className="flex flex-col"
+            >
               <hr />
               <Spacer spaceY="2" />
 

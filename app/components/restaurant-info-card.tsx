@@ -1,13 +1,25 @@
 import { Link } from '@remix-run/react'
+
 import 'intro.js/introjs.css'
+
 import { PlusIcon, RestMenuIcon } from './icons'
 
-export function RestaurantInfoCard({ branch, menu, error, isOrderActive }: { branch: any; menu: any; error: string; isOrderActive?: boolean }) {
+export function RestaurantInfoCard({
+  branch,
+  menu,
+  error,
+  isOrderActive,
+}: {
+  branch: any
+  menu: any
+  error: string
+  isOrderActive?: boolean
+}) {
   return (
     <main className="px-1 pt-4">
       <div className="relative " id="container">
         <img
-          src={branch.ppt_image}
+          src={branch.image}
           alt=""
           loading="lazy"
           className="dark:bg-secondaryDark dark:bg-night-bg_principal dark:text-night-text_principal relative max-h-40 w-full rounded-t-3xl bg-day-bg_principal object-cover brightness-50"

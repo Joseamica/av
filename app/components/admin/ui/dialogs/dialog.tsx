@@ -9,12 +9,14 @@ export function QueryDialog({
   description,
   children,
   query,
+  value,
   ...props
 }: {
   title?: string
   description?: string
   children: React.ReactNode
   query: string
+  value?: string
 }) {
   const [searchParams, setSearchParams] = useSearchParams()
   const getQuery = searchParams.get(query)
@@ -26,7 +28,7 @@ export function QueryDialog({
 
   return (
     <Dialog.Root
-      open={getQuery ? true : false}
+      open={getQuery === value || (!value && getQuery) ? true : false}
       onOpenChange={() => {
         handleOnOpenChange(query)
       }}
@@ -40,6 +42,49 @@ export function QueryDialog({
         <Dialog.Description className="text-mauve11 mt-[10px] mb-5 text-[15px] leading-normal">{description}</Dialog.Description>
         {children}
       </Dialog.Content>
+    </Dialog.Root>
+  )
+}
+
+export function ScrollableQueryDialog({
+  title,
+  description,
+  children,
+  query,
+  value,
+  ...props
+}: {
+  title?: string
+  description?: string
+  children: React.ReactNode
+  query: string
+  value?: string
+}) {
+  const [searchParams, setSearchParams] = useSearchParams()
+  const getQuery = searchParams.get(query)
+
+  const handleOnOpenChange = param => {
+    searchParams.delete(param)
+    setSearchParams(searchParams)
+  }
+
+  return (
+    <Dialog.Root
+      open={getQuery === value || (!value && getQuery) ? true : false}
+      onOpenChange={() => {
+        handleOnOpenChange(query)
+      }}
+    >
+      <Dialog.Overlay className="fixed top-0 left-0 right-0 bottom-0 grid place-items-center overflow-y-auto bg-black bg-opacity-80">
+        <Dialog.Close className="absolute top-0 right-0 m-3">
+          <XIcon />
+        </Dialog.Close>
+        <Dialog.Content className="bg-white p-8 rounded-md min-w-[450px]">
+          <Dialog.Title className="text-mauve12 m-0 text-[17px] font-medium">{title ? title : getQuery}</Dialog.Title>
+          <Dialog.Description className="text-mauve11 mt-[10px] mb-5 text-[15px] leading-normal">{description}</Dialog.Description>
+          {children}
+        </Dialog.Content>
+      </Dialog.Overlay>
     </Dialog.Root>
   )
 }

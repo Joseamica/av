@@ -7,6 +7,7 @@ import { SendWhatsApp } from '~/twilio.server'
 
 import { getBranchId } from '~/models/branch.server'
 import { assignExpirationAndValuesToOrder, getOrder } from '~/models/order.server'
+import { getTable } from '~/models/table.server'
 import { assignUserNewPayments } from '~/models/user.server'
 
 import { EVENTS } from '~/events'
@@ -22,6 +23,7 @@ export const loader = async ({ params, request }: LoaderArgs) => {
   const order = await getOrder(tableId)
   const user = await prisma.user.findUnique({ where: { id: userId } })
   const amountLeft = await getAmountLeftToPay(tableId)
+  const table = await getTable(tableId)
 
   const searchParams = new URL(request.url).searchParams
   const paymentMethod = searchParams.get('paymentMethod')
@@ -55,7 +57,11 @@ export const loader = async ({ params, request }: LoaderArgs) => {
     })
   }
   const username = user?.name
-
+  console.log(
+    `Usuario \x1b[34m${username}\x1b[0m de la mesa \x1b[32m${
+      table.number
+    }\x1b[0m ha pagado en efectivo propina \x1b[33m${tip}\x1b[0m dando un total \x1b[35m${amount + tip}\x1b[0m`,
+  )
   switch (typeOfPayment) {
     case 'cartPay':
       session.flash('notification', 'Haz pagado productos con éxito')
@@ -84,7 +90,11 @@ export const loader = async ({ params, request }: LoaderArgs) => {
 
   EVENTS.ISSUE_CHANGED(tableId)
   await assignExpirationAndValuesToOrder(amountLeft, tip, amount, order)
-  SendWhatsApp('14155238886', `5215512956265`, `El usuario ${username} ha pagado quiere pagar en efectivo propina ${tip} y total ${amount}`)
+  SendWhatsApp(
+    '14155238886',
+    `5215512956265`,
+    `El usuario ${username} de la mesa ${table.number} quiere pagar en efectivo propina: ${tip} dando un total ${amount + tip}`,
+  )
 
   return redirect(`/table/${tableId}`, {
     headers: { 'Set-Cookie': await sessionStorage.commitSession(session) },

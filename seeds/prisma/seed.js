@@ -5,6 +5,7 @@ async function seed() {
     console.log('🌱 Seeding...');
     console.time(`🌱 Database has been seeded`);
     await (0, seed_utils_1.cleanDatabase)();
+    await (0, seed_utils_1.createAdmin)();
     await (0, seed_utils_1.createDeliverect)();
     await (0, seed_utils_1.createUsers)(1);
     const restaurant = await (0, seed_utils_1.createRestaurant)();
@@ -13,8 +14,8 @@ async function seed() {
     await (0, seed_utils_1.createEmployees)(branch.id, tableIds);
     const menu = await (0, seed_utils_1.createMenu)(branch.id);
     await (0, seed_utils_1.createAvailabilities)(menu.id);
-    const categories = await (0, seed_utils_1.createCategories)(menu.id);
-    await (0, seed_utils_1.createProductsAndModifiers)(categories);
+    const categories = await (0, seed_utils_1.createCategories)(menu.id, branch.id);
+    await (0, seed_utils_1.createProductsAndModifiers)(categories, branch.id);
     // await createModifiers(menu.id)
 }
 seed()

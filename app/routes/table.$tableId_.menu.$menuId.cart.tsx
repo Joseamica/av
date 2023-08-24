@@ -15,6 +15,7 @@ import { getBranch, getBranchId, getPaymentMethods, getTipsPercentages } from '~
 import { createCartItems, getCartItems } from '~/models/cart.server'
 import { getMenu } from '~/models/menu.server'
 import { getOrderTotal } from '~/models/order.server'
+import { getTable } from '~/models/table.server'
 
 import { EVENTS } from '~/events'
 
@@ -360,6 +361,19 @@ export async function action({ request, params }: ActionArgs) {
       // //TODO SI ESTA VENCIDO EL TOKEN, HACER UN REFRESH en donde???
       // const token = await getDvctToken()
       // const table = await getTable(tableId)
+      const username = session.get('username')
+      const table = await getTable(tableId)
+
+      const items = cartItems.map(item => {
+        return {
+          plu: item.id,
+          quantity: item.quantity,
+          name: item.name,
+        }
+      })
+
+      console.log(`${username} de la mesa ${table.number} ha ordenado ${JSON.stringify(items)}`)
+
       let order: (Order & { users?: User[] }) | null = await prisma.order.findFirst({
         where: {
           branchId: branchId,

@@ -49,7 +49,7 @@ export function createBranch(restaurantId: string) {
       name: faker.company.name(),
       created: new Date().toISOString(),
       updated: new Date().toISOString(),
-      ppt_image:
+      image:
         'https://firebasestorage.googleapis.com/v0/b/avoqado-d0a24.appspot.com/o/kuikku%2FKUIKKU%20(2)%20(1)%20copy.png?alt=media&token=158e8d1b-d24b-406b-85e7-a507b29d84fc',
       email: faker.internet.email(),
       phone: '8885551212',
@@ -131,7 +131,7 @@ export async function createCategories(menuId: string, branchId: string) {
           menu: { connect: { id: menuId } },
           pdf: index === 0, // This will be true for the first category and false for the rest
           // nameTranslations: {en},
-          imageUrl: AVOQADO_LOGO,
+          image: AVOQADO_LOGO,
           branch: { connect: { id: branchId } },
         },
       }),
@@ -222,7 +222,7 @@ export async function createEmployees(branchId: string, tableIds: [string]) {
 }
 
 export async function createAvailabilities(menuId: string) {
-  for (let i = 0; i <= 7; i++) {
+  for (let i = 1; i <= 7; i++) {
     await prisma.availabilities.create({
       data: {
         dayOfWeek: i,

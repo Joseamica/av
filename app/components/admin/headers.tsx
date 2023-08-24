@@ -1,27 +1,28 @@
-import { Form, Link, useSearchParams } from '@remix-run/react'
-import { IoTrash } from 'react-icons/io5'
+import { Form, Link, useLocation, useSearchParams } from '@remix-run/react'
 
-import { QueryDialog } from './dialogs/dialog'
+import { AddMenuDialog } from './menus/dialogs/add'
+import { QueryDialog } from './ui/dialogs/dialog'
 
-import { PlusIcon } from '~/components/icons'
+import { ChevronLeftIcon, PlusIcon } from '~/components/icons'
+import { DropDown } from '~/components/ui/buttons/dropdown'
 import { FlexRow } from '~/components/util/flexrow'
 import { H1, H3, H4 } from '~/components/util/typography'
 
-export default function HeaderSection({
+export function HeaderSection({
   backPath,
   title,
   breadcrumb,
   addQuery,
   showAdd = true,
+  data,
 }: {
   backPath: string
   title: string
   breadcrumb?: string
   addQuery?: string
   showAdd?: boolean
+  data?: any
 }) {
-  const [searchParams, setSearchParams] = useSearchParams()
-
   if (breadcrumb) {
     return (
       <>
@@ -37,17 +38,7 @@ export default function HeaderSection({
             <H3>{breadcrumb.substring(0, 15) + '...'}</H3>
           </div>
           <div className="flex-grow" /> {/* This will push the Add button to the right */}
-          {/* <Form method="POST"> */}
-          <button
-            onClick={() => {
-              searchParams.append('showDel', 'true')
-              setSearchParams(searchParams)
-            }}
-            className="flex items-center space-x-2 rounded-full border-2 bg-white px-4 py-2"
-          >
-            <H4>Delete</H4>
-            <IoTrash className="w-6 h-6 ml-2" />
-          </button>
+          {/* <DropDown data={data} /> */}
         </FlexRow>
         <QueryDialog query="showDel" title="Are you sure that you want to delete this item?">
           <Form className="flex items-center space-x-2" method="POST">
@@ -82,5 +73,45 @@ export default function HeaderSection({
         </>
       )}
     </FlexRow>
+  )
+}
+
+interface HeaderWithButtonProps {
+  queryKey: string
+  queryValue: string
+  buttonLabel: string
+  IconComponent?: React.ComponentType // Optionally you can pass a different icon component
+}
+
+export const HeaderWithButton: React.FC<HeaderWithButtonProps> = ({
+  queryKey,
+  queryValue,
+  buttonLabel,
+  IconComponent = PlusIcon, // Default to PlusIcon if no IconComponent is provided
+}) => {
+  const location = useLocation()
+  const title = location.pathname.split('/').pop()
+
+  const [searchParams, setSearchParams] = useSearchParams()
+
+  const handleButtonClick = () => {
+    searchParams.set(queryKey, queryValue)
+    setSearchParams(searchParams)
+  }
+
+  return (
+    <div className="flex flex-row justify-between bg-white h-20 items-center p-4 border-b-2">
+      <FlexRow>
+        <Link to="..">
+          <ChevronLeftIcon className="w-10 h-10" />
+        </Link>
+        <H1 className="capitalize">{title}</H1>
+      </FlexRow>
+      <button onClick={handleButtonClick}>
+        <FlexRow className="rounded-full border-2 bg-white px-4 py-2">
+          {buttonLabel} <IconComponent className="w-6 h-6" />
+        </FlexRow>
+      </button>
+    </div>
   )
 }

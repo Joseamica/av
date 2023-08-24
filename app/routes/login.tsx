@@ -2,13 +2,13 @@ import { conform, useForm } from '@conform-to/react'
 import { Link, useFetcher, useLoaderData, useSearchParams } from '@remix-run/react'
 
 import type { ActionArgs, LoaderArgs, V2_MetaFunction } from '@remix-run/node'
-import { json } from '@remix-run/node'
+import { json, redirect } from '@remix-run/node'
 
 import { getFieldsetConstraint, parse } from '@conform-to/zod'
 import bcrypt from 'bcryptjs'
 import { z } from 'zod'
 import { prisma } from '~/db.server'
-import { createUserSession, getSession, getUserId } from '~/session.server'
+import { createUserSession, getSession } from '~/session.server'
 
 import { safeRedirect } from '~/utils'
 import { emailSchema, passwordSchema } from '~/utils/user-validation'
@@ -27,8 +27,11 @@ export const loginFormSchema = z.object({
 
 export const loader = async ({ request }: LoaderArgs) => {
   const session = await getSession(request)
-  const userId = await getUserId(session)
-  if (userId) return json({})
+  const userId = session.get('userId')
+
+  if (userId) return redirect('/t')
+
+  return json({ status: 'idle' })
 }
 
 export const action = async ({ request }: ActionArgs) => {
@@ -91,6 +94,7 @@ export const action = async ({ request }: ActionArgs) => {
     remember: submission.value.remember,
     request,
     userId: userWithPassword.id,
+    username: userWithPassword.name,
   })
 }
 

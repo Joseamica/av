@@ -1,4 +1,4 @@
-import { Link, isRouteErrorResponse, useLoaderData, useRouteError } from '@remix-run/react'
+import { Link, Outlet, isRouteErrorResponse, useLoaderData, useRouteError } from '@remix-run/react'
 import { FaEdit } from 'react-icons/fa'
 
 import { type ActionArgs, type LoaderArgs, json, redirect } from '@remix-run/node'
@@ -17,6 +17,7 @@ export const loader = async ({ request }: LoaderArgs) => {
   const session = await getSession(request)
   const userId = await getUserId(session)
   const isAdmin = await isUserAdmin(userId)
+
   if (!isAdmin) {
     return redirect(`/login`)
   }

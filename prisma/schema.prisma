@@ -47,27 +47,28 @@ model Restaurant {
 model Branch {
   id              String         @id @default(cuid())
   name            String
-  updated         String?
-  created         String?
-  timezone        String?
-  language        String?        @default("en")
-  ppt_image       String
-  email           String
-  phone           String?
-  city            String
+  restaurantId    String
   address         String
   extraAddress    String
+  city            String
+  timezone        String?
+  phone           String?
+  email           String
+  language        String?        @default("en")
+  image           String
   rating          Float?
   rating_quantity Int?
   cuisine         String
   wifiName        String?
   wifipwd         String?
   coordinates     Json?
-  social          Json[]         @default([])
   open            Int?
   close           Int?
   tipsPercentages Decimal[]      @default([10, 12, 15])
   paymentMethods  String[]       @default(["cash", "card"])
+  social          String[]       @default([])
+  created         String?
+  updated         String?
   menus           Menu[]
   tables          Table[]
   orders          Order[]
@@ -78,7 +79,6 @@ model Branch {
   menuCategories  MenuCategory[]
   menuItems       MenuItem[]
   restaurant      Restaurant     @relation(fields: [restaurantId], references: [id], onDelete: Cascade, onUpdate: Cascade)
-  restaurantId    String
   adminId         String?        @default("cllb3d9b90003cedclcthud41")
   admin           Admin?         @relation(fields: [adminId], references: [id])
 }
@@ -138,7 +138,7 @@ model MenuCategory {
   id             String           @id @default(cuid())
   accountId      String?
   name           String
-  imageUrl       String?
+  image          String?
   // nameTranslations        Json?
   description    String?
   pdf            Boolean?         @default(false)

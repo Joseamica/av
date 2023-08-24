@@ -1,191 +1,208 @@
-import { useForm } from '@conform-to/react'
-import { useActionData, useLoaderData, useRouteLoaderData, useSearchParams } from '@remix-run/react'
+import { conform, useForm } from '@conform-to/react'
+import { useFetcher, useRouteLoaderData, useSearchParams } from '@remix-run/react'
 
 import { type ActionArgs, type LoaderArgs, json, redirect } from '@remix-run/node'
 
 import { getFieldsetConstraint, parse } from '@conform-to/zod'
-import { safeRedirect } from 'remix-utils'
+import { namedAction } from 'remix-utils'
 import { z } from 'zod'
 import { prisma } from '~/db.server'
 
-import { getSearchParams } from '~/utils'
+import { capitalizeFirstLetter } from '~/utils'
 import { checkboxSchema } from '~/utils/zod-extensions'
 
-import { Spacer } from '~/components'
-import { AddCategoryDialog } from '~/components/admin/categories/dialogs/add'
-import { EditCategoryDialog } from '~/components/admin/categories/dialogs/edit'
-import Container from '~/components/admin/ui/container'
-import HeaderSection from '~/components/admin/ui/header-section'
-import ItemInfo from '~/components/admin/ui/selected-item-info'
+import { Button, DeleteIcon, FlexRow, H6 } from '~/components'
+import { CategoryForm } from '~/components/admin/categories/category-form'
+import { HeaderWithButton } from '~/components/admin/headers'
+import { QueryDialog } from '~/components/admin/ui/dialogs/dialog'
+import { ErrorList } from '~/components/admin/ui/forms'
+import { EditIcon } from '~/components/icons'
 
-type FormValues = {
-  _action: 'add' | 'edit' | 'del' | string // other possible values
-  name: string
-  image: string
-  pdf: string
-  description: string
-  selectedItems: FormDataEntryValue[]
-  menu: string
-  // other properties as needed...
-}
 export const handle = { active: 'Categories' }
 
-const ACTIONS = {
-  ADD: 'add',
-  EDIT: 'edit',
-  DELETE: 'del',
-}
-
 const categoriesFormSchema = z.object({
+  id: z.string(),
   name: z.string().min(1).max(20),
   image: z.string().trim().url().optional(),
   pdf: checkboxSchema(),
   description: z.string().min(1).max(100).optional(),
+  selectItems: z.array(z.string()).nonempty('You must select at least one menu'),
 })
-
 export async function loader({ request, params }: LoaderArgs) {
-  const searchParams = getSearchParams({ request })
-  const searchParamsData = Object.fromEntries(searchParams)
-
-  const categoryId = searchParamsData.itemId ?? searchParamsData.editItem
-
-  if (categoryId) {
-    const category = await prisma.menuCategory.findFirst({
-      where: { id: categoryId },
-      include: { menuItems: { include: { cartItems: true } } },
-    })
-
-    return json({ category })
-  }
-  return json({ category: null })
+  return json({ success: true })
 }
-
 export async function action({ request, params }: ActionArgs) {
   const formData = await request.formData()
 
-  const formValues = { ...Object.fromEntries(formData.entries()), selectedItems: formData.getAll('selectedItems') } as FormValues
-
-  console.log('formValues', formValues)
-
-  const searchParams = getSearchParams({ request })
-  const searchParamsValues = Object.fromEntries(searchParams)
-  console.log('searchParamsData', searchParamsValues)
-  const categoryId = searchParamsValues.itemId ?? searchParamsValues.editItem
-  const redirectTo = safeRedirect(formData.get('redirectTo'), '')
-
-  switch (formValues._action) {
-    case ACTIONS.ADD:
-      await prisma.menuCategory.create({
-        data: {
-          name: formValues.name,
-          imageUrl: formValues.image,
-          pdf: formValues.pdf === 'on',
-          description: formValues.description,
-          menuItems: {
-            connect: formValues.selectedItems.map(id => ({ id: String(id) })),
-          },
-          menu: {
-            connect: { id: formValues.menu },
-          },
-        },
-      })
-      return redirect(redirectTo)
-    case ACTIONS.EDIT:
-      // Fetch the current category to get the existing selected items
-      const currentCategory = await prisma.menuCategory.findUnique({
-        where: { id: categoryId },
-        include: { menuItems: true },
-      })
-
-      // Extract the existing selected item IDs
-      const prevSelectedItems = currentCategory?.menuItems.map(item => item.id) || []
-
-      // Determine the items to connect and disconnect
-      const connectIds = formValues.selectedItems.filter(id => !prevSelectedItems.includes(String(id))).map(id => String(id))
-      const disconnectIds = prevSelectedItems.filter(id => !formValues.selectedItems.includes(id)).map(id => String(id))
-
-      // Update the category with the new selected and unselected items
-      await prisma.menuCategory.update({
-        where: { id: categoryId },
-        data: {
-          name: formValues.name,
-          imageUrl: formValues.image && formValues.image,
-          pdf: formValues.pdf === 'on',
-          description: formValues.description && formValues.description,
-          menu: {
-            connect: { id: formValues.menu },
-          },
-          menuItems: {
-            connect: connectIds.map(id => ({ id })),
-            disconnect: disconnectIds.map(id => ({ id })),
-          },
-        },
-      })
-      return redirect(redirectTo)
-
-    case ACTIONS.DELETE:
-      await prisma.menuCategory.delete({
-        where: { id: categoryId },
-      })
-      return redirect(redirectTo)
-    default:
-      return redirect(redirectTo)
+  const submission = parse(formData, {
+    schema: categoriesFormSchema,
+  })
+  console.log('submission', submission)
+  if (submission.intent !== 'submit') {
+    return json({ status: 'idle', submission } as const)
   }
+  if (!submission.value) {
+    return json(
+      {
+        status: 'error',
+        submission,
+      } as const,
+      { status: 400 },
+    )
+  }
+  //   const oldMenuIds = (await prisma.menuCategories.findMany({
+  //     where: {
+  //       id: submission.value.id,
+  //     },
+  //     select: {
+  //       menuId: true,
+  //     },
+  //   })) as any
+
+  return namedAction(request, {
+    async create() {
+      for (const item of submission.value.selectItems) {
+        console.log('item', item)
+        await prisma.menuCategory.create({
+          data: {
+            name: capitalizeFirstLetter(submission.value.name),
+            image: submission.value.image,
+            pdf: submission.value.pdf,
+            menu: {
+              connect: {
+                id: item,
+              },
+            },
+          },
+        })
+      }
+      return redirect('')
+    },
+    async update() {
+      const newMenuIds = submission.value.selectItems
+      await prisma.menuCategory.update({
+        where: { id: submission.value.id },
+        data: {
+          menu: { set: [] },
+        },
+      })
+      for (const item of newMenuIds) {
+        await prisma.menuCategory.update({
+          where: { id: submission.value.id },
+          data: {
+            name: capitalizeFirstLetter(submission.value.name),
+            image: submission.value.image,
+            pdf: submission.value.pdf,
+            menu: {
+              connect: {
+                id: item,
+              },
+            },
+          },
+        })
+      }
+
+      return redirect('')
+    },
+  })
 }
 
-type RouteLoaderData = {
-  branch: any
-}
+export default function Name() {
+  const { branch } = useRouteLoaderData('routes/admin_.$branchId') as any
 
-export default function Categories() {
-  const data = useLoaderData()
-  const actionData = useActionData<typeof action>()
+  const fetcher = useFetcher()
+  const isSubmitting = fetcher.state !== 'idle'
+  const [searchParams, setSearchParams] = useSearchParams()
 
   const [form, fields] = useForm({
     id: 'categories',
     constraint: getFieldsetConstraint(categoriesFormSchema),
-    lastSubmission: actionData?.submission ?? data.submission,
+    lastSubmission: fetcher.data?.submission,
+
     onValidate({ formData }) {
       return parse(formData, { schema: categoriesFormSchema })
     },
     shouldRevalidate: 'onBlur',
   })
 
-  const { branch } = useRouteLoaderData('routes/admin_.$branchId') as RouteLoaderData
-
-  const [searchParams] = useSearchParams()
-
-  const itemId = searchParams.get('itemId')
-
-  if (itemId) {
-    return (
-      <div>
-        <HeaderSection backPath="" title="Categories" breadcrumb={itemId} />
-
-        <ItemInfo title="Users" itemObject={data.category} />
-      </div>
-    )
-  }
+  const addItem = searchParams.get('addItem')
+  const editItem = searchParams.get('editItem')
+  const deleteItem = searchParams.get('deleteItem')
+  const branchId = branch.branches[0].id
 
   return (
-    <div>
-      <EditCategoryDialog form={form} fields={fields} branchChild={branch.menuItems} dataChild={data.category} menus={branch.menus} />
-      <AddCategoryDialog form={form} fields={fields} branchChild={branch.menuItems} dataChild={data.category} menus={branch.menus} />
-
-      <HeaderSection addQuery="?addItem=true" backPath=".." title="Categories" />
-      <Spacer size="sm" />
-      <div className="flex flex-wrap gap-2 ">
-        {branch.menuCategories.map((category: any) => {
-          return (
-            <Container
-              editQuery={`?editItem=${category.id}`}
-              name={category.name}
-              itemIdQuery={`?itemId=${category.id}`}
-              key={category.id}
-            />
-          )
-        })}
+    <main>
+      <HeaderWithButton queryKey="addItem" queryValue="true" buttonLabel="Add" />
+      <div className="flex flex-wrap gap-2 p-4">
+        {branch.menuCategories.map(category => (
+          <FlexRow key={category.id}>
+            <div
+              //   to={category.id}
+              className="w-24 h-24 flex flex-col justify-center items-center bg-white break-all rounded-xl shadow text-sm p-1"
+            >
+              <H6>{category.name}</H6>
+            </div>
+            <div className="basic-flex-col">
+              <button
+                className="icon-button edit-button"
+                onClick={() => {
+                  searchParams.set('editItem', category.id)
+                  setSearchParams(searchParams)
+                }}
+              >
+                <EditIcon />
+              </button>
+              <button
+                className="icon-button del-button"
+                onClick={() => {
+                  searchParams.set('deleteItem', category.id)
+                  setSearchParams(searchParams)
+                }}
+              >
+                <DeleteIcon />
+              </button>
+            </div>
+          </FlexRow>
+        ))}
       </div>
-    </div>
+      <QueryDialog query="addItem" title="Add Category" description="Add to the fields you want to add">
+        <fetcher.Form method="POST" {...form.props} action="?/create">
+          <CategoryForm
+            intent="add"
+            categories={branch.menuCategories}
+            editSubItemId={editItem}
+            isSubmitting={isSubmitting}
+            fields={fields}
+            addingData={{ data: branch.menus, keys: ['name'] }}
+          />
+          <input type="hidden" value={addItem ? addItem : ''} {...conform.input(fields.id)} />
+        </fetcher.Form>
+      </QueryDialog>
+      <QueryDialog title="Edit Category" description="Modify the fields you want to edit" query={'editItem'}>
+        <fetcher.Form method="POST" {...form.props} action="?/update">
+          <CategoryForm
+            intent="edit"
+            categories={branch.menuCategories}
+            editSubItemId={editItem}
+            isSubmitting={isSubmitting}
+            fields={fields}
+            addingData={{ data: branch.menus, keys: ['name'] }}
+          />
+          <input type="hidden" value={editItem ? editItem : ''} {...conform.input(fields.id)} />
+        </fetcher.Form>
+      </QueryDialog>
+      <QueryDialog title="Delete Availability" description="Are you sure that you want to delete this item?" query={'deleteItem'}>
+        <fetcher.Form method="POST" action="/admin/deleteItem" name="DELETE">
+          <Button type="submit" disabled={isSubmitting} size="small" variant="danger">
+            Delete
+          </Button>
+          <input type="hidden" name="id" value={deleteItem ? deleteItem : ''} />
+          <input type="hidden" name="model" value="categories" />
+          <input type="hidden" name="redirect" value={`/admin/${branchId}/categories`} />
+
+          <ErrorList errors={[...form.errors]} id={form.errorId} />
+        </fetcher.Form>
+      </QueryDialog>
+    </main>
   )
 }

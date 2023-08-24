@@ -35,7 +35,13 @@ export default function CustomPay() {
     <Modal onClose={() => navigate('..', { replace: true })} fullScreen={false} title="Pagar un monto personalizado">
       {actionData?.status === 400 && <div>Error message here</div>}
       <Payment
-        state={{ amountLeft: data.amountLeft, amountToPayState: amountToPay, currency: data.currency, paymentMethods: data.paymentMethods, tipsPercentages: data.tipsPercentages }}
+        state={{
+          amountLeft: data.amountLeft,
+          amountToPayState: amountToPay,
+          currency: data.currency,
+          paymentMethods: data.paymentMethods,
+          tipsPercentages: data.tipsPercentages,
+        }}
       >
         <Form method="POST" preventScrollReset>
           <div className="bg-componentBg dark:bg-DARK_0 flex w-full flex-row items-center px-4 py-2  ">
@@ -49,9 +55,12 @@ export default function CustomPay() {
               id="custom"
               inputMode="decimal"
               onChange={handleAmountChange} // Handle input changes
-              className={clsx(`dark:bg-DARK-0 flex h-20 w-full bg-transparent text-6xl placeholder:p-2 placeholder:text-6xl focus:outline-none focus:ring-0`, {
-                'animate-pulse placeholder:text-warning': actionData?.amountToPay,
-              })}
+              className={clsx(
+                `dark:bg-DARK-0 flex h-20 w-full bg-transparent text-6xl placeholder:p-2 placeholder:text-6xl focus:outline-none focus:ring-0`,
+                {
+                  'animate-pulse placeholder:text-warning': actionData?.amountToPay,
+                },
+              )}
               placeholder="0.00"
             />
           </div>
@@ -80,7 +89,6 @@ export async function loader({ request, params }: LoaderArgs) {
 export async function action({ request, params }: ActionArgs) {
   const { tableId } = params
   invariant(tableId, 'No se encontró mesa')
-
   const redirectTo = validateRedirect(request.redirect, `/table/${tableId}`)
   const formData = await request.formData()
   const data = Object.fromEntries(formData)
@@ -107,7 +115,11 @@ export async function action({ request, params }: ActionArgs) {
   if (amountLeft && amountLeft < Number(total)) {
     const url = new URL(request.url)
     const pathname = url.pathname
-    return redirect(`/table/${tableId}/pay/confirmExtra?total=${total}&tip=${tip <= 0 ? total * 0.12 : tip}&pMethod=${data.paymentMethod}&redirectTo=${pathname}`)
+    return redirect(
+      `/table/${tableId}/pay/confirmExtra?total=${total}&tip=${tip <= 0 ? total * 0.12 : tip}&pMethod=${
+        data.paymentMethod
+      }&redirectTo=${pathname}`,
+    )
   }
 
   const isOrderAmountFullPaid = amountLeft <= total

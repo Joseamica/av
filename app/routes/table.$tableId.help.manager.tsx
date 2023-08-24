@@ -16,20 +16,12 @@ export async function action({ request, params }: ActionArgs) {
   const { tableId } = params
   invariant(tableId, 'tableId is required')
   const formData = await request.formData()
-  const managersId = formData.getAll('managers') as [string]
+  const phones = formData.getAll('managers') as [string]
   const redirectTo = validateRedirect(request.redirect, `..`)
 
   const table = await getTable(tableId)
 
-  const managers = await prisma.employee
-    .findMany({
-      where: { id: { in: managersId }, NOT: { phone: null } },
-    })
-    .then(managers => managers.map(manager => manager.phone))
-
-  const sendNotification = SendWhatsApp('14155238886', managers, `Llamada de la mesa ${table?.number} test`)
-
-  // const sendNotification = sendWhatsapp()
+  SendWhatsApp('14155238886', phones, `Llamada de la mesa ${table?.number} test`)
 
   return redirect(redirectTo)
 }
@@ -66,7 +58,7 @@ export default function Help() {
                 {manager.role ? 'Gerente' : ''}
               </span>
             </FlexRow>
-            <input type="checkbox" name="managers" id={manager.id} value={manager.id} />
+            <input type="checkbox" name="managers" id={manager.id} value={manager.phone} />
           </ItemContainer>
         ))}
         {data.managers?.length === 0 && <p className="text-center">Esta mesa no tiene gerentes asignados</p>}

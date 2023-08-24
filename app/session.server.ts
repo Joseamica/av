@@ -1,14 +1,11 @@
-import type {CartItem} from '@prisma/client'
-import {
-  createCookieSessionStorage,
-  redirect,
-  type Session,
-} from '@remix-run/node'
-import invariant from 'tiny-invariant'
-import {v4 as uuidv4} from 'uuid'
+import { type Session, createCookieSessionStorage, redirect } from '@remix-run/node'
 
-import type {User} from '~/models/user.server'
-import {getUserById} from '~/models/user.server'
+import type { CartItem } from '@prisma/client'
+import invariant from 'tiny-invariant'
+import { v4 as uuidv4 } from 'uuid'
+
+import type { User } from '~/models/user.server'
+import { getUserById } from '~/models/user.server'
 
 invariant(process.env.SESSION_SECRET, 'SESSION_SECRET must be set')
 
@@ -23,6 +20,8 @@ export const sessionStorage = createCookieSessionStorage({
     secure: process.env.NODE_ENV === 'production',
   },
 })
+
+export let { commitSession, destroySession } = sessionStorage
 
 const USER_SESSION_KEY = 'userId'
 let cartSessionKey = 'cart'
@@ -80,10 +79,7 @@ export async function getUser(request: Request) {
   throw await logout(request)
 }
 
-export async function requireUserId(
-  request: Request,
-  redirectTo: string = new URL(request.url).pathname,
-) {
+export async function requireUserId(request: Request, redirectTo: string = new URL(request.url).pathname) {
   const userId = await getUserId(request)
   if (!userId) {
     const searchParams = new URLSearchParams([['redirectTo', redirectTo]])
@@ -104,16 +100,19 @@ export async function requireUser(request: Request) {
 export async function createUserSession({
   request,
   userId,
+  username,
   remember,
   redirectTo,
 }: {
   request: Request
   userId: string
+  username: string
   remember: boolean
   redirectTo: string
 }) {
   const session = await getSession(request)
   session.set(USER_SESSION_KEY, userId)
+  session.set('username', username)
   return redirect(redirectTo, {
     headers: {
       'Set-Cookie': await sessionStorage.commitSession(session, {
@@ -127,19 +126,20 @@ export async function createUserSession({
 
 export async function logout(request: Request, path = '/') {
   const session = await getSession(request)
+  session.unset(USER_SESSION_KEY)
+  session.unset('username')
+  session.unset('user_color')
+  session.unset('cart')
+  session.unset('tableId')
   return redirect(path, {
     headers: {
+      // 'Set-Cookie': await sessionStorage.commitSession(session),
       'Set-Cookie': await sessionStorage.destroySession(session),
     },
   })
 }
 
-export function addToCart(
-  cart: CartItem[],
-  variantId: string,
-  quantity: number,
-  modifiers: string[],
-) {
+export function addToCart(cart: CartItem[], variantId: string, quantity: number, modifiers: string[]) {
   let added = false
   for (let item of cart) {
     if (item.variantId === variantId) {
@@ -149,7 +149,7 @@ export function addToCart(
     }
   }
   if (!added) {
-    cart.push({variantId, quantity, modifiers})
+    cart.push({ variantId, quantity, modifiers })
   }
   return cart
 }
@@ -158,11 +158,7 @@ export function removeCartItem(cart: CartItem[], variantId: string) {
   return cart.filter(item => item.variantId !== variantId)
 }
 
-export function updateCartItem(
-  cart: CartItem[],
-  variantId: string,
-  quantity: number,
-) {
+export function updateCartItem(cart: CartItem[], variantId: string, quantity: number) {
   let updated = false
   for (let item of cart) {
     if (item.variantId === variantId) {
@@ -176,7 +172,7 @@ export function updateCartItem(
     }
   }
   if (!updated) {
-    cart.push({variantId, quantity})
+    cart.push({ variantId, quantity })
   }
   return cart
 }

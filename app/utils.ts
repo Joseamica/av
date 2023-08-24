@@ -280,3 +280,11 @@ export function getUrl(name: string, pathname: string, params?: { userId?: strin
 export function getSearchParams({ request }) {
   return new URL(request.url).searchParams
 }
+
+export const dayOfWeek = number => {
+  const days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
+  return days[number - 1]
+}
+export function capitalizeFirstLetter(str: string) {
+  return str.charAt(0).toUpperCase() + str.slice(1).toLowerCase()
+}

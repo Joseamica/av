@@ -45,7 +45,7 @@ type MenuCategory = {
   menuId: string
   menuItems: MenuItem[]
   pdf?: boolean
-  imageUrl?: string
+  image?: string
 }
 
 interface ModifierGroups extends ModifierGroup {
@@ -235,7 +235,7 @@ export default function Menu() {
             .map((category: MenuCategory) => (
               <div key={category.id}>
                 <div className="overflow-hidden">
-                  <img alt="" className="object-cover transform rounded-xl " src={category.imageUrl} />
+                  <img alt="" className="object-cover transform rounded-xl " src={category.image} />
                 </div>
               </div>
             ))}
@@ -283,7 +283,7 @@ export default function Menu() {
                                 <motion.img
                                   whileHover={{ scale: 1 }}
                                   whileTap={{ scale: 0.8 }}
-                                  src={dish.image ? dish.image : data.branch.ppt_image}
+                                  src={dish.image ? dish.image : data.branch.image}
                                   // onError={() => console.log('image error')}
                                   className="object-cover bg-white rounded-lg dark:bg-secondaryDark h-28 max-h-28 w-28 shrink-0"
                                   loading="lazy"

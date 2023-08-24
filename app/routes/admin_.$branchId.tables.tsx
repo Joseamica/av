@@ -13,10 +13,10 @@ import { getTable, handleAddAction, handleDeleteAction, handleEditAction } from 
 import { getSearchParams } from '~/utils'
 
 import { Spacer } from '~/components'
+import { HeaderSection } from '~/components/admin/headers'
 import { AddTableDialog } from '~/components/admin/tables/dialogs/add'
 import { EditTableDialog } from '~/components/admin/tables/dialogs/edit'
 import Container from '~/components/admin/ui/container'
-import HeaderSection from '~/components/admin/ui/header-section'
 import Item from '~/components/admin/ui/item'
 
 export const handle = { active: 'Tables' }
