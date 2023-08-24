@@ -13,10 +13,10 @@ import { getTable, handleAddAction, handleDeleteAction, handleEditAction } from 
 import { getSearchParams } from '~/utils'
 
 import { Spacer } from '~/components'
-import { HeaderSection } from '~/components/admin/headers'
+import { HeaderSection, HeaderWithButton } from '~/components/admin/headers'
 import { AddTableDialog } from '~/components/admin/tables/dialogs/add'
 import { EditTableDialog } from '~/components/admin/tables/dialogs/edit'
-import Container from '~/components/admin/ui/container'
+import { Container } from '~/components/admin/ui/container'
 import Item from '~/components/admin/ui/item'
 
 export const handle = { active: 'Tables' }
@@ -116,7 +116,7 @@ export default function Tables() {
 
       <AddTableDialog form={form} fields={fields} table={data.table} />
 
-      <HeaderSection addQuery="?addItem=true" backPath=".." title="Tables" />
+      <HeaderWithButton queryKey="addItem" queryValue="true" buttonLabel="Add" />
       <Spacer size="sm" />
       <div className="flex flex-wrap gap-2 ">
         {branch.tables.map((table: Table) => (

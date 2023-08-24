@@ -7,20 +7,22 @@ import {
   ScrollRestoration,
   isRouteErrorResponse,
   useNavigation,
+  useParams,
   useRouteError,
 } from '@remix-run/react'
 
 import { cssBundleHref } from '@remix-run/css-bundle'
 import type { LinksFunction } from '@remix-run/node'
+import { type ErrorResponse } from '@remix-run/router'
 
 // * CUSTOM COMPONENTS
 import { useSpinDelay } from 'spin-delay'
 
-import Error from './components/util/error'
 import appStylesheetUrl from './styles/app.css'
 import fontStylestylesheetUrl from './styles/font.css'
 // * STYLES
 import tailwindStylesheetUrl from './styles/tailwind.css'
+import { getErrorMessage } from './utils/misc'
 
 export const links: LinksFunction = () =>
   [
@@ -89,39 +91,36 @@ export default function App() {
   )
 }
 
-export function ErrorBoundary() {
+type StatusHandler = (info: { error: ErrorResponse; params: Record<string, string | undefined> }) => JSX.Element | null
+
+export function GeneralErrorBoundary({
+  defaultStatusHandler = ({ error }) => (
+    <p>
+      {error.status} {error.data}
+    </p>
+  ),
+  statusHandlers,
+  unexpectedErrorHandler = error => <p>{getErrorMessage(error)}</p>,
+}: {
+  defaultStatusHandler?: StatusHandler
+  statusHandlers?: Record<number, StatusHandler>
+  unexpectedErrorHandler?: (error: unknown) => JSX.Element | null
+}) {
   const error = useRouteError()
+  const params = useParams()
 
-  // when true, this is what used to go to `CatchBoundary`
-  if (isRouteErrorResponse(error)) {
-    return (
-      <div>
-        <h1>Oops</h1>
-        <p>
-          Status: {error.status} {error.statusText}
-        </p>
-
-        <Error title={error.data}>
-          <h1>Uh oh ...</h1>
-          <p>Something went wrong.</p>
-        </Error>
-      </div>
-    )
+  if (typeof document !== 'undefined') {
+    console.error(error)
   }
 
-  // Don't forget to typecheck with your own logic.
-  // Any value can be thrown, not just errors!
-  let errorMessage = 'Unknown error'
-  // if (isDefinitelyAnError(error)) {
-  //   errorMessage = error.message;
-  // }
-
   return (
-    <div>
-      <Error title={errorMessage}>
-        <h1>Uh oh ...</h1>
-        <p>Something went wrong.</p>
-      </Error>
+    <div className="container mx-auto flex items-center justify-center p-20 text-h2">
+      {isRouteErrorResponse(error)
+        ? (statusHandlers?.[error.status] ?? defaultStatusHandler)({
+            error,
+            params,
+          })
+        : unexpectedErrorHandler(error)}
     </div>
   )
 }

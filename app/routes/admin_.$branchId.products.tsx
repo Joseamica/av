@@ -1,5 +1,5 @@
 import { conform, useForm } from '@conform-to/react'
-import { Link, Outlet, useFetcher, useRouteLoaderData, useSearchParams } from '@remix-run/react'
+import { Link, Outlet, useFetcher, useParams, useRouteLoaderData, useSearchParams } from '@remix-run/react'
 
 import { type ActionArgs, json, redirect } from '@remix-run/node'
 
@@ -13,6 +13,7 @@ import { HeaderWithButton } from '~/components/admin/headers'
 import { ProductForm } from '~/components/admin/products/product-form'
 import { QueryDialog } from '~/components/admin/ui/dialogs/dialog'
 import { ErrorList } from '~/components/admin/ui/forms'
+import { Square } from '~/components/admin/ui/square'
 import { DeleteIcon, EditIcon } from '~/components/icons'
 
 const productSchema = z.object({
@@ -89,17 +90,15 @@ export async function action({ request, params }: ActionArgs) {
 
       return redirect('')
     },
-    // async delete() {
-    //   await prisma.availabilities.delete({ where: { id: submission.value.id } })
-    //   return redirect('')
-    // },
   })
 }
 export default function Products() {
   const { branch } = useRouteLoaderData('routes/admin_.$branchId') as any
+  const { branchId } = useParams()
+
   const fetcher = useFetcher()
   const isSubmitting = fetcher.state !== 'idle'
-  const [searchParams, setSearchParams] = useSearchParams()
+  const [searchParams] = useSearchParams()
 
   const [form, fields] = useForm({
     id: 'products',
@@ -114,38 +113,13 @@ export default function Products() {
   const addItem = searchParams.get('addItem')
   const editItem = searchParams.get('editItem')
   const deleteItem = searchParams.get('deleteItem')
-  const branchId = branch.branches[0].id
 
   return (
     <main>
       <HeaderWithButton queryKey="addItem" queryValue="true" buttonLabel="Add" />
       <div className="flex flex-wrap gap-2 p-4">
         {branch.menuItems.map(product => (
-          <FlexRow key={product.id}>
-            <div className="w-24 h-24 flex justify-center items-center bg-white break-all rounded-xl shadow text-sm p-1">
-              {product.name}
-            </div>
-            <div className="basic-flex-col">
-              <button
-                className="icon-button edit-button"
-                onClick={() => {
-                  searchParams.set('editItem', product.id)
-                  setSearchParams(searchParams)
-                }}
-              >
-                <EditIcon />
-              </button>
-              <button
-                className="icon-button del-button"
-                onClick={() => {
-                  searchParams.set('deleteItem', product.id)
-                  setSearchParams(searchParams)
-                }}
-              >
-                <DeleteIcon />
-              </button>
-            </div>
-          </FlexRow>
+          <Square itemId={product.id} name={product.name} to={product.id} key={product.id} />
         ))}
       </div>
       {/* ANCHOR ADD */}

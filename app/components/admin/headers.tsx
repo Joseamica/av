@@ -102,13 +102,13 @@ export const HeaderWithButton: React.FC<HeaderWithButtonProps> = ({
   return (
     <div className="flex flex-row justify-between bg-white h-20 items-center p-4 border-b-2">
       <FlexRow>
-        <Link to="..">
+        <Link to=".." className="hover:bg-button-primary rounded-full hover:text-white">
           <ChevronLeftIcon className="w-10 h-10" />
         </Link>
         <H1 className="capitalize">{title}</H1>
       </FlexRow>
       <button onClick={handleButtonClick}>
-        <FlexRow className="rounded-full border-2 bg-white px-4 py-2">
+        <FlexRow className="rounded-full border-2 bg-white px-4 py-2 hover:bg-button-primary hover:text-white">
           {buttonLabel} <IconComponent className="w-6 h-6" />
         </FlexRow>
       </button>

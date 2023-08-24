@@ -50,7 +50,7 @@ export function createBranch(restaurantId: string) {
       created: new Date().toISOString(),
       updated: new Date().toISOString(),
       image:
-        'https://firebasestorage.googleapis.com/v0/b/avoqado-d0a24.appspot.com/o/kuikku%2FKUIKKU%20(2)%20(1)%20copy.png?alt=media&token=158e8d1b-d24b-406b-85e7-a507b29d84fc',
+        'https://firebasestorage.googleapis.com/v0/b/avoqado-d0a24.appspot.com/o/i-need-a-high-quality-principal-image-for-the-hero-section-of-my-landing-page-this-image-will-r-.png?alt=media&token=298dadb1-9034-4b6e-ac10-34ec0f78d98a',
       email: faker.internet.email(),
       phone: '8885551212',
       wifiName: faker.random.alphaNumeric(8),
@@ -101,7 +101,7 @@ export function createMenu(branchId: string) {
       type: 'breakfast',
       branchId: branchId,
       image:
-        'https://firebasestorage.googleapis.com/v0/b/avoqado-d0a24.appspot.com/o/kuikku%2FKuikku%20General.JPG?alt=media&token=e585a90e-59dd-499d-97b6-b059a031ff8b',
+        'https://firebasestorage.googleapis.com/v0/b/avoqado-d0a24.appspot.com/o/i-need-a-high-quality-principal-image-for-the-hero-section-of-my-landing-page-this-image-will-r-.png?alt=media&token=298dadb1-9034-4b6e-ac10-34ec0f78d98a',
       // allday: true,
       currency: 'eur',
     },
@@ -179,7 +179,7 @@ export async function createProductsAndModifiers(categories: any, branchId: stri
             name: `${category.name} Item #${j}`,
             plu: `PLU-${category.name}-${j}`,
             image:
-              'https://firebasestorage.googleapis.com/v0/b/avoqado-d0a24.appspot.com/o/kuikku%2F3.%20TEMAKI%20(HANDROLL)%2FTEMAKI%20NEGITORO.jpg?alt=media&token=08782db0-22ef-49f6-8ac0-4c9c92e59645',
+              'https://firebasestorage.googleapis.com/v0/b/avoqado-d0a24.appspot.com/o/1.%20Madre%20Cafecito%2FDSC_3020.jpg?alt=media&token=b263b604-1691-45e7-9f4f-d6598056e45d',
             description: faker.commerce.productDescription(),
             price: faker.commerce.price(100, 500),
             available: true,
