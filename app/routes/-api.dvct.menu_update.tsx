@@ -2,7 +2,6 @@
 // import {prisma} from '~/db.server'
 // import {getBranchId} from '~/models/branch.server'
 // import {getSession} from '~/session.server'
-
 // function adjustCategory(category, menuId) {
 //   return {
 //     // id: category._id,
@@ -15,20 +14,18 @@
 //     // menuId: category.menu,
 //   }
 // }
-
-// function adjustMenuItem(menuItem) {
+// function adjustMenuItem(product) {
 //   return {
-//     // id: menuItem._id,
-//     plu: menuItem.plu,
-//     image: menuItem.imageUrl,
-//     name: menuItem.name,
-//     description: menuItem.description,
-//     price: menuItem.price,
+//     // id: product._id,
+//     plu: product.plu,
+//     image: product.imageUrl,
+//     name: product.name,
+//     description: product.description,
+//     price: product.price,
 //     available: true,
-//     menuCategoryId: menuItem.menuCategoryId,
+//     categoryId: product.categoryId,
 //   }
 // }
-
 // export const action = async ({request}: ActionArgs) => {
 //   const session = await getSession(request)
 //   const tableId = session.get('tableId')
@@ -36,7 +33,6 @@
 //   const rawData = await request.text()
 //   const [menuData] = JSON.parse(rawData)
 //   const products = Object.values(menuData.products)
-
 //   const menu = await prisma.menu.upsert({
 //     where: {id: menuData.menuId},
 //     update: {
@@ -53,10 +49,9 @@
 //       branchId: branchId,
 //     },
 //   })
-
 //   for (const product of products) {
 //     const adjustedMenuItem = adjustMenuItem(product)
-//     await prisma.menuItem.upsert({
+//     await prisma.product.upsert({
 //       where: {id: product._id},
 //       update: adjustedMenuItem,
 //       create: {
@@ -65,10 +60,8 @@
 //       },
 //     })
 //   }
-
 //   for (const category of menuData.categories) {
 //     const adjustedCategory = adjustCategory(category, menuData.menuId)
-
 //     // Upsert the category
 //     const categoryUpserted = await prisma.menuCategory.upsert({
 //       where: {id: category._id},
@@ -87,10 +80,9 @@
 //         menu: {connect: {id: menu.id}},
 //       },
 //     })
-
-//     // Connect each product/menuItem to the upsertedCategory
+//     // Connect each product/product to the upsertedCategory
 //     for (const product of category.products) {
-//       await prisma.menuItem.update({
+//       await prisma.product.update({
 //         where: {id: product},
 //         data: {
 //           menuCategoryId: categoryUpserted.id,
@@ -98,15 +90,15 @@
 //       })
 //     }
 //   }
-
 // }
+import { type ActionArgs, json } from '@remix-run/node'
 
-import {json, type ActionArgs} from '@remix-run/node'
 import cuid from 'cuid'
-import {prisma} from '~/db.server'
-import {getBranchId} from '~/models/branch.server'
-import {getSession} from '~/session.server'
-import type {DvctModifierGroup} from '~/types/modifiers'
+import { prisma } from '~/db.server'
+import { getSession } from '~/session.server'
+import type { DvctModifierGroup } from '~/types/modifiers'
+
+import { getBranchId } from '~/models/branch.server'
 
 //TODO MAKE MODIFIERS WORK
 //TODO MAKE TRANSLATIONS
@@ -129,24 +121,24 @@ const adjustCategory = (category: DVCT_CATEGORY) => ({
   description: category.description,
 })
 
-const adjustMenuItem = (menuItem: any) => ({
-  plu: menuItem.plu,
-  image: menuItem.imageUrl
-    ? menuItem.imageUrl
+const adjustMenuItem = (product: any) => ({
+  plu: product.plu,
+  image: product.imageUrl
+    ? product.imageUrl
     : 'https://firebasestorage.googleapis.com/v0/b/avoqado-d0a24.appspot.com/o/kuikku%2F3.%20TEMAKI%20(HANDROLL)%2FTEMAKI%20NEGITORO.jpg?alt=media&token=08782db0-22ef-49f6-8ac0-4c9c92e59645',
-  name: menuItem.name,
-  description: menuItem.description,
-  price: menuItem.price / 100,
+  name: product.name,
+  description: product.description,
+  price: product.price / 100,
   available: true,
-  menuCategoryId: menuItem.menuCategoryId,
+  categoryId: product.categoryId,
 })
 
 // Helper function to upsert a menu item
 const upsertMenuItem = async product => {
   const adjustedMenuItem = adjustMenuItem(product)
   console.log('adjustedMenuItem', adjustedMenuItem)
-  await prisma.menuItem.upsert({
-    where: {id: product._id},
+  await prisma.product.upsert({
+    where: { id: product._id },
     update: adjustedMenuItem,
     create: {
       ...adjustedMenuItem,
@@ -159,37 +151,33 @@ const upsertMenuItem = async product => {
 const upsertCategory = async (category, menu) => {
   const adjustedCategory = adjustCategory(category)
 
-  const categoryUpserted = await prisma.menuCategory.upsert({
-    where: {id: category._id},
+  const categoryUpserted = await prisma.categoryId.upsert({
+    where: { id: category._id },
     update: adjustedCategory,
     create: {
       ...adjustedCategory,
       id: category._id,
-      menu: {connect: {id: menu.id}},
+      menu: { connect: { id: menu.id } },
     },
   })
 
   for (const product of category.products) {
-    await prisma.menuItem.update({
-      where: {id: product},
+    await prisma.product.update({
+      where: { id: product },
       data: {
-        menuCategoryId: categoryUpserted.id,
+        categoryId: categoryUpserted.id,
       },
     })
   }
 }
 
-export const action = async ({request}: ActionArgs) => {
+export const action = async ({ request }: ActionArgs) => {
   const session = await getSession(request)
   const tableId = session.get('tableId')
   const branchId = await getBranchId(tableId)
   const rawData = await request.text()
   const [menuData] = JSON.parse(rawData)
-  console.log(
-    '\x1b[41m%s\x1b[0m',
-    'api.dvct.menu_update.tsx line:184 menuData',
-    menuData,
-  )
+  console.log('\x1b[41m%s\x1b[0m', 'api.dvct.menu_update.tsx line:184 menuData', menuData)
   console.log('ModifierGroups -> ', menuData.modifierGroups)
 
   await prisma.menu.deleteMany({
@@ -199,7 +187,7 @@ export const action = async ({request}: ActionArgs) => {
   })
 
   const menu = await prisma.menu.upsert({
-    where: {id: menuData.menuId},
+    where: { id: menuData.menuId },
     update: {
       name: menuData.menu,
       currency: String(menuData.currency),
@@ -248,9 +236,7 @@ export const action = async ({request}: ActionArgs) => {
     await upsertMenuItem(product)
   }
 
-  for (const modifierGroup of Object.values(
-    menuData.modifierGroups,
-  ) as DvctModifierGroup[]) {
+  for (const modifierGroup of Object.values(menuData.modifierGroups) as DvctModifierGroup[]) {
     await prisma.modifierGroup.upsert({
       where: {
         id: modifierGroup._id,
@@ -299,5 +285,5 @@ export const action = async ({request}: ActionArgs) => {
     await upsertCategory(category, menu)
   }
 
-  return json({success: 'true'})
+  return json({ success: 'true' })
 }

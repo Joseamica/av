@@ -33,19 +33,19 @@ export async function loader({ request, params }: LoaderArgs) {
     },
     include: {
       availabilities: { orderBy: { dayOfWeek: 'asc' } },
-      menuCategories: {
+      categories: {
         orderBy: { name: 'asc' },
         include: {
           menu: true,
         },
       },
-      menuItems: true,
+      products: true,
       menus: {
         orderBy: { name: 'desc' },
         include: {
-          menuCategories: {
+          categories: {
             include: {
-              menuItems: true,
+              products: true,
             },
           },
         },
@@ -83,7 +83,7 @@ export default function AdminBranch() {
 
   return (
     <MainAdminContainer>
-      <div className="col-start-1 col-end-3 bg-white flex flex-col p-2 space-y-4 border-r">
+      <div className="flex flex-col col-start-1 col-end-3 p-2 space-y-4 bg-white border-r">
         <h1 className="text-4xl">
           <Link to="">Avoqado</Link>
         </h1>
@@ -100,7 +100,7 @@ export default function AdminBranch() {
               {link.name}
             </Link>
             {/* {activeSubmenu === link.name && link.subLinks && (
-              <div className="pl-4 pt-2 flex flex-col space-y-2">
+              <div className="flex flex-col pt-2 pl-4 space-y-2">
                 {link.subLinks.map(subLink => (
                   <Link to={'menus/' + subLink} key={subLink} className="capitalize">
                     {subLink}
@@ -110,7 +110,7 @@ export default function AdminBranch() {
             )} */}
           </div>
         ))}
-        <Link to="/logout" className="bottom-5 absolute self-center icon-button w-24 text-center">
+        <Link to="/logout" className="absolute self-center w-24 text-center bottom-5 icon-button">
           Logout
         </Link>
       </div>

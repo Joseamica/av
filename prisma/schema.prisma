@@ -18,8 +18,8 @@ model Admin {
   employees      Employee[]
   availabilities Availabilities[]
   feedbacks      Feedback[]
-  menuCategories MenuCategory[]
-  menuItems      MenuItem[]
+  categories     Category[]
+  products       Product[]
   modifierGroups ModifierGroup[]
   modifiers      Modifiers[]
   cartItems      CartItem[]
@@ -77,8 +77,8 @@ model Branch {
   employees       Employee[]
   feedbacks       Feedback[]
   payments        Payments[]
-  menuCategories  MenuCategory[]
-  menuItems       MenuItem[]
+  categories      Category[]
+  products        Product[]
   restaurant      Restaurant      @relation(fields: [restaurantId], references: [id], onDelete: Cascade, onUpdate: Cascade)
   adminId         String?         @default("cllb3d9b90003cedclcthud41")
   admin           Admin?          @relation(fields: [adminId], references: [id])
@@ -112,7 +112,7 @@ model Menu {
   allday          Boolean?
   branchId        String
   branch          Branch           @relation(fields: [branchId], references: [id], onDelete: Cascade, onUpdate: Cascade)
-  menuCategories  MenuCategory[]
+  categories      Category[]
   personalizeMenu Boolean?         @default(false)
   image           String?
   availabilities  Availabilities[]
@@ -122,21 +122,21 @@ model Menu {
 }
 
 model Availabilities {
-  id             String        @id @default(cuid())
-  dayOfWeek      Int?
-  startTime      String?
-  endTime        String?
-  menuId         String?
-  menu           Menu?         @relation(fields: [menuId], references: [id], onDelete: Cascade, onUpdate: Cascade)
-  menuCategory   MenuCategory? @relation(fields: [menuCategoryId], references: [id])
-  menuCategoryId String?
-  adminId        String?       @default("cllb3d9b90003cedclcthud41")
-  admin          Admin?        @relation(fields: [adminId], references: [id])
+  id         String    @id @default(cuid())
+  dayOfWeek  Int?
+  startTime  String?
+  endTime    String?
+  menuId     String?
+  menu       Menu?     @relation(fields: [menuId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  category   Category? @relation(fields: [categoryId], references: [id])
+  categoryId String?
+  adminId    String?   @default("cllb3d9b90003cedclcthud41")
+  admin      Admin?    @relation(fields: [adminId], references: [id])
 
   @@unique([dayOfWeek, startTime, endTime, menuId])
 }
 
-model MenuCategory {
+model Category {
   id             String           @id @default(cuid())
   accountId      String?
   name           String
@@ -147,15 +147,15 @@ model MenuCategory {
   // descriptionTranslations Json?
   availabilities Availabilities[]
 
-  menu      Menu[]
-  menuItems MenuItem[]
-  branch    Branch?    @relation(fields: [branchId], references: [id])
-  branchId  String?
-  adminId   String?    @default("cllb3d9b90003cedclcthud41")
-  admin     Admin?     @relation(fields: [adminId], references: [id])
+  menu     Menu[]
+  products Product[]
+  branch   Branch?   @relation(fields: [branchId], references: [id])
+  branchId String?
+  adminId  String?   @default("cllb3d9b90003cedclcthud41")
+  admin    Admin?    @relation(fields: [adminId], references: [id])
 }
 
-model MenuItem {
+model Product {
   id             String          @id @default(cuid())
   plu            String?
   image          String
@@ -163,8 +163,8 @@ model MenuItem {
   description    String
   price          Decimal
   available      Boolean
-  menuCategoryId String?
-  menuCategory   MenuCategory?   @relation(fields: [menuCategoryId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  categoryId     String?
+  category       Category?       @relation(fields: [categoryId], references: [id], onDelete: Cascade, onUpdate: Cascade)
   modifierGroups ModifierGroup[]
   cartItems      CartItem[]
   branch         Branch?         @relation(fields: [branchId], references: [id])
@@ -203,8 +203,8 @@ model CartItem {
   creationDate  String?
   quantity      Int
   orderId       String?
-  menuItemId    String?
-  menuItem      MenuItem?   @relation(fields: [menuItemId], references: [id])
+  productId     String?
+  product       Product?    @relation(fields: [productId], references: [id])
   order         Order?      @relation(fields: [orderId], references: [id])
   comments      String?
   paid          Boolean?    @default(false)
@@ -250,7 +250,7 @@ model ModifierGroup {
   maxSelectionAllowed Int?
   isMandatory         Boolean?
   modifiers           Modifiers[]
-  menuItems           MenuItem[]
+  products            Product[]
   cartItemId          String?
   adminId             String?     @default("cllb3d9b90003cedclcthud41")
   admin               Admin?      @relation(fields: [adminId], references: [id])

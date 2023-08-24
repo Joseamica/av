@@ -4,7 +4,7 @@ import React from 'react'
 import type { ActionArgs, LoaderArgs } from '@remix-run/node'
 import { json, redirect } from '@remix-run/node'
 
-import type { CartItem, MenuItem, ModifierGroup, Modifiers, User } from '@prisma/client'
+import type { CartItem, ModifierGroup, Modifiers, Product, User } from '@prisma/client'
 import clsx from 'clsx'
 import { AnimatePresence, motion } from 'framer-motion'
 import invariant from 'tiny-invariant'
@@ -46,21 +46,21 @@ export async function loader({ request, params }: LoaderArgs) {
   const url = new URL(request.url)
   const dishId = url.searchParams.get('dishId') || ''
 
-  const dish = await prisma.menuItem.findFirst({
+  const dish = await prisma.product.findFirst({
     where: { id: dishId },
   })
 
   const session = await getSession(request)
 
-  const categories = await prisma.menuCategory.findMany({
+  const categories = await prisma.category.findMany({
     where: { menu: { some: { id: menuId } } },
     include: {
-      menuItems: true,
+      products: true,
     },
   })
 
   const modifierGroup = await prisma.modifierGroup.findMany({
-    where: { menuItems: { some: { id: dishId } } },
+    where: { products: { some: { id: dishId } } },
     include: { modifiers: true },
   })
   //Find users on table that are not the current user,
@@ -183,8 +183,8 @@ export default function Search() {
         </label>
         <div className="flex flex-col p-2 space-y-2">
           {data.categories.map((categories: any) => {
-            const filteredItems = categories.menuItems.filter((menuItem: MenuItem) =>
-              searchText === '' ? null : menuItem.name.toLowerCase().includes(searchText),
+            const filteredItems = categories.products.filter((product: Product) =>
+              searchText === '' ? null : product.name.toLowerCase().includes(searchText),
             )
             return (
               <div key={categories.id}>
@@ -195,7 +195,7 @@ export default function Search() {
                     <AnimatePresence initial={false}>
                       <div className="">
                         {filteredItems &&
-                          filteredItems.map((dish: MenuItem) => (
+                          filteredItems.map((dish: Product) => (
                             <motion.div
                               key={dish.id}
                               initial={{ opacity: 0, height: 0 }}

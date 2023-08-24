@@ -39,7 +39,7 @@ export async function loader({ request, params }: LoaderArgs) {
   invariant(menuId, 'menuId is required')
   const menu = await prisma.menu.findFirst({
     where: { id: menuId },
-    include: { availabilities: true, menuCategories: true },
+    include: { availabilities: true, categories: true },
   })
   return json({ menu })
 }
@@ -102,7 +102,7 @@ export async function action({ request, params }: ActionArgs) {
           })
           return redirect('')
         case 'category':
-          await prisma.menuCategory.update({
+          await prisma.category.update({
             where: { id: submission.value.id },
             data: {
               name: submission.value.name,
@@ -121,7 +121,7 @@ export async function action({ request, params }: ActionArgs) {
           await prisma.availabilities.delete({ where: { id: submission.value.id } })
           return redirect('')
         case 'category':
-          await prisma.menuCategory.delete({ where: { id: submission.value.id } })
+          await prisma.category.delete({ where: { id: submission.value.id } })
           return redirect('')
         default:
           return redirect('')
@@ -143,10 +143,10 @@ export default function MenuId() {
 
   return (
     <div>
-      <div className="flex flex-row justify-between bg-white h-20 items-center p-4 border-b-2">
+      <div className="flex flex-row items-center justify-between h-20 p-4 bg-white border-b-2">
         <FlexRow>
           <Link to={`/admin/${data.menu.branchId}/menus`}>
-            <ChevronLeftIcon className="h-8 w-8 border rounded-full" />
+            <ChevronLeftIcon className="w-8 h-8 border rounded-full" />
           </Link>
           <div>
             <H1>{data.menu?.name.toUpperCase()}</H1>
@@ -155,7 +155,7 @@ export default function MenuId() {
       </div>
       <div className="p-4 space-y-4">
         <FlexRow>
-          <img src={data.menu.image} alt="" className="h-20 w-20 object-cover" />
+          <img src={data.menu.image} alt="" className="object-cover w-20 h-20" />
           <div>
             <H3>Name: {data.menu.name}</H3>
             <H3>Type: {data.menu.type}</H3>
@@ -177,7 +177,7 @@ export default function MenuId() {
         <Separator.Root className="bg-zinc-200 data-[orientation=horizontal]:h-px data-[orientation=horizontal]:w-full data-[orientation=vertical]:h-full data-[orientation=vertical]:w-px my-[15px]" />
 
         <DataTable
-          items={data.menu.menuCategories}
+          items={data.menu.categories}
           keysToShow={categoriesKeysToShow}
           title="Categories"
           editType="category"
@@ -249,7 +249,7 @@ const EditDialog = ({ searchParams, setSearchParams, isSubmitting, fetcher, data
                 labelProps={{ children: 'Name' }}
                 inputProps={{
                   ...conform.input(editFields.name),
-                  defaultValue: data.menuCategories.find(category => category.id === editSubItem)?.name,
+                  defaultValue: data.categories.find(category => category.id === editSubItem)?.name,
                 }}
                 errors={editFields.name.errors}
               />
@@ -257,7 +257,7 @@ const EditDialog = ({ searchParams, setSearchParams, isSubmitting, fetcher, data
                 labelProps={{ children: 'PDF' }}
                 buttonProps={{
                   ...conform.input(editFields.pdf),
-                  defaultChecked: data.menuCategories.find(category => category.id === editSubItem)?.pdf,
+                  defaultChecked: data.categories.find(category => category.id === editSubItem)?.pdf,
                 }}
                 errors={editFields.pdf.errors}
               />

@@ -80,13 +80,13 @@ export function ProductForm({
       <div>
         {addingData?.data.map(keys => {
           return (
-            <label key={keys.id} className="flex space-x-2 items-center">
+            <label key={keys.id} className="flex items-center space-x-2">
               <input
                 type="radio"
                 {...conform.input(fields.selectItems, { type: 'radio' })}
                 name="selectItems"
                 value={keys.id}
-                defaultChecked={isEditing ? products.find(product => product.id === editSubItemId)?.menuCategoryId === keys.id : false}
+                defaultChecked={isEditing ? products.find(product => product.id === editSubItemId)?.categoryId === keys.id : false}
               />
               <H5>{keys[addingData.keys]}</H5>
             </label>

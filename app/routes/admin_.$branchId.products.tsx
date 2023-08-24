@@ -53,14 +53,14 @@ export async function action({ request, params }: ActionArgs) {
 
   return namedAction(request, {
     async create() {
-      await prisma.menuItem.create({
+      await prisma.product.create({
         data: {
           plu: submission.value.plu,
           image: submission.value.image,
           name: submission.value.name,
           description: submission.value.description ?? '',
           price: submission.value.price,
-          menuCategory: {
+          category: {
             connect: {
               id: submission.value.selectItems,
             },
@@ -71,7 +71,7 @@ export async function action({ request, params }: ActionArgs) {
       return redirect('')
     },
     async update() {
-      await prisma.menuItem.update({
+      await prisma.product.update({
         where: { id: submission.value.id },
         data: {
           plu: submission.value.plu,
@@ -79,7 +79,7 @@ export async function action({ request, params }: ActionArgs) {
           name: submission.value.name,
           description: submission.value.description ?? '',
           price: submission.value.price,
-          menuCategory: {
+          category: {
             connect: {
               id: submission.value.selectItems,
             },
@@ -121,7 +121,7 @@ export default function Products() {
         Download Your Data
       </ButtonLink>
       <div className="flex flex-wrap gap-2 p-4">
-        {branch.menuItems.map(product => (
+        {branch.products.map(product => (
           <Square itemId={product.id} name={product.name} to={product.id} key={product.id} />
         ))}
       </div>
@@ -131,11 +131,11 @@ export default function Products() {
         <fetcher.Form method="POST" {...form.props} action="?/create">
           <ProductForm
             intent="add"
-            products={branch.menuItems}
+            products={branch.products}
             editSubItemId={editItem}
             isSubmitting={isSubmitting}
             fields={fields}
-            addingData={{ data: branch.menuCategories, keys: ['name'] }}
+            addingData={{ data: branch.categories, keys: ['name'] }}
           />
           <input type="hidden" value={addItem ? addItem : ''} {...conform.input(fields.id)} />
         </fetcher.Form>
@@ -145,11 +145,11 @@ export default function Products() {
         <fetcher.Form method="POST" {...form.props} action="?/update">
           <ProductForm
             intent="edit"
-            products={branch.menuItems}
+            products={branch.products}
             editSubItemId={editItem}
             isSubmitting={isSubmitting}
             fields={fields}
-            addingData={{ data: branch.menuCategories, keys: ['name'] }}
+            addingData={{ data: branch.categories, keys: ['name'] }}
           />
           <input type="hidden" value={editItem ? editItem : ''} {...conform.input(fields.id)} />
         </fetcher.Form>

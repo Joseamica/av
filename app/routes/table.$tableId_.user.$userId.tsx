@@ -35,7 +35,7 @@ export async function loader({ params, request }: LoaderArgs) {
 
   const cartItems = await prisma.cartItem.findMany({
     where: { user: { some: { id: userId } } },
-    include: { menuItem: true },
+    include: { product: true },
   })
 
   const currency = await getCurrency(tableId)
@@ -58,15 +58,15 @@ export default function User() {
 
   return (
     <SectionContainer className="">
-      <img src="" alt="profile_pic" className="h-20 w-20 rounded-full" />
+      <img src="" alt="profile_pic" className="w-20 h-20 rounded-full" />
       <div className="flex flex-col items-center justify-center space-y-2">
         <H1>{data.user.name}</H1>
-        <Link to="?changeName=true" className="rounded-full border border-gray_light px-2 py-1 text-xs">
+        <Link to="?changeName=true" className="px-2 py-1 text-xs border rounded-full border-gray_light">
           Cambiar nombre
         </Link>
         {changeName ? (
           <FlexRow>
-            <input name="name" placeholder="Escribe el nombre..." className="h-10 rounded-full border pl-2 text-sm " />
+            <input name="name" placeholder="Escribe el nombre..." className="h-10 pl-2 text-sm border rounded-full " />
             <Button size="small">Cambiar</Button>
           </FlexRow>
         ) : null}
@@ -81,7 +81,7 @@ export default function User() {
           {data.cartItems.map((item: CartItem, index: number) => {
             return (
               <FlexRow
-                className="w-full justify-between"
+                className="justify-between w-full"
                 key={item.id}
                 // unActive={item.paid ? true : false}
                 // showCollapse={true}
@@ -93,12 +93,12 @@ export default function User() {
                 <FlexRow>
                   <H4>{formatCurrency(data.currency, item.price)}</H4>
                   {/* {item.paid ? (
-                    <H6 className="rounded-full p-1 text-success">{`Pagado ${item.paidBy}`}</H6>
+                    <H6 className="p-1 rounded-full text-success">{`Pagado ${item.paidBy}`}</H6>
                   ) : (
                     <input
                       type="checkbox"
                       name={`item-${item.id}`}
-                      className="h-5 w-5"
+                      className="w-5 h-5"
                     />
                   )}
                   <input

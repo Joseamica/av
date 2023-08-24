@@ -94,7 +94,7 @@ export default function Cart() {
             </div>
             <Spacer spaceY="2" />
             {!showPaymentOptions ? (
-              <div className="sticky bottom-0 rounded-t-lg border-x border-t bg-day-bg_principal p-2">
+              <div className="sticky bottom-0 p-2 border-t rounded-t-lg border-x bg-day-bg_principal">
                 <FlexRow justify="between" className="px-2">
                   <H4>Numero de platillos: </H4>
                   <H3>{cartItemsQuantity}</H3>
@@ -119,7 +119,7 @@ export default function Cart() {
                   ) : (
                     <div>
                       <span className="font-light">Ordenar y </span>
-                      {<span className="button-outline font-bold underline-offset-8">pagar después</span>}
+                      {<span className="font-bold button-outline underline-offset-8">pagar después</span>}
                     </div>
                   )}
                 </Button>
@@ -175,7 +175,7 @@ export function CartPayment({ setShowPaymentOptions }: { setShowPaymentOptions: 
 
   return (
     <>
-      <div className="dark:bg-night-bg_principal dark:text-night-text_principal sticky inset-x-0 bottom-0 flex flex-col justify-center rounded-t-xl border-4 bg-day-bg_principal px-3">
+      <div className="sticky inset-x-0 bottom-0 flex flex-col justify-center px-3 border-4 dark:bg-night-bg_principal dark:text-night-text_principal rounded-t-xl bg-day-bg_principal">
         <Spacer spaceY="2" />
         <motion.div variants={variants} initial="hidden" animate={'visible'} exit="hidden" className="flex flex-col">
           <FlexRow justify="between">
@@ -257,16 +257,16 @@ export async function loader({ request, params }: LoaderArgs) {
   const url = new URL(request.url)
   const dishId = url.searchParams.get('dishId') || ''
 
-  const dish = await prisma.menuItem.findFirst({
+  const dish = await prisma.product.findFirst({
     where: { id: dishId },
   })
 
   const session = await getSession(request)
 
-  const categories = await prisma.menuCategory.findMany({
+  const categories = await prisma.category.findMany({
     where: { menu: { some: { id: menuId } } },
     include: {
-      menuItems: true,
+      products: true,
     },
   })
   //Find users on table that are not the current user,

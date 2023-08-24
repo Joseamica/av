@@ -5,7 +5,7 @@ import { FaFilePdf } from 'react-icons/fa'
 import { json, redirect } from '@remix-run/node'
 import type { ActionArgs, LoaderArgs } from '@remix-run/server-runtime'
 
-import type { CartItem, MenuItem, ModifierGroup, Modifiers, User } from '@prisma/client'
+import type { CartItem, ModifierGroup, Modifiers, Product, User } from '@prisma/client'
 import clsx from 'clsx'
 import { motion } from 'framer-motion'
 import invariant from 'tiny-invariant'
@@ -39,11 +39,11 @@ import {
   SwitchButton,
 } from '~/components'
 
-type MenuCategory = {
+type Category = {
   id: string
   name: string
   menuId: string
-  menuItems: MenuItem[]
+  products: Product[]
   pdf?: boolean
   image?: string
 }
@@ -66,21 +66,21 @@ export async function loader({ request, params }: LoaderArgs) {
   const url = new URL(request.url)
   const dishId = url.searchParams.get('dishId') || ''
 
-  const dish = await prisma.menuItem.findFirst({
+  const dish = await prisma.product.findFirst({
     where: { id: dishId },
   })
 
   const session = await getSession(request)
 
-  const categories = await prisma.menuCategory.findMany({
+  const categories = await prisma.category.findMany({
     where: { menu: { some: { id: menuId } } },
     include: {
-      menuItems: true,
+      products: true,
     },
   })
 
   const modifierGroup = await prisma.modifierGroup.findMany({
-    where: { menuItems: { some: { id: dishId } } },
+    where: { products: { some: { id: dishId } } },
     include: { modifiers: true },
   })
   //Find users on table that are not the current user,
@@ -231,8 +231,8 @@ export default function Menu() {
       {seePdf ? (
         <div className="space-y-2">
           {data.categories
-            .filter((category: MenuCategory) => category.pdf)
-            .map((category: MenuCategory) => (
+            .filter((category: Category) => category.pdf)
+            .map((category: Category) => (
               <div key={category.id}>
                 <div className="overflow-hidden">
                   <img alt="" className="object-cover transform rounded-xl " src={category.image} />
@@ -248,18 +248,16 @@ export default function Menu() {
             <CategoriesBar
               categoryId={currentCategory}
               categories={
-                !seePdf
-                  ? data.categories.filter((category: MenuCategory) => !category.pdf)
-                  : data.categories.filter(category => category.pdf)
+                !seePdf ? data.categories.filter((category: Category) => !category.pdf) : data.categories.filter(category => category.pdf)
               }
               isSticky={isSticky}
             />
             <Spacer spaceY="2" />
             <div className="space-y-2" ref={refReachTop}>
               {data.categories
-                .filter((category: MenuCategory) => !category.pdf)
-                .map((categories: MenuCategory) => {
-                  const dishes = categories.menuItems
+                .filter((category: Category) => !category.pdf)
+                .map((categories: Category) => {
+                  const dishes = categories.products
                   return (
                     <SectionContainer
                       key={categories.id}
@@ -269,7 +267,7 @@ export default function Menu() {
                       title={categories.name}
                     >
                       <div className="flex flex-col divide-y ">
-                        {dishes.map((dish: MenuItem) => {
+                        {dishes.map((dish: Product) => {
                           return (
                             <Link key={dish.id} preventScrollReset to={`?dishId=${dish.id}`} className="p-2">
                               <FlexRow justify="between">

@@ -13,11 +13,11 @@ export function AddMenuDialog({ form, fields, dataChild, branchChild }) {
   const fetcher = useFetcher()
 
   const [selectedItems, setSelectedItems] = useState(() => {
-    return branchChild.filter(item => dataChild?.menuItems.some(menuItem => menuItem.id === item.id)).map(item => item.id)
+    return branchChild.filter(item => dataChild?.products.some(product => product.id === item.id)).map(item => item.id)
   })
 
   useEffect(() => {
-    setSelectedItems(branchChild.filter(item => dataChild?.menuItems.some(menuItem => menuItem.id === item.id)).map(item => item.id))
+    setSelectedItems(branchChild.filter(item => dataChild?.products.some(product => product.id === item.id)).map(item => item.id))
   }, [dataChild, branchChild])
   const toggleItem = item => {
     setSelectedItems(prevSelectedItems =>
@@ -71,11 +71,11 @@ export function AddMenuDialog({ form, fields, dataChild, branchChild }) {
 
         <Spacer size="sm" />
         <H5>Availabilities</H5>
-        <div className="overflow-y-scroll h-30 mt-2 border-2 p-1 rounded-xl">
+        <div className="p-1 mt-2 overflow-y-scroll border-2 h-30 rounded-xl">
           {branchChild
             .sort((a, b) => (selectedItems.includes(b.id) ? 1 : -1) - (selectedItems.includes(a.id) ? 1 : -1))
             .map(item => (
-              <label key={item.id} className="flex space-x-2 items-center">
+              <label key={item.id} className="flex items-center space-x-2">
                 <input
                   type="checkbox"
                   checked={selectedItems.includes(item.id)}

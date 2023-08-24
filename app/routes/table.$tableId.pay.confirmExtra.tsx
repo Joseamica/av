@@ -50,7 +50,14 @@ export async function action({ request, params }: ActionArgs) {
   const total = amountLeft
 
   if (paymentMethod === 'card') {
-    const stripeRedirectUrl = await getStripeSession(total * 100 + Number(tip) * 100, true, getDomainUrl(request) + redirectTo, menuCurrency, selectedTip, paymentMethod)
+    const stripeRedirectUrl = await getStripeSession(
+      total * 100 + Number(tip) * 100,
+      true,
+      getDomainUrl(request) + redirectTo,
+      menuCurrency,
+      selectedTip,
+      paymentMethod,
+    )
     return redirect(stripeRedirectUrl)
   } else if (paymentMethod === 'cash') {
     const params = {
@@ -80,7 +87,7 @@ export async function loader({ request, params }: LoaderArgs) {
   const cartItems = await prisma.cartItem.findMany({
     // FIX
     where: { orderId: order.id, activeOnOrder: true },
-    include: { menuItem: true, user: true },
+    include: { product: true, user: true },
   })
 
   const session = await getSession(request)
@@ -119,9 +126,15 @@ export default function EqualParts() {
   return (
     <Modal onClose={() => navigate('..')} title="Estás siendo super generoso">
       <Form method="POST" preventScrollReset className="p-2">
-        <BillAmount amountLeft={data.amountLeft} currency={data.currency} paidUsers={data.paidUsers} total={Number(data.total)} userId={data.userId} />
+        <BillAmount
+          amountLeft={data.amountLeft}
+          currency={data.currency}
+          paidUsers={data.paidUsers}
+          total={Number(data.total)}
+          userId={data.userId}
+        />
         <Spacer spaceY="2" />
-        <div className="flex flex-col items-center justify-center rounded-lg bg-white p-2 shadow-lg">
+        <div className="flex flex-col items-center justify-center p-2 bg-white rounded-lg shadow-lg">
           <H5>Quieres pagar</H5>
           <H1 className="text-3xl">{formatCurrency(data.currency, total)}</H1>
           <H5>Estas pagando de mas</H5>

@@ -5,7 +5,7 @@ import { prisma } from '~/db.server'
 import { getSearchParams } from '~/utils'
 
 // export async function action({ request, params }: LoaderArgs) {
-//   const products = await prisma.menuItem.findMany({})
+//   const products = await prisma.product.findMany({})
 
 //   // Your logic to convert products to CSV
 //   const csv = convertToCSV(products)
@@ -19,7 +19,7 @@ import { getSearchParams } from '~/utils'
 // }
 
 export async function loader({ request, params }: ActionArgs) {
-  const products = await prisma.menuItem.findMany({})
+  const products = await prisma.product.findMany({})
 
   // Your logic to convert products to CSV
   const csv = convertToCSV(products)

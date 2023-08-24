@@ -125,7 +125,7 @@ export async function createCategories(menuId: string, branchId: string) {
       { name: 'Extras' },
       { name: 'Postres', en: 'Desserts' },
     ].map(({ name, en }, index) =>
-      prisma.menuCategory.create({
+      prisma.category.create({
         data: {
           name,
           menu: { connect: { id: menuId } },
@@ -174,7 +174,7 @@ export async function createProductsAndModifiers(categories: any, branchId: stri
   return Promise.all(
     categories.flatMap((category, i) =>
       range(1, 2).map(j =>
-        prisma.menuItem.create({
+        prisma.product.create({
           data: {
             name: `${category.name} Item #${j}`,
             plu: `PLU-${category.name}-${j}`,
@@ -183,7 +183,7 @@ export async function createProductsAndModifiers(categories: any, branchId: stri
             description: faker.commerce.productDescription(),
             price: faker.commerce.price(100, 500),
             available: true,
-            menuCategory: { connect: { id: category.id } },
+            category: { connect: { id: category.id } },
             modifierGroups: { connect: { id: modifierGroup.id } },
             branch: { connect: { id: branchId } },
           },
@@ -250,8 +250,8 @@ export async function cleanDatabase() {
     'table',
     'employee',
     'menu',
-    'menuCategory',
-    'menuItem',
+    'category',
+    'product',
     'modifierGroup',
     'modifiers',
     'cartItem',

@@ -56,7 +56,7 @@ export async function action({ request, params }: ActionArgs) {
     async create() {
       for (const item of submission.value.selectItems) {
         console.log('item', item)
-        await prisma.menuCategory.create({
+        await prisma.category.create({
           data: {
             name: capitalizeFirstLetter(submission.value.name),
             image: submission.value.image,
@@ -73,14 +73,14 @@ export async function action({ request, params }: ActionArgs) {
     },
     async update() {
       const newMenuIds = submission.value.selectItems
-      await prisma.menuCategory.update({
+      await prisma.category.update({
         where: { id: submission.value.id },
         data: {
           menu: { set: [] },
         },
       })
       for (const item of newMenuIds) {
-        await prisma.menuCategory.update({
+        await prisma.category.update({
           where: { id: submission.value.id },
           data: {
             name: capitalizeFirstLetter(submission.value.name),
@@ -127,7 +127,7 @@ export default function Name() {
     <main>
       <HeaderWithButton queryKey="addItem" queryValue="true" buttonLabel="Add" />
       <div className="flex flex-wrap gap-2 p-4">
-        {branch.menuCategories.map(category => (
+        {branch.categories.map(category => (
           <Square itemId={category.id} name={category.name} to={category.id} key={category.id} />
         ))}
       </div>
@@ -135,7 +135,7 @@ export default function Name() {
         <fetcher.Form method="POST" {...form.props} action="?/create">
           <CategoryForm
             intent="add"
-            categories={branch.menuCategories}
+            categories={branch.categories}
             editSubItemId={editItem}
             isSubmitting={isSubmitting}
             fields={fields}
@@ -148,7 +148,7 @@ export default function Name() {
         <fetcher.Form method="POST" {...form.props} action="?/update">
           <CategoryForm
             intent="edit"
-            categories={branch.menuCategories}
+            categories={branch.categories}
             editSubItemId={editItem}
             isSubmitting={isSubmitting}
             fields={fields}
