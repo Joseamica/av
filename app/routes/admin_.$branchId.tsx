@@ -32,14 +32,16 @@ export async function loader({ request, params }: LoaderArgs) {
       },
     },
     include: {
-      availabilities: true,
+      availabilities: { orderBy: { dayOfWeek: 'asc' } },
       menuCategories: {
+        orderBy: { name: 'asc' },
         include: {
           menu: true,
         },
       },
       menuItems: true,
       menus: {
+        orderBy: { name: 'desc' },
         include: {
           menuCategories: {
             include: {
@@ -79,10 +81,6 @@ export default function AdminBranch() {
     }
   }
 
-  // const showRestLogo = matches.find(match => match.handle)?.handle?.showRestLogo
-  // const restIdData = matches.find(match => match.id === 'routes/admin.rest_.$restId')?.data
-  // const branchIdData = matches.find(match => match.id === 'routes/admin.rest_.$restId.branches')?.data
-
   return (
     <MainAdminContainer>
       <div className="col-start-1 col-end-3 bg-white flex flex-col p-2 space-y-4 border-r">
@@ -94,8 +92,8 @@ export default function AdminBranch() {
             <Link
               to={link.link}
               className={clsx(
-                'p-2 rounded-xl hover:bg-button-primary hover:text-white',
-                active === link.name && 'underline underline-offset-8 font-bold hover:bg-transparent hover:text-black',
+                'p-2 rounded-xl hover:bg-button-primary ',
+                active === link.name ? 'underline underline-offset-8 font-bold hover:bg-transparent hover:text-black' : 'hover:text-white',
               )}
               onClick={() => handleMenuClick(link.name, link.subLinks)}
             >
@@ -112,6 +110,9 @@ export default function AdminBranch() {
             )} */}
           </div>
         ))}
+        <Link to="/logout" className="bottom-5 absolute self-center icon-button w-24 text-center">
+          Logout
+        </Link>
       </div>
       <div className="col-start-3 col-end-10 bg-white">
         <Outlet />
@@ -133,5 +134,4 @@ const MENU_LINKS = [
   { name: 'Notifications', link: 'notifications' },
   { name: 'Feedbacks', link: 'feedbacks' },
   { name: 'Availabilities', link: 'availabilities' },
-  { name: 'WIFI', link: 'payments' },
 ]

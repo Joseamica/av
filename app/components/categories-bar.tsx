@@ -1,8 +1,9 @@
-import type {MenuCategory} from '@prisma/client'
-import {Link} from '@remix-run/react'
-import clsx from 'clsx'
-import {motion} from 'framer-motion'
+import { Link } from '@remix-run/react'
 import React from 'react'
+
+import type { MenuCategory } from '@prisma/client'
+import clsx from 'clsx'
+import { motion } from 'framer-motion'
 
 type Props = {
   categories: MenuCategory[]
@@ -11,20 +12,12 @@ type Props = {
   categoryId?: string
 }
 
-export function CategoriesBar({
-  categories,
-  isSticky,
-  categoryId,
-}: Props): JSX.Element {
+export function CategoriesBar({ categories, isSticky, categoryId }: Props): JSX.Element {
   const categoryRefs = React.useRef<Record<string, HTMLAnchorElement>>({})
   const containerRef = React.useRef<HTMLDivElement>(null)
 
   React.useEffect(() => {
-    if (
-      categoryId &&
-      categoryRefs.current[categoryId] &&
-      containerRef.current
-    ) {
+    if (categoryId && categoryRefs.current[categoryId] && containerRef.current) {
       const categoryElement = categoryRefs.current[categoryId]
       const scrollPos = categoryElement.offsetLeft // Scroll al inicio del elemento seleccionado
 
@@ -40,10 +33,9 @@ export function CategoriesBar({
     <motion.div
       ref={containerRef}
       className={clsx(
-        'no-scrollbar dark:bg-night-bg_principal flex items-center space-x-2 overflow-x-scroll whitespace-nowrap rounded-xl bg-day-bg_principal px-5 py-4 shadow-lg',
+        'no-scrollbar dark:bg-night-bg_principal flex items-center space-x-4 overflow-x-scroll whitespace-nowrap rounded-xl bg-day-bg_principal px-5 py-4 shadow-lg',
         {
-          'dark:text-night-text_principal sticky top-14  bg-day-bg_principal':
-            isSticky,
+          'dark:text-night-text_principal sticky top-14  bg-day-bg_principal': isSticky,
         },
       )}
     >
@@ -51,10 +43,10 @@ export function CategoriesBar({
         <Link
           ref={el => (categoryRefs.current[category.id] = el!)}
           to={`#${category.id}`}
-          {...{preventScrollReset: true}}
+          {...{ preventScrollReset: true }}
           key={category.id}
           className={clsx({
-            'rounded-full bg-day-principal px-3 text-lg font-medium text-white  underline-offset-4':
+            'rounded-full bg-day-principal px-3 text-base font-medium text-white  underline-offset-4 capitalize':
               category.id === categoryId, // Aplica el estilo si la categoría es la actual
           })}
         >

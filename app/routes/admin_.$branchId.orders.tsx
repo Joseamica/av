@@ -50,7 +50,6 @@ export async function loader({ request, params }: LoaderArgs) {
       cartItems: { include: { menuItem: true } },
       payments: true,
     })
-    console.log('order', order)
 
     return json({ order })
   }

@@ -22,6 +22,13 @@ export async function action({ request, params }: ActionArgs) {
   const table = await getTable(tableId)
 
   SendWhatsApp('14155238886', phones, `Llamada de la mesa ${table?.number} test`)
+  await prisma.notifications.create({
+    data: {
+      message: `Llamada de la mesa ${table?.number}`,
+      method: 'whatsapp',
+      status: 'pending',
+    },
+  })
 
   return redirect(redirectTo)
 }
@@ -29,8 +36,8 @@ export async function action({ request, params }: ActionArgs) {
 export async function loader({ request, params }: LoaderArgs) {
   const { tableId } = params
   invariant(tableId, 'tableId is required')
-  const managers = await prisma.employee.findMany({
-    where: { role: 'manager', tables: { some: { id: tableId } } },
+  const managers = await prisma.user.findMany({
+    where: { role: 'manager' },
   })
 
   return json({ managers })

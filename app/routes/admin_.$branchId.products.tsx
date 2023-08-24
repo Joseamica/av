@@ -1,5 +1,5 @@
 import { conform, useForm } from '@conform-to/react'
-import { Link, Outlet, useFetcher, useParams, useRouteLoaderData, useSearchParams } from '@remix-run/react'
+import { Outlet, useFetcher, useParams, useRouteLoaderData, useSearchParams } from '@remix-run/react'
 
 import { type ActionArgs, json, redirect } from '@remix-run/node'
 
@@ -8,13 +8,13 @@ import { namedAction } from 'remix-utils'
 import { z } from 'zod'
 import { prisma } from '~/db.server'
 
-import { Button, FlexRow } from '~/components'
+import { Button } from '~/components'
 import { HeaderWithButton } from '~/components/admin/headers'
 import { ProductForm } from '~/components/admin/products/product-form'
 import { QueryDialog } from '~/components/admin/ui/dialogs/dialog'
 import { ErrorList } from '~/components/admin/ui/forms'
 import { Square } from '~/components/admin/ui/square'
-import { DeleteIcon, EditIcon } from '~/components/icons'
+import { ButtonLink } from '~/components/ui/buttons/button'
 
 const productSchema = z.object({
   id: z.string(),
@@ -24,7 +24,7 @@ const productSchema = z.object({
     .refine(value => value.startsWith('PLU-'), { message: 'PLU must start with "PLU-"' }),
   image: z.string().url(),
   name: z.string().min(1).max(50),
-  description: z.string().min(1).max(200),
+  description: z.string().min(1).max(200).optional(),
   price: z.number(),
   selectItems: z.string().nonempty('You must select at least one category'),
 })
@@ -37,7 +37,7 @@ export async function action({ request, params }: ActionArgs) {
   const submission = parse(formData, {
     schema: productSchema,
   })
-  console.log('submission', submission)
+
   if (submission.intent !== 'submit') {
     return json({ status: 'idle', submission } as const)
   }
@@ -58,7 +58,7 @@ export async function action({ request, params }: ActionArgs) {
           plu: submission.value.plu,
           image: submission.value.image,
           name: submission.value.name,
-          description: submission.value.description,
+          description: submission.value.description ?? '',
           price: submission.value.price,
           menuCategory: {
             connect: {
@@ -77,7 +77,7 @@ export async function action({ request, params }: ActionArgs) {
           plu: submission.value.plu,
           image: submission.value.image,
           name: submission.value.name,
-          description: submission.value.description,
+          description: submission.value.description ?? '',
           price: submission.value.price,
           menuCategory: {
             connect: {
@@ -117,11 +117,15 @@ export default function Products() {
   return (
     <main>
       <HeaderWithButton queryKey="addItem" queryValue="true" buttonLabel="Add" />
+      <ButtonLink variant="secondary" size="small" download="products" href={`/admin/${branchId}/export`}>
+        Download Your Data
+      </ButtonLink>
       <div className="flex flex-wrap gap-2 p-4">
         {branch.menuItems.map(product => (
           <Square itemId={product.id} name={product.name} to={product.id} key={product.id} />
         ))}
       </div>
+
       {/* ANCHOR ADD */}
       <QueryDialog title="Add Product" description="Modify the fields you want to add" query={'addItem'}>
         <fetcher.Form method="POST" {...form.props} action="?/create">

@@ -24,7 +24,7 @@ const availabilitySchema = z.object({
   dayOfWeek: z.number().min(1).max(7),
   startTime: z.string().regex(/^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/),
   endTime: z.string().regex(/^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/),
-  selectItems: z.array(z.string()).nonempty('You must select at least one menu'),
+  selectItems: z.string().nonempty('You must select at least one category'),
 })
 
 export async function action({ request, params }: ActionArgs) {
@@ -57,45 +57,35 @@ export async function action({ request, params }: ActionArgs) {
 
   return namedAction(request, {
     async create() {
-      for (const item of submission.value.selectItems) {
-        console.log('item', item)
-        await prisma.availabilities.create({
-          data: {
-            dayOfWeek: submission.value.dayOfWeek,
-            startTime: submission.value.startTime,
-            endTime: submission.value.endTime,
-            menuId: item,
+      await prisma.availabilities.create({
+        data: {
+          dayOfWeek: submission.value.dayOfWeek,
+          startTime: submission.value.startTime,
+          endTime: submission.value.endTime,
+          menu: {
+            connect: {
+              id: submission.value.selectItems,
+            },
           },
-        })
-      }
+        },
+      })
       return redirect('')
     },
     async update() {
-      const newMenuIds = submission.value.selectItems
-
-      const toConnect = newMenuIds.filter(item => !oldMenuIds.includes(item))
-      const toDisconnect = oldMenuIds.filter(item => !newMenuIds.includes(item))
-      for (const item of toConnect) {
-        await prisma.availabilities.update({
-          where: { id: submission.value.id },
-          data: {
-            dayOfWeek: submission.value.dayOfWeek,
-            startTime: submission.value.startTime,
-            endTime: submission.value.endTime,
-            menuId: item,
+      await prisma.availabilities.update({
+        where: { id: submission.value.id },
+        data: {
+          dayOfWeek: submission.value.dayOfWeek,
+          startTime: submission.value.startTime,
+          endTime: submission.value.endTime,
+          menu: {
+            connect: {
+              id: submission.value.selectItems,
+            },
           },
-        })
-      }
+        },
+      })
 
-      // Handle disconnecting
-      for (const item of toDisconnect) {
-        await prisma.availabilities.update({
-          where: { id: submission.value.id },
-          data: {
-            menuId: null,
-          },
-        })
-      }
       return redirect('')
     },
   })

@@ -1,8 +1,7 @@
 import { conform, useForm } from '@conform-to/react'
-import { Link, useFetcher, useSearchParams } from '@remix-run/react'
-import { useRouteLoaderData } from 'react-router'
+import { Link, useFetcher, useLoaderData, useSearchParams } from '@remix-run/react'
 
-import { type ActionArgs, json, redirect } from '@remix-run/node'
+import { type ActionArgs, type LoaderArgs, json, redirect } from '@remix-run/node'
 
 import { getFieldsetConstraint, parse } from '@conform-to/zod'
 import { z } from 'zod'
@@ -41,6 +40,17 @@ const branchSchema = z.object({
   tipsPercentages: z.string().refine(str => /^(\d{2},)*\d{2}$/.test(str), { message: 'Must be two-digit numbers separated by commas' }),
   paymentMethods: z.array(z.string()),
 })
+
+export async function loader({ request, params }: LoaderArgs) {
+  const { branchId } = params
+  const branch = await prisma.branch.findUnique({
+    where: {
+      id: branchId,
+    },
+  })
+
+  return json({ branch })
+}
 
 export async function action({ request, params }: ActionArgs) {
   const { branchId } = params
@@ -88,7 +98,8 @@ export async function action({ request, params }: ActionArgs) {
 }
 
 export default function Index() {
-  const { branch } = useRouteLoaderData('routes/admin_.$branchId') as any
+  const data = useLoaderData()
+
   const fetcher = useFetcher()
   const isSubmitting = fetcher.state !== 'idle'
   const [searchParams, setSearchParams] = useSearchParams()
@@ -109,67 +120,65 @@ export default function Index() {
   return (
     <div className="bg-gray-100 p-10">
       <div className="max-w-7xl mx-auto">
-        {branch.branches.map(branch => (
-          <div key={branch.id} className="bg-white rounded-lg shadow-lg p-8 mb-10">
-            <button
-              onClick={() => {
-                searchParams.set('editItem', branch.id)
-                setSearchParams(searchParams)
-              }}
-              className="bg-blue-500 text-white px-4 py-2 rounded absolute top-4 right-4 hover:bg-blue-600"
-            >
-              <EditIcon />
-            </button>
-            <div className="flex flex-wrap -m-4">
-              <div className="w-full lg:w-1/2 p-4">
-                <div className="mb-4">
-                  <h2 className="text-lg font-bold">Name</h2>
-                  <h1 className="text-xl">{branch.name}</h1>
-                </div>
-                <div className="mb-4">
-                  <h2 className="text-lg font-bold">Address</h2>
-                  <p>{branch.address}</p>
-                  <p>{branch.extraAddress}</p>
-                </div>
-                <div className="mb-4">
-                  <h2 className="text-lg font-bold">City</h2>
-                  <p>{branch.city}</p>
-                </div>
-                <div className="mb-4">
-                  <h2 className="text-lg font-bold">Phone</h2>
-                  <p>{branch.phone}</p>
-                </div>
+        <div key={data.branch.id} className="bg-white rounded-lg shadow-lg p-8 mb-10">
+          <button
+            onClick={() => {
+              searchParams.set('editItem', data.branch.id)
+              setSearchParams(searchParams)
+            }}
+            className="bg-blue-500 text-white px-4 py-2 rounded absolute top-4 right-4 hover:bg-blue-600"
+          >
+            <EditIcon />
+          </button>
+          <div className="flex flex-wrap -m-4">
+            <div className="w-full lg:w-1/2 p-4">
+              <div className="mb-4">
+                <h2 className="text-lg font-bold">Name</h2>
+                <h1 className="text-xl">{data.branch.name}</h1>
               </div>
-              <div className="w-full lg:w-1/2 p-4">
-                <div className="mb-4">
-                  <h2 className="text-lg font-bold">Cuisine</h2>
-                  <p>{branch.cuisine}</p>
-                </div>
-                <div className="mb-4">
-                  <h2 className="text-lg font-bold">Wifi</h2>
-                  <p>Name: {branch.wifiName}</p>
-                  <p>Pwd: {branch.wifipwd}</p>
-                </div>
-                <div className="mb-4">
-                  <h2 className="text-lg font-bold">Tip Percentages</h2>
-                  {branch.tipsPercentages.map((tip, index) => (
-                    <div key={index} className="p-1">
-                      {tip}%
-                    </div>
-                  ))}
-                </div>
-                <div className="mb-4">
-                  <h2 className="text-lg font-bold">Payment Methods</h2>
-                  {branch.paymentMethods.map((pm, index) => (
-                    <div key={index} className="p-1">
-                      {pm.toUpperCase()}
-                    </div>
-                  ))}
-                </div>
+              <div className="mb-4">
+                <h2 className="text-lg font-bold">Address</h2>
+                <p>{data.branch.address}</p>
+                <p>{data.branch.extraAddress}</p>
+              </div>
+              <div className="mb-4">
+                <h2 className="text-lg font-bold">City</h2>
+                <p>{data.branch.city}</p>
+              </div>
+              <div className="mb-4">
+                <h2 className="text-lg font-bold">Phone</h2>
+                <p>{data.branch.phone}</p>
+              </div>
+            </div>
+            <div className="w-full lg:w-1/2 p-4">
+              <div className="mb-4">
+                <h2 className="text-lg font-bold">Cuisine</h2>
+                <p>{data.branch.cuisine}</p>
+              </div>
+              <div className="mb-4">
+                <h2 className="text-lg font-bold">Wifi</h2>
+                <p>Name: {data.branch.wifiName}</p>
+                <p>Pwd: {data.branch.wifipwd}</p>
+              </div>
+              <div className="mb-4">
+                <h2 className="text-lg font-bold">Tip Percentages</h2>
+                {data.branch.tipsPercentages.map((tip, index) => (
+                  <div key={index} className="p-1">
+                    {tip}%
+                  </div>
+                ))}
+              </div>
+              <div className="mb-4">
+                <h2 className="text-lg font-bold">Payment Methods</h2>
+                {data.branch.paymentMethods.map((pm, index) => (
+                  <div key={index} className="p-1">
+                    {pm.toUpperCase()}
+                  </div>
+                ))}
               </div>
             </div>
           </div>
-        ))}
+        </div>
       </div>
       <ScrollableQueryDialog query="editItem" title="Edit">
         <fetcher.Form method="POST" className="" {...form.props}>
@@ -178,7 +187,7 @@ export default function Index() {
             inputProps={{
               ...conform.input(fields.name, { type: 'text' }),
               required: true,
-              defaultValue: branch.branches.find(branch => branch.id === editItem)?.name,
+              defaultValue: data.branch.name,
             }}
             errors={[fields?.name.errors]}
           />
@@ -187,7 +196,7 @@ export default function Index() {
             inputProps={{
               ...conform.input(fields.image, { type: 'url' }),
               required: true,
-              defaultValue: branch.branches.find(branch => branch.id === editItem)?.image,
+              defaultValue: data.branch.image,
             }}
             errors={[fields?.image.errors]}
           />
@@ -196,7 +205,7 @@ export default function Index() {
             inputProps={{
               ...conform.input(fields.address, { type: 'text' }),
               required: true,
-              defaultValue: branch.branches.find(branch => branch.id === editItem)?.address,
+              defaultValue: data.branch.address,
             }}
             errors={[fields?.address.errors]}
           />
@@ -205,7 +214,7 @@ export default function Index() {
             inputProps={{
               ...conform.input(fields.extraAddress, { type: 'text' }),
               required: true,
-              defaultValue: branch.branches.find(branch => branch.id === editItem)?.extraAddress,
+              defaultValue: data.branch.extraAddress,
             }}
             errors={[fields?.extraAddress.errors]}
           />
@@ -214,7 +223,7 @@ export default function Index() {
             inputProps={{
               ...conform.input(fields.city, { type: 'text' }),
               required: true,
-              defaultValue: branch.branches.find(branch => branch.id === editItem)?.city,
+              defaultValue: data.branch.city,
             }}
             errors={[fields?.city.errors]}
           />
@@ -226,7 +235,7 @@ export default function Index() {
             inputProps={{
               ...conform.input(fields.timezone, { type: 'text' }),
               required: true,
-              defaultValue: branch.branches.find(branch => branch.id === editItem)?.timezone,
+              defaultValue: data.branch.timezone,
               placeholder: 'America/New_York',
             }}
             errors={fields?.timezone.errors}
@@ -236,7 +245,7 @@ export default function Index() {
             inputProps={{
               ...conform.input(fields.phone, { type: 'phone' }),
               required: true,
-              defaultValue: branch.branches.find(branch => branch.id === editItem)?.phone,
+              defaultValue: data.branch.phone,
             }}
             errors={[fields?.phone.errors]}
           />
@@ -245,7 +254,7 @@ export default function Index() {
             inputProps={{
               ...conform.input(fields.email, { type: 'email' }),
               required: true,
-              defaultValue: branch.branches.find(branch => branch.id === editItem)?.email,
+              defaultValue: data.branch.email,
             }}
             errors={[fields?.email.errors]}
           />
@@ -254,7 +263,7 @@ export default function Index() {
             inputProps={{
               ...conform.input(fields.language, { type: 'text' }),
               required: true,
-              defaultValue: branch.branches.find(branch => branch.id === editItem)?.language,
+              defaultValue: data.branch.language,
             }}
             errors={[fields?.language.errors]}
           />
@@ -263,7 +272,7 @@ export default function Index() {
             inputProps={{
               ...conform.input(fields.cuisine, { type: 'text' }),
               required: true,
-              defaultValue: branch.branches.find(branch => branch.id === editItem)?.cuisine,
+              defaultValue: data.branch.cuisine,
             }}
             errors={[fields?.cuisine.errors]}
           />
@@ -272,7 +281,7 @@ export default function Index() {
             inputProps={{
               ...conform.input(fields.wifiName, { type: 'text' }),
               required: true,
-              defaultValue: branch.branches.find(branch => branch.id === editItem)?.wifiName,
+              defaultValue: data.branch.wifiName,
             }}
             errors={[fields?.wifiName.errors]}
           />
@@ -281,7 +290,7 @@ export default function Index() {
             inputProps={{
               ...conform.input(fields.wifipwd, { type: 'text' }),
               required: true,
-              defaultValue: branch.branches.find(branch => branch.id === editItem)?.wifipwd,
+              defaultValue: data.branch.wifipwd,
             }}
             errors={[fields?.wifipwd.errors]}
           />
@@ -290,7 +299,7 @@ export default function Index() {
             inputProps={{
               ...conform.input(fields.tipsPercentages, { type: 'text' }),
               required: true,
-              defaultValue: branch.branches.find(branch => branch.id === editItem)?.tipsPercentages,
+              defaultValue: data.branch.tipsPercentages,
               pattern: '^(d{2},)*d{2}$', // Adding pattern attribute to enforce the format client-side
             }}
             errors={[fields?.tipsPercentages.errors]}
@@ -300,7 +309,7 @@ export default function Index() {
             inputProps={{
               ...conform.input(fields.paymentMethods, { type: 'text' }),
               required: true,
-              defaultValue: branch.branches.find(branch => branch.id === editItem)?.paymentMethods,
+              defaultValue: data.branch.paymentMethods,
             }}
             errors={[fields?.paymentMethods.errors]}
           />

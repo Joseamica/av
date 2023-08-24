@@ -16,6 +16,7 @@ import { CategoryForm } from '~/components/admin/categories/category-form'
 import { HeaderWithButton } from '~/components/admin/headers'
 import { QueryDialog } from '~/components/admin/ui/dialogs/dialog'
 import { ErrorList } from '~/components/admin/ui/forms'
+import { Square } from '~/components/admin/ui/square'
 import { EditIcon } from '~/components/icons'
 
 export const handle = { active: 'Categories' }
@@ -50,14 +51,6 @@ export async function action({ request, params }: ActionArgs) {
       { status: 400 },
     )
   }
-  //   const oldMenuIds = (await prisma.menuCategories.findMany({
-  //     where: {
-  //       id: submission.value.id,
-  //     },
-  //     select: {
-  //       menuId: true,
-  //     },
-  //   })) as any
 
   return namedAction(request, {
     async create() {
@@ -135,34 +128,7 @@ export default function Name() {
       <HeaderWithButton queryKey="addItem" queryValue="true" buttonLabel="Add" />
       <div className="flex flex-wrap gap-2 p-4">
         {branch.menuCategories.map(category => (
-          <FlexRow key={category.id}>
-            <div
-              //   to={category.id}
-              className="w-24 h-24 flex flex-col justify-center items-center bg-white break-all rounded-xl shadow text-sm p-1"
-            >
-              <H6>{category.name}</H6>
-            </div>
-            <div className="basic-flex-col">
-              <button
-                className="icon-button edit-button"
-                onClick={() => {
-                  searchParams.set('editItem', category.id)
-                  setSearchParams(searchParams)
-                }}
-              >
-                <EditIcon />
-              </button>
-              <button
-                className="icon-button del-button"
-                onClick={() => {
-                  searchParams.set('deleteItem', category.id)
-                  setSearchParams(searchParams)
-                }}
-              >
-                <DeleteIcon />
-              </button>
-            </div>
-          </FlexRow>
+          <Square itemId={category.id} name={category.name} to={category.id} key={category.id} />
         ))}
       </div>
       <QueryDialog query="addItem" title="Add Category" description="Add to the fields you want to add">
