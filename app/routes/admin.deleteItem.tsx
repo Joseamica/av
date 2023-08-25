@@ -54,6 +54,11 @@ export async function action({ request, params }: ActionArgs) {
       })
       break
     case 'users':
+      await prisma.password.delete({
+        where: {
+          userId: id,
+        },
+      })
       await prisma.user.delete({
         where: {
           id: id,

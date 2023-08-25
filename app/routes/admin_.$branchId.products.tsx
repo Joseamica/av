@@ -58,7 +58,7 @@ export async function action({ request, params }: ActionArgs) {
           plu: submission.value.plu,
           image: submission.value.image,
           name: submission.value.name,
-          description: submission.value.description,
+          description: submission.value.description ?? '',
           price: submission.value.price,
           menuCategory: {
             connect: {
@@ -77,7 +77,7 @@ export async function action({ request, params }: ActionArgs) {
           plu: submission.value.plu,
           image: submission.value.image,
           name: submission.value.name,
-          description: submission.value.description,
+          description: submission.value.description ?? '',
           price: submission.value.price,
           menuCategory: {
             connect: {

@@ -24,7 +24,7 @@ const availabilitySchema = z.object({
   dayOfWeek: z.number().min(1).max(7),
   startTime: z.string().regex(/^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/),
   endTime: z.string().regex(/^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/),
-  selectItems: z.array(z.string()).nonempty('You must select at least one menu'),
+  selectItems: z.string().nonempty('You must select at least one category'),
 })
 export async function action({ request, params }: ActionArgs) {
   const formData = await request.formData()
