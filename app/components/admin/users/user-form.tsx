@@ -85,11 +85,11 @@ export function UserForm({
       <div className="min-h-[32px] pb-3 pt-1">
         <select
           {...conform.input(fields.role)}
-          className=" flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 "
+          className="flex w-full h-10 px-3 py-2 text-sm border rounded-md  border-input bg-background ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
         >
           <option value="admin">Admin</option>
-          <option value="manager">Manager</option>
-          <option value="waiter">Waiter</option>
+          {/* <option value="manager">Manager</option>
+          <option value="waiter">Waiter</option> */}
           <option value="user">User</option>
         </select>
       </div>
@@ -98,7 +98,7 @@ export function UserForm({
       <div>
         {addingData?.data.map(keys => {
           return (
-            <label key={keys.id} className="flex space-x-2 items-center">
+            <label key={keys.id} className="flex items-center space-x-2">
               <input
                 type="checkbox"
                 {...conform.input(fields.selectItems, { type: 'checkbox' })}

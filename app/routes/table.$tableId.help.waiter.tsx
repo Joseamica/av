@@ -24,10 +24,6 @@ export async function action({ request, params }: ActionArgs) {
   console.log('llaman al mesero')
   SendWhatsApp('14155238886', phones, `Te llaman de la mesa ${table?.number}`)
 
-  // console.dir(
-  //   `CALL ~> Llaman al mesero ${waiters} de la mesa ${table?.number}`,
-  // )
-
   return redirect(redirectTo)
 }
 
@@ -51,19 +47,19 @@ export default function Help() {
 
   return (
     <Modal title="Llama al mesero" onClose={onClose}>
-      <Form method="POST" className="space-y-2 p-2">
+      <Form method="POST" className="p-2 space-y-2">
         {data.waiters?.map((waiter: Employee) => (
           <ItemContainer key={waiter.id} className="flex flex-row items-center space-x-2">
-            <FlexRow className="space-x-4 items-center">
-              <img className="rounded-full w-10 h-10" src={waiter.image} alt={waiter.name} />
+            <FlexRow className="items-center space-x-4">
+              <img className="w-10 h-10 rounded-full" src={waiter.image} alt={waiter.name} />
               <label className="text-xl" htmlFor={waiter.id}>
                 {waiter.name}
               </label>
-              <span className="rounded-full bg-button-primary px-2 text-sm text-white ring ring-button-outline">
+              <span className="px-2 text-sm text-white rounded-full bg-button-primary ring ring-button-outline">
                 {waiter.role ? 'Mesero' : ''}
               </span>
             </FlexRow>
-            <input type="checkbox" className="h-5 w-5" name="waiters" id={waiter.id} value={waiter.phone} />
+            <input type="checkbox" className="w-5 h-5" name="waiters" id={waiter.id} value={waiter.phone} />
           </ItemContainer>
         ))}
         {data.waiters?.length === 0 && <p className="text-center">Esta mesa no tiene meseros asignados</p>}

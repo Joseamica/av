@@ -1,5 +1,5 @@
 import { conform, useForm } from '@conform-to/react'
-import { Link, Outlet, useFetcher, useParams, useRouteLoaderData, useSearchParams } from '@remix-run/react'
+import { Outlet, useFetcher, useParams, useRouteLoaderData, useSearchParams } from '@remix-run/react'
 
 import { type ActionArgs, json, redirect } from '@remix-run/node'
 
@@ -8,13 +8,12 @@ import { namedAction } from 'remix-utils'
 import { z } from 'zod'
 import { prisma } from '~/db.server'
 
-import { Button, FlexRow } from '~/components'
+import { Button } from '~/components'
 import { HeaderWithButton } from '~/components/admin/headers'
 import { ProductForm } from '~/components/admin/products/product-form'
 import { QueryDialog } from '~/components/admin/ui/dialogs/dialog'
 import { ErrorList } from '~/components/admin/ui/forms'
 import { Square } from '~/components/admin/ui/square'
-import { DeleteIcon, EditIcon } from '~/components/icons'
 import { ButtonLink } from '~/components/ui/buttons/button'
 
 const productSchema = z.object({
@@ -25,7 +24,7 @@ const productSchema = z.object({
     .refine(value => value.startsWith('PLU-'), { message: 'PLU must start with "PLU-"' }),
   image: z.string().url(),
   name: z.string().min(1).max(50),
-  description: z.string().min(1).max(200),
+  description: z.string().min(1).max(200).optional(),
   price: z.number(),
   selectItems: z.string().nonempty('You must select at least one category'),
 })

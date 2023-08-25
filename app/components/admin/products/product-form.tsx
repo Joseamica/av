@@ -58,7 +58,6 @@ export function ProductForm({
         labelProps={{ children: 'Description' }}
         textareaProps={{
           ...conform.textarea(fields.description),
-          required: true,
           defaultValue: isEditing ? products.find(product => product.id === editSubItemId)?.description : '',
         }}
         errors={fields?.description.errors}
@@ -80,7 +79,7 @@ export function ProductForm({
       <div>
         {addingData?.data.map(keys => {
           return (
-            <label key={keys.id} className="flex space-x-2 items-center">
+            <label key={keys.id} className="flex items-center space-x-2">
               <input
                 type="radio"
                 {...conform.input(fields.selectItems, { type: 'radio' })}

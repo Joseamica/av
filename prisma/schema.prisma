@@ -288,9 +288,11 @@ model User {
 }
 
 model Password {
-  hash   String
-  user   User   @relation(fields: [userId], references: [id])
-  userId String @unique
+  hash       String
+  user       User     @relation(fields: [userId], references: [id])
+  userId     String   @unique
+  employee   Employee @relation(fields: [employeeId], references: [id])
+  employeeId String   @unique
 }
 
 model Employee {
@@ -299,7 +301,8 @@ model Employee {
   name      String
   image     String?
   phone     String?
-  email     String
+  email     String?    @unique
+  password  Password?
   tables    Table[]
   feedbacks Feedback[]
   branch    Branch?    @relation(fields: [branchId], references: [id])
@@ -370,6 +373,40 @@ enum PaymentMethod {
   applePay
   other
 }
+
+// model Notifications {
+//   id         String             @id @default(cuid())
+//   createdAt  DateTime           @default(now())
+//   method     NotificationMethod
+//   recipient  String?
+//   sender     String?
+//   status     StatusMethod
+//   message    String
+//   branchId   String?
+//   branch     Branch?            @relation(fields: [branchId], references: [id])
+//   orderId    String?
+//   order      Order?             @relation(fields: [orderId], references: [id])
+//   userId     String?
+//   user       User?              @relation(fields: [userId], references: [id])
+//   adminId    String?            @default("cllb3d9b90003cedclcthud41")
+//   admin      Admin?             @relation(fields: [adminId], references: [id])
+//   employeeId String?
+//   employee   Employee?          @relation(fields: [employeeId], references: [id])
+// }
+
+// enum StatusMethod {
+//   pending
+//   accepted
+//   rejected
+//   received
+// }
+
+// enum NotificationMethod {
+//   email
+//   sms
+//   push
+//   whatsapp
+// }
 
 model Deliverect {
   id              String  @id @default(cuid())

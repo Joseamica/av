@@ -11,13 +11,12 @@ import { prisma } from '~/db.server'
 import { capitalizeFirstLetter } from '~/utils'
 import { checkboxSchema } from '~/utils/zod-extensions'
 
-import { Button, DeleteIcon, FlexRow, H6 } from '~/components'
+import { Button } from '~/components'
 import { CategoryForm } from '~/components/admin/categories/category-form'
 import { HeaderWithButton } from '~/components/admin/headers'
 import { QueryDialog } from '~/components/admin/ui/dialogs/dialog'
 import { ErrorList } from '~/components/admin/ui/forms'
 import { Square } from '~/components/admin/ui/square'
-import { EditIcon } from '~/components/icons'
 import { ButtonLink } from '~/components/ui/buttons/button'
 
 export const handle = { active: 'Categories' }
