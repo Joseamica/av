@@ -91,27 +91,3 @@ export default function Admin() {
     </main>
   )
 }
-
-export const ErrorBoundary = () => {
-  const error = useRouteError() as Error
-
-  if (isRouteErrorResponse(error)) {
-    return (
-      <main className="bg-night-600">
-        <p>No information</p>
-        <p>Status: {error.status}</p>
-        <p>{error?.data.message}</p>
-      </main>
-    )
-  }
-
-  return (
-    <main className="text-white bg-night-500">
-      <h1>Rayos y centellas!</h1>
-      <p>{error?.message}</p>
-      <button className="text-white bg-warning">
-        Back to <Link to={'/table'}> safety! </Link>
-      </button>
-    </main>
-  )
-}

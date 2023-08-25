@@ -1,5 +1,5 @@
 import { conform, useForm } from '@conform-to/react'
-import { useFetcher, useRouteLoaderData, useSearchParams } from '@remix-run/react'
+import { useFetcher, useParams, useRouteLoaderData, useSearchParams } from '@remix-run/react'
 
 import { type ActionArgs, type LoaderArgs, json, redirect } from '@remix-run/node'
 
@@ -13,6 +13,7 @@ import { HeaderWithButton } from '~/components/admin/headers'
 import { PaymentForm } from '~/components/admin/payments/payment-form'
 import { QueryDialog } from '~/components/admin/ui/dialogs/dialog'
 import { ErrorList } from '~/components/admin/ui/forms'
+import { Square } from '~/components/admin/ui/square'
 import { EditIcon } from '~/components/icons'
 
 export const handle = { active: 'Payments' }
@@ -88,10 +89,11 @@ export async function action({ request, params }: ActionArgs) {
 
 export default function Name() {
   const { branch } = useRouteLoaderData('routes/admin_.$branchId') as any
+  const { branchId } = useParams()
 
   const fetcher = useFetcher()
   const isSubmitting = fetcher.state !== 'idle'
-  const [searchParams, setSearchParams] = useSearchParams()
+  const [searchParams] = useSearchParams()
 
   const [form, fields] = useForm({
     id: 'payments',
@@ -107,39 +109,23 @@ export default function Name() {
   const addItem = searchParams.get('addItem')
   const editItem = searchParams.get('editItem')
   const deleteItem = searchParams.get('deleteItem')
-  const branchId = branch.branches[0].id
 
   return (
     <main>
       <HeaderWithButton queryKey="addItem" queryValue="true" buttonLabel="Add" />
       <div className="flex flex-wrap gap-2 p-4">
         {branch.payments.map(payment => (
-          <FlexRow key={payment.id}>
-            <div className="w-24 h-24 flex flex-col justify-center items-center bg-white break-all rounded-xl shadow text-sm p-1">
-              <H6>{payment.id}</H6>
-              <H6>{parseFloat(payment.amount).toFixed(2)}</H6>
-            </div>
-            <div className="basic-flex-col">
-              <button
-                className="icon-button edit-button"
-                onClick={() => {
-                  searchParams.set('editItem', payment.id)
-                  setSearchParams(searchParams)
-                }}
-              >
-                <EditIcon />
-              </button>
-              <button
-                className="icon-button del-button"
-                onClick={() => {
-                  searchParams.set('deleteItem', payment.id)
-                  setSearchParams(searchParams)
-                }}
-              >
-                <DeleteIcon />
-              </button>
-            </div>
-          </FlexRow>
+          <Square
+            itemId={payment.id}
+            name={
+              <>
+                <H6 boldVariant="bold">{payment.id}</H6>
+                <H6>{parseFloat(payment.amount).toFixed(2)}</H6>
+              </>
+            }
+            to={payment.id}
+            key={payment.id}
+          />
         ))}
       </div>
       <QueryDialog query="addItem" title="Add Payment" description="Add to the fields you want to add">

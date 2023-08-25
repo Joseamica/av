@@ -53,6 +53,13 @@ export async function action({ request, params }: ActionArgs) {
         },
       })
       break
+    case 'users':
+      await prisma.user.delete({
+        where: {
+          id: id,
+        },
+      })
+      break
   }
 
   return redirect(redirectTo)

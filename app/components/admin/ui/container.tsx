@@ -3,7 +3,7 @@ import { FaEdit } from 'react-icons/fa'
 
 import { EditIcon } from '~/components/icons'
 
-export default function Container({ name, itemIdQuery, editQuery }: { name: string | number; itemIdQuery: string; editQuery: string }) {
+export function Container({ name, itemIdQuery, editQuery }: { name: string | number; itemIdQuery: string; editQuery: string }) {
   let displayText = ''
   if (String(name).startsWith('cll')) {
     displayText = String(name).slice(-4).toUpperCase()

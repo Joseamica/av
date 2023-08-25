@@ -12,6 +12,7 @@ import { prisma } from '~/db.server'
 import { Button, FlexRow, XIcon } from '~/components'
 import { HeaderWithButton } from '~/components/admin/headers'
 import { ErrorList, Field } from '~/components/admin/ui/forms'
+import { Square } from '~/components/admin/ui/square'
 import { DeleteIcon, EditIcon } from '~/components/icons'
 
 const menuSchema = z.object({
@@ -104,31 +105,7 @@ export default function Menus() {
       <HeaderWithButton queryKey="addItem" queryValue="true" buttonLabel="Add" />
       <div className="flex flex-wrap gap-2 p-4">
         {branch.menus.map(menu => (
-          <FlexRow key={menu.id}>
-            <Link to={menu.id} className="w-24 h-24 flex justify-center items-center bg-white break-all rounded-xl shadow text-sm p-1">
-              {menu.name}
-            </Link>
-            <div className="basic-flex-col">
-              <button
-                className="icon-button edit-button"
-                onClick={() => {
-                  searchParams.set('editItem', menu.id)
-                  setSearchParams(searchParams)
-                }}
-              >
-                <EditIcon />
-              </button>
-              <button
-                className="icon-button del-button"
-                onClick={() => {
-                  searchParams.set('deleteItem', menu.id)
-                  setSearchParams(searchParams)
-                }}
-              >
-                <DeleteIcon />
-              </button>
-            </div>
-          </FlexRow>
+          <Square itemId={menu.id} name={menu.name} to={menu.id} key={menu.id} />
         ))}
       </div>
       {/* ANCHOR ADD */}

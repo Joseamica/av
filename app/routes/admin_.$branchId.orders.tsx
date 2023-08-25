@@ -17,7 +17,7 @@ import { checkboxSchema } from '~/utils/zod-extensions'
 import { Spacer } from '~/components'
 import { HeaderSection } from '~/components/admin/headers'
 import { EditOrderDialog } from '~/components/admin/orders/dialogs/edit'
-import Container from '~/components/admin/ui/container'
+import { Container } from '~/components/admin/ui/container'
 import ItemInfo from '~/components/admin/ui/selected-item-info'
 
 export const handle = { active: 'Orders' }

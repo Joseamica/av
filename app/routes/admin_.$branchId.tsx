@@ -58,6 +58,7 @@ export async function loader({ request, params }: LoaderArgs) {
       tables: true,
       employees: true,
       branches: true,
+      user: true,
     },
   })
 
@@ -92,7 +93,10 @@ export default function AdminBranch() {
           <div key={link.name}>
             <Link
               to={link.link}
-              className={clsx('p-2 rounded-xl', active === link.name && 'underline underline-offset-8 font-bold')}
+              className={clsx(
+                'p-2 rounded-xl hover:bg-button-primary hover:text-white',
+                active === link.name && 'underline underline-offset-8 font-bold hover:bg-transparent hover:text-black',
+              )}
               onClick={() => handleMenuClick(link.name, link.subLinks)}
             >
               {link.name}

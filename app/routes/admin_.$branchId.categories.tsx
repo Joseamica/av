@@ -1,5 +1,5 @@
 import { conform, useForm } from '@conform-to/react'
-import { useFetcher, useRouteLoaderData, useSearchParams } from '@remix-run/react'
+import { useFetcher, useParams, useRouteLoaderData, useSearchParams } from '@remix-run/react'
 
 import { type ActionArgs, type LoaderArgs, json, redirect } from '@remix-run/node'
 
@@ -109,6 +109,7 @@ export async function action({ request, params }: ActionArgs) {
 
 export default function Name() {
   const { branch } = useRouteLoaderData('routes/admin_.$branchId') as any
+  const { branchId } = useParams()
 
   const fetcher = useFetcher()
   const isSubmitting = fetcher.state !== 'idle'
@@ -128,7 +129,6 @@ export default function Name() {
   const addItem = searchParams.get('addItem')
   const editItem = searchParams.get('editItem')
   const deleteItem = searchParams.get('deleteItem')
-  const branchId = branch.branches[0].id
 
   return (
     <main>
