@@ -168,9 +168,9 @@ export async function getDateTimeTz(tableId: string) {
   const timeZone = await prisma.branch
     .findUnique({
       where: { id: branchId },
-      select: { storeTimeZone: true },
+      select: { timezone: true },
     })
-    .then(branch => branch?.storeTimeZone)
+    .then(branch => branch?.timezone)
 
   if (!timeZone) {
     return null

@@ -47,8 +47,6 @@ export function createBranch(restaurantId: string) {
   return prisma.branch.create({
     data: {
       name: faker.company.name(),
-      created: new Date().toISOString(),
-      updated: new Date().toISOString(),
       image:
         'https://firebasestorage.googleapis.com/v0/b/avoqado-d0a24.appspot.com/o/i-need-a-high-quality-principal-image-for-the-hero-section-of-my-landing-page-this-image-will-r-.png?alt=media&token=298dadb1-9034-4b6e-ac10-34ec0f78d98a',
       email: faker.internet.email(),

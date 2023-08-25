@@ -2,16 +2,30 @@ import { type ActionArgs } from '@remix-run/node'
 
 import { prisma } from '~/db.server'
 
+import { getSearchParams } from '~/utils'
+
 export async function loader({ request, params }: ActionArgs) {
-  const products = await prisma.menuItem.findMany({})
+  const { branchId } = params
+  const searchParams = getSearchParams({ request })
+  const dataType = searchParams.get('dataType')
+  let csv = null
+  switch (dataType) {
+    case 'products':
+      const products = await prisma.menuItem.findMany({ where: { branchId } })
+      csv = convertToCSV(products)
+      break
+    case 'categories':
+      const categories = await prisma.menuCategory.findMany({ where: { branchId } })
+      csv = convertToCSV(categories)
+      break
+  }
 
   // Your logic to convert products to CSV
-  const csv = convertToCSV(products)
 
   return new Response(csv, {
     headers: {
       'Content-Type': 'text/csv',
-      'Content-Disposition': `attachment; filename=products.csv`,
+      'Content-Disposition': `attachment; filename=${dataType}.csv`,
     },
   })
 }

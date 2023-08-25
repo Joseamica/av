@@ -118,7 +118,7 @@ export default function Products() {
   return (
     <main>
       <HeaderWithButton queryKey="addItem" queryValue="true" buttonLabel="Add" />
-      <ButtonLink variant="secondary" size="small" download="products" href={`/admin/${branchId}/export`}>
+      <ButtonLink variant="secondary" size="small" download="products" href={`/admin/${branchId}/export?dataType=products`}>
         Download Your Data
       </ButtonLink>
       <div className="flex flex-wrap gap-2 p-4">
