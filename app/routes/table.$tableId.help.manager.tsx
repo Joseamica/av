@@ -27,7 +27,7 @@ export async function action({ request, params }: ActionArgs) {
   const table = await getTable(tableId)
 
   // SendWhatsApp('14155238886', phones, `Llamada de la mesa ${table?.number} test`)
-  await prisma.notifications.create({
+  await prisma.notification.create({
     data: {
       message: `Llamada de la mesa ${table?.number}`,
       method: 'push',

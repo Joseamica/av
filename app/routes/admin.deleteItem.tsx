@@ -67,6 +67,13 @@ export async function action({ request, params }: ActionArgs) {
         },
       })
       break
+    case 'notifications':
+      await prisma.notification.delete({
+        where: {
+          id: id,
+        },
+      })
+      break
   }
 
   return redirect(redirectTo)

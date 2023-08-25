@@ -30,7 +30,7 @@ const employeesShema = z.object({
 
 export async function loader({ request, params }: LoaderArgs) {
   const { branchId } = params
-  const notifications = await prisma.notifications.findMany({
+  const notifications = await prisma.notification.findMany({
     where: {
       branchId,
     },
