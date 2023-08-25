@@ -87,7 +87,7 @@ export async function action({ request, params }: ActionArgs) {
   })
 }
 
-export default function Name() {
+export default function Payments() {
   const { branch } = useRouteLoaderData('routes/admin_.$branchId') as any
   const { branchId } = useParams()
 

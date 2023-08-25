@@ -10,37 +10,33 @@ import { z } from 'zod'
 import { prisma } from '~/db.server'
 
 import { Button, H5 } from '~/components'
+import { EmployeeForm } from '~/components/admin/employees/employee-form'
 import { HeaderWithButton } from '~/components/admin/headers'
 import { QueryDialog } from '~/components/admin/ui/dialogs/dialog'
 import { ErrorList } from '~/components/admin/ui/forms'
 import { Square } from '~/components/admin/ui/square'
-import { UserForm } from '~/components/admin/users/user-form'
 
-export const handle = { active: 'Users' }
+export const handle = { active: 'Employees' }
 
-const userShema = z.object({
+const employeesShema = z.object({
   id: z.string(),
   name: z.string().nonempty('Name is required'),
   email: z.string().email('Invalid email'),
   password: z.string().nonempty('Password is required'),
-  color: z.string(),
-  paid: z.number().min(0, 'Paid must be greater than 0'),
-  tip: z.number().min(0, 'Tip must be greater than 0'),
-  role: z.enum(['admin', 'manager', 'waiter', 'user']),
+  image: z.string().url(),
+  phone: z.string().nonempty('Phone is required'),
+  role: z.enum(['manager', 'waiter']),
 })
 
 export async function loader({ request, params }: LoaderArgs) {
   const { branchId } = params
-  const users = await prisma.user.findMany({
+  const notifications = await prisma.notifications.findMany({
     where: {
       branchId,
     },
-    include: {
-      password: true,
-    },
   })
 
-  return json({ users })
+  return json({ notifications })
 }
 
 export async function action({ request, params }: ActionArgs) {
@@ -48,16 +44,16 @@ export async function action({ request, params }: ActionArgs) {
 
   const submission = await parse(formData, {
     schema: () => {
-      return userShema.superRefine(async (data, ctx) => {
-        const existingUser = await prisma.user.findUnique({
+      return employeesShema.superRefine(async (data, ctx) => {
+        const existingEmployee = await prisma.employee.findUnique({
           where: { email: data.email },
           select: { id: true },
         })
-        if (existingUser) {
+        if (existingEmployee) {
           ctx.addIssue({
             path: ['email'],
             code: z.ZodIssueCode.custom,
-            message: 'A user already exists with this email',
+            message: 'A employee already exists with this email',
           })
           return
         }
@@ -84,49 +80,60 @@ export async function action({ request, params }: ActionArgs) {
 
   return namedAction(request, {
     async create() {
-      await prisma.user.create({
+      // for (const item of submission.value.selectItems) {
+      //   console.log('item', item)
+      //   await prisma.availabilities.create({
+      //     data: {
+      //       dayOfWeek: submission.value.dayOfWeek,
+      //       startTime: submission.value.startTime,
+      //       endTime: submission.value.endTime,
+      //       menuId: item,
+      //     },
+      //   })
+      // }
+      await prisma.employee.create({
         data: {
           name: submission.value.name,
+          role: submission.value.role,
           email: submission.value.email,
+
           password: {
             connectOrCreate: {
               where: {
-                userId: submission.value.id,
+                employeeId: submission.value.id,
               },
               create: {
                 hash: hashedPassword,
               },
             },
           },
-          color: submission.value.color,
-          paid: submission.value.paid,
-          tip: submission.value.tip,
-          role: submission.value.role,
+          phone: submission.value.phone,
+          image: submission.value.image,
           branchId: params.branchId,
         },
       })
       return redirect('')
     },
     async update() {
-      await prisma.user.update({
+      await prisma.employee.update({
         where: { id: submission.value.id },
         data: {
           name: submission.value.name,
+          role: submission.value.role,
           email: submission.value.email,
           password: {
             connectOrCreate: {
               where: {
-                userId: submission.value.id,
+                employeeId: submission.value.id,
               },
               create: {
                 hash: hashedPassword,
               },
             },
           },
-          color: submission.value.color,
-          paid: submission.value.paid,
-          tip: submission.value.tip,
-          role: submission.value.role,
+          phone: submission.value.phone,
+          image: submission.value.image,
+          branchId: params.branchId,
         },
       })
       return redirect('')
@@ -134,7 +141,7 @@ export async function action({ request, params }: ActionArgs) {
   })
 }
 
-export default function Users() {
+export default function Employees() {
   const data = useLoaderData()
   const { branch } = useRouteLoaderData('routes/admin_.$branchId') as any
   const { branchId } = useParams()
@@ -144,12 +151,12 @@ export default function Users() {
   const [searchParams] = useSearchParams()
 
   const [form, fields] = useForm({
-    id: 'users',
-    constraint: getFieldsetConstraint(userShema),
+    id: 'employees',
+    constraint: getFieldsetConstraint(employeesShema),
     lastSubmission: fetcher.data?.submission,
 
     onValidate({ formData }) {
-      return parse(formData, { schema: userShema })
+      return parse(formData, { schema: employeesShema })
     },
     shouldRevalidate: 'onBlur',
   })
@@ -162,24 +169,24 @@ export default function Users() {
     <main>
       <HeaderWithButton queryKey="addItem" queryValue="true" buttonLabel="Add" />
       <div className="flex flex-wrap gap-2 p-4">
-        {data.users.map(user => (
+        {data.notifications.map(notification => (
           <Square
-            itemId={user.id}
+            itemId={notification.id}
             name={
               <>
-                <H5 boldVariant="bold">{user.name}</H5>
+                <H5 boldVariant="bold">{notification.id}</H5>
               </>
             }
-            to={user.id}
-            key={user.id}
+            to={notification.id}
+            key={notification.id}
           />
         ))}
       </div>
-      <QueryDialog title="Add User" description="Add to the fields you want to add" query={'addItem'}>
+      <QueryDialog title="Add Employee" description="Add to the fields you want to add" query={'addItem'}>
         <fetcher.Form method="POST" {...form.props} action="?/create">
-          <UserForm
+          <EmployeeForm
             intent="add"
-            users={data.users}
+            employees={data.notifications}
             editSubItemId={addItem}
             isSubmitting={isSubmitting}
             fields={fields}
@@ -188,11 +195,11 @@ export default function Users() {
           <input type="hidden" value={addItem ? addItem : ''} {...conform.input(fields.id)} />
         </fetcher.Form>
       </QueryDialog>
-      <QueryDialog title="Edit User" description="Modify the fields you want to edit" query={'editItem'}>
+      <QueryDialog title="Edit Employee" description="Modify the fields you want to edit" query={'editItem'}>
         <fetcher.Form method="POST" {...form.props} action="?/update">
-          <UserForm
+          <EmployeeForm
             intent="edit"
-            users={data.users}
+            employees={data.notifications}
             editSubItemId={editItem}
             isSubmitting={isSubmitting}
             fields={fields}
@@ -202,14 +209,14 @@ export default function Users() {
         </fetcher.Form>
       </QueryDialog>
 
-      <QueryDialog title="Delete User" description="Are you sure that you want to delete this item?" query={'deleteItem'}>
+      <QueryDialog title="Delete Employee" description="Are you sure that you want to delete this item?" query={'deleteItem'}>
         <fetcher.Form method="POST" action="/admin/deleteItem" name="DELETE">
           <Button type="submit" disabled={isSubmitting} size="small" variant="danger">
             Delete
           </Button>
           <input type="hidden" name="id" value={deleteItem ? deleteItem : ''} />
-          <input type="hidden" name="model" value="users" />
-          <input type="hidden" name="redirect" value={`/admin/${branchId}/users`} />
+          <input type="hidden" name="model" value="notifications" />
+          <input type="hidden" name="redirect" value={`/admin/${branchId}/notifications`} />
 
           <ErrorList errors={[...form.errors]} id={form.errorId} />
         </fetcher.Form>

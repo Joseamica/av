@@ -6,6 +6,7 @@ import type { Employee } from '@prisma/client'
 import invariant from 'tiny-invariant'
 import { prisma } from '~/db.server'
 import { validateRedirect } from '~/redirect.server'
+import { getSession } from '~/session.server'
 import { SendWhatsApp } from '~/twilio.server'
 
 import { getTable } from '~/models/table.server'
@@ -15,14 +16,29 @@ import { Button, FlexRow, ItemContainer, Modal } from '~/components'
 export async function action({ request, params }: ActionArgs) {
   const { tableId } = params
   invariant(tableId, 'tableId is required')
+  const session = await getSession(request)
+  const userId = session.get('userId')
   const formData = await request.formData()
   const phones = formData.getAll('managers') as [string]
+  const ids = formData.getAll('ids') as [string]
+
   const redirectTo = validateRedirect(request.redirect, `..`)
 
   const table = await getTable(tableId)
 
-  SendWhatsApp('14155238886', phones, `Llamada de la mesa ${table?.number} test`)
-
+  // SendWhatsApp('14155238886', phones, `Llamada de la mesa ${table?.number} test`)
+  await prisma.notifications.create({
+    data: {
+      message: `Llamada de la mesa ${table?.number}`,
+      method: 'push',
+      status: 'pending',
+      branchId: table?.branchId,
+      employees: {
+        connect: ids.map(id => ({ id })),
+      },
+      userId,
+    },
+  })
   return redirect(redirectTo)
 }
 
@@ -59,6 +75,7 @@ export default function Help() {
               </span>
             </FlexRow>
             <input type="checkbox" name="managers" id={manager.id} value={manager.phone} />
+            <input type="hidden" name="ids" id={manager.id} value={manager.id} />
           </ItemContainer>
         ))}
         {data.managers?.length === 0 && <p className="text-center">Esta mesa no tiene gerentes asignados</p>}
