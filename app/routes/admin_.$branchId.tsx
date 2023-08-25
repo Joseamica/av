@@ -79,13 +79,9 @@ export default function AdminBranch() {
     }
   }
 
-  // const showRestLogo = matches.find(match => match.handle)?.handle?.showRestLogo
-  // const restIdData = matches.find(match => match.id === 'routes/admin.rest_.$restId')?.data
-  // const branchIdData = matches.find(match => match.id === 'routes/admin.rest_.$restId.branches')?.data
-
   return (
     <MainAdminContainer>
-      <div className="col-start-1 col-end-3 bg-white flex flex-col p-2 space-y-4 border-r">
+      <div className="flex flex-col col-start-1 col-end-3 p-2 space-y-4 bg-white border-r">
         <h1 className="text-4xl">
           <Link to="">Avoqado</Link>
         </h1>
@@ -94,15 +90,15 @@ export default function AdminBranch() {
             <Link
               to={link.link}
               className={clsx(
-                'p-2 rounded-xl hover:bg-button-primary hover:text-white',
-                active === link.name && 'underline underline-offset-8 font-bold hover:bg-transparent hover:text-black',
+                'p-2 rounded-xl hover:bg-button-primary text-black',
+                active === link.name ? 'underline underline-offset-8 font-bold hover:bg-transparent hover:text-black' : 'hover:text-white',
               )}
               onClick={() => handleMenuClick(link.name, link.subLinks)}
             >
               {link.name}
             </Link>
             {/* {activeSubmenu === link.name && link.subLinks && (
-              <div className="pl-4 pt-2 flex flex-col space-y-2">
+              <div className="flex flex-col pt-2 pl-4 space-y-2">
                 {link.subLinks.map(subLink => (
                   <Link to={'menus/' + subLink} key={subLink} className="capitalize">
                     {subLink}
@@ -133,5 +129,4 @@ const MENU_LINKS = [
   { name: 'Notifications', link: 'notifications' },
   { name: 'Feedbacks', link: 'feedbacks' },
   { name: 'Availabilities', link: 'availabilities' },
-  { name: 'WIFI', link: 'payments' },
 ]
