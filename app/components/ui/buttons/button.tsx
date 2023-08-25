@@ -1,6 +1,9 @@
 import { Link } from '@remix-run/react'
+import React from 'react'
 
 import clsx from 'clsx'
+
+import { AnchorOrLink } from '~/utils/misc'
 
 import { DeleteIcon } from '~/components/icons'
 
@@ -190,5 +193,20 @@ function QuantityButton({
     </div>
   )
 }
+/**
+ * A link that looks like a button
+ */
+const ButtonLink = React.forwardRef<HTMLAnchorElement, React.ComponentPropsWithRef<typeof AnchorOrLink> & ButtonProps>(function ButtonLink(
+  { children, variant = 'primary', className, size = 'large', ...rest },
+  ref,
+) {
+  return (
+    <AnchorOrLink ref={ref} className={getClassName({ className })} {...rest}>
+      <ButtonInner variant={variant} size={size}>
+        {children}
+      </ButtonInner>
+    </AnchorOrLink>
+  )
+})
 
-export { Button, LinkButton, QuantityButton }
+export { Button, ButtonLink, LinkButton, QuantityButton }
