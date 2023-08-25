@@ -54,12 +54,14 @@ export async function action({ request, params }: ActionArgs) {
       })
       break
     case 'users':
-      await prisma.password.delete({
+      await prisma.user.delete({
         where: {
-          userId: id,
+          id: id,
         },
       })
-      await prisma.user.delete({
+      break
+    case 'employees':
+      await prisma.employee.delete({
         where: {
           id: id,
         },
