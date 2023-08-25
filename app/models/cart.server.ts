@@ -30,7 +30,7 @@ export function removeCartItem(cart: CartItem[], variantId: string) {
   return cart.filter(item => item.id !== variantId)
 }
 
-export function createCartItems(cartItems: any, shareDish: any, userId: string, orderId: string) {
+export function createCartItems(cartItems: any, shareProduct: any, userId: string, orderId: string) {
   return Promise.all(
     cartItems.map(item =>
       prisma.cartItem.create({
@@ -46,9 +46,8 @@ export function createCartItems(cartItems: any, shareDish: any, userId: string, 
             })),
           },
 
-          //if shareDish is not empty, connect the users to the cartItem
           user: {
-            connect: shareDish.length > 0 ? [{ id: userId }, ...shareDish.map(id => ({ id: id }))] : { id: userId },
+            connect: shareProduct.length > 0 ? [{ id: userId }, ...shareProduct.map(id => ({ id: id }))] : { id: userId },
           } as any,
           activeOnOrder: true,
           orderId: orderId,

@@ -66,7 +66,7 @@ export const loader = async ({ params, request }: LoaderArgs) => {
     case 'cartPay':
       session.flash('notification', 'Haz pagado productos con éxito')
       session.unset('cart')
-      //TODO assign payments to dishes connect to user
+      //TODO assign payments to products connect to user
       // await updatePaidItemsAndUserData(itemData, username || '')
       break
     case 'perDish':

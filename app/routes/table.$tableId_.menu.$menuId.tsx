@@ -64,10 +64,10 @@ export async function loader({ request, params }: LoaderArgs) {
   invariant(menuId, 'No existe el ID del menu')
 
   const url = new URL(request.url)
-  const dishId = url.searchParams.get('dishId') || ''
+  const productId = url.searchParams.get('productId') || ''
 
-  const dish = await prisma.product.findFirst({
-    where: { id: dishId },
+  const product = await prisma.product.findFirst({
+    where: { id: productId },
   })
 
   const session = await getSession(request)
@@ -80,11 +80,11 @@ export async function loader({ request, params }: LoaderArgs) {
   })
 
   const modifierGroup = await prisma.modifierGroup.findMany({
-    where: { products: { some: { id: dishId } } },
+    where: { products: { some: { id: productId } } },
     include: { modifiers: true },
   })
   //Find users on table that are not the current user,
-  //this is to show users to share dishes with and you don't appear
+  //this is to show users to share product with and you don't appear
   const usersOnTable = await prisma.user.findMany({
     where: { tableId, id: { not: session.get('userId') } },
   })
@@ -102,7 +102,7 @@ export async function loader({ request, params }: LoaderArgs) {
     modifierGroup,
     cartItems,
     usersOnTable,
-    dish,
+    product,
     currency,
     menu,
     branch,
@@ -122,7 +122,7 @@ export async function action({ request, params }: ActionArgs) {
   const modifiers = formData.getAll('modifier') as string[]
 
   const redirectTo = validateRedirect(request.redirect, ``)
-  const shareDish = formData.getAll('shareDish')
+  const shareProduct = formData.getAll('shareProduct')
   const quantity = Number(formData.get('quantity') as string)
 
   const session = await getSession(request)
@@ -131,7 +131,7 @@ export async function action({ request, params }: ActionArgs) {
   if (_action && submittedItemId) {
     addToCart(cart, submittedItemId, quantity, modifiers)
     session.set('cart', JSON.stringify(cart))
-    session.set('shareUserIds', JSON.stringify(shareDish))
+    session.set('shareUserIds', JSON.stringify(shareProduct))
     return redirect(redirectTo, {
       headers: { 'Set-Cookie': await sessionStorage.commitSession(session) },
     })
@@ -149,13 +149,13 @@ export default function Menu() {
   const [searchParams, setSearchParams] = useSearchParams()
   const [isSticky, setIsSticky] = React.useState(false)
 
-  const dish = searchParams.get('dishId')
+  const product = searchParams.get('productId')
   const categoryRefs = useRef<{ [key: string]: any }>({})
 
   // const navigate = useNavigate()
 
   const onClose = () => {
-    searchParams.delete('dishId')
+    searchParams.delete('productId')
     setSearchParams(searchParams)
   }
 
@@ -185,12 +185,12 @@ export default function Menu() {
     return () => window.removeEventListener('scroll', handleScroll)
   }, [])
 
-  const isDishNull = dish === null
+  const isProductNull = product === null
 
   //NOTE - This is to reset the quantity when the modal closes
   React.useEffect(() => {
     setQuantity(1)
-  }, [isDishNull])
+  }, [isProductNull])
 
   // const submit = useSubmit()
   function handleChange(event: React.FormEvent<HTMLFormElement>) {
@@ -257,7 +257,7 @@ export default function Menu() {
               {data.categories
                 .filter((category: Category) => !category.pdf)
                 .map((categories: Category) => {
-                  const dishes = categories.products
+                  const products = categories.products
                   return (
                     <SectionContainer
                       key={categories.id}
@@ -267,21 +267,21 @@ export default function Menu() {
                       title={categories.name}
                     >
                       <div className="flex flex-col divide-y ">
-                        {dishes.map((dish: Product) => {
+                        {products.map((product: Product) => {
                           return (
-                            <Link key={dish.id} preventScrollReset to={`?dishId=${dish.id}`} className="p-2">
+                            <Link key={product.id} preventScrollReset to={`?productId=${product.id}`} className="p-2">
                               <FlexRow justify="between">
                                 <div className="flex flex-col ">
-                                  <H3>{dish.name}</H3>
-                                  <H5>{dish.description}</H5>
+                                  <H3>{product.name}</H3>
+                                  <H5>{product.description}</H5>
                                   <Spacer spaceY="1" />
-                                  <H3>{formatCurrency(data.currency, dish.price)}</H3>
+                                  <H3>{formatCurrency(data.currency, product.price)}</H3>
                                 </div>
                                 {/* <div className="relative flex flex-row items-center shrink-0 "> */}
                                 <motion.img
                                   whileHover={{ scale: 1 }}
                                   whileTap={{ scale: 0.8 }}
-                                  src={dish.image ? dish.image : data.branch.image}
+                                  src={product.image ? product.image : data.branch.image}
                                   // onError={() => console.log('image error')}
                                   className="object-cover bg-white rounded-lg dark:bg-secondaryDark h-28 max-h-28 w-28 shrink-0"
                                   loading="lazy"
@@ -305,24 +305,24 @@ export default function Menu() {
               </LinkButton>
             ) : null}
             {/* MODAL */}
-            {dish && (
-              <Modal onClose={onClose} title={data.dish.name} imgHeader={data.dish.image}>
+            {product && (
+              <Modal onClose={onClose} title={data.product.name} imgHeader={data.product.image}>
                 <div className="w-full p-4 space-y-2 overflow-auto">
-                  <H2 boldVariant="semibold">{data.dish.name}</H2>
-                  <H3> {formatCurrency(data.currency, data.dish?.price)}</H3>
-                  <H4 variant="secondary">{data.dish.description}</H4>
+                  <H2 boldVariant="semibold">{data.product.name}</H2>
+                  <H3> {formatCurrency(data.currency, data.product?.price)}</H3>
+                  <H4 variant="secondary">{data.product.description}</H4>
                   {data.usersOnTable.length > 0 && <H4>¿Quieres compartir?</H4>}
                   {data.usersOnTable.map((user: User) => {
                     return (
                       <div key={user.id} className="flex items-center mt-2">
                         <input
                           type="checkbox"
-                          id={`shareDish-${user.id}`}
-                          name="shareDish"
+                          id={`shareProduct-${user.id}`}
+                          name="shareProduct"
                           value={user.id}
                           className="w-5 h-5 text-blue-600 rounded"
                         />
-                        <label htmlFor={`shareDish-${user.id}`} className="ml-2 text-sm text-gray-700">
+                        <label htmlFor={`shareProduct-${user.id}`} className="ml-2 text-sm text-gray-700">
                           {user.name}
                         </label>
                       </div>
@@ -382,9 +382,9 @@ export default function Menu() {
                 </div>
 
                 <Button name="_action" value="proceed" className="m-2" disabled={isSubmitting}>
-                  Agregar {data.dish.name}
+                  Agregar {data.product.name}
                 </Button>
-                <input type="hidden" name="submittedItemId" value={data.dish.id} />
+                <input type="hidden" name="submittedItemId" value={data.product.id} />
                 <input type="hidden" name="quantity" value={quantity} />
               </Modal>
             )}

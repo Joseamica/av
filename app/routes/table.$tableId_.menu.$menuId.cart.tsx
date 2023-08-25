@@ -255,10 +255,10 @@ export async function loader({ request, params }: LoaderArgs) {
   invariant(menuId, 'No existe el ID del menu')
 
   const url = new URL(request.url)
-  const dishId = url.searchParams.get('dishId') || ''
+  const productId = url.searchParams.get('productId') || ''
 
-  const dish = await prisma.product.findFirst({
-    where: { id: dishId },
+  const product = await prisma.product.findFirst({
+    where: { id: productId },
   })
 
   const session = await getSession(request)
@@ -270,7 +270,7 @@ export async function loader({ request, params }: LoaderArgs) {
     },
   })
   //Find users on table that are not the current user,
-  //this is to show users to share dishes with and you don't appear
+  //this is to show users to share product with and you don't appear
   const usersOnTable = await prisma.user.findMany({
     where: { tableId, id: { not: session.get('userId') } },
   })
@@ -295,7 +295,7 @@ export async function loader({ request, params }: LoaderArgs) {
     categories,
     cartItems,
     usersOnTable,
-    dish,
+    product,
     currency,
     cartItemsTotal,
     amountLeft,
@@ -319,7 +319,7 @@ export async function action({ request, params }: ActionArgs) {
   const redirectTo = validateRedirect(request.redirect, `/table/${tableId}`)
 
   const session = await getSession(request)
-  const shareDish = JSON.parse(session.get('shareUserIds') || false)
+  const shareProducts = JSON.parse(session.get('shareUserIds') || false)
   let cart = JSON.parse(session.get('cart') || '[]')
   const quantityStr = cart.find((item: { variantId: string }) => item.variantId === variantId)?.quantity
   const userId = session.get('userId')
@@ -429,7 +429,7 @@ export async function action({ request, params }: ActionArgs) {
       }
 
       //createCartItems
-      await createCartItems(cartItems, shareDish, userId, order.id)
+      await createCartItems(cartItems, shareProducts, userId, order.id)
       //Aqui se usa el request.method para identificar que boton se esta usando, en este caso Patch es que se esta pagando
       if (request.method === 'PATCH') {
         const tipPercentage = formData.get('tipPercentage') as string

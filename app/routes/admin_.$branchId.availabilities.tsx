@@ -46,14 +46,6 @@ export async function action({ request, params }: ActionArgs) {
       { status: 400 },
     )
   }
-  const oldMenuIds = (await prisma.availabilities.findMany({
-    where: {
-      id: submission.value.id,
-    },
-    select: {
-      menuId: true,
-    },
-  })) as any
 
   return namedAction(request, {
     async create() {
