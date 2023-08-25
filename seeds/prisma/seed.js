@@ -8,8 +8,8 @@ async function seed() {
     await (0, seed_utils_1.createAdmin)();
     await (0, seed_utils_1.createDeliverect)();
     await (0, seed_utils_1.createUsers)(1);
-    const restaurant = await (0, seed_utils_1.createRestaurant)();
-    const branch = await (0, seed_utils_1.createBranch)(restaurant.id);
+    const restaurant = await (0, seed_utils_1.createRestaurant)(2);
+    const branch = await (0, seed_utils_1.createBranch)(restaurant.id, 2);
     const tableIds = (await (0, seed_utils_1.createTables)(branch.id, 7));
     await (0, seed_utils_1.createEmployees)(branch.id, tableIds);
     const menu = await (0, seed_utils_1.createMenu)(branch.id);

@@ -1,7 +1,7 @@
 import { conform, useForm } from '@conform-to/react'
-import { useFetcher, useParams, useRouteLoaderData, useSearchParams } from '@remix-run/react'
+import { useFetcher, useLoaderData, useParams, useRouteLoaderData, useSearchParams } from '@remix-run/react'
 
-import { type ActionArgs, json, redirect } from '@remix-run/node'
+import { type ActionArgs, type LoaderArgs, json, redirect } from '@remix-run/node'
 
 import { getFieldsetConstraint, parse } from '@conform-to/zod'
 import bcrypt from 'bcryptjs'
@@ -15,28 +15,57 @@ import { HeaderWithButton } from '~/components/admin/headers'
 import { QueryDialog } from '~/components/admin/ui/dialogs/dialog'
 import { ErrorList } from '~/components/admin/ui/forms'
 import { Square } from '~/components/admin/ui/square'
-import { UserForm } from '~/components/admin/users/user-form'
 
-export const handle = { active: 'Users' }
+export const handle = { active: 'Employees' }
 
 const employeesShema = z.object({
   id: z.string(),
   name: z.string().nonempty('Name is required'),
   email: z.string().email('Invalid email'),
   password: z.string().nonempty('Password is required'),
-  color: z.string(),
-  paid: z.number().min(0, 'Paid must be greater than 0'),
-  tip: z.number().min(0, 'Tip must be greater than 0'),
+  image: z.string().url(),
+  phone: z.string().nonempty('Phone is required'),
   role: z.enum(['manager', 'waiter']),
 })
+
+export async function loader({ request, params }: LoaderArgs) {
+  const { branchId } = params
+  const employees = await prisma.employee.findMany({
+    where: {
+      branchId,
+    },
+    include: {
+      password: true,
+    },
+  })
+
+  return json({ employees })
+}
 
 export async function action({ request, params }: ActionArgs) {
   const formData = await request.formData()
 
-  const submission = parse(formData, {
-    schema: employeesShema,
+  const submission = await parse(formData, {
+    schema: () => {
+      return employeesShema.superRefine(async (data, ctx) => {
+        const existingEmployee = await prisma.employee.findUnique({
+          where: { email: data.email },
+          select: { id: true },
+        })
+        if (existingEmployee) {
+          ctx.addIssue({
+            path: ['email'],
+            code: z.ZodIssueCode.custom,
+            message: 'A employee already exists with this email',
+          })
+          return
+        }
+      })
+    },
+    // acceptMultipleErrors: () => true,
+    async: true,
   })
-  console.log('submission', submission)
+
   if (submission.intent !== 'submit') {
     return json({ status: 'idle', submission } as const)
   }
@@ -49,14 +78,7 @@ export async function action({ request, params }: ActionArgs) {
       { status: 400 },
     )
   }
-  const oldMenuIds = (await prisma.availabilities.findMany({
-    where: {
-      id: submission.value.id,
-    },
-    select: {
-      menuId: true,
-    },
-  })) as any
+
   const hashedPassword = await bcrypt.hash(submission.value.password, 10)
 
   return namedAction(request, {
@@ -72,61 +94,58 @@ export async function action({ request, params }: ActionArgs) {
       //     },
       //   })
       // }
-      await prisma.user.create({
+      await prisma.employee.create({
         data: {
           name: submission.value.name,
+          role: submission.value.role,
           email: submission.value.email,
+
           password: {
             connectOrCreate: {
               where: {
-                userId: submission.value.id,
+                employeeId: submission.value.id,
               },
               create: {
                 hash: hashedPassword,
               },
             },
           },
-          color: submission.value.color,
-          paid: submission.value.paid,
-          tip: submission.value.tip,
-          role: submission.value.role,
+          phone: submission.value.phone,
+          image: submission.value.image,
           branchId: params.branchId,
         },
       })
       return redirect('')
     },
     async update() {
-      const newMenuIds = submission.value.selectItems
-
-      const toConnect = newMenuIds.filter(item => !oldMenuIds.includes(item))
-      const toDisconnect = oldMenuIds.filter(item => !newMenuIds.includes(item))
-      for (const item of toConnect) {
-        await prisma.availabilities.update({
-          where: { id: submission.value.id },
-          data: {
-            dayOfWeek: submission.value.dayOfWeek,
-            startTime: submission.value.startTime,
-            endTime: submission.value.endTime,
-            menuId: item,
+      await prisma.employee.update({
+        where: { id: submission.value.id },
+        data: {
+          name: submission.value.name,
+          role: submission.value.role,
+          email: submission.value.email,
+          password: {
+            connectOrCreate: {
+              where: {
+                employeeId: submission.value.id,
+              },
+              create: {
+                hash: hashedPassword,
+              },
+            },
           },
-        })
-      }
-
-      // Handle disconnecting
-      for (const item of toDisconnect) {
-        await prisma.availabilities.update({
-          where: { id: submission.value.id },
-          data: {
-            menuId: null,
-          },
-        })
-      }
+          phone: submission.value.phone,
+          image: submission.value.image,
+          branchId: params.branchId,
+        },
+      })
       return redirect('')
     },
   })
 }
 
-export default function Availabilities() {
+export default function Employees() {
+  const data = useLoaderData()
   const { branch } = useRouteLoaderData('routes/admin_.$branchId') as any
   const { branchId } = useParams()
 
@@ -135,7 +154,7 @@ export default function Availabilities() {
   const [searchParams] = useSearchParams()
 
   const [form, fields] = useForm({
-    id: 'users',
+    id: 'employees',
     constraint: getFieldsetConstraint(employeesShema),
     lastSubmission: fetcher.data?.submission,
 
@@ -153,7 +172,7 @@ export default function Availabilities() {
     <main>
       <HeaderWithButton queryKey="addItem" queryValue="true" buttonLabel="Add" />
       <div className="flex flex-wrap gap-2 p-4">
-        {branch.employees.map(employee => (
+        {data.employees.map(employee => (
           <Square
             itemId={employee.id}
             name={
@@ -170,7 +189,7 @@ export default function Availabilities() {
         <fetcher.Form method="POST" {...form.props} action="?/create">
           <EmployeeForm
             intent="add"
-            employees={branch.employees}
+            employees={data.employees}
             editSubItemId={addItem}
             isSubmitting={isSubmitting}
             fields={fields}
@@ -183,7 +202,7 @@ export default function Availabilities() {
         <fetcher.Form method="POST" {...form.props} action="?/update">
           <EmployeeForm
             intent="edit"
-            employees={branch.employees}
+            employees={data.employees}
             editSubItemId={editItem}
             isSubmitting={isSubmitting}
             fields={fields}

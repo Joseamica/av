@@ -21,8 +21,8 @@ async function seed() {
   await createAdmin()
   await createDeliverect()
   await createUsers(1)
-  const restaurant = await createRestaurant()
-  const branch = await createBranch(restaurant.id)
+  const restaurant = await createRestaurant(2)
+  const branch = await createBranch(restaurant.id, 2)
   const tableIds = (await createTables(branch.id, 7)) as any
   await createEmployees(branch.id, tableIds)
   const menu = await createMenu(branch.id)

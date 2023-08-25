@@ -51,7 +51,7 @@ export function UserForm({
           defaultValue: isEditing ? users.find(user => user.id === editSubItemId)?.password : '',
           type: 'password',
         }}
-        errors={fields.email.errors}
+        errors={fields.password.errors}
       />
       <Field
         labelProps={{ children: 'Color' }}
@@ -86,10 +86,9 @@ export function UserForm({
         <select
           {...conform.input(fields.role)}
           className="flex w-full h-10 px-3 py-2 text-sm border rounded-md  border-input bg-background ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+          defaultValue={isEditing ? users.find(user => user.id === editSubItemId)?.role : ''}
         >
           <option value="admin">Admin</option>
-          {/* <option value="manager">Manager</option>
-          <option value="waiter">Waiter</option> */}
           <option value="user">User</option>
         </select>
       </div>

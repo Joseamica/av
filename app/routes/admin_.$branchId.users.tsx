@@ -1,7 +1,7 @@
 import { conform, useForm } from '@conform-to/react'
-import { useFetcher, useParams, useRouteLoaderData, useSearchParams } from '@remix-run/react'
+import { useFetcher, useLoaderData, useParams, useRouteLoaderData, useSearchParams } from '@remix-run/react'
 
-import { type ActionArgs, json, redirect } from '@remix-run/node'
+import { type ActionArgs, type LoaderArgs, json, redirect } from '@remix-run/node'
 
 import { getFieldsetConstraint, parse } from '@conform-to/zod'
 import bcrypt from 'bcryptjs'
@@ -29,13 +29,44 @@ const userShema = z.object({
   role: z.enum(['admin', 'manager', 'waiter', 'user']),
 })
 
+export async function loader({ request, params }: LoaderArgs) {
+  const { branchId } = params
+  const users = await prisma.user.findMany({
+    where: {
+      branchId,
+    },
+    include: {
+      password: true,
+    },
+  })
+
+  return json({ users })
+}
+
 export async function action({ request, params }: ActionArgs) {
   const formData = await request.formData()
 
-  const submission = parse(formData, {
-    schema: userShema,
+  const submission = await parse(formData, {
+    schema: () => {
+      return userShema.superRefine(async (data, ctx) => {
+        const existingUser = await prisma.user.findUnique({
+          where: { email: data.email },
+          select: { id: true },
+        })
+        if (existingUser) {
+          ctx.addIssue({
+            path: ['email'],
+            code: z.ZodIssueCode.custom,
+            message: 'A user already exists with this email',
+          })
+          return
+        }
+      })
+    },
+    // acceptMultipleErrors: () => true,
+    async: true,
   })
-  console.log('submission', submission)
+
   if (submission.intent !== 'submit') {
     return json({ status: 'idle', submission } as const)
   }
@@ -48,14 +79,7 @@ export async function action({ request, params }: ActionArgs) {
       { status: 400 },
     )
   }
-  const oldMenuIds = (await prisma.availabilities.findMany({
-    where: {
-      id: submission.value.id,
-    },
-    select: {
-      menuId: true,
-    },
-  })) as any
+
   const hashedPassword = await bcrypt.hash(submission.value.password, 10)
 
   return namedAction(request, {
@@ -95,37 +119,59 @@ export async function action({ request, params }: ActionArgs) {
       return redirect('')
     },
     async update() {
-      const newMenuIds = submission.value.selectItems
+      // const newMenuIds = submission.value.selectItems
 
-      const toConnect = newMenuIds.filter(item => !oldMenuIds.includes(item))
-      const toDisconnect = oldMenuIds.filter(item => !newMenuIds.includes(item))
-      for (const item of toConnect) {
-        await prisma.availabilities.update({
-          where: { id: submission.value.id },
-          data: {
-            dayOfWeek: submission.value.dayOfWeek,
-            startTime: submission.value.startTime,
-            endTime: submission.value.endTime,
-            menuId: item,
-          },
-        })
-      }
+      // const toConnect = newMenuIds.filter(item => !oldMenuIds.includes(item))
+      // const toDisconnect = oldMenuIds.filter(item => !newMenuIds.includes(item))
+      // for (const item of toConnect) {
+      //   await prisma.availabilities.update({
+      //     where: { id: submission.value.id },
+      //     data: {
+      //       dayOfWeek: submission.value.dayOfWeek,
+      //       startTime: submission.value.startTime,
+      //       endTime: submission.value.endTime,
+      //       menuId: item,
+      //     },
+      //   })
+      // }
 
-      // Handle disconnecting
-      for (const item of toDisconnect) {
-        await prisma.availabilities.update({
-          where: { id: submission.value.id },
-          data: {
-            menuId: null,
+      // // Handle disconnecting
+      // for (const item of toDisconnect) {
+      //   await prisma.availabilities.update({
+      //     where: { id: submission.value.id },
+      //     data: {
+      //       menuId: null,
+      //     },
+      //   })
+      // }
+      await prisma.user.update({
+        where: { id: submission.value.id },
+        data: {
+          name: submission.value.name,
+          email: submission.value.email,
+          password: {
+            connectOrCreate: {
+              where: {
+                userId: submission.value.id,
+              },
+              create: {
+                hash: hashedPassword,
+              },
+            },
           },
-        })
-      }
+          color: submission.value.color,
+          paid: submission.value.paid,
+          tip: submission.value.tip,
+          role: submission.value.role,
+        },
+      })
       return redirect('')
     },
   })
 }
 
-export default function Availabilities() {
+export default function Users() {
+  const data = useLoaderData()
   const { branch } = useRouteLoaderData('routes/admin_.$branchId') as any
   const { branchId } = useParams()
 
@@ -148,12 +194,11 @@ export default function Availabilities() {
   const editItem = searchParams.get('editItem')
   const deleteItem = searchParams.get('deleteItem')
 
-  console.log('branch', branch)
   return (
     <main>
       <HeaderWithButton queryKey="addItem" queryValue="true" buttonLabel="Add" />
       <div className="flex flex-wrap gap-2 p-4">
-        {branch.user.map(user => (
+        {data.users.map(user => (
           <Square
             itemId={user.id}
             name={
@@ -170,7 +215,7 @@ export default function Availabilities() {
         <fetcher.Form method="POST" {...form.props} action="?/create">
           <UserForm
             intent="add"
-            users={branch.user}
+            users={data.users}
             editSubItemId={addItem}
             isSubmitting={isSubmitting}
             fields={fields}
@@ -183,7 +228,7 @@ export default function Availabilities() {
         <fetcher.Form method="POST" {...form.props} action="?/update">
           <UserForm
             intent="edit"
-            users={branch.user}
+            users={data.users}
             editSubItemId={editItem}
             isSubmitting={isSubmitting}
             fields={fields}

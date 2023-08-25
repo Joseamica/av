@@ -29,41 +29,45 @@ export async function createUsers(totalUsers) {
 const AVOQADO_LOGO =
   'https://firebasestorage.googleapis.com/v0/b/avoqado-d0a24.appspot.com/o/kuikku%2FKUIKKU%20(2)%20(1)%20copy.png?alt=media&token=158e8d1b-d24b-406b-85e7-a507b29d84fc'
 
-export function createRestaurant() {
+export function createRestaurant(totalRest) {
   console.log('🏢 Created the restaurant...')
-  return prisma.restaurant.create({
-    data: {
-      name: faker.company.name(),
-      logo: faker.image.food(),
-      email: 'info@madrecafe.com',
-      phone: faker.phone.number(),
-      adminEmail: 'joseamica@gmail.com',
-    },
-  })
+  for (let i = 0; i < totalRest; i++) {
+    return prisma.restaurant.create({
+      data: {
+        name: faker.company.name(),
+        logo: faker.image.food(),
+        email: faker.internet.email(),
+        phone: faker.phone.number(),
+        adminEmail: faker.internet.email(),
+      },
+    })
+  }
 }
 
-export function createBranch(restaurantId: string) {
+export function createBranch(restaurantId: string, totalBranches: number) {
   console.log('🏢 Created the branch...')
-  return prisma.branch.create({
-    data: {
-      name: faker.company.name(),
-      image:
-        'https://firebasestorage.googleapis.com/v0/b/avoqado-d0a24.appspot.com/o/i-need-a-high-quality-principal-image-for-the-hero-section-of-my-landing-page-this-image-will-r-.png?alt=media&token=298dadb1-9034-4b6e-ac10-34ec0f78d98a',
-      email: faker.internet.email(),
-      phone: '8885551212',
-      wifiName: faker.random.alphaNumeric(8),
-      wifipwd: faker.random.alphaNumeric(8),
-      city: 'Cuernavaca',
-      address: 'Mexico-Acapulco KM. 87.5, Villas del Lago, 62370 Cuernavaca, Mor.',
-      extraAddress: 'Averanda',
-      rating: 4.8,
-      rating_quantity: 400,
-      cuisine: 'Mexicana',
-      open: 7,
-      close: 24,
-      restaurant: { connect: { id: restaurantId } },
-    },
-  })
+  for (let i = 0; i < totalBranches; i++) {
+    return prisma.branch.create({
+      data: {
+        name: faker.company.name(),
+        image:
+          'https://firebasestorage.googleapis.com/v0/b/avoqado-d0a24.appspot.com/o/i-need-a-high-quality-principal-image-for-the-hero-section-of-my-landing-page-this-image-will-r-.png?alt=media&token=298dadb1-9034-4b6e-ac10-34ec0f78d98a',
+        email: faker.internet.email(),
+        phone: faker.phone.number(),
+        wifiName: faker.random.alphaNumeric(8),
+        wifipwd: faker.random.alphaNumeric(8),
+        city: faker.address.city(),
+        address: faker.address.streetAddress(),
+        extraAddress: faker.address.streetName(),
+        rating: 4.8,
+        rating_quantity: 400,
+        cuisine: 'Mexicana',
+        open: 7,
+        close: 24,
+        restaurant: { connect: { id: restaurantId } },
+      },
+    })
+  }
 }
 
 export async function createTables(branchId: string, numberOfTables: number) {
@@ -74,15 +78,6 @@ export async function createTables(branchId: string, numberOfTables: number) {
         number: i,
         order_in_progress: false,
         branch: { connect: { id: branchId } },
-        // employees: {
-        //   create: {
-        //     name: 'Victor',
-        //     rol: 'waiter',
-        //     email: 'bnlabla@gmaillcom',
-        //     image:
-        //       'https://images.unsplash.com/photo-1544723795-3fb6469f5b39?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=778&q=80',
-        //   },
-        // },
       },
     })
     tableIds.push(table.id)
@@ -95,13 +90,12 @@ export function createMenu(branchId: string) {
   console.log('🍔 Created the menu...')
   return prisma.menu.create({
     data: {
-      name: 'DESAYUNO',
-      type: 'breakfast',
+      name: 'Breakfast',
+      type: 'first',
       branchId: branchId,
       image:
         'https://firebasestorage.googleapis.com/v0/b/avoqado-d0a24.appspot.com/o/i-need-a-high-quality-principal-image-for-the-hero-section-of-my-landing-page-this-image-will-r-.png?alt=media&token=298dadb1-9034-4b6e-ac10-34ec0f78d98a',
-      // allday: true,
-      currency: 'eur',
+      currency: 'mxn',
     },
   })
 }
