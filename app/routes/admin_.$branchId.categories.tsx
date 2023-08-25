@@ -28,7 +28,7 @@ const categoriesFormSchema = z.object({
   image: z.string().trim().url().optional(),
   pdf: checkboxSchema(),
   description: z.string().min(1).max(100).optional(),
-  selectItems: z.array(z.string()).nonempty('You must select at least one menu'),
+  selectItems: z.string().nonempty('You must select at least one category'),
 })
 export async function loader({ request, params }: LoaderArgs) {
   return json({ success: true })

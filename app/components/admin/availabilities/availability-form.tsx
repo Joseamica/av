@@ -22,7 +22,7 @@ export function AvailabilityForm({
   addingData?: any
 }) {
   const isEditing = intent === 'edit'
-  // console.log('availabilities', availabilities)
+
   return (
     <>
       <Field
@@ -59,10 +59,9 @@ export function AvailabilityForm({
       <div>
         {addingData?.data.map(keys => {
           return (
-            <label key={keys.id} className="flex space-x-2 items-center">
+            <label key={keys.id} className="flex items-center space-x-2">
               <input
-                type="checkbox"
-                {...conform.input(fields.selectItems, { type: 'checkbox' })}
+                {...conform.input(fields.selectItems, { type: 'radio' })}
                 name="selectItems"
                 value={keys.id}
                 defaultChecked={
