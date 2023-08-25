@@ -1,5 +1,8 @@
 import { conform, useForm } from '@conform-to/react'
+
 import { Link, Outlet, useFetcher, useParams, useRouteLoaderData, useSearchParams } from '@remix-run/react'
+
+
 
 import { type ActionArgs, json, redirect } from '@remix-run/node'
 
@@ -119,7 +122,11 @@ export default function Products() {
       <HeaderWithButton queryKey="addItem" queryValue="true" buttonLabel="Add" />
       <div className="flex flex-wrap gap-2 p-4">
         {branch.menuItems.map(product => (
+
           <Square itemId={product.id} name={product.name} to={product.id} key={product.id} />
+
+
+
         ))}
       </div>
       {/* ANCHOR ADD */}
