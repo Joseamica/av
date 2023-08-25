@@ -15,6 +15,7 @@ import { QueryDialog } from '~/components/admin/ui/dialogs/dialog'
 import { ErrorList } from '~/components/admin/ui/forms'
 import { Square } from '~/components/admin/ui/square'
 import { DeleteIcon, EditIcon } from '~/components/icons'
+import { ButtonLink } from '~/components/ui/buttons/button'
 
 const productSchema = z.object({
   id: z.string(),
@@ -117,6 +118,9 @@ export default function Products() {
   return (
     <main>
       <HeaderWithButton queryKey="addItem" queryValue="true" buttonLabel="Add" />
+      <ButtonLink variant="secondary" size="small" download="products" href={`/admin/${branchId}/export`}>
+        Download Your Data
+      </ButtonLink>
       <div className="flex flex-wrap gap-2 p-4">
         {branch.menuItems.map(product => (
           <Square itemId={product.id} name={product.name} to={product.id} key={product.id} />
