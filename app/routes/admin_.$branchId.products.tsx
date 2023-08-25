@@ -1,5 +1,5 @@
 import { conform, useForm } from '@conform-to/react'
-import { Link, Outlet, useFetcher, useRouteLoaderData, useSearchParams } from '@remix-run/react'
+import { Outlet, useFetcher, useRouteLoaderData, useSearchParams } from '@remix-run/react'
 
 import { type ActionArgs, json, redirect } from '@remix-run/node'
 
@@ -122,7 +122,7 @@ export default function Products() {
       <div className="flex flex-wrap gap-2 p-4">
         {branch.menuItems.map(product => (
           <FlexRow key={product.id}>
-            <div className="w-24 h-24 flex justify-center items-center bg-white break-all rounded-xl shadow text-sm p-1">
+            <div className="flex items-center justify-center w-24 h-24 p-1 text-sm break-all bg-white shadow rounded-xl">
               {product.name}
             </div>
             <div className="basic-flex-col">
