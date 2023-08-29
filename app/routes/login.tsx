@@ -8,7 +8,7 @@ import { getFieldsetConstraint, parse } from '@conform-to/zod'
 import bcrypt from 'bcryptjs'
 import { z } from 'zod'
 import { prisma } from '~/db.server'
-import { createUserSession, getSession } from '~/session.server'
+import { createEmployeeSession, createUserSession, getSession } from '~/session.server'
 
 import { safeRedirect } from '~/utils'
 import { emailSchema, passwordSchema } from '~/utils/user-validation'
@@ -23,13 +23,17 @@ export const loginFormSchema = z.object({
   password: passwordSchema,
   redirectTo: z.string().optional(),
   remember: checkboxSchema(),
+  isEmployee: checkboxSchema(),
 })
 
 export const loader = async ({ request }: LoaderArgs) => {
   const session = await getSession(request)
-  const userId = session.get('userId')
+  const tableId = session.get('tableId')
+  const employeeId = session.get('employeeId')
 
-  if (userId) return redirect('/t')
+  if (employeeId) return redirect('/dashboard')
+
+  if (tableId) return redirect(`/table/${tableId}`)
 
   return json({ status: 'idle' })
 }
@@ -41,29 +45,57 @@ export const action = async ({ request }: ActionArgs) => {
   const submission = await parse(formData, {
     schema: () => {
       return loginFormSchema.superRefine(async (data, ctx) => {
-        console.log('data', data)
-        const userWithPassword = await prisma.user.findUnique({
-          where: { email: data.email },
-          include: {
-            password: true,
-          },
-        })
-        if (!userWithPassword || !userWithPassword.password) {
-          ctx.addIssue({
-            path: ['email'],
-            code: z.ZodIssueCode.custom,
-            message: 'Invalid email',
+        if (!data.isEmployee) {
+          const userWithPassword = await prisma.user.findUnique({
+            where: { email: data.email },
+            include: {
+              password: true,
+            },
           })
-          return
-        }
-        const isValid = await bcrypt.compare(data.password, userWithPassword.password.hash)
-        if (!isValid) {
-          ctx.addIssue({
-            path: ['password'],
-            code: z.ZodIssueCode.custom,
-            message: 'Password incorrect',
+          if (!userWithPassword || !userWithPassword.password) {
+            ctx.addIssue({
+              path: ['email'],
+              code: z.ZodIssueCode.custom,
+              message: 'Invalid email',
+            })
+            return
+          }
+          const isValid = await bcrypt.compare(data.password, userWithPassword.password.hash)
+          if (!isValid) {
+            ctx.addIssue({
+              path: ['password'],
+              code: z.ZodIssueCode.custom,
+              message: 'Password incorrect',
+            })
+            return
+          }
+        } else if (data.isEmployee) {
+          const employeeWithPassword = await prisma.employee.findUnique({
+            where: { email: data.email },
+            include: {
+              password: true,
+            },
           })
-          return
+
+          if (!employeeWithPassword || !employeeWithPassword.password) {
+            ctx.addIssue({
+              path: ['email'],
+              code: z.ZodIssueCode.custom,
+              message: 'Invalid email',
+            })
+            return
+          }
+
+          const isValid = await bcrypt.compare(data.password, employeeWithPassword.password.hash)
+          console.log('isValid', isValid)
+          if (!isValid) {
+            ctx.addIssue({
+              path: ['password'],
+              code: z.ZodIssueCode.custom,
+              message: 'Password incorrect',
+            })
+            return
+          }
         }
       })
     },
@@ -82,6 +114,23 @@ export const action = async ({ request }: ActionArgs) => {
       { status: 400 },
     )
   }
+
+  if (submission.value.isEmployee) {
+    const employeeWithPassword = await prisma.employee.findUnique({
+      where: { email: submission.value.email },
+      include: {
+        password: true,
+      },
+    })
+
+    return createEmployeeSession({
+      redirectTo: '/dashboard',
+      remember: submission.value.remember,
+      request,
+      employeeId: employeeWithPassword.id,
+    })
+  }
+
   const userWithPassword = await prisma.user.findUnique({
     where: { email: submission.value.email },
     include: {
@@ -118,15 +167,15 @@ export default function LoginPage() {
   })
 
   return (
-    <div className="flex min-h-full flex-col justify-center pb-32 pt-20">
-      <div className="mx-auto w-full max-w-md">
+    <div className="flex flex-col justify-center min-h-full pt-20 pb-32">
+      <div className="w-full max-w-md mx-auto">
         <div className="flex flex-col gap-3 text-center">
           <h1 className="text-h1">Welcome back!</h1>
           <p className="text-body-md text-muted-foreground">Please enter your details.</p>
         </div>
         <Spacer size="xs" />
         <div>
-          <div className="mx-auto w-full max-w-md px-8">
+          <div className="w-full max-w-md px-8 mx-auto">
             <loginFetcher.Form method="POST" name="login" {...form.props}>
               <Field
                 labelProps={{ children: 'Email' }}
@@ -155,11 +204,18 @@ export default function LoginPage() {
                 />
 
                 <div>
-                  <Link to="/forgot-password" className="text-body-xs font-semibold">
+                  <Link to="/forgot-password" className="font-semibold text-body-xs">
                     Forgot password?
                   </Link>
                 </div>
               </div>
+              <CheckboxField
+                labelProps={{
+                  children: 'I am an employee',
+                }}
+                buttonProps={conform.input(fields?.isEmployee, { type: 'checkbox' })}
+                errors={fields?.isEmployee.errors}
+              />
 
               <input {...conform.input(fields?.redirectTo)} type="hidden" />
               <ErrorList errors={[...form.errors]} id={form.errorId} />

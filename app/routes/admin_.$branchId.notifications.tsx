@@ -16,7 +16,7 @@ import { QueryDialog } from '~/components/admin/ui/dialogs/dialog'
 import { ErrorList } from '~/components/admin/ui/forms'
 import { Square } from '~/components/admin/ui/square'
 
-export const handle = { active: 'Employees' }
+export const handle = { active: 'Notifications' }
 
 const employeesShema = z.object({
   id: z.string(),
@@ -80,17 +80,6 @@ export async function action({ request, params }: ActionArgs) {
 
   return namedAction(request, {
     async create() {
-      // for (const item of submission.value.selectItems) {
-      //   console.log('item', item)
-      //   await prisma.availabilities.create({
-      //     data: {
-      //       dayOfWeek: submission.value.dayOfWeek,
-      //       startTime: submission.value.startTime,
-      //       endTime: submission.value.endTime,
-      //       menuId: item,
-      //     },
-      //   })
-      // }
       await prisma.employee.create({
         data: {
           name: submission.value.name,
@@ -141,7 +130,7 @@ export async function action({ request, params }: ActionArgs) {
   })
 }
 
-export default function Employees() {
+export default function Notifications() {
   const data = useLoaderData()
   const { branch } = useRouteLoaderData('routes/admin_.$branchId') as any
   const { branchId } = useParams()
@@ -151,7 +140,7 @@ export default function Employees() {
   const [searchParams] = useSearchParams()
 
   const [form, fields] = useForm({
-    id: 'employees',
+    id: 'notifications',
     constraint: getFieldsetConstraint(employeesShema),
     lastSubmission: fetcher.data?.submission,
 

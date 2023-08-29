@@ -1,10 +1,12 @@
 import { conform } from '@conform-to/react'
 import { Label } from '@radix-ui/react-label'
+import { Link } from '@remix-run/react'
 
-import { Field } from '../ui/forms'
+import { ErrorList, Field } from '../ui/forms'
 
 import { Button } from '~/components/ui/buttons/button'
 import { Spacer } from '~/components/util/spacer'
+import { H5, H6 } from '~/components/util/typography'
 
 export function EmployeeForm({
   intent,
@@ -59,15 +61,19 @@ export function EmployeeForm({
         }}
         errors={fields.email.errors}
       />
-      <Field
-        labelProps={{ children: 'Password' }}
-        inputProps={{
-          ...conform.input(fields.password),
-          defaultValue: isEditing ? employees.find(employee => employee.id === editSubItemId)?.password : '',
-          type: 'password',
-        }}
-        errors={fields.password.errors}
-      />
+      {!isEditing && (
+        <Field
+          labelProps={{ children: 'Password' }}
+          inputProps={{
+            ...conform.input(fields.password),
+            type: 'password',
+          }}
+          errors={fields.password.errors}
+        />
+      )}
+      <H6 variant="secondary">
+        <Link to="https://www.twilio.com/docs/glossary/what-e164">Format: 5215512956265, Click here for more info.</Link>
+      </H6>
       <Field
         labelProps={{ children: 'Phone' }}
         inputProps={{
@@ -88,7 +94,7 @@ export function EmployeeForm({
       />
 
       {/* TODO add ability to add to multiple keyss */}
-      {/* <Label htmlFor="selectItems">Choose a order:</Label>
+      <Label htmlFor="selectItems">Choose a order:</Label>
       <div>
         {addingData?.data.map(keys => {
           return (
@@ -97,15 +103,18 @@ export function EmployeeForm({
                 type="checkbox"
                 {...conform.input(fields.selectItems, { type: 'checkbox' })}
                 name="selectItems"
+                id={keys.id}
                 value={keys.id}
-                defaultChecked={isEditing ? employees.find(employee => employee.id === editSubItemId)?.menuId === keys.id : false}
+                defaultChecked={
+                  isEditing ? employees.find(employee => employee.id === editSubItemId)?.tables?.find(table => table.id === keys.id) : ''
+                }
               />
               <H5>{keys[addingData.keys]}</H5>
             </label>
           )
         })}
         {fields.selectItems.errors && <ErrorList errors={fields.selectItems.errors} />}
-      </div> */}
+      </div>
       <Spacer size="md" />
       <Button size="medium" type="submit" variant="secondary">
         {isSubmitting ? (isEditing ? 'Editing employee...' : 'Adding employee...') : isEditing ? 'Edit employee' : 'Add employee'}

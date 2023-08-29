@@ -132,20 +132,20 @@ export function Modal({
                 aria-label={`Close ${ariaLabel || 'dialog'}`}
                 className={`${' dark:bg-night-bg_principal dark:text-night-text_principal absolute right-5 top-5 flex  h-10 w-10 items-center justify-center rounded-full bg-day-bg_principal shadow-md focus:border-0 focus:ring-0 dark:shadow-sm  dark:shadow-black '}`}
               >
-                <XIcon className="h-6 w-6" />
+                <XIcon className="w-6 h-6" />
               </button>
               <img
                 alt=""
                 src={imgHeader}
-                className="dark:bg-secondaryDark max-h-72 w-full rounded-t-lg bg-white object-cover"
+                className="object-cover w-full bg-white rounded-t-lg dark:bg-secondaryDark max-h-72"
                 loading="lazy"
               />
             </div>
           ) : (
-            <div className="dark:bg-night-bg_principal dark:text-night-text_principal sticky inset-x-0 top-0 z-10  flex w-full flex-row items-center justify-between border-b-2 bg-day-bg_principal p-4">
+            <div className="sticky inset-x-0 top-0 z-10 flex flex-row items-center justify-between w-full p-4 border-b-2 dark:bg-night-bg_principal dark:text-night-text_principal bg-day-bg_principal">
               {goBack ? <BackButton url={''} /> : <div />}
               {title}
-              <XIcon className="h-7 w-7 rounded-full p-1 shadow-lg dark:text-night-700" onClick={onClose} />
+              <XIcon className="p-1 rounded-full shadow-lg h-7 w-7 dark:text-night-700" onClick={onClose} />
             </div>
           )}
           {children}
@@ -234,12 +234,12 @@ export function SubModal({
                 aria-label={`Close ${ariaLabel || 'dialog'}`}
                 className={`${' dark:bg-night-bg_principal dark:text-night-text_principal absolute right-5 top-5 flex  h-10 w-10 items-center justify-center rounded-full bg-day-bg_principal shadow-md focus:border-0 focus:ring-0 dark:shadow-sm  dark:shadow-black '}`}
               >
-                <XIcon className="h-6 w-6" />
+                <XIcon className="w-6 h-6" />
               </button>
               <img
                 alt=""
                 src={imgHeader}
-                className="dark:bg-secondaryDark max-h-72 w-full rounded-t-lg bg-white object-cover"
+                className="object-cover w-full bg-white rounded-t-lg dark:bg-secondaryDark max-h-72"
                 loading="lazy"
               />
             </div>
@@ -253,7 +253,7 @@ export function SubModal({
                 <div />
               )}
               {title}
-              <XIcon className="h-7 w-7 rounded-full p-1 shadow-lg dark:text-night-700" onClick={onClose} />
+              <XIcon className="p-1 rounded-full shadow-lg h-7 w-7 dark:text-night-700" onClick={onClose} />
             </div>
           )}
           {children}

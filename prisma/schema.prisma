@@ -85,22 +85,23 @@ model Branch {
 }
 
 model Table {
-  id                String     @id @default(cuid())
+  id                String         @id @default(cuid())
   number            Int
   floorId           String?
   locationId        String?
   seats             Int?
-  order_in_progress Boolean    @default(false)
-  branch            Branch     @relation(fields: [branchId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  order_in_progress Boolean        @default(false)
+  branch            Branch         @relation(fields: [branchId], references: [id], onDelete: Cascade, onUpdate: Cascade)
   branchId          String
   order             Order?
   users             User[]
   employees         Employee[]
   feedbacks         Feedback[]
-  adminId           String?    @default("cllb3d9b90003cedclcthud41")
-  admin             Admin?     @relation(fields: [adminId], references: [id])
-  updatedAt         DateTime?  @updatedAt
-  createdAt         DateTime   @default(now())
+  adminId           String?        @default("cllb3d9b90003cedclcthud41")
+  admin             Admin?         @relation(fields: [adminId], references: [id])
+  updatedAt         DateTime?      @updatedAt
+  createdAt         DateTime       @default(now())
+  notifications     Notification[]
 }
 
 model Menu {
@@ -264,6 +265,8 @@ model User {
   id            String         @id @default(cuid())
   name          String?
   email         String?        @unique
+  image         String?
+  phone         String?
   password      Password?
   color         String?
   tip           Decimal?
@@ -381,12 +384,13 @@ enum PaymentMethod {
 model Notification {
   id        String             @id @default(cuid())
   method    NotificationMethod
-  recipient String?
-  sender    String?
+  type      String?
   status    StatusMethod
   message   String
   branchId  String?
   branch    Branch?            @relation(fields: [branchId], references: [id])
+  tableId   String?
+  table     Table?             @relation(fields: [tableId], references: [id])
   userId    String?
   user      User?              @relation(fields: [userId], references: [id])
   employees Employee[]
@@ -399,6 +403,7 @@ enum StatusMethod {
   accepted
   rejected
   received
+  completed
 }
 
 enum NotificationMethod {

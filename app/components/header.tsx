@@ -1,6 +1,7 @@
 import { Link, useLocation, useMatches } from '@remix-run/react'
 
 import type { User } from '@prisma/client'
+import clsx from 'clsx'
 
 import { ChevronLeftIcon, SearchIcon, UserCircleIcon } from './icons'
 import { BackButton } from './ui/buttons/back-button'
@@ -77,6 +78,7 @@ export function HeaderV2({ user }: { user: User }) {
   const matches = useMatches()
   const backButton = matches.find(match => match.handle)?.handle.backButton
   const searchButton = matches.find(match => match.handle)?.handle.searchButton
+  const path = matches.find(match => match.handle)?.handle.path
 
   const userProfile = getUrl('userProfile', pathname, { userId: user.id })
   const mainPath = getUrl('main', pathname)
@@ -112,9 +114,14 @@ export function HeaderV2({ user }: { user: User }) {
 
   return (
     <nav
-      className={`fixed inset-x-0 top-0 z-30 mx-auto items-center 
+      className={clsx(
+        `fixed inset-x-0 top-0 z-30 mx-auto items-center 
        flex w-full max-w-md flex-row justify-between rounded-b-2xl bg-day-bg_principal
-       p-3 drop-shadow-md sm:rounded-none`}
+       p-3 drop-shadow-md sm:rounded-none`,
+        {
+          hidden: path === 'menu',
+        },
+      )}
     >
       {headerPositions.left}
       {headerPositions.center}

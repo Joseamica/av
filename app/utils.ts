@@ -82,7 +82,7 @@ export function getTotal(order: Order) {
 export function formatCurrency(currency: string, amount: number | Decimal) {
   switch (currency) {
     case '$':
-      return `$ ${Number(amount).toFixed(1)}`
+      return `$${Number(amount).toFixed(1)}`
     case '€':
       return `${Number(amount).toFixed(1)} €`
     default:
@@ -287,4 +287,9 @@ export const dayOfWeek = number => {
 }
 export function capitalizeFirstLetter(str: string) {
   return str.charAt(0).toUpperCase() + str.slice(1).toLowerCase()
+}
+
+export const isValidE164Number = phoneNumber => {
+  const e164Regex = /^\+[1-9]\d{1,14}$/
+  return e164Regex.test(phoneNumber)
 }

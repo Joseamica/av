@@ -8,13 +8,12 @@ import { namedAction } from 'remix-utils'
 import { z } from 'zod'
 import { prisma } from '~/db.server'
 
-import { Button, DeleteIcon, FlexRow, H6 } from '~/components'
+import { Button, H6 } from '~/components'
 import { HeaderWithButton } from '~/components/admin/headers'
 import { PaymentForm } from '~/components/admin/payments/payment-form'
 import { QueryDialog } from '~/components/admin/ui/dialogs/dialog'
 import { ErrorList } from '~/components/admin/ui/forms'
 import { Square } from '~/components/admin/ui/square'
-import { EditIcon } from '~/components/icons'
 
 export const handle = { active: 'Payments' }
 

@@ -9,6 +9,9 @@ import { namedAction } from 'remix-utils'
 import { z } from 'zod'
 import { prisma } from '~/db.server'
 
+import { getSearchParams } from '~/utils'
+import { passwordSchema } from '~/utils/user-validation'
+
 import { Button, H5 } from '~/components'
 import { EmployeeForm } from '~/components/admin/employees/employee-form'
 import { HeaderWithButton } from '~/components/admin/headers'
@@ -22,10 +25,11 @@ const employeesShema = z.object({
   id: z.string(),
   name: z.string().nonempty('Name is required'),
   email: z.string().email('Invalid email'),
-  password: z.string().nonempty('Password is required'),
+  password: passwordSchema.optional(),
   image: z.string().url(),
   phone: z.string().nonempty('Phone is required'),
   role: z.enum(['manager', 'waiter']),
+  selectItems: z.array(z.string()).nonempty('You must select at least one table'),
 })
 
 export async function loader({ request, params }: LoaderArgs) {
@@ -36,6 +40,10 @@ export async function loader({ request, params }: LoaderArgs) {
     },
     include: {
       password: true,
+      tables: true,
+    },
+    orderBy: {
+      role: 'asc',
     },
   })
 
@@ -44,27 +52,29 @@ export async function loader({ request, params }: LoaderArgs) {
 
 export async function action({ request, params }: ActionArgs) {
   const formData = await request.formData()
-
+  const searchParams = getSearchParams({ request })
   const submission = await parse(formData, {
     schema: () => {
       return employeesShema.superRefine(async (data, ctx) => {
-        const existingEmployee = await prisma.employee.findUnique({
-          where: { email: data.email },
-          select: { id: true },
-        })
-        if (existingEmployee) {
-          ctx.addIssue({
-            path: ['email'],
-            code: z.ZodIssueCode.custom,
-            message: 'A employee already exists with this email',
+        if (!searchParams.has('/update')) {
+          const existingEmployee = await prisma.employee.findUnique({
+            where: { email: data.email },
+            select: { id: true },
           })
-          return
+          if (existingEmployee) {
+            ctx.addIssue({
+              path: ['email'],
+              code: z.ZodIssueCode.custom,
+              message: 'A employee already exists with this email',
+            })
+            return
+          }
         }
       })
     },
-    // acceptMultipleErrors: () => true,
     async: true,
   })
+  console.log('submission', submission)
 
   if (submission.intent !== 'submit') {
     return json({ status: 'idle', submission } as const)
@@ -79,21 +89,10 @@ export async function action({ request, params }: ActionArgs) {
     )
   }
 
-  const hashedPassword = await bcrypt.hash(submission.value.password, 10)
-
   return namedAction(request, {
     async create() {
-      // for (const item of submission.value.selectItems) {
-      //   console.log('item', item)
-      //   await prisma.availabilities.create({
-      //     data: {
-      //       dayOfWeek: submission.value.dayOfWeek,
-      //       startTime: submission.value.startTime,
-      //       endTime: submission.value.endTime,
-      //       menuId: item,
-      //     },
-      //   })
-      // }
+      const hashedPassword = await bcrypt.hash(submission.value?.password, 10)
+
       await prisma.employee.create({
         data: {
           name: submission.value.name,
@@ -101,16 +100,14 @@ export async function action({ request, params }: ActionArgs) {
           email: submission.value.email,
 
           password: {
-            connectOrCreate: {
-              where: {
-                employeeId: submission.value.id,
-              },
-              create: {
-                hash: hashedPassword,
-              },
+            create: {
+              hash: hashedPassword,
             },
           },
-          phone: submission.value.phone,
+          tables: {
+            connect: submission.value.selectItems.map(id => ({ id })),
+          },
+          phone: submission.value.phone.trim().replace(/[^\d]/g, ''),
           image: submission.value.image,
           branchId: params.branchId,
         },
@@ -124,17 +121,10 @@ export async function action({ request, params }: ActionArgs) {
           name: submission.value.name,
           role: submission.value.role,
           email: submission.value.email,
-          password: {
-            connectOrCreate: {
-              where: {
-                employeeId: submission.value.id,
-              },
-              create: {
-                hash: hashedPassword,
-              },
-            },
+          tables: {
+            connect: submission.value.selectItems.map(id => ({ id })),
           },
-          phone: submission.value.phone,
+          phone: submission.value.phone.trim().replace(/[^\d]/g, ''),
           image: submission.value.image,
           branchId: params.branchId,
         },
@@ -178,6 +168,7 @@ export default function Employees() {
             name={
               <>
                 <H5 boldVariant="bold">{employee.name}</H5>
+                <H5>{employee.role}</H5>
               </>
             }
             to={employee.id}
@@ -193,7 +184,7 @@ export default function Employees() {
             editSubItemId={addItem}
             isSubmitting={isSubmitting}
             fields={fields}
-            addingData={{ data: branch.menus, keys: ['name'] }}
+            addingData={{ data: branch.tables, keys: ['number'] }}
           />
           <input type="hidden" value={addItem ? addItem : ''} {...conform.input(fields.id)} />
         </fetcher.Form>
@@ -206,7 +197,7 @@ export default function Employees() {
             editSubItemId={editItem}
             isSubmitting={isSubmitting}
             fields={fields}
-            addingData={{ data: branch.orders, keys: ['id'] }}
+            addingData={{ data: branch.tables, keys: ['number'] }}
           />
           <input type="hidden" value={editItem ? editItem : ''} {...conform.input(fields.id)} />
         </fetcher.Form>

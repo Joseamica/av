@@ -113,6 +113,32 @@ export async function createUserSession({
   const session = await getSession(request)
   session.set(USER_SESSION_KEY, userId)
   session.set('username', username)
+  session.unset('employeeId')
+  return redirect(redirectTo, {
+    headers: {
+      'Set-Cookie': await sessionStorage.commitSession(session, {
+        maxAge: remember
+          ? 60 * 60 * 24 * 7 // 7 days
+          : undefined,
+      }),
+    },
+  })
+}
+
+export async function createEmployeeSession({
+  request,
+  employeeId,
+  remember,
+  redirectTo,
+}: {
+  request: Request
+  employeeId: string
+  remember: boolean
+  redirectTo: string
+}) {
+  const session = await getSession(request)
+  session.set('employeeId', employeeId)
+  session.unset(USER_SESSION_KEY)
   return redirect(redirectTo, {
     headers: {
       'Set-Cookie': await sessionStorage.commitSession(session, {
@@ -126,12 +152,14 @@ export async function createUserSession({
 
 export async function logout(request: Request, path = '/') {
   const session = await getSession(request)
+
   session.unset(USER_SESSION_KEY)
   session.unset('username')
   session.unset('user_color')
   session.unset('cart')
   session.unset('tableId')
-  return redirect(path, {
+  session.unset('employeeId')
+  return redirect(`/login`, {
     headers: {
       // 'Set-Cookie': await sessionStorage.commitSession(session),
       'Set-Cookie': await sessionStorage.destroySession(session),

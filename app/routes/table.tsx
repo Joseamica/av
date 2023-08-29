@@ -30,7 +30,11 @@ export const loader = async ({ request }: LoaderArgs) => {
   // }
   // invariant(sessionId, 'Session ID is required Error in table.tsx line 47')
   const userId = await getUserId(session)
+  const employeeId = session.get('employeeId')
 
+  if (employeeId) {
+    return redirect('/dashboard')
+  }
   let user = null
   //NOTE - This is to validate if the user is scanning from QR
   const url = new URL(request.url)
@@ -98,6 +102,7 @@ export const action = async ({ request, params }: ActionArgs) => {
         color: color ? color : '#000000',
         tableId: tableId ? tableId : null,
         orderId: isOrderActive ? isOrderActive.id : null,
+        role: 'user',
         sessions: {
           create: {
             expirationDate: new Date(Date.now() + SESSION_EXPIRATION_TIME),
@@ -114,6 +119,7 @@ export const action = async ({ request, params }: ActionArgs) => {
       session.set('username', name)
       session.set('user_color', color)
       session.set('userId', createdUser.id)
+      session.unset('employeeId')
     }
 
     // Set expiry time 4 hours from now

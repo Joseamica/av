@@ -7,7 +7,8 @@ import type { Employee } from '@prisma/client'
 import invariant from 'tiny-invariant'
 import { prisma } from '~/db.server'
 import { validateRedirect } from '~/redirect.server'
-import { SendWhatsApp } from '~/twilio.server'
+import { getSession } from '~/session.server'
+import { sendWaNotification } from '~/twilio.server'
 
 import { getTable } from '~/models/table.server'
 
@@ -16,14 +17,36 @@ import { Button, FlexRow, ItemContainer, Modal } from '~/components'
 export async function action({ request, params }: ActionArgs) {
   const { tableId } = params
   invariant(tableId, 'tableId is required')
+  const session = await getSession(request)
+  const userId = session.get('userId')
+
   const formData = await request.formData()
-  const phones = formData.getAll('waiters') as string[]
+
+  const phones = formData.getAll('phones') as [string]
+  const ids = formData.getAll('ids') as [string]
+  const names = formData.getAll('names') as [string]
+
   const redirectTo = validateRedirect(request.redirect, `..`)
 
   const table = await getTable(tableId)
-  console.log('llaman al mesero')
-  SendWhatsApp('14155238886', phones, `Te llaman de la mesa ${table?.number}`)
+  console.log(`Llaman al mesero ${names} ${table?.number}`)
 
+  sendWaNotification({ to: phones, body: `Llamada de la mesa ${table?.number}` })
+
+  await prisma.notification.create({
+    data: {
+      message: `Llamada de la mesa ${table?.number}`,
+      type: 'call',
+      method: 'push',
+      status: 'pending',
+      branchId: table?.branchId,
+      employees: {
+        connect: ids.map(id => ({ id })),
+      },
+      tableId,
+      userId,
+    },
+  })
   return redirect(redirectTo)
 }
 
@@ -59,7 +82,9 @@ export default function Help() {
                 {waiter.role ? 'Mesero' : ''}
               </span>
             </FlexRow>
-            <input type="checkbox" className="w-5 h-5" name="waiters" id={waiter.id} value={waiter.phone} />
+            <input type="checkbox" name="phones" id={waiter.id} value={waiter.phone} />
+            <input type="hidden" name="ids" id={waiter.id} value={waiter.id} />
+            <input type="hidden" name="names" id={waiter.name} value={waiter.name} />{' '}
           </ItemContainer>
         ))}
         {data.waiters?.length === 0 && <p className="text-center">Esta mesa no tiene meseros asignados</p>}

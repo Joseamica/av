@@ -3,7 +3,7 @@ import { type LoaderArgs, redirect } from '@remix-run/node'
 import { type PaymentMethod } from '@prisma/client'
 import { prisma } from '~/db.server'
 import { getSession, getUserId, sessionStorage } from '~/session.server'
-import { SendWhatsApp } from '~/twilio.server'
+import { sendWaNotification } from '~/twilio.server'
 
 import { getBranchId } from '~/models/branch.server'
 import { assignExpirationAndValuesToOrder, getOrder } from '~/models/order.server'
@@ -90,11 +90,10 @@ export const loader = async ({ params, request }: LoaderArgs) => {
 
   EVENTS.ISSUE_CHANGED(tableId)
   await assignExpirationAndValuesToOrder(amountLeft, tip, amount, order)
-  SendWhatsApp(
-    '14155238886',
-    `5215512956265`,
-    `El usuario ${username} de la mesa ${table.number} quiere pagar en efectivo propina: ${tip} dando un total ${amount + tip}`,
-  )
+  sendWaNotification({
+    to: ['573016295610'],
+    body: `El usuario ${username} de la mesa ${table.number} quiere pagar en efectivo propina: ${tip} dando un total ${amount + tip}`,
+  })
 
   return redirect(`/table/${tableId}`, {
     headers: { 'Set-Cookie': await sessionStorage.commitSession(session) },

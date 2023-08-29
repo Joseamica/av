@@ -7,7 +7,7 @@ import invariant from 'tiny-invariant'
 import { prisma } from '~/db.server'
 import { validateRedirect } from '~/redirect.server'
 import { getSession } from '~/session.server'
-import { SendWhatsApp } from '~/twilio.server'
+import { sendWaNotification } from '~/twilio.server'
 
 import { getTable } from '~/models/table.server'
 
@@ -19,23 +19,29 @@ export async function action({ request, params }: ActionArgs) {
   const session = await getSession(request)
   const userId = session.get('userId')
   const formData = await request.formData()
-  const phones = formData.getAll('managers') as [string]
+
   const ids = formData.getAll('ids') as [string]
+  const names = formData.getAll('names') as [string]
+  const phones = formData.getAll('phones') as [string]
 
   const redirectTo = validateRedirect(request.redirect, `..`)
 
   const table = await getTable(tableId)
 
-  // SendWhatsApp('14155238886', phones, `Llamada de la mesa ${table?.number} test`)
+  console.log(`Llaman al gerente ${names} ${table?.number}`)
+
+  sendWaNotification({ to: phones, body: `Llamada de la mesa ${table?.number}` })
   await prisma.notification.create({
     data: {
       message: `Llamada de la mesa ${table?.number}`,
+      type: 'call',
       method: 'push',
       status: 'pending',
       branchId: table?.branchId,
       employees: {
         connect: ids.map(id => ({ id })),
       },
+      tableId,
       userId,
     },
   })
@@ -74,8 +80,9 @@ export default function Help() {
                 {manager.role ? 'Gerente' : ''}
               </span>
             </FlexRow>
-            <input type="checkbox" name="managers" id={manager.id} value={manager.phone} />
             <input type="hidden" name="ids" id={manager.id} value={manager.id} />
+            <input type="hidden" name="names" id={manager.name} value={manager.name} />
+            <input type="checkbox" name="phones" id={manager.id} value={manager.phone} />
           </ItemContainer>
         ))}
         {data.managers?.length === 0 && <p className="text-center">Esta mesa no tiene gerentes asignados</p>}

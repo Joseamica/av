@@ -13,7 +13,7 @@ import { createFeedBack } from '~/models/feedback.server'
 
 import { getUrl } from '~/utils'
 
-import { Button, H3, H4, H5, Modal, SendComments, Spacer } from '~/components'
+import { Button, H4, Modal, Spacer } from '~/components'
 import { ReportFood } from '~/components/help/report-food'
 import { ReportIntroButtons } from '~/components/help/report-intro-buttons'
 import { ReportOther } from '~/components/help/report-other'
