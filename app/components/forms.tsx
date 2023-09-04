@@ -76,7 +76,7 @@ export function TextareaField({
     <div className={className}>
       <Label htmlFor={id} {...labelProps} />
       <Textarea id={id} aria-invalid={errorId ? true : undefined} aria-describedby={errorId} {...textareaProps} />
-      <div className="px-4 pb-3 pt-1">{errorId ? <ErrorList id={errorId} errors={errors} /> : null}</div>
+      <div className="px-4 pt-1 pb-3">{errorId ? <ErrorList id={errorId} errors={errors} /> : null}</div>
     </div>
   )
 }
@@ -128,9 +128,9 @@ export function CheckboxField({
           }}
           type="button"
         />
-        <label htmlFor={id} {...labelProps} className="self-center text-xs text-zinc-400" />
+        <label htmlFor={id} {...labelProps} className="self-center text-xs text-zinc-600" />
       </div>
-      <div className="px-4 pb-3 pt-1">{errorId ? <ErrorList id={errorId} errors={errors} /> : null}</div>
+      <div className="px-4 pt-1">{errorId ? <ErrorList id={errorId} errors={errors} /> : null}</div>
     </div>
   )
 }

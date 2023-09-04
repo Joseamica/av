@@ -166,6 +166,7 @@ model MenuItem {
   name           String
   description    String
   price          Decimal
+  productType    Int? //Products 1, Modifiers 2, Modifier Groups 3, and Bundles 4
   available      Boolean
   menuCategoryId String?
   menuCategory   MenuCategory?   @relation(fields: [menuCategoryId], references: [id], onDelete: Cascade, onUpdate: Cascade)
@@ -226,39 +227,38 @@ model CartItem {
 }
 
 model Modifiers {
-  id                      String         @id @default(cuid())
-  name                    String?
-  mandatorySelected       Boolean?
-  onlyOne                 Boolean?
-  multiSelect             Boolean?
-  mandatoryOneMultiSelect Boolean?
-  extraPrice              Decimal?
-  modifierGroups          ModifierGroup? @relation(fields: [modifierGroupId], references: [id])
-  modifierGroupId         String?
-  cartItems               CartItem[]
-  cartItemId              String?
-  adminId                 String?        @default("cllb3d9b90003cedclcthud41")
-  admin                   Admin?         @relation(fields: [adminId], references: [id])
+  id              String         @id @default(cuid())
+  name            String?
+  plu             String?        @unique
+  max             Int?           @default(0)
+  min             Int?           @default(0)
+  multiply        Int?           @default(0)
+  extraPrice      Decimal?
+  modifierGroups  ModifierGroup? @relation(fields: [modifierGroupId], references: [id])
+  modifierGroupId String?
+  cartItems       CartItem[]
+  cartItemId      String?
+  adminId         String?        @default("cllb3d9b90003cedclcthud41")
+  admin           Admin?         @relation(fields: [adminId], references: [id])
 }
 
 model ModifierGroup {
-  id                  String      @id @default(cuid())
-  type                String      @default("radio")
-  name                String?
-  plu                 String?
-  max                 Int?
-  min                 Int?
-  multiMax            Int?
-  multiply            Int?
-  nameTranslations    Json?
-  minSelectionAllowed Int?
-  maxSelectionAllowed Int?
-  isMandatory         Boolean?
-  modifiers           Modifiers[]
-  menuItems           MenuItem[]
-  cartItemId          String?
-  adminId             String?     @default("cllb3d9b90003cedclcthud41")
-  admin               Admin?      @relation(fields: [adminId], references: [id])
+  id         String      @id @default(cuid())
+  // type             String      @default("radio")
+  name       String?
+  plu        String?     @unique
+  max        Int?        @default(0)
+  min        Int?        @default(0)
+  multiMax   Int?        @default(0)
+  multiply   Int?        @default(0)
+  // nameTranslations Json?
+  modifiers  Modifiers[]
+  menuItems  MenuItem[]
+  cartItemId String?
+  adminId    String?     @default("cllb3d9b90003cedclcthud41")
+  admin      Admin?      @relation(fields: [adminId], references: [id])
+  updatedAt  DateTime?   @updatedAt
+  createdAt  DateTime    @default(now())
 }
 
 model User {

@@ -126,7 +126,7 @@ export function Modal({
           onClick={event => event.stopPropagation()}
         >
           {imgHeader ? (
-            <div className="">
+            <div className="sticky top-0 ">
               <button
                 onClick={onClose}
                 aria-label={`Close ${ariaLabel || 'dialog'}`}
@@ -137,7 +137,7 @@ export function Modal({
               <img
                 alt=""
                 src={imgHeader}
-                className="object-cover w-full bg-white rounded-t-lg dark:bg-secondaryDark max-h-72"
+                className="object-cover w-full bg-white rounded-t-lg dark:bg-secondaryDark max-h-52"
                 loading="lazy"
               />
             </div>

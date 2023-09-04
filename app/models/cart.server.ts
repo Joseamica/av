@@ -31,6 +31,7 @@ export function removeCartItem(cart: CartItem[], variantId: string) {
 }
 
 export function createCartItems(cartItems: any, shareDish: any, userId: string, orderId: string) {
+  console.log('cartItems', cartItems)
   return Promise.all(
     cartItems.map(item =>
       prisma.cartItem.create({

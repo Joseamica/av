@@ -1,46 +1,23 @@
-import { Link, Outlet, useActionData, useFetcher, useLoaderData, useNavigate, useParams, useSearchParams } from '@remix-run/react'
-import React, { useEffect, useRef, useState } from 'react'
-import { FaFilePdf } from 'react-icons/fa'
+import { Link, Outlet, useFetcher, useLoaderData, useNavigate, useParams } from '@remix-run/react'
+import { useEffect, useRef, useState } from 'react'
 
-import { json, redirect } from '@remix-run/node'
-import type { ActionArgs, LoaderArgs } from '@remix-run/server-runtime'
+import { json } from '@remix-run/node'
+import type { LoaderArgs } from '@remix-run/server-runtime'
 
-import type { CartItem, MenuItem, ModifierGroup, Modifiers, User } from '@prisma/client'
+import type { CartItem, MenuItem, ModifierGroup, Modifiers } from '@prisma/client'
 import clsx from 'clsx'
 import { motion } from 'framer-motion'
 import invariant from 'tiny-invariant'
 import { prisma } from '~/db.server'
-import { validateRedirect } from '~/redirect.server'
-import { addToCart, getSession, sessionStorage } from '~/session.server'
+import { getSession } from '~/session.server'
 
-import { getBranch, getBranchId } from '~/models/branch.server'
+import { getBranch } from '~/models/branch.server'
 import { getCartItems } from '~/models/cart.server'
 import { getMenu } from '~/models/menu.server'
 
 import { formatCurrency, getCurrency } from '~/utils'
 
-import {
-  Button,
-  CategoriesBar,
-  CheckIcon,
-  FlexRow,
-  H2,
-  H3,
-  H4,
-  H5,
-  H6,
-  LinkButton,
-  MenuInfo,
-  Modal,
-  QuantityButton,
-  SectionContainer,
-  SendComments,
-  ShoppingCartIcon,
-  Spacer,
-  SwitchButton,
-} from '~/components'
-import { SubModal } from '~/components/modal'
-import { ModalFullScreen } from '~/components/modals'
+import { H4, H5, H6, LinkButton, Modal, Spacer } from '~/components'
 
 type MenuCategory = {
   id: string
@@ -112,46 +89,17 @@ export async function loader({ request, params }: LoaderArgs) {
   })
 }
 
-export async function action({ request, params }: ActionArgs) {
-  const { tableId } = params
-  invariant(tableId, 'No se encontró la mesa')
-
-  const branchId = await getBranchId(tableId)
-  invariant(branchId, 'No se encontró la sucursal')
-
-  const formData = await request.formData()
-  const _action = formData.get('_action') === 'proceed'
-  const submittedItemId = formData.get('submittedItemId') as string
-  const modifiers = formData.getAll('modifier') as string[]
-
-  const redirectTo = validateRedirect(request.redirect, ``)
-  const shareDish = formData.getAll('shareDish')
-  const quantity = Number(formData.get('quantity') as string)
-
-  const session = await getSession(request)
-  let cart = JSON.parse(session.get('cart') || '[]')
-
-  if (_action && submittedItemId) {
-    addToCart(cart, submittedItemId, quantity, modifiers)
-    session.set('cart', JSON.stringify(cart))
-    session.set('shareUserIds', JSON.stringify(shareDish))
-    return redirect(redirectTo, {
-      headers: { 'Set-Cookie': await sessionStorage.commitSession(session) },
-    })
-  }
-
-  return json({ modifiers })
-}
-
-export default function Menu() {
+export default function MenuId() {
   const data = useLoaderData()
   const [activeCategoryId, setActiveCategoryId] = useState<string | null>(null)
   const dishCategoryRefs = useRef<{ [key: string]: HTMLElement | null }>({})
   const categoryRefs = useRef<{ [key: string]: any }>({})
   const categoryBarRef = useRef(null)
 
+  const fetcher = useFetcher()
   const navigate = useNavigate()
   const params = useParams()
+  let isSubmitting = fetcher.state === 'submitting' || fetcher.state === 'loading'
 
   useEffect(() => {
     let intersectingIds = []
@@ -204,81 +152,99 @@ export default function Menu() {
     }
   }, [activeCategoryId])
 
+  const cartItemsAdded = data.cartItems
+    ?.map((items: CartItem) => {
+      return items.quantity
+    })
+    .reduce((acc: number, item: number) => {
+      return acc + item
+    }, 0)
+
   return (
-    <Modal title={`${data.branch.name} Menu`} onClose={() => navigate(`/table/${params.tableId}`)}>
-      {/* <MenuInfo menu={data.menu} branch={data.branch} /> */}
-
-      <motion.div
-        id="categoryBar" // <-- Add this line
-        ref={categoryBarRef}
-        className={clsx(
-          'no-scrollbar dark:bg-night-bg_principal sticky top-[62px] flex items-center space-x-4 overflow-x-scroll whitespace-nowrap rounded-xl bg-day-bg_principal px-5 py-6 shadow-lg',
-        )}
-      >
-        {data.categories.map((category: MenuCategory) => (
-          <Link
-            ref={el => (categoryRefs.current[category.id] = el)}
-            to={`#${category.id}`}
-            key={category.id}
-            className={clsx({
-              'underline text-lg font-medium text-day-principal underline-offset-4 decoration-day-principal':
-                category.id === activeCategoryId,
-            })}
-          >
-            {category.name}
-          </Link>
-        ))}
-      </motion.div>
-      <Spacer spaceY="2" />
-      <div className="p-2 space-y-2">
-        {data.categories.map((categories: MenuCategory) => {
-          const dishes = categories.menuItems
-
-          return (
-            <div
-              key={categories.id}
-              className="p-3 bg-white rounded-lg scroll-mt-32"
-              id={categories.id}
-              ref={el => (dishCategoryRefs.current[categories.id] = el)}
+    <>
+      <Modal title={`${data.branch.name} Menu`} onClose={() => navigate(`/table/${params.tableId}`)}>
+        <motion.div
+          id="categoryBar"
+          ref={categoryBarRef}
+          className={clsx(
+            'no-scrollbar dark:bg-night-bg_principal sticky top-[62px] flex items-center space-x-4 overflow-x-scroll whitespace-nowrap rounded-xl bg-day-bg_principal px-5 py-6 shadow-lg overflow-y-hidden',
+          )}
+        >
+          {data.categories.map((category: MenuCategory) => (
+            <Link
+              ref={el => (categoryRefs.current[category.id] = el)}
+              to={`#${category.id}`}
+              key={category.id}
+              className={clsx('text-xs', {
+                'underline text-small font-medium text-day-principal underline-offset-4 decoration-day-principal':
+                  category.id === activeCategoryId,
+              })}
             >
-              <h3>{categories.name}</h3>
-              <Spacer spaceY="1" />
-              <div className="flex flex-col divide-y">
-                {dishes.map((dish: MenuItem) => {
-                  return (
-                    <Link
-                      key={dish.id}
-                      preventScrollReset
-                      to={`?dishId=${dish.id}`}
-                      className="flex flex-row items-center justify-between py-2 space-x-2"
-                    >
-                      <div className="flex flex-col ">
-                        <H4 boldVariant="semibold">{dish.name}</H4>
-                        <H6 variant="secondary">{dish.description}</H6>
-                        <Spacer spaceY="1" />
-                        <H5 variant="price" className="tracking-tighter">
-                          {formatCurrency(data.currency, dish.price)}
-                        </H5>
-                      </div>
+              <span className={clsx({ 'text-sm font-semibold': category.id === activeCategoryId })}>{category.name}</span>
+            </Link>
+          ))}
+        </motion.div>
+        <div className="p-2 space-y-2">
+          {data.categories.map((categories: MenuCategory) => {
+            const dishes = categories.menuItems
 
-                      <motion.img
-                        whileHover={{ scale: 1 }}
-                        whileTap={{ scale: 0.8 }}
-                        src={dish.image ? dish.image : data.branch.image}
-                        // onError={() => console.log('image error')}
-                        className="object-cover w-24 bg-white rounded-lg dark:bg-secondaryDark h-28 max-h-24 shrink-0"
-                        loading="lazy"
-                        width="112"
-                        height="112"
-                      />
-                    </Link>
-                  )
-                })}
+            return (
+              <div
+                key={categories.id}
+                className="p-3 bg-white rounded-lg scroll-mt-32"
+                id={categories.id}
+                ref={el => (dishCategoryRefs.current[categories.id] = el)}
+              >
+                <h3>{categories.name}</h3>
+                <Spacer spaceY="1" />
+                <div className="flex flex-col divide-y">
+                  {dishes.map((dish: MenuItem) => {
+                    return (
+                      <Link
+                        key={dish.id}
+                        preventScrollReset
+                        // to={`?dishId=${dish.id}`}
+                        to={dish.id}
+                        className="flex flex-row items-center justify-between py-2 space-x-2"
+                      >
+                        <div className="flex flex-col ">
+                          <H4 boldVariant="semibold">{dish.name}</H4>
+                          <H6 variant="secondary">{dish.description}</H6>
+                          <Spacer spaceY="1" />
+                          <H5 variant="price" className="tracking-tighter">
+                            {formatCurrency(data.currency, dish.price)}
+                          </H5>
+                        </div>
+
+                        <motion.img
+                          whileHover={{ scale: 1 }}
+                          whileTap={{ scale: 0.8 }}
+                          src={dish.image ? dish.image : data.branch.image}
+                          // onError={() => console.log('image error')}
+                          className="object-cover w-24 bg-white rounded-lg dark:bg-secondaryDark h-28 max-h-24 shrink-0"
+                          loading="lazy"
+                          width="112"
+                          height="112"
+                        />
+                      </Link>
+                    )
+                  })}
+                </div>
               </div>
-            </div>
-          )
-        })}
-      </div>
-    </Modal>
+            )
+          })}
+          {data.cartItems?.length > 0 ? (
+            <LinkButton
+              to={`/table/${params.tableId}/menu/${params.menuId}/cart`}
+              disabled={isSubmitting}
+              className="sticky inset-x-0 w-full mb-2 bottom-4"
+            >
+              {isSubmitting ? `Agregando platillos... (${cartItemsAdded})` : `Ir al carrito (${cartItemsAdded})`}
+            </LinkButton>
+          ) : null}
+        </div>
+      </Modal>
+      <Outlet />
+    </>
   )
 }
