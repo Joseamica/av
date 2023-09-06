@@ -29,22 +29,22 @@ export async function createUsers(totalUsers) {
 const AVOQADO_LOGO =
   'https://firebasestorage.googleapis.com/v0/b/avoqado-d0a24.appspot.com/o/kuikku%2FKUIKKU%20(2)%20(1)%20copy.png?alt=media&token=158e8d1b-d24b-406b-85e7-a507b29d84fc'
 
-export function createRestaurant(totalRest) {
-  console.log('🏢 Created the restaurant...')
+export function createChain(totalRest) {
+  console.log('🏢 Created the chain...')
   for (let i = 0; i < totalRest; i++) {
-    return prisma.restaurant.create({
+    return prisma.chain.create({
       data: {
         name: faker.company.name(),
-        logo: faker.image.food(),
-        email: faker.internet.email(),
-        phone: faker.phone.number(),
-        adminEmail: faker.internet.email(),
+        // logo: faker.image.food(),
+        // email: faker.internet.email(),
+        // phone: faker.phone.number(),
+        // adminEmail: faker.internet.email(),
       },
     })
   }
 }
 
-export function createBranch(restaurantId: string, totalBranches: number) {
+export function createBranch(chainId: string, totalBranches: number) {
   console.log('🏢 Created the branch...')
   for (let i = 0; i < totalBranches; i++) {
     return prisma.branch.create({
@@ -64,7 +64,7 @@ export function createBranch(restaurantId: string, totalBranches: number) {
         cuisine: 'Mexicana',
         open: 7,
         close: 24,
-        restaurant: { connect: { id: restaurantId } },
+        chain: { connect: { id: chainId } },
       },
     })
   }
@@ -218,8 +218,8 @@ export async function createAvailabilities(menuId: string) {
     await prisma.availabilities.create({
       data: {
         dayOfWeek: i,
-        startTime: '05:00',
-        endTime: '23:00',
+        startTime: '00:00',
+        endTime: '23:59',
         menu: { connect: { id: menuId } },
       },
     })
@@ -237,7 +237,7 @@ export async function cleanDatabase() {
   console.time('🧹 Cleaned up the database...')
   const tablesToClean = [
     'admin',
-    'restaurant',
+    'chain',
     'branch',
     'table',
     'employee',

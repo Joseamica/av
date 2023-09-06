@@ -23,13 +23,36 @@ import { ErrorList } from '~/components/forms'
 
 export const handle = { backButton: true, searchButton: true, path: 'menu' }
 
-const productIdSchema = z.object({
-  modifier: z.array(z.string()).nonempty('You must select at least 1'),
-  productId: z.string(),
-  quantity: z.number().min(1).max(10),
-  shareDish: z.array(z.string()).optional(),
-  sendComments: z.string().optional(),
-})
+const createModifierSchema = min => {
+  if (min > 0) {
+    return z.array(z.string()).nonempty('You must select at least 1')
+  }
+  return z.array(z.string()).optional()
+}
+
+// const productIdSchema = z.object({
+//   modifier: z.array(z.string()).nonempty('You must select at least 1'),
+//   productId: z.string(),
+//   quantity: z.number().min(1).max(10),
+//   shareDish: z.array(z.string()).optional(),
+//   sendComments: z.string().optional(),
+// })
+
+const createDynamicSchema = modifierGroups => {
+  let dynamicFields = {}
+
+  modifierGroups.forEach(group => {
+    dynamicFields[group.id] = createModifierSchema(group.min)
+  })
+
+  return z.object({
+    ...dynamicFields,
+    productId: z.string(),
+    quantity: z.number().min(1).max(10),
+    shareDish: z.array(z.string()).optional(),
+    sendComments: z.string().optional(),
+  })
+}
 
 export async function loader({ request, params }: LoaderArgs) {
   const { tableId, menuId, productId } = params
@@ -83,7 +106,7 @@ export async function loader({ request, params }: LoaderArgs) {
   })
 }
 export async function action({ request, params }: ActionArgs) {
-  const { tableId } = params
+  const { tableId, productId } = params
   invariant(tableId, 'No se encontró la mesa')
 
   const branchId = await getBranchId(tableId)
@@ -91,8 +114,14 @@ export async function action({ request, params }: ActionArgs) {
 
   const formData = await request.formData()
 
+  const modifierGroup = await prisma.modifierGroup.findMany({
+    where: { menuItems: { some: { id: productId } } },
+  })
+
+  const dynamicSchema = createDynamicSchema(modifierGroup)
+
   const submission = parse(formData, {
-    schema: productIdSchema,
+    schema: dynamicSchema,
   })
 
   console.log('submission', submission)
@@ -113,8 +142,13 @@ export async function action({ request, params }: ActionArgs) {
 
   const session = await getSession(request)
   const cart = JSON.parse(session.get('cart') || '[]')
+  const allSelectedModifierIds = Object.values(modifierGroup)
+    .flat()
+    .map(item => (Array.isArray(item) ? item : [item]))
+    .flat()
 
-  addToCart(cart, value.productId, value.quantity, value.modifier)
+  console.log('', allSelectedModifierIds)
+  addToCart(cart, value.productId, value.quantity, allSelectedModifierIds)
   session.set('cart', JSON.stringify(cart))
   session.set('shareUserIds', JSON.stringify(value.shareDish))
   return redirect(`/table/${tableId}/menu/${params.menuId}`, {
@@ -127,16 +161,16 @@ export default function ProductId() {
   const fetcher = useFetcher()
   const navigate = useNavigate()
   const params = useParams()
-  console.log('fetcher', fetcher)
+  // console.log('fetcher', fetcher)
   const [quantity, setQuantity] = React.useState<number>(1)
 
   const [form, fields] = useForm({
     id: 'productId',
-    constraint: getFieldsetConstraint(productIdSchema),
+    constraint: getFieldsetConstraint(createDynamicSchema(data.modifierGroup)),
     lastSubmission: fetcher.data?.submission,
 
     onValidate({ formData }) {
-      return parse(formData, { schema: productIdSchema })
+      return parse(formData, { schema: createDynamicSchema(data.modifierGroup) })
     },
     shouldRevalidate: 'onBlur',
   })
@@ -197,17 +231,15 @@ export default function ProductId() {
                 </FlexRow>
                 <div className="flex flex-col space-y-2">
                   {conform
-                    .collection(fields.modifier, {
+                    .collection(fields[modifierGroup.id], {
                       type: 'checkbox',
                       options: modifierGroup.modifiers.map((modifier: Modifiers) => {
                         return modifier.id
                       }),
                     })
                     .map((props, index) => {
-                      console.log('props', props)
-                      // Retrieve the modifier object corresponding to this props.value (which is the ID)
                       const correspondingModifier = modifierGroup.modifiers.find((modifier: Modifiers) => modifier.id === props.value)
-
+                      console.log(modifierGroup.min)
                       // Safeguard in case correspondingModifier is undefined
                       if (!correspondingModifier) {
                         return null
@@ -223,7 +255,7 @@ export default function ProductId() {
                         </label>
                       )
                     })}
-                  <ErrorList errors={[fields.modifier.error]} />
+                  <ErrorList errors={[fields[modifierGroup.id]?.error]} />
                 </div>
               </div>
             )

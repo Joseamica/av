@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.cleanDatabase = exports.createDeliverect = exports.createAvailabilities = exports.createEmployees = exports.createProductsAndModifiers = exports.createCategories = exports.createMenu = exports.createTables = exports.createBranch = exports.createRestaurant = exports.createUsers = exports.createAdmin = void 0;
+exports.cleanDatabase = exports.createDeliverect = exports.createAvailabilities = exports.createEmployees = exports.createProductsAndModifiers = exports.createCategories = exports.createMenu = exports.createTables = exports.createBranch = exports.createChain = exports.createUsers = exports.createAdmin = void 0;
 const faker_1 = require("@faker-js/faker");
 const db_server_1 = require("../app/db.server");
 // const {faker} = require('@faker-js/faker')
@@ -29,22 +29,22 @@ async function createUsers(totalUsers) {
 }
 exports.createUsers = createUsers;
 const AVOQADO_LOGO = 'https://firebasestorage.googleapis.com/v0/b/avoqado-d0a24.appspot.com/o/kuikku%2FKUIKKU%20(2)%20(1)%20copy.png?alt=media&token=158e8d1b-d24b-406b-85e7-a507b29d84fc';
-function createRestaurant(totalRest) {
-    console.log('🏢 Created the restaurant...');
+function createChain(totalRest) {
+    console.log('🏢 Created the chain...');
     for (let i = 0; i < totalRest; i++) {
-        return db_server_1.prisma.restaurant.create({
+        return db_server_1.prisma.chain.create({
             data: {
                 name: faker_1.faker.company.name(),
-                logo: faker_1.faker.image.food(),
-                email: faker_1.faker.internet.email(),
-                phone: faker_1.faker.phone.number(),
-                adminEmail: faker_1.faker.internet.email(),
+                // logo: faker.image.food(),
+                // email: faker.internet.email(),
+                // phone: faker.phone.number(),
+                // adminEmail: faker.internet.email(),
             },
         });
     }
 }
-exports.createRestaurant = createRestaurant;
-function createBranch(restaurantId, totalBranches) {
+exports.createChain = createChain;
+function createBranch(chainId, totalBranches) {
     console.log('🏢 Created the branch...');
     for (let i = 0; i < totalBranches; i++) {
         return db_server_1.prisma.branch.create({
@@ -63,7 +63,7 @@ function createBranch(restaurantId, totalBranches) {
                 cuisine: 'Mexicana',
                 open: 7,
                 close: 24,
-                restaurant: { connect: { id: restaurantId } },
+                chain: { connect: { id: chainId } },
             },
         });
     }
@@ -201,8 +201,8 @@ async function createAvailabilities(menuId) {
         await db_server_1.prisma.availabilities.create({
             data: {
                 dayOfWeek: i,
-                startTime: '05:00',
-                endTime: '23:00',
+                startTime: '00:00',
+                endTime: '23:59',
                 menu: { connect: { id: menuId } },
             },
         });
@@ -220,7 +220,7 @@ async function cleanDatabase() {
     console.time('🧹 Cleaned up the database...');
     const tablesToClean = [
         'admin',
-        'restaurant',
+        'chain',
         'branch',
         'table',
         'employee',

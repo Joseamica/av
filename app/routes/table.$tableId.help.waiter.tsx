@@ -75,7 +75,7 @@ export default function Help() {
           <ItemContainer key={waiter.id} className="flex flex-row items-center space-x-2">
             <FlexRow className="items-center space-x-4">
               <img className="w-10 h-10 rounded-full" src={waiter.image} alt={waiter.name} />
-              <label className="text-xl" htmlFor={waiter.id}>
+              <label className="text-base" htmlFor={waiter.id}>
                 {waiter.name}
               </label>
               <span className="px-2 text-sm text-white rounded-full bg-button-primary ring ring-button-outline">

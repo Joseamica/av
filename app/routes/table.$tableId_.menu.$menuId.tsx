@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from 'react'
 import { json } from '@remix-run/node'
 import type { LoaderArgs } from '@remix-run/server-runtime'
 
-import type { CartItem, MenuItem, ModifierGroup, Modifiers } from '@prisma/client'
+import type { CartItem, MenuItem } from '@prisma/client'
 import clsx from 'clsx'
 import { motion } from 'framer-motion'
 import invariant from 'tiny-invariant'
@@ -13,7 +13,6 @@ import { getSession } from '~/session.server'
 
 import { getBranch } from '~/models/branch.server'
 import { getCartItems } from '~/models/cart.server'
-import { getMenu } from '~/models/menu.server'
 
 import { formatCurrency, getCurrency } from '~/utils'
 
@@ -28,10 +27,6 @@ type MenuCategory = {
   image?: string
 }
 
-interface ModifierGroups extends ModifierGroup {
-  modifiers: Modifiers[]
-}
-
 export const handle = { backButton: true, searchButton: true, path: 'menu' }
 
 export async function loader({ request, params }: LoaderArgs) {
@@ -43,48 +38,25 @@ export async function loader({ request, params }: LoaderArgs) {
 
   invariant(menuId, 'No existe el ID del menu')
 
-  const url = new URL(request.url)
-  const dishId = url.searchParams.get('dishId') || ''
-
-  const dish = await prisma.menuItem.findFirst({
-    where: { id: dishId },
-  })
-
   const session = await getSession(request)
-
-  const categories = await prisma.menuCategory.findMany({
-    where: { menu: { some: { id: menuId } } },
-    include: {
-      menuItems: true,
-    },
-  })
-
-  const modifierGroup = await prisma.modifierGroup.findMany({
-    where: { menuItems: { some: { id: dishId } } },
-    include: { modifiers: true },
-  })
-  //Find users on table that are not the current user,
-  //this is to show users to share dishes with and you don't appear
-  const usersOnTable = await prisma.user.findMany({
-    where: { tableId, id: { not: session.get('userId') } },
-  })
 
   const cart = JSON.parse(session.get('cart') || '[]') as CartItem[]
 
-  const cartItems = await getCartItems(cart)
-
-  const currency = await getCurrency(tableId)
-
-  const menu = await getMenu(branch.id)
+  const [categories, cartItems, currency] = await Promise.all([
+    prisma.menuCategory.findMany({
+      where: { menu: { some: { id: menuId } } },
+      include: {
+        menuItems: true,
+      },
+    }),
+    getCartItems(cart),
+    getCurrency(tableId),
+  ])
 
   return json({
     categories,
-    modifierGroup,
     cartItems,
-    usersOnTable,
-    dish,
     currency,
-    menu,
     branch,
   })
 }

@@ -4,12 +4,12 @@ import type { Branch } from '@prisma/client'
 
 import { QueryDialog } from './dialog'
 
-export default function SelectBranchDialog({ selectedRest, isBranches }) {
+export default function SelectBranchDialog({ selectedChain, isBranches }) {
   const fetcher = useFetcher()
 
   return (
-    <QueryDialog query="restId" title={selectedRest?.name} description="Select Branch">
-      {selectedRest && isBranches ? (
+    <QueryDialog query="chainId" title={selectedChain?.name} description="Select Branch">
+      {selectedChain && isBranches ? (
         <fetcher.Form method="POST">
           <fieldset className="mb-[15px] flex items-center gap-5">
             {/* <label className="text-violet11 w-[90px] text-right text-[15px]" htmlFor="branch">
@@ -20,8 +20,8 @@ export default function SelectBranchDialog({ selectedRest, isBranches }) {
               id="branch"
               name="branchId"
             >
-              {selectedRest &&
-                selectedRest.branches.map((branch: Branch, index) => (
+              {selectedChain &&
+                selectedChain.branches.map((branch: Branch, index) => (
                   <option key={index} value={branch.id}>
                     {branch.name}
                   </option>

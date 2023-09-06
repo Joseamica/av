@@ -11,7 +11,7 @@ model Admin {
   id             String           @id @default("cllb3d9b90003cedclcthud41")
   access         Int?
   user           User[]
-  restaurants    Restaurant[]
+  // restaurants    Restaurant[]
   branches       Branch[]
   tables         Table[]
   orders         Order[]
@@ -25,29 +25,29 @@ model Admin {
   cartItems      CartItem[]
   payments       Payments[]
   menus          Menu[]
+  chains         Chain[]
 }
 
-model Restaurant {
-  id            String   @id @default(cuid())
-  name          String
-  updated       String?
-  created       String?
-  storeTimeZone String?
-  region        String?
-  logo          String?
-  email         String?
-  phone         String?
-  adminEmail    String?
-  branches      Branch[]
-  User          User[]
-  adminId       String?  @default("cllb3d9b90003cedclcthud41")
-  admin         Admin?   @relation(fields: [adminId], references: [id])
+model Chain {
+  id        String    @id @default(cuid())
+  name      String
+  branches  Branch[]
+  adminId   String?   @default("cllb3d9b90003cedclcthud41")
+  admin     Admin?    @relation(fields: [adminId], references: [id])
+  updatedAt DateTime? @updatedAt
+  createdAt DateTime  @default(now())
 }
+
+// model Venue {
+//    id        String    @id @default(cuid())
+//     name      String
+
+// }
 
 model Branch {
   id              String         @id @default(cuid())
   name            String
-  restaurantId    String
+  // restaurantId    String
   address         String
   extraAddress    String
   city            String
@@ -76,12 +76,14 @@ model Branch {
   payments        Payments[]
   menuCategories  MenuCategory[]
   menuItems       MenuItem[]
-  restaurant      Restaurant     @relation(fields: [restaurantId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  // restaurant      Restaurant     @relation(fields: [restaurantId], references: [id], onDelete: Cascade, onUpdate: Cascade)
   adminId         String?        @default("cllb3d9b90003cedclcthud41")
   admin           Admin?         @relation(fields: [adminId], references: [id])
   updatedAt       DateTime?      @updatedAt
   createdAt       DateTime       @default(now())
   notifications   Notification[]
+  chain           Chain?         @relation(fields: [chainId], references: [id])
+  chainId         String?
 }
 
 model Table {
@@ -283,7 +285,7 @@ model User {
   feedbacks     Feedback[]
   sessions      Session[]
   payments      Payments[]
-  restaurant    Restaurant?    @relation(fields: [restaurantId], references: [id])
+  // restaurant    Restaurant?    @relation(fields: [restaurantId], references: [id])
   restaurantId  String?
   adminId       String?
   admin         Admin?         @relation(fields: [adminId], references: [id])
