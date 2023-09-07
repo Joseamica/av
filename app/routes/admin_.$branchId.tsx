@@ -1,29 +1,23 @@
 import { Link, Outlet, useMatches } from '@remix-run/react'
 import { useState } from 'react'
 
-import { type LoaderArgs, json, redirect } from '@remix-run/node'
+import { type LoaderArgs, json } from '@remix-run/node'
 
 import clsx from 'clsx'
 import { prisma } from '~/db.server'
-import { getSession, getUserId } from '~/session.server'
 
-import { isUserAdmin } from '~/models/admin.server'
+import { requireAdmin } from '~/utils/permissions.server'
 
 import MainAdminContainer from '~/components/admin/main-container'
 
 export async function loader({ request, params }: LoaderArgs) {
   const { branchId } = params
 
-  const session = await getSession(request)
-  const userId = await getUserId(session)
-  const isAdmin = await isUserAdmin(userId)
-
-  if (!isAdmin) {
-    return redirect(`/login`)
-  }
+  const isAdmin = await requireAdmin(request)
 
   const admin = await prisma.admin.findFirst({
     where: {
+      id: isAdmin.adminId,
       access: { gte: 2 },
       branches: {
         some: {

@@ -8,7 +8,7 @@ import { getFieldsetConstraint, parse } from '@conform-to/zod'
 import bcrypt from 'bcryptjs'
 import { z } from 'zod'
 import { prisma } from '~/db.server'
-import { createEmployeeSession, createUserSession, getSession } from '~/session.server'
+import { createEmployeeSession, createUserSession, getSession, sessionStorage } from '~/session.server'
 
 import { safeRedirect } from '~/utils'
 import { emailSchema, passwordSchema } from '~/utils/user-validation'
@@ -30,6 +30,32 @@ export const loader = async ({ request }: LoaderArgs) => {
   const session = await getSession(request)
   const tableId = session.get('tableId')
   const employeeId = session.get('employeeId')
+  const userId = session.get('userId')
+
+  const isAdmin = session.get('adminId')
+  const admin = await prisma.user.findFirst({
+    where: {
+      id: userId,
+      roles: { some: { permissions: { some: { name: 'admin' } } } },
+    },
+  })
+  // let isAdmin = null
+  // const admin = await prisma.admin.findFirst({})
+
+  // if (userId !== undefined) {
+  //   isAdmin = await prisma.user.findFirst({
+  //     where: {
+  //       id: userId,
+  //       roles: { some: { permissions: { some: { name: 'admin' } } } },
+  //     },
+  //   })
+  // }
+
+  if (isAdmin && admin) {
+    return redirect('/admin', {
+      headers: { 'Set-Cookie': await sessionStorage.commitSession(session) },
+    })
+  }
 
   if (employeeId) return redirect('/dashboard')
 
@@ -138,7 +164,17 @@ export const action = async ({ request }: ActionArgs) => {
     },
   })
 
+  const isAdmin = await prisma.user.findFirst({
+    where: {
+      id: userWithPassword.id,
+      roles: { some: { permissions: { some: { name: 'admin' } } } },
+    },
+  })
+
+  const admin = await prisma.admin.findFirst({})
+
   return createUserSession({
+    adminId: isAdmin && admin.id,
     redirectTo,
     remember: submission.value.remember,
     request,

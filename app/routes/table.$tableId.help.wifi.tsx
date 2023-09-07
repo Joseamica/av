@@ -23,7 +23,7 @@ export async function loader({ params }: LoaderArgs) {
   const branchId = await getBranchId(tableId)
   const wifiDetails = await prisma.branch.findFirst({
     where: { id: branchId },
-    select: { wifiName: true, wifipwd: true },
+    select: { wifiName: true, wifiPwd: true },
   })
 
   return json({ wifiDetails })
@@ -48,9 +48,9 @@ export default function Help() {
         <div className="flex flex-col items-center justify-between space-y-1 ">
           <H4>Clave:</H4>
           <FlexRow className="items-center p-2 space-x-2 border rounded-full">
-            <H2>{data.wifiDetails.wifipwd}</H2>
+            <H2>{data.wifiDetails.wifiPwd}</H2>
             <button
-              onClick={() => navigator.clipboard.writeText(data.wifiDetails.wifipwd)}
+              onClick={() => navigator.clipboard.writeText(data.wifiDetails.wifiPwd)}
               className="flex flex-row items-center px-2 py-1 space-x-2 text-sm text-white rounded-full bg-principal border-button-outline dark:bg-button-primary"
             >
               Copiar

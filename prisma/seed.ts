@@ -1,6 +1,7 @@
 import {
   cleanDatabase,
   createAdmin,
+  createAdminRole,
   createAvailabilities,
   createBranch,
   createCategories, // createModifiers,
@@ -18,10 +19,11 @@ async function seed() {
   console.time(`🌱 Database has been seeded`)
 
   await cleanDatabase()
-  await createAdmin()
+  await createAdminRole()
+  const admin = await createAdmin()
   await createDeliverect()
-  await createUsers(1)
-  const chain = await createChain(2)
+  await createUsers(1, admin.id)
+  const chain = await createChain(2, admin.id)
   const branch = await createBranch(chain.id, 2)
   const tableIds = (await createTables(branch.id, 7)) as any
   await createEmployees(branch.id, tableIds)

@@ -1,8 +1,10 @@
 import { useMatches } from '@remix-run/react'
 import { useMemo } from 'react'
 
+import { faker } from '@faker-js/faker'
 import type { Order, Table } from '@prisma/client'
-import type { Decimal } from '@prisma/client/runtime'
+import type { Decimal } from '@prisma/client/runtime/library'
+import bcrypt from 'bcryptjs'
 import { format, utcToZonedTime } from 'date-fns-tz'
 import invariant from 'tiny-invariant'
 
@@ -292,4 +294,15 @@ export function capitalizeFirstLetter(str: string) {
 export const isValidE164Number = phoneNumber => {
   const e164Regex = /^\+[1-9]\d{1,14}$/
   return e164Regex.test(phoneNumber)
+}
+
+export function createPassword(username: string = faker.internet.userName()) {
+  return {
+    hash: bcrypt.hashSync(username, 10),
+  }
+}
+
+export async function getPasswordHash(password: string) {
+  const hash = await bcrypt.hash(password, 10)
+  return hash
 }

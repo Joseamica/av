@@ -11,7 +11,6 @@ model Admin {
   id             String           @id @default("cllb3d9b90003cedclcthud41")
   access         Int?
   user           User[]
-  // restaurants    Restaurant[]
   branches       Branch[]
   tables         Table[]
   orders         Order[]
@@ -40,7 +39,30 @@ model Chain {
 
 // model Venue {
 //    id        String    @id @default(cuid())
+//    chainId   String?
+//     chain     Chain?    @relation(fields: [chainId], references: [id])
 //     name      String
+//     image     String
+//     cuisine   String
+//       phone           String?
+//   email           String?        @unique
+//     city      String
+//     country   String
+//   street    String
+//   zipCode       Int
+//   timezone      String?
+//   wifiName     String?
+//   wifiPassword String?
+//     tipsPercentages Decimal[]      @default([10, 12, 15])
+//       paymentMethods  String[]       @default(["cash", "card"])
+//   menus           Menu[]
+//     tables          Table[]
+
+//   employees       Employee[]
+//   feedbacks       Feedback[]
+//   payments        Payments[]
+//     updatedAt       DateTime?      @updatedAt
+//   createdAt       DateTime       @default(now())
 
 // }
 
@@ -51,19 +73,20 @@ model Branch {
   address         String
   extraAddress    String
   city            String
+  country         String?
   timezone        String?
   phone           String?
   email           String
   language        String?        @default("en")
   image           String
-  rating          Float?
-  rating_quantity Int?
+  // rating          Float?
+  // rating_quantity Int?
   cuisine         String
   wifiName        String?
-  wifipwd         String?
-  coordinates     Json?
-  open            Int?
-  close           Int?
+  wifiPwd         String?
+  // coordinates     Json?
+  // open            Int?
+  // close           Int?
   tipsPercentages Decimal[]      @default([10, 12, 15])
   paymentMethods  String[]       @default(["cash", "card"])
   social          String[]       @default([])
@@ -74,16 +97,18 @@ model Branch {
   employees       Employee[]
   feedbacks       Feedback[]
   payments        Payments[]
-  menuCategories  MenuCategory[]
-  menuItems       MenuItem[]
+  // menuCategories  MenuCategory[]
+  // menuItems       MenuItem[]
   // restaurant      Restaurant     @relation(fields: [restaurantId], references: [id], onDelete: Cascade, onUpdate: Cascade)
   adminId         String?        @default("cllb3d9b90003cedclcthud41")
   admin           Admin?         @relation(fields: [adminId], references: [id])
-  updatedAt       DateTime?      @updatedAt
-  createdAt       DateTime       @default(now())
   notifications   Notification[]
   chain           Chain?         @relation(fields: [chainId], references: [id])
   chainId         String?
+  updatedAt       DateTime?      @updatedAt
+  createdAt       DateTime       @default(now())
+  MenuCategory    MenuCategory[]
+  MenuItem        MenuItem[]
 }
 
 model Table {
@@ -276,7 +301,7 @@ model User {
   total         Decimal?
   orderId       String?
   orders        Order?         @relation(fields: [orderId], references: [id])
-  role          Role?
+  roles         Role[]
   branch        Branch?        @relation(fields: [branchId], references: [id])
   branchId      String?
   cartItems     CartItem[]
@@ -294,6 +319,27 @@ model User {
   notifications Notification[]
 }
 
+model Role {
+  id   String @id @unique @default(cuid())
+  name String @unique
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  users       User[]
+  permissions Permission[]
+}
+
+model Permission {
+  id   String @id @unique @default(cuid())
+  name String @unique
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  roles Role[]
+}
+
 model Password {
   id         String    @id @default(cuid())
   hash       String
@@ -305,7 +351,7 @@ model Password {
 
 model Employee {
   id            String         @id @default(cuid())
-  role          Role
+  role          EmployeeRoles
   name          String
   image         String?
   phone         String?
@@ -320,13 +366,12 @@ model Employee {
   updatedAt     DateTime?      @updatedAt
   createdAt     DateTime       @default(now())
   notifications Notification[]
+  sessions      Session[]
 }
 
-enum Role {
-  admin
+enum EmployeeRoles {
   manager
   waiter
-  user
 }
 
 model Feedback {
@@ -348,10 +393,12 @@ model Feedback {
 }
 
 model Session {
-  id             String   @id @default(uuid())
-  createdAt      DateTime @default(now())
-  user           User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id             String    @id @default(uuid())
+  createdAt      DateTime  @default(now())
+  user           User      @relation(fields: [userId], references: [id], onDelete: Cascade)
   userId         String
+  employee       Employee? @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+  employeeId     String?
   expirationDate DateTime
 }
 

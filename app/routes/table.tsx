@@ -102,7 +102,7 @@ export const action = async ({ request, params }: ActionArgs) => {
         color: color ? color : '#000000',
         tableId: tableId ? tableId : null,
         orderId: isOrderActive ? isOrderActive.id : null,
-        role: 'user',
+        // role: 'user',
         sessions: {
           create: {
             expirationDate: new Date(Date.now() + SESSION_EXPIRATION_TIME),

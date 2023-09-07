@@ -5,28 +5,19 @@ import { json, redirect } from '@remix-run/node'
 
 import type { Table } from '@prisma/client'
 import { prisma } from '~/db.server'
-import { getSession } from '~/session.server'
+import { getSession, sessionStorage } from '~/session.server'
 
 import { Button, H2, LinkButton } from '~/components'
 
 export async function loader({ request, params }: LoaderArgs) {
   const session = await getSession(request)
-  const userId = session.get('userId')
+
   const isName = session.has('username')
-  const admin = await prisma.admin.findFirst({})
-  const isAdmin = await prisma.admin.findFirst({
-    where: {
-      id: admin.id,
-      user: {
-        some: {
-          id: userId,
-        },
-      },
-    },
-  })
+
+  const isAdmin = session.get('adminId')
 
   if (!isName) {
-    return redirect('/')
+    return redirect('/login')
   }
   if (isAdmin) {
     return redirect('/admin')
@@ -38,20 +29,21 @@ export async function loader({ request, params }: LoaderArgs) {
 export async function action({ request, params }: ActionArgs) {
   const session = await getSession(request)
   const userId = session.get('userId')
-
   const admin = await prisma.admin.findFirst({})
+  session.set('adminId', admin.id)
 
-  const updateUserToAdmin = await prisma.admin.update({
-    where: { id: admin.id },
+  await prisma.user.update({
+    where: {
+      id: userId,
+    },
     data: {
-      user: {
-        connect: {
-          id: userId,
-        },
-      },
+      roles: { connect: { name: 'admin' } },
     },
   })
-  return redirect('/admin')
+
+  return redirect('/admin', {
+    headers: { 'Set-Cookie': await sessionStorage.commitSession(session) },
+  })
 }
 
 export default function Secret() {

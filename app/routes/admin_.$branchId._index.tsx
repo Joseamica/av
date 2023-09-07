@@ -37,7 +37,7 @@ const branchSchema = z.object({
   language: z.string().min(1).max(2),
   cuisine: z.string().min(1).max(15),
   wifiName: z.string().min(1).max(50),
-  wifipwd: z.string().min(1).max(50),
+  wifiPwd: z.string().min(1).max(50),
   tipsPercentages: z.string().refine(str => /^(\d{2},)*\d{2}$/.test(str), { message: 'Must be two-digit numbers separated by commas' }),
   paymentMethods: z.array(z.string()),
 })
@@ -78,7 +78,7 @@ export async function action({ request, params }: ActionArgs) {
       language: submission.value.language,
       cuisine: submission.value.cuisine,
       wifiName: submission.value.wifiName,
-      wifipwd: submission.value.wifipwd,
+      wifiPwd: submission.value.wifiPwd,
       tipsPercentages: tipsArray,
       paymentMethods: submission.value.paymentMethods,
     },
@@ -148,7 +148,7 @@ export default function Index() {
                 <div className="mb-4">
                   <h2 className="text-lg font-bold">Wifi</h2>
                   <p>Name: {branch.wifiName}</p>
-                  <p>Pwd: {branch.wifipwd}</p>
+                  <p>Pwd: {branch.wifiPwd}</p>
                 </div>
                 <div className="mb-4">
                   <h2 className="text-lg font-bold">Tip Percentages</h2>
@@ -279,11 +279,11 @@ export default function Index() {
           <Field
             labelProps={{ children: 'Wifi Password' }}
             inputProps={{
-              ...conform.input(fields.wifipwd, { type: 'text' }),
+              ...conform.input(fields.wifiPwd, { type: 'text' }),
               required: true,
-              defaultValue: branch.branches.find(branch => branch.id === editItem)?.wifipwd,
+              defaultValue: branch.branches.find(branch => branch.id === editItem)?.wifiPwd,
             }}
-            errors={[fields?.wifipwd.errors]}
+            errors={[fields?.wifiPwd.errors]}
           />
           <Field
             labelProps={{ children: 'Tip Percentages' }}

@@ -1,30 +1,23 @@
-import { Link, useLoaderData } from '@remix-run/react'
+import { Form, Link, useLoaderData } from '@remix-run/react'
 import { FaEdit } from 'react-icons/fa'
 
 import { type ActionArgs, type LoaderArgs, json, redirect } from '@remix-run/node'
 
 import type { Chain } from '@prisma/client'
 import { prisma } from '~/db.server'
-import { getSession, getUserId } from '~/session.server'
 
-import { isUserAdmin } from '~/models/admin.server'
+import { requireAdmin } from '~/utils/permissions.server'
 
-import { H2 } from '~/components'
+import { Button, H2 } from '~/components'
 import { EditRestDialog } from '~/components/admin/ui/dialogs/edit-rest-dialog'
 import SelectBranchDialog from '~/components/admin/ui/dialogs/select-branch-dialog'
 
 export const loader = async ({ request }: LoaderArgs) => {
-  const session = await getSession(request)
-  const userId = await getUserId(session)
-  const isAdmin = await isUserAdmin(userId)
-
-  if (!isAdmin) {
-    return redirect(`/login`)
-  }
+  const admin = await requireAdmin(request)
 
   const chains = await prisma.chain.findMany({
     where: {
-      adminId: isAdmin.id,
+      adminId: admin.adminId,
     },
   })
 
@@ -67,6 +60,9 @@ export default function Admin() {
         <H2 className="">Avoqado</H2>
         <p>userComp</p>
       </div>
+      <Form method="POST" action="/logout">
+        <Button type="submit">Logout</Button>
+      </Form>
       <div className="flex flex-grow justify-center items-center gap-2">
         {data.chains.map((chain: Chain) => (
           <div className="flex flex-col space-y-4 items-center" key={chain.id}>

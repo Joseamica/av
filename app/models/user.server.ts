@@ -20,7 +20,7 @@ export async function createUser(username: User['name'], email: User['email'], p
       email,
       name: username,
       color,
-      role: 'user',
+      // role: 'user',
       password: {
         create: {
           hash: hashedPassword,

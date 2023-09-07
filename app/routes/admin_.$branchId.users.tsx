@@ -101,7 +101,11 @@ export async function action({ request, params }: ActionArgs) {
           color: submission.value.color,
           paid: submission.value.paid,
           tip: submission.value.tip,
-          role: submission.value.role,
+          roles: {
+            connect: {
+              name: submission.value.role,
+            },
+          },
           branchId: params.branchId,
         },
       })
@@ -126,7 +130,11 @@ export async function action({ request, params }: ActionArgs) {
           color: submission.value.color,
           paid: submission.value.paid,
           tip: submission.value.tip,
-          role: submission.value.role,
+          roles: {
+            connect: {
+              name: submission.value.role,
+            },
+          },
         },
       })
       return redirect('')

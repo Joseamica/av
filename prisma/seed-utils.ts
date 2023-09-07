@@ -1,5 +1,8 @@
 import { faker } from '@faker-js/faker'
+import type { Role } from '@prisma/client'
 import { prisma } from '~/db.server'
+
+import { createPassword, getPasswordHash } from '~/utils'
 
 // const {faker} = require('@faker-js/faker')
 
@@ -12,7 +15,19 @@ export function createAdmin() {
     },
   })
 }
-export async function createUsers(totalUsers) {
+
+export function createAdminRole() {
+  return prisma.role.create({
+    data: {
+      name: 'admin',
+      permissions: {
+        create: { name: 'admin' },
+      },
+    },
+  })
+}
+
+export async function createUsers(totalUsers, adminId) {
   console.time(`👤 Created ${totalUsers} users...`)
   for (let i = 0; i < totalUsers; i++) {
     await prisma.user.create({
@@ -20,21 +35,37 @@ export async function createUsers(totalUsers) {
         name: faker.name.firstName(),
         email: faker.internet.email(),
         color: faker.internet.color(),
+        adminId: adminId,
       },
     })
   }
+  const userData = { name: 'Joseamica', email: 'joseamica@gmail.com', color: '#1AA7EC' }
+  const adminRole = await prisma.role.findFirst({ where: { name: 'admin' } })
+  await prisma.user.create({
+    data: {
+      ...userData,
+      roles: { connect: { id: adminRole.id } },
+      adminId: adminId,
+      password: {
+        create: {
+          hash: await getPasswordHash('joseamica'),
+        },
+      },
+    },
+  })
   console.timeEnd(`👤 Created ${totalUsers} users...`)
 }
 
 const AVOQADO_LOGO =
   'https://firebasestorage.googleapis.com/v0/b/avoqado-d0a24.appspot.com/o/kuikku%2FKUIKKU%20(2)%20(1)%20copy.png?alt=media&token=158e8d1b-d24b-406b-85e7-a507b29d84fc'
 
-export function createChain(totalRest) {
+export function createChain(totalRest, adminId) {
   console.log('🏢 Created the chain...')
   for (let i = 0; i < totalRest; i++) {
     return prisma.chain.create({
       data: {
         name: faker.company.name(),
+        adminId: adminId,
         // logo: faker.image.food(),
         // email: faker.internet.email(),
         // phone: faker.phone.number(),
@@ -44,7 +75,7 @@ export function createChain(totalRest) {
   }
 }
 
-export function createBranch(chainId: string, totalBranches: number) {
+export function createBranch(chainId: string, totalBranches: number, adminId: string) {
   console.log('🏢 Created the branch...')
   for (let i = 0; i < totalBranches; i++) {
     return prisma.branch.create({
@@ -55,15 +86,19 @@ export function createBranch(chainId: string, totalBranches: number) {
         email: faker.internet.email(),
         phone: faker.phone.number(),
         wifiName: faker.random.alphaNumeric(8),
-        wifipwd: faker.random.alphaNumeric(8),
+        wifiPwd: faker.random.alphaNumeric(8),
         city: faker.address.city(),
+        admin: {
+          connect: { id: adminId },
+        },
         address: faker.address.streetAddress(),
         extraAddress: faker.address.streetName(),
-        rating: 4.8,
-        rating_quantity: 400,
+        country: faker.address.country(),
+        // rating: 4.8,
+        // rating_quantity: 400,
         cuisine: 'Mexicana',
-        open: 7,
-        close: 24,
+        // open: 7,
+        // close: 24,
         chain: { connect: { id: chainId } },
       },
     })
