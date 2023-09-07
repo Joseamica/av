@@ -56,39 +56,84 @@ export async function createUsers(totalUsers) {
     },
   })
 
-  const moderatorRole = await prisma.role.findFirst({ where: { name: 'moderator' } })
-  for (let i = 0; i < 3; i++) {
-    await prisma.user.create({
-      data: {
-        name: `moderator${i}`,
-        email: `${i}mod@gmail.com`,
-        color: '#1AA74C',
-        roles: { connect: { id: moderatorRole.id } },
+  console.timeEnd(`👤 Created ${totalUsers} users...`)
+}
 
-        password: {
-          create: {
-            hash: await getPasswordHash('moderator'),
-          },
-        },
+export async function createChain(totalChains: number, moderatorIds: string[]) {
+  console.log('🏢 Created the chain...')
+  console.log(moderatorIds)
+
+  return await prisma.chain.create({
+    data: {
+      name: faker.company.name(),
+      moderatorIds: [moderatorIds.pop()],
+    },
+  })
+}
+
+export function createBranch(chainId: string, totalBranches: number) {
+  console.log('🏢 Created the branch...')
+  for (let i = 0; i < totalBranches; i++) {
+    return prisma.branch.create({
+      data: {
+        name: faker.company.name(),
+        image:
+          'https://firebasestorage.googleapis.com/v0/b/avoqado-d0a24.appspot.com/o/i-need-a-high-quality-principal-image-for-the-hero-section-of-my-landing-page-this-image-will-r-.png?alt=media&token=298dadb1-9034-4b6e-ac10-34ec0f78d98a',
+        email: faker.internet.email(),
+        phone: faker.phone.number(),
+        wifiName: faker.random.alphaNumeric(8),
+        wifiPwd: faker.random.alphaNumeric(8),
+        city: faker.address.city(),
+
+        address: faker.address.streetAddress(),
+        extraAddress: faker.address.street(),
+        country: faker.address.country(),
+        // rating: 4.8,
+        // rating_quantity: 400,
+        cuisine: 'Mexicana',
+        // open: 7,
+        // close: 24,
+        chain: { connect: { id: chainId } },
       },
     })
   }
-  console.timeEnd(`👤 Created ${totalUsers} users...`)
 }
 
 export async function createChainAndBranches() {
   const chainIds = []
   const moderatorRole = await prisma.role.findFirst({ where: { name: 'moderator' } })
-  const moderators = await prisma.user.findMany({
-    where: {
-      roles: {
-        some: {
-          id: moderatorRole.id,
+
+  const mod1 = await prisma.user.create({
+    data: {
+      name: `moderator1`,
+      email: `mod1@gmail.com`,
+      color: '#1AA74C',
+      roles: { connect: { id: moderatorRole.id } },
+
+      password: {
+        create: {
+          hash: await getPasswordHash('moderator'),
         },
       },
     },
   })
-  const moderatorIds = moderators.map(mod => mod.id)
+
+  const mod2 = await prisma.user.create({
+    data: {
+      name: `moderator2`,
+      email: `mod2@mod.com`,
+      color: '#1A474C',
+      roles: { connect: { id: moderatorRole.id } },
+
+      password: {
+        create: {
+          hash: await getPasswordHash('moderator'),
+        },
+      },
+    },
+  })
+
+  const moderatorIds = [mod1.id, mod2.id]
 
   // Create 2 chains
   for (let i = 0; i < 2; i++) {
@@ -139,46 +184,6 @@ async function createEmployee(role: EmployeeRoles, branchId: string, tableIds: s
       tables: { connect: tableIds.map(id => ({ id })) },
     },
   })
-}
-
-export function createChain(totalRest, moderatorIds) {
-  console.log('🏢 Created the chain...')
-  for (let i = 0; i < totalRest; i++) {
-    return prisma.chain.create({
-      data: {
-        name: faker.company.name(),
-        moderatorIds: moderatorIds, // Adding moderator IDs
-      },
-    })
-  }
-}
-
-export function createBranch(chainId: string, totalBranches: number) {
-  console.log('🏢 Created the branch...')
-  for (let i = 0; i < totalBranches; i++) {
-    return prisma.branch.create({
-      data: {
-        name: faker.company.name(),
-        image:
-          'https://firebasestorage.googleapis.com/v0/b/avoqado-d0a24.appspot.com/o/i-need-a-high-quality-principal-image-for-the-hero-section-of-my-landing-page-this-image-will-r-.png?alt=media&token=298dadb1-9034-4b6e-ac10-34ec0f78d98a',
-        email: faker.internet.email(),
-        phone: faker.phone.number(),
-        wifiName: faker.random.alphaNumeric(8),
-        wifiPwd: faker.random.alphaNumeric(8),
-        city: faker.address.city(),
-
-        address: faker.address.streetAddress(),
-        extraAddress: faker.address.street(),
-        country: faker.address.country(),
-        // rating: 4.8,
-        // rating_quantity: 400,
-        cuisine: 'Mexicana',
-        // open: 7,
-        // close: 24,
-        chain: { connect: { id: chainId } },
-      },
-    })
-  }
 }
 
 export async function createTables(branchId: string, numberOfTables: number) {
@@ -323,6 +328,7 @@ export async function cleanDatabase() {
     'table',
     'employee',
     'menu',
+    'user',
     'menuCategory',
     'menuItem',
     'modifierGroup',
@@ -330,7 +336,6 @@ export async function cleanDatabase() {
     'cartItem',
     'session',
     'password',
-    'user',
     'order',
     'feedback',
     'employee',

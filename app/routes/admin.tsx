@@ -95,13 +95,12 @@ export default function Admin() {
       <SelectBranchDialog selectedChain={data.selectedChain} isBranches={isBranches} />
 
       <div className="fixed top-20 w-full flex justify-between">
-        <div />
         <H2 className="">Avoqado</H2>
+        <H2>Chains</H2>
+
         <p>userComp</p>
       </div>
-      <Form method="POST" action="/logout">
-        <Button type="submit">Logout</Button>
-      </Form>
+
       <div className="flex flex-grow justify-center items-center gap-2">
         {data.chains.map((chain: Chain) => (
           <div className="flex flex-col space-y-4 items-center" key={chain.id}>
@@ -123,6 +122,9 @@ export default function Admin() {
           </div>
         ))}
       </div>
+      <Form method="POST" action="/logout">
+        <Button type="submit">Logout</Button>
+      </Form>
     </main>
   )
 }
