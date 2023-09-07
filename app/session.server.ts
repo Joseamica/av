@@ -51,13 +51,6 @@ export async function getUserId(session: Session): Promise<User['id']> {
   return userId ?? `guest-${uuidv4()}`
 }
 
-export async function getAdminId(request: Request) {
-  const session = await getSession(request)
-  const adminId = session.get('adminId')
-  if (adminId === undefined) return null
-  return adminId
-}
-
 export async function getUsername(session: Session) {
   const username: string = session.get('username')
 
@@ -105,14 +98,12 @@ export async function requireUser(request: Request) {
 }
 
 export async function createUserSession({
-  adminId,
   request,
   userId,
   username,
   remember,
   redirectTo,
 }: {
-  adminId?: string
   request: Request
   userId: string
   username: string
@@ -124,10 +115,7 @@ export async function createUserSession({
   session.set('username', username)
   session.unset('employeeId')
 
-  if (adminId) {
-    session.set('adminId', adminId)
-  }
-  return redirect(adminId ? '/admin' : redirectTo, {
+  return redirect(redirectTo, {
     headers: {
       'Set-Cookie': await sessionStorage.commitSession(session, {
         maxAge: remember

@@ -32,29 +32,19 @@ export const loader = async ({ request }: LoaderArgs) => {
   const employeeId = session.get('employeeId')
   const userId = session.get('userId')
 
-  const isAdmin = session.get('adminId')
-  const admin = await prisma.user.findFirst({
+  if (!userId) {
+    return json({ status: 'idle' })
+  }
+
+  const superUser = await prisma.user.findFirst({
     where: {
       id: userId,
-      roles: { some: { permissions: { some: { name: 'admin' } } } },
+      roles: { some: { permissions: { some: { OR: [{ name: 'admin' }, { name: 'moderator' }] } } } },
     },
   })
-  // let isAdmin = null
-  // const admin = await prisma.admin.findFirst({})
 
-  // if (userId !== undefined) {
-  //   isAdmin = await prisma.user.findFirst({
-  //     where: {
-  //       id: userId,
-  //       roles: { some: { permissions: { some: { name: 'admin' } } } },
-  //     },
-  //   })
-  // }
-
-  if (isAdmin && admin) {
-    return redirect('/admin', {
-      headers: { 'Set-Cookie': await sessionStorage.commitSession(session) },
-    })
+  if (superUser) {
+    return redirect('/admin')
   }
 
   if (employeeId) return redirect('/dashboard')
@@ -161,21 +151,12 @@ export const action = async ({ request }: ActionArgs) => {
     where: { email: submission.value.email },
     include: {
       password: true,
+      roles: true,
     },
   })
-
-  const isAdmin = await prisma.user.findFirst({
-    where: {
-      id: userWithPassword.id,
-      roles: { some: { permissions: { some: { name: 'admin' } } } },
-    },
-  })
-
-  const admin = await prisma.admin.findFirst({})
 
   return createUserSession({
-    adminId: isAdmin && admin.id,
-    redirectTo,
+    redirectTo: userWithPassword.roles.length > 0 ? '/admin' : redirectTo,
     remember: submission.value.remember,
     request,
     userId: userWithPassword.id,

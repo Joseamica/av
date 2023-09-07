@@ -1,20 +1,12 @@
 import { faker } from '@faker-js/faker'
-import type { Role } from '@prisma/client'
+import type { EmployeeRoles, Role } from '@prisma/client'
 import { prisma } from '~/db.server'
 
 import { createPassword, getPasswordHash } from '~/utils'
 
 // const {faker} = require('@faker-js/faker')
-
-export function createAdmin() {
-  console.log('👤 Created the admin...')
-  return prisma.admin.create({
-    data: {
-      id: 'cllb3d9b90003cedclcthud41',
-      access: 3,
-    },
-  })
-}
+const AVOQADO_LOGO =
+  'https://firebasestorage.googleapis.com/v0/b/avoqado-d0a24.appspot.com/o/kuikku%2FKUIKKU%20(2)%20(1)%20copy.png?alt=media&token=158e8d1b-d24b-406b-85e7-a507b29d84fc'
 
 export function createAdminRole() {
   return prisma.role.create({
@@ -27,7 +19,18 @@ export function createAdminRole() {
   })
 }
 
-export async function createUsers(totalUsers, adminId) {
+export function createModeratorRole() {
+  return prisma.role.create({
+    data: {
+      name: 'moderator',
+      permissions: {
+        create: { name: 'moderator' },
+      },
+    },
+  })
+}
+
+export async function createUsers(totalUsers) {
   console.time(`👤 Created ${totalUsers} users...`)
   for (let i = 0; i < totalUsers; i++) {
     await prisma.user.create({
@@ -35,47 +38,122 @@ export async function createUsers(totalUsers, adminId) {
         name: faker.name.firstName(),
         email: faker.internet.email(),
         color: faker.internet.color(),
-        adminId: adminId,
       },
     })
   }
-  const userData = { name: 'Joseamica', email: 'joseamica@gmail.com', color: '#1AA7EC' }
+  const adminData = { name: 'Admin', email: 'admin@gmail.com', color: '#1AA7EC' }
   const adminRole = await prisma.role.findFirst({ where: { name: 'admin' } })
   await prisma.user.create({
     data: {
-      ...userData,
+      ...adminData,
       roles: { connect: { id: adminRole.id } },
-      adminId: adminId,
+
       password: {
         create: {
-          hash: await getPasswordHash('joseamica'),
+          hash: await getPasswordHash('administrator'),
         },
       },
     },
   })
+
+  const moderatorRole = await prisma.role.findFirst({ where: { name: 'moderator' } })
+  for (let i = 0; i < 3; i++) {
+    await prisma.user.create({
+      data: {
+        name: `moderator${i}`,
+        email: `${i}mod@gmail.com`,
+        color: '#1AA74C',
+        roles: { connect: { id: moderatorRole.id } },
+
+        password: {
+          create: {
+            hash: await getPasswordHash('moderator'),
+          },
+        },
+      },
+    })
+  }
   console.timeEnd(`👤 Created ${totalUsers} users...`)
 }
 
-const AVOQADO_LOGO =
-  'https://firebasestorage.googleapis.com/v0/b/avoqado-d0a24.appspot.com/o/kuikku%2FKUIKKU%20(2)%20(1)%20copy.png?alt=media&token=158e8d1b-d24b-406b-85e7-a507b29d84fc'
+export async function createChainAndBranches() {
+  const chainIds = []
+  const moderatorRole = await prisma.role.findFirst({ where: { name: 'moderator' } })
+  const moderators = await prisma.user.findMany({
+    where: {
+      roles: {
+        some: {
+          id: moderatorRole.id,
+        },
+      },
+    },
+  })
+  const moderatorIds = moderators.map(mod => mod.id)
 
-export function createChain(totalRest, adminId) {
+  // Create 2 chains
+  for (let i = 0; i < 2; i++) {
+    const chain = await createChain(1, moderatorIds) // Passing moderator IDs
+    chainIds.push(chain.id)
+
+    // Create 2 branches for each chain
+    for (let j = 0; j < 2; j++) {
+      const branch = await createBranch(chain.id, 1) // Your existing createBranch function
+
+      // Create 4 tables for each branch
+      const tableIds = await createTables(branch.id, 4) // Your existing createTables function
+
+      // Create 3 employees for each branch (1 manager and 2 waiters)
+      await createEmployees(branch.id, tableIds, 1, 2) // Modified createEmployees function
+
+      // Create menu, availabilities, categories, products, and modifiers for each branch
+      const menu = await createMenu(branch.id) // Your existing createMenu function
+      await createAvailabilities(menu.id) // Your existing createAvailabilities function
+      const categories = await createCategories(menu.id, branch.id) // Your existing createCategories function
+      await createProductsAndModifiers(categories, branch.id) // Your existing createProductsAndModifiers function
+    }
+  }
+}
+
+// Modify createEmployees function to take the number of managers and waiters as arguments
+export async function createEmployees(branchId: string, tableIds: string[], numManagers: number, numWaiters: number) {
+  for (let i = 0; i < numManagers; i++) {
+    await createEmployee('manager', branchId, tableIds)
+  }
+
+  for (let i = 0; i < numWaiters; i++) {
+    await createEmployee('waiter', branchId, tableIds)
+  }
+
+  console.log('🧑🏼‍🍳 Created the employees...')
+}
+
+async function createEmployee(role: EmployeeRoles, branchId: string, tableIds: string[]) {
+  await prisma.employee.create({
+    data: {
+      role,
+      name: faker.name.firstName(),
+      email: faker.internet.email(),
+      phone: faker.phone.number(),
+      branchId,
+      image: faker.image.avatar(),
+      tables: { connect: tableIds.map(id => ({ id })) },
+    },
+  })
+}
+
+export function createChain(totalRest, moderatorIds) {
   console.log('🏢 Created the chain...')
   for (let i = 0; i < totalRest; i++) {
     return prisma.chain.create({
       data: {
         name: faker.company.name(),
-        adminId: adminId,
-        // logo: faker.image.food(),
-        // email: faker.internet.email(),
-        // phone: faker.phone.number(),
-        // adminEmail: faker.internet.email(),
+        moderatorIds: moderatorIds, // Adding moderator IDs
       },
     })
   }
 }
 
-export function createBranch(chainId: string, totalBranches: number, adminId: string) {
+export function createBranch(chainId: string, totalBranches: number) {
   console.log('🏢 Created the branch...')
   for (let i = 0; i < totalBranches; i++) {
     return prisma.branch.create({
@@ -88,11 +166,9 @@ export function createBranch(chainId: string, totalBranches: number, adminId: st
         wifiName: faker.random.alphaNumeric(8),
         wifiPwd: faker.random.alphaNumeric(8),
         city: faker.address.city(),
-        admin: {
-          connect: { id: adminId },
-        },
+
         address: faker.address.streetAddress(),
-        extraAddress: faker.address.streetName(),
+        extraAddress: faker.address.street(),
         country: faker.address.country(),
         // rating: 4.8,
         // rating_quantity: 400,
@@ -173,7 +249,7 @@ export async function createProductsAndModifiers(categories: any, branchId: stri
       min: 1,
       multiply: 1,
       name: 'Salsas',
-      plu: 'SALSA-01',
+      plu: `PLU${getRandom(1000, 9999)}`,
     },
   })
   console.log("🍔 Created the menu's modifier group...")
@@ -203,10 +279,9 @@ export async function createProductsAndModifiers(categories: any, branchId: stri
       range(1, 2).map(j =>
         prisma.menuItem.create({
           data: {
-            name: `${category.name} Item #${j}`,
+            name: `${category.name}${j}`,
             plu: `PLU-${category.name}-${j}`,
-            image:
-              'https://firebasestorage.googleapis.com/v0/b/avoqado-d0a24.appspot.com/o/1.%20Madre%20Cafecito%2FDSC_3020.jpg?alt=media&token=b263b604-1691-45e7-9f4f-d6598056e45d',
+            image: `${faker.image.food()}?random=${Date.now()}${i}${j}`,
             description: faker.commerce.productDescription(),
             price: faker.commerce.price(100, 500),
             available: true,
@@ -218,34 +293,6 @@ export async function createProductsAndModifiers(categories: any, branchId: stri
       ),
     ),
   )
-}
-
-export async function createEmployees(branchId: string, tableIds: [string]) {
-  for (const i of tableIds) {
-    await prisma.employee.create({
-      data: {
-        role: 'waiter',
-        name: faker.name.firstName(),
-        email: faker.internet.email(),
-        phone: faker.phone.number(),
-        branchId: branchId,
-        image: faker.image.avatar(),
-        tables: { connect: tableIds.map(id => ({ id })) },
-      },
-    })
-  }
-  await prisma.employee.create({
-    data: {
-      role: 'manager',
-      name: faker.name.firstName(),
-      email: faker.internet.email(),
-      phone: faker.phone.number(),
-      branchId: branchId,
-      image: faker.image.avatar(),
-      tables: { connect: tableIds.map(id => ({ id })) },
-    },
-  })
-  console.log('🧑🏼‍🍳 Created the employees...')
 }
 
 export async function createAvailabilities(menuId: string) {
@@ -271,7 +318,6 @@ export function createDeliverect() {
 export async function cleanDatabase() {
   console.time('🧹 Cleaned up the database...')
   const tablesToClean = [
-    'admin',
     'chain',
     'branch',
     'table',
@@ -290,6 +336,8 @@ export async function cleanDatabase() {
     'employee',
     'deliverect',
     'availabilities',
+    'role',
+    'permission',
   ]
   for (const table of tablesToClean) {
     await prisma[table].deleteMany()

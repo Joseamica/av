@@ -5,6 +5,7 @@ import { type LoaderArgs, json } from '@remix-run/node'
 
 import clsx from 'clsx'
 import { prisma } from '~/db.server'
+import { getSession } from '~/session.server'
 
 import { requireAdmin } from '~/utils/permissions.server'
 
@@ -13,52 +14,76 @@ import MainAdminContainer from '~/components/admin/main-container'
 export async function loader({ request, params }: LoaderArgs) {
   const { branchId } = params
 
-  const isAdmin = await requireAdmin(request)
+  const session = await getSession(request)
+  const userId = session.get('userId')
 
-  const admin = await prisma.admin.findFirst({
-    where: {
-      id: isAdmin.adminId,
-      access: { gte: 2 },
-      branches: {
-        some: {
-          id: branchId,
-        },
-      },
-    },
+  const userRoles = await prisma.user.findFirst({
+    where: { id: userId },
     include: {
-      availabilities: true,
-      menuCategories: {
+      roles: {
         include: {
-          menu: true,
+          permissions: true,
         },
       },
-      menuItems: true,
-      menus: {
-        include: {
-          menuCategories: {
-            include: {
-              menuItems: true,
-            },
-          },
-        },
-      },
-      orders: {
-        include: {
-          cartItems: true,
-        },
-      },
-      payments: true,
-      feedbacks: true,
-      tables: true,
-      employees: true,
-      branches: true,
-      user: true,
     },
   })
 
-  const branch = admin
+  const roles = userRoles?.roles.map(role => role.name)
 
-  return json({ branch })
+  if (roles.includes('admin') || roles.includes('moderator')) {
+    const data = await prisma.branch.findUnique({
+      where: {
+        id: branchId,
+      },
+      include: {
+        feedbacks: true,
+        tables: true,
+        orders: {
+          include: {
+            cartItems: true,
+          },
+        },
+
+        menus: {
+          include: {
+            availabilities: true,
+            menuCategories: {
+              include: {
+                menuItems: true,
+              },
+            },
+          },
+        },
+        notifications: true,
+        payments: true,
+        employees: true,
+        users: true,
+      },
+    })
+
+    const branch = {
+      ...data,
+      availabilities: data.menus.flatMap(menu => menu.availabilities),
+      menuCategories: await prisma.menuCategory.findMany({
+        where: {
+          menu: {
+            some: {
+              branchId: branchId,
+            },
+          },
+        },
+        include: {
+          menuItems: true,
+          menu: true,
+        },
+      }),
+      menuItems: data.menus.flatMap(menu => menu.menuCategories.flatMap(category => category.menuItems)),
+    }
+
+    return json({ branch })
+  }
+
+  throw json({ error: 'Unauthorized', requiredRole: 'admin' }, { status: 403 })
 }
 
 export default function AdminBranch() {
@@ -102,7 +127,9 @@ export default function AdminBranch() {
             )} */}
           </div>
         ))}
+        <Link to="/admin">Select other branch</Link>
       </div>
+
       <div className="col-start-3 col-end-10 bg-white">
         <Outlet />
       </div>

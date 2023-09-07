@@ -1,14 +1,15 @@
 import {
   cleanDatabase,
-  createAdmin,
   createAdminRole,
   createAvailabilities,
   createBranch,
   createCategories, // createModifiers,
   createChain,
+  createChainAndBranches,
   createDeliverect,
   createEmployees,
   createMenu,
+  createModeratorRole,
   createProductsAndModifiers,
   createTables,
   createUsers,
@@ -20,19 +21,13 @@ async function seed() {
 
   await cleanDatabase()
   await createAdminRole()
-  const admin = await createAdmin()
+  await createModeratorRole()
   await createDeliverect()
-  await createUsers(1, admin.id)
-  const chain = await createChain(2, admin.id)
-  const branch = await createBranch(chain.id, 2)
-  const tableIds = (await createTables(branch.id, 7)) as any
-  await createEmployees(branch.id, tableIds)
-  const menu = await createMenu(branch.id)
-  await createAvailabilities(menu.id)
-  const categories = await createCategories(menu.id, branch.id)
-  await createProductsAndModifiers(categories, branch.id)
+  await createUsers(1)
 
-  // await createModifiers(menu.id)
+  await createChainAndBranches() // New function to wrap all the creations
+
+  console.timeEnd(`🌱 Database has been seeded`)
 }
 
 seed()

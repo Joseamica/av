@@ -7,7 +7,6 @@ import { getFieldsetConstraint, parse } from '@conform-to/zod'
 import { namedAction } from 'remix-utils'
 import { z } from 'zod'
 import { prisma } from '~/db.server'
-import { getAdminId } from '~/session.server'
 
 import { Button } from '~/components'
 import { HeaderWithButton } from '~/components/admin/headers'
@@ -51,8 +50,6 @@ export async function action({ request, params }: ActionArgs) {
     )
   }
 
-  const adminId = await getAdminId(request)
-
   return namedAction(request, {
     async create() {
       await prisma.menuItem.create({
@@ -62,11 +59,7 @@ export async function action({ request, params }: ActionArgs) {
           name: submission.value.name,
           description: submission.value.description ?? '',
           price: submission.value.price,
-          admin: {
-            connect: {
-              id: adminId,
-            },
-          },
+
           menuCategory: {
             connect: {
               id: submission.value.selectItems,

@@ -1,5 +1,5 @@
 import { conform, useForm } from '@conform-to/react'
-import { useFetcher, useParams, useRouteLoaderData, useSearchParams } from '@remix-run/react'
+import { useFetcher, useLoaderData, useParams, useRouteLoaderData, useSearchParams } from '@remix-run/react'
 
 import { type ActionArgs, type LoaderArgs, json, redirect } from '@remix-run/node'
 
@@ -26,7 +26,25 @@ const paymentsFormSchema = z.object({
   selectItems: z.string().nonempty('You must select at least one order'),
 })
 export async function loader({ request, params }: LoaderArgs) {
-  return json({ success: true })
+  const { branchId } = params
+  const payments = await prisma.payments.findMany({
+    where: {
+      branchId,
+    },
+    include: {
+      order: true,
+    },
+  })
+  const orders = await prisma.order.findMany({
+    where: {
+      branchId,
+    },
+    include: {
+      cartItems: true,
+    },
+  })
+
+  return json({ payments, orders })
 }
 export async function action({ request, params }: ActionArgs) {
   const formData = await request.formData()
@@ -87,6 +105,7 @@ export async function action({ request, params }: ActionArgs) {
 }
 
 export default function Payments() {
+  const data = useLoaderData()
   const { branch } = useRouteLoaderData('routes/admin_.$branchId') as any
   const { branchId } = useParams()
 
@@ -113,7 +132,7 @@ export default function Payments() {
     <main>
       <HeaderWithButton queryKey="addItem" queryValue="true" buttonLabel="Add" />
       <div className="flex flex-wrap gap-2 p-4">
-        {branch.payments.map(payment => (
+        {data.payments.map(payment => (
           <Square
             itemId={payment.id}
             name={
@@ -131,11 +150,11 @@ export default function Payments() {
         <fetcher.Form method="POST" {...form.props} action="?/create">
           <PaymentForm
             intent="add"
-            payments={branch.payments}
+            payments={data.payments}
             editSubItemId={editItem}
             isSubmitting={isSubmitting}
             fields={fields}
-            addingData={{ data: branch.orders, keys: ['total'] }}
+            addingData={{ data: data.orders, keys: ['total'] }}
           />
           <input type="hidden" value={addItem ? addItem : ''} {...conform.input(fields.id)} />
         </fetcher.Form>
@@ -144,11 +163,11 @@ export default function Payments() {
         <fetcher.Form method="POST" {...form.props} action="?/update">
           <PaymentForm
             intent="edit"
-            payments={branch.payments}
+            payments={data.payments}
             editSubItemId={editItem}
             isSubmitting={isSubmitting}
             fields={fields}
-            addingData={{ data: branch.orders, keys: ['id'] }}
+            addingData={{ data: data.orders, keys: ['id'] }}
           />
           <input type="hidden" value={editItem ? editItem : ''} {...conform.input(fields.id)} />
         </fetcher.Form>

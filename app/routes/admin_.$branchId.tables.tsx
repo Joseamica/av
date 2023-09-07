@@ -119,7 +119,7 @@ export default function Tables() {
       <HeaderWithButton queryKey="addItem" queryValue="true" buttonLabel="Add" />
       <Spacer size="sm" />
       <div className="flex flex-wrap gap-2 ">
-        {branch.tables.map((table: Table) => (
+        {branch.tables?.map((table: Table) => (
           <Container editQuery={`?editItem=${table.id}`} name={table.number} itemIdQuery={`?itemId=${table.id}`} key={table.id} />
         ))}
       </div>

@@ -7,34 +7,14 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-model Admin {
-  id             String           @id @default("cllb3d9b90003cedclcthud41")
-  access         Int?
-  user           User[]
-  branches       Branch[]
-  tables         Table[]
-  orders         Order[]
-  employees      Employee[]
-  availabilities Availabilities[]
-  feedbacks      Feedback[]
-  menuCategories MenuCategory[]
-  menuItems      MenuItem[]
-  modifierGroups ModifierGroup[]
-  modifiers      Modifiers[]
-  cartItems      CartItem[]
-  payments       Payments[]
-  menus          Menu[]
-  chains         Chain[]
-}
-
 model Chain {
-  id        String    @id @default(cuid())
-  name      String
-  branches  Branch[]
-  adminId   String?   @default("cllb3d9b90003cedclcthud41")
-  admin     Admin?    @relation(fields: [adminId], references: [id])
-  updatedAt DateTime? @updatedAt
-  createdAt DateTime  @default(now())
+  id       String   @id @default(cuid())
+  name     String
+  branches Branch[]
+
+  updatedAt    DateTime? @updatedAt
+  createdAt    DateTime  @default(now())
+  moderatorIds String[]
 }
 
 // model Venue {
@@ -67,29 +47,31 @@ model Chain {
 // }
 
 model Branch {
-  id              String         @id @default(cuid())
-  name            String
+  id           String   @id @default(cuid())
+  name         String
   // restaurantId    String
-  address         String
-  extraAddress    String
-  city            String
-  country         String?
-  timezone        String?
-  phone           String?
-  email           String
-  language        String?        @default("en")
-  image           String
+  address      String
+  extraAddress String
+  city         String
+  country      String?
+  timezone     String?
+  phone        String?
+  email        String   @unique
+  language     String?  @default("en")
+  image        String
   // rating          Float?
   // rating_quantity Int?
+  managerIds   String[]
+
   cuisine         String
   wifiName        String?
   wifiPwd         String?
   // coordinates     Json?
   // open            Int?
   // close           Int?
-  tipsPercentages Decimal[]      @default([10, 12, 15])
-  paymentMethods  String[]       @default(["cash", "card"])
-  social          String[]       @default([])
+  tipsPercentages Decimal[]  @default([10, 12, 15])
+  paymentMethods  String[]   @default(["cash", "card"])
+  social          String[]   @default([])
   menus           Menu[]
   tables          Table[]
   orders          Order[]
@@ -97,38 +79,35 @@ model Branch {
   employees       Employee[]
   feedbacks       Feedback[]
   payments        Payments[]
-  // menuCategories  MenuCategory[]
-  // menuItems       MenuItem[]
+
   // restaurant      Restaurant     @relation(fields: [restaurantId], references: [id], onDelete: Cascade, onUpdate: Cascade)
-  adminId         String?        @default("cllb3d9b90003cedclcthud41")
-  admin           Admin?         @relation(fields: [adminId], references: [id])
-  notifications   Notification[]
-  chain           Chain?         @relation(fields: [chainId], references: [id])
-  chainId         String?
-  updatedAt       DateTime?      @updatedAt
-  createdAt       DateTime       @default(now())
-  MenuCategory    MenuCategory[]
-  MenuItem        MenuItem[]
+
+  notifications Notification[]
+  chain         Chain?         @relation(fields: [chainId], references: [id])
+  chainId       String?
+  updatedAt     DateTime?      @updatedAt
+  createdAt     DateTime       @default(now())
+  MenuCategory  MenuCategory[]
+  MenuItem      MenuItem[]
 }
 
 model Table {
-  id                String         @id @default(cuid())
+  id                String     @id @default(cuid())
   number            Int
   floorId           String?
   locationId        String?
   seats             Int?
-  order_in_progress Boolean        @default(false)
-  branch            Branch         @relation(fields: [branchId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  order_in_progress Boolean    @default(false)
+  branch            Branch     @relation(fields: [branchId], references: [id], onDelete: Cascade, onUpdate: Cascade)
   branchId          String
   order             Order?
   users             User[]
   employees         Employee[]
   feedbacks         Feedback[]
-  adminId           String?        @default("cllb3d9b90003cedclcthud41")
-  admin             Admin?         @relation(fields: [adminId], references: [id])
-  updatedAt         DateTime?      @updatedAt
-  createdAt         DateTime       @default(now())
-  notifications     Notification[]
+
+  updatedAt     DateTime?      @updatedAt
+  createdAt     DateTime       @default(now())
+  notifications Notification[]
 }
 
 model Menu {
@@ -145,11 +124,9 @@ model Menu {
   personalizeMenu Boolean?         @default(false)
   image           String?
   availabilities  Availabilities[]
-  adminId         String?          @default("cllb3d9b90003cedclcthud41")
-  // automatically add table also on admin model
-  admin           Admin?           @relation(fields: [adminId], references: [id])
-  updatedAt       DateTime?        @updatedAt
-  createdAt       DateTime         @default(now())
+
+  updatedAt DateTime? @updatedAt
+  createdAt DateTime  @default(now())
 }
 
 model Availabilities {
@@ -161,10 +138,9 @@ model Availabilities {
   menu           Menu?         @relation(fields: [menuId], references: [id], onDelete: Cascade, onUpdate: Cascade)
   menuCategory   MenuCategory? @relation(fields: [menuCategoryId], references: [id])
   menuCategoryId String?
-  adminId        String?       @default("cllb3d9b90003cedclcthud41")
-  admin          Admin?        @relation(fields: [adminId], references: [id])
-  updatedAt      DateTime?     @updatedAt
-  createdAt      DateTime      @default(now())
+
+  updatedAt DateTime? @updatedAt
+  createdAt DateTime  @default(now())
 
   @@unique([dayOfWeek, startTime, endTime, menuId])
 }
@@ -180,10 +156,9 @@ model MenuCategory {
   menuItems      MenuItem[]
   branch         Branch?          @relation(fields: [branchId], references: [id])
   branchId       String?
-  adminId        String?          @default("cllb3d9b90003cedclcthud41")
-  admin          Admin?           @relation(fields: [adminId], references: [id])
-  updatedAt      DateTime?        @updatedAt
-  createdAt      DateTime         @default(now())
+
+  updatedAt DateTime? @updatedAt
+  createdAt DateTime  @default(now())
 }
 
 model MenuItem {
@@ -201,10 +176,9 @@ model MenuItem {
   cartItems      CartItem[]
   branch         Branch?         @relation(fields: [branchId], references: [id])
   branchId       String?
-  adminId        String?         @default("cllb3d9b90003cedclcthud41")
-  admin          Admin?          @relation(fields: [adminId], references: [id])
-  updatedAt      DateTime?       @updatedAt
-  createdAt      DateTime        @default(now())
+
+  updatedAt DateTime? @updatedAt
+  createdAt DateTime  @default(now())
 }
 
 model Order {
@@ -223,8 +197,6 @@ model Order {
   branchId     String?
   cartItems    CartItem[]
   payments     Payments[]
-  adminId      String?    @default("cllb3d9b90003cedclcthud41")
-  admin        Admin?     @relation(fields: [adminId], references: [id])
 }
 
 model CartItem {
@@ -249,8 +221,6 @@ model CartItem {
   user          User[]
   activeOnOrder Boolean?
   rating        String?
-  adminId       String?     @default("cllb3d9b90003cedclcthud41")
-  admin         Admin?      @relation(fields: [adminId], references: [id])
 }
 
 model Modifiers {
@@ -265,8 +235,6 @@ model Modifiers {
   modifierGroupId String?
   cartItems       CartItem[]
   cartItemId      String?
-  adminId         String?        @default("cllb3d9b90003cedclcthud41")
-  admin           Admin?         @relation(fields: [adminId], references: [id])
 }
 
 model ModifierGroup {
@@ -282,38 +250,36 @@ model ModifierGroup {
   modifiers  Modifiers[]
   menuItems  MenuItem[]
   cartItemId String?
-  adminId    String?     @default("cllb3d9b90003cedclcthud41")
-  admin      Admin?      @relation(fields: [adminId], references: [id])
-  updatedAt  DateTime?   @updatedAt
-  createdAt  DateTime    @default(now())
+
+  updatedAt DateTime? @updatedAt
+  createdAt DateTime  @default(now())
 }
 
 model User {
-  id            String         @id @default(cuid())
-  name          String?
-  email         String?        @unique
-  image         String?
-  phone         String?
-  password      Password?
-  color         String?
-  tip           Decimal?
-  paid          Decimal?
-  total         Decimal?
-  orderId       String?
-  orders        Order?         @relation(fields: [orderId], references: [id])
-  roles         Role[]
-  branch        Branch?        @relation(fields: [branchId], references: [id])
-  branchId      String?
-  cartItems     CartItem[]
-  tables        Table?         @relation(fields: [tableId], references: [id])
-  tableId       String?
-  feedbacks     Feedback[]
-  sessions      Session[]
-  payments      Payments[]
+  id           String     @id @default(cuid())
+  name         String?
+  email        String?    @unique
+  image        String?
+  phone        String?
+  password     Password?
+  color        String?
+  tip          Decimal?
+  paid         Decimal?
+  total        Decimal?
+  orderId      String?
+  orders       Order?     @relation(fields: [orderId], references: [id])
+  roles        Role[]
+  branch       Branch?    @relation(fields: [branchId], references: [id])
+  branchId     String?
+  cartItems    CartItem[]
+  tables       Table?     @relation(fields: [tableId], references: [id])
+  tableId      String?
+  feedbacks    Feedback[]
+  sessions     Session[]
+  payments     Payments[]
   // restaurant    Restaurant?    @relation(fields: [restaurantId], references: [id])
-  restaurantId  String?
-  adminId       String?
-  admin         Admin?         @relation(fields: [adminId], references: [id])
+  restaurantId String?
+
   updatedAt     DateTime?      @updatedAt
   createdAt     DateTime       @default(now())
   notifications Notification[]
@@ -350,19 +316,18 @@ model Password {
 }
 
 model Employee {
-  id            String         @id @default(cuid())
-  role          EmployeeRoles
-  name          String
-  image         String?
-  phone         String?
-  email         String?        @unique
-  password      Password?
-  tables        Table[]
-  feedbacks     Feedback[]
-  branch        Branch?        @relation(fields: [branchId], references: [id])
-  branchId      String?
-  adminId       String?        @default("cllb3d9b90003cedclcthud41")
-  admin         Admin?         @relation(fields: [adminId], references: [id])
+  id        String        @id @default(cuid())
+  role      EmployeeRoles
+  name      String
+  image     String?
+  phone     String?
+  email     String?       @unique
+  password  Password?
+  tables    Table[]
+  feedbacks Feedback[]
+  branch    Branch?       @relation(fields: [branchId], references: [id])
+  branchId  String?
+
   updatedAt     DateTime?      @updatedAt
   createdAt     DateTime       @default(now())
   notifications Notification[]
@@ -388,8 +353,6 @@ model Feedback {
   cartItems    CartItem[]
   user         User?      @relation(fields: [userId], references: [id])
   userId       String?
-  adminId      String?    @default("cllb3d9b90003cedclcthud41")
-  admin        Admin?     @relation(fields: [adminId], references: [id])
 }
 
 model Session {
@@ -405,20 +368,19 @@ model Session {
 model Payments {
   id String @id @default(cuid())
 
-  method    PaymentMethod
-  amount    Decimal
-  tip       Decimal?
-  total     Decimal?
-  branchId  String?
-  branch    Branch?       @relation(fields: [branchId], references: [id])
-  orderId   String?
-  order     Order?        @relation(fields: [orderId], references: [id])
-  userId    String?
-  user      User?         @relation(fields: [userId], references: [id])
-  adminId   String?       @default("cllb3d9b90003cedclcthud41")
-  admin     Admin?        @relation(fields: [adminId], references: [id])
-  updatedAt DateTime?     @updatedAt
-  createdAt DateTime      @default(now())
+  method   PaymentMethod
+  amount   Decimal
+  tip      Decimal?
+  total    Decimal?
+  branchId String?
+  branch   Branch?       @relation(fields: [branchId], references: [id])
+  orderId  String?
+  order    Order?        @relation(fields: [orderId], references: [id])
+  userId   String?
+  user     User?         @relation(fields: [userId], references: [id])
+
+  updatedAt DateTime? @updatedAt
+  createdAt DateTime  @default(now())
 }
 
 enum PaymentMethod {

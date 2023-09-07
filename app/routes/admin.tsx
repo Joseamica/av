@@ -5,21 +5,59 @@ import { type ActionArgs, type LoaderArgs, json, redirect } from '@remix-run/nod
 
 import type { Chain } from '@prisma/client'
 import { prisma } from '~/db.server'
-
-import { requireAdmin } from '~/utils/permissions.server'
+import { getSession } from '~/session.server'
 
 import { Button, H2 } from '~/components'
 import { EditRestDialog } from '~/components/admin/ui/dialogs/edit-rest-dialog'
 import SelectBranchDialog from '~/components/admin/ui/dialogs/select-branch-dialog'
 
 export const loader = async ({ request }: LoaderArgs) => {
-  const admin = await requireAdmin(request)
+  // const admin = await requireAdmin(request)
+  const session = await getSession(request)
+  const userId = session.get('userId')
 
-  const chains = await prisma.chain.findMany({
-    where: {
-      adminId: admin.adminId,
+  const user = await prisma.user.findFirst({
+    where: { id: userId },
+    include: {
+      roles: {
+        include: {
+          permissions: true,
+        },
+      },
     },
   })
+  if (!user || user.roles.length === 0) {
+    throw json({ error: 'Unauthorized', requiredRole: 'admin' }, { status: 403 })
+  }
+  const roles = user?.roles.map(role => role.name)
+
+  let chains = null
+  if (roles.includes('moderator')) {
+    chains = await prisma.chain.findMany({
+      where: {
+        moderatorIds: {
+          has: userId,
+        },
+      },
+      include: {
+        branches: true,
+      },
+    })
+  }
+
+  if (roles.includes('admin')) {
+    chains = await prisma.chain.findMany({
+      include: {
+        branches: true,
+      },
+    })
+  }
+
+  // const chains = await prisma.chain.findMany({
+  //   where: {
+  //     adminId: admin.adminId,
+  //   },
+  // })
 
   const searchParams = new URL(request.url).searchParams
   const chainId = searchParams.get('chainId') || null
@@ -47,7 +85,8 @@ export async function action({ request, params }: ActionArgs) {
 
 export default function Admin() {
   const data = useLoaderData()
-
+  // TODO - on loader, it will get user role and depending on the user role, we will return specific component
+  // For example: admin, all admin dashboard (avoqado devs), moderator (owner of the restaurant) all the branches assigned.
   const isBranches = data.selectedChain?.branches.length >= 1
 
   return (

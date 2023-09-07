@@ -29,8 +29,6 @@ export async function loader({ request, params }: LoaderArgs) {
 export async function action({ request, params }: ActionArgs) {
   const session = await getSession(request)
   const userId = session.get('userId')
-  const admin = await prisma.admin.findFirst({})
-  session.set('adminId', admin.id)
 
   await prisma.user.update({
     where: {
