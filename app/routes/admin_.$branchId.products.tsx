@@ -126,7 +126,7 @@ export default function Products() {
         ))}
       </div>
       {/* ANCHOR ADD */}
-      <QueryDialog title="Add Product" description="Modify the fields you want to add" query={'addItem'}>
+      <ScrollableQueryDialog title="Add Product" description="Modify the fields you want to add" query={'addItem'}>
         <fetcher.Form method="POST" {...form.props} action="?/create">
           <ProductForm
             intent="add"
@@ -138,7 +138,7 @@ export default function Products() {
           />
           <input type="hidden" value={addItem ? addItem : ''} {...conform.input(fields.id)} />
         </fetcher.Form>
-      </QueryDialog>
+      </ScrollableQueryDialog>
       {/* ANCHOR EDIT */}
       <ScrollableQueryDialog title="Edit Product" description="Modify the fields you want to edit" query={'editItem'}>
         <fetcher.Form method="POST" {...form.props} action="?/update">

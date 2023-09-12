@@ -76,7 +76,7 @@ export function ScrollableQueryDialog({
       }}
     >
       <Dialog.Overlay className="fixed top-0 left-0 right-0 bottom-0 grid place-items-center overflow-y-auto bg-black bg-opacity-80">
-        <Dialog.Close className="absolute top-0 right-0 m-3">
+        <Dialog.Close className="absolute top-0 right-0 m-3 bg-white rounded-full p-3">
           <XIcon />
         </Dialog.Close>
         <Dialog.Content className="bg-white p-8 rounded-md min-w-[450px]">
