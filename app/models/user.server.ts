@@ -109,6 +109,18 @@ export async function getUsersOnTable(tableId: Table['id']) {
   const users = await prisma.user.findMany({
     where: {
       tableId: tableId,
+      roles: {
+        none: {
+          OR: [
+            {
+              name: 'admin',
+            },
+            {
+              name: 'moderator',
+            },
+          ],
+        },
+      },
     },
   })
 

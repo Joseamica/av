@@ -28,12 +28,15 @@ const categoriesFormSchema = z.object({
   image: z.string().trim().url().optional(),
   pdf: checkboxSchema(),
   description: z.string().min(1).max(100).optional(),
-  selectItems: z.string().nonempty('You must select at least one category'),
+  selectItems: z.array(z.string()).nonempty('You must select at least one category'),
 })
 export async function loader({ request, params }: LoaderArgs) {
   const categories = await prisma.menuCategory.findMany({
     where: {
       branchId: params.branchId,
+    },
+    include: {
+      menu: true,
     },
   })
   invariant(categories, 'categories must be defined')
@@ -61,21 +64,17 @@ export async function action({ request, params }: ActionArgs) {
 
   return namedAction(request, {
     async create() {
-      for (const item of submission.value.selectItems) {
-        console.log('item', item)
-        await prisma.menuCategory.create({
-          data: {
-            name: capitalizeFirstLetter(submission.value.name),
-            image: submission.value.image,
-            pdf: submission.value.pdf,
-            menu: {
-              connect: {
-                id: item,
-              },
-            },
+      await prisma.menuCategory.create({
+        data: {
+          name: capitalizeFirstLetter(submission.value.name),
+          image: submission.value.image,
+          pdf: submission.value.pdf,
+          menu: {
+            connect: submission.value.selectItems ? submission.value.selectItems.map(id => ({ id })) : [],
           },
-        })
-      }
+        },
+      })
+
       return redirect('')
     },
     async update() {

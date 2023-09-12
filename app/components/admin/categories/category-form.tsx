@@ -61,9 +61,7 @@ export function CategoryForm({
                 {...conform.input(fields.selectItems, { type: 'checkbox' })}
                 name="selectItems"
                 value={keys.id}
-                defaultChecked={
-                  isEditing ? categories.find(category => category.id === editSubItemId)?.menu?.find(menu => menu.id === keys.id) : ''
-                }
+                defaultChecked={isEditing ? categories.find(category => category.id).menu.find(menu => menu.id === keys.id) : ''}
               />
               <H5>{keys[addingData.keys]}</H5>
             </label>

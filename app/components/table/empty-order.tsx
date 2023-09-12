@@ -48,18 +48,18 @@ export function EmptyOrder({
       <Spacer spaceY="3">
         <h3 className="text-secondaryTextDark flex shrink-0 justify-center pr-2 text-sm">{`Mesa ${tableNumber}`}</h3>
       </Spacer>
-      <SectionContainer
-        className="dark:bg-DARK_1 dark:bg-night-bg_principal dark:text-night-text_principal flex flex-col justify-start rounded-lg bg-day-bg_principal p-2 drop-shadow-md dark:drop-shadow-none"
-        data-intro="Aquí puedes ver quién está en la mesa"
-        data-step="2"
-        data-title="Usuarios"
-      >
-        <p className="text-DARK_3">Usuarios en la mesa</p>
-        <Spacer spaceY="2">
-          <hr className="dark:border-DARK_OUTLINE border-LIGHT_DIVIDER" />
-        </Spacer>
-        {usersInTable &&
-          usersInTable.map((user, index: number) => (
+      {usersInTable && (
+        <SectionContainer
+          className="dark:bg-DARK_1 dark:bg-night-bg_principal dark:text-night-text_principal flex flex-col justify-start rounded-lg bg-day-bg_principal p-2 drop-shadow-md dark:drop-shadow-none"
+          data-intro="Aquí puedes ver quién está en la mesa"
+          data-step="2"
+          data-title="Usuarios"
+        >
+          <p className="text-DARK_3">Usuarios en la mesa</p>
+          <Spacer spaceY="2">
+            <hr className="dark:border-DARK_OUTLINE border-LIGHT_DIVIDER" />
+          </Spacer>
+          {usersInTable.map((user, index: number) => (
             <FlexRow className="w-full items-center justify-between space-x-2 space-y-2" key={user.id}>
               <FlexRow className="items-center space-x-2">
                 <UserButton userColor={user?.color} path={`user/${user?.id}`} />
@@ -67,7 +67,8 @@ export function EmptyOrder({
               </FlexRow>
             </FlexRow>
           ))}
-      </SectionContainer>
+        </SectionContainer>
+      )}
     </main>
   )
 }

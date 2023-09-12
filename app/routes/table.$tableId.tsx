@@ -110,7 +110,10 @@ export async function loader({ request, params }: LoaderArgs) {
     }
 
     const isUserInOrder = await prisma.user.findFirst({
-      where: { id: user.userId, orderId: order?.id },
+      where: {
+        id: user.userId,
+        orderId: order?.id,
+      },
     })
 
     // * TODO por qué lo de la isUserInOrder
