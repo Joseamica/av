@@ -58,6 +58,11 @@ export async function action({ request, params }: ActionArgs) {
               id: submission.value.selectItems,
             },
           },
+          branch: {
+            connect: {
+              id: params.branchId,
+            },
+          },
         },
       })
       return redirect('')
@@ -72,6 +77,11 @@ export async function action({ request, params }: ActionArgs) {
           menu: {
             connect: {
               id: submission.value.selectItems,
+            },
+          },
+          branch: {
+            connect: {
+              id: params.branchId,
             },
           },
         },

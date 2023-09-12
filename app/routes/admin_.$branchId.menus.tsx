@@ -1,19 +1,20 @@
 import { conform, useForm } from '@conform-to/react'
 import * as Dialog from '@radix-ui/react-dialog'
-import { Link, Outlet, useFetcher, useRouteLoaderData, useSearchParams } from '@remix-run/react'
+import { Outlet, useFetcher, useLoaderData, useSearchParams } from '@remix-run/react'
 
-import { type ActionArgs, json, redirect } from '@remix-run/node'
+import { type ActionArgs, type LoaderArgs, json, redirect } from '@remix-run/node'
 
 import { getFieldsetConstraint, parse } from '@conform-to/zod'
 import { namedAction } from 'remix-utils'
 import { z } from 'zod'
 import { prisma } from '~/db.server'
 
-import { Button, FlexRow, XIcon } from '~/components'
+import { Button, XIcon } from '~/components'
 import { HeaderWithButton } from '~/components/admin/headers'
-import { ErrorList, Field } from '~/components/admin/ui/forms'
+import { MenuForm } from '~/components/admin/menus/menu-form'
+import { ScrollableQueryDialog } from '~/components/admin/ui/dialogs/dialog'
+import { ErrorList } from '~/components/admin/ui/forms'
 import { Square } from '~/components/admin/ui/square'
-import { DeleteIcon, EditIcon } from '~/components/icons'
 
 const menuSchema = z.object({
   id: z.string(),
@@ -21,9 +22,38 @@ const menuSchema = z.object({
   type: z.string().min(1).max(20).optional(),
   currency: z.string().min(3).max(3).optional(),
   image: z.string().trim().url().optional(),
+  selectItems: z.array(z.string()).optional(),
 })
 
 export const handle = { active: 'Menus' }
+
+export async function loader({ request, params }: LoaderArgs) {
+  const { branchId } = params
+  const menus = await prisma.menu.findMany({
+    where: {
+      branchId,
+    },
+    include: {
+      availabilities: true,
+      menuCategories: {
+        include: {
+          menuItems: true,
+        },
+      },
+    },
+  })
+
+  const availabilities = await prisma.availabilities.findMany({
+    where: {
+      branchId,
+    },
+    orderBy: {
+      dayOfWeek: 'asc',
+    },
+  })
+
+  return json({ menus, availabilities })
+}
 
 export async function action({ request, params }: ActionArgs) {
   const { branchId } = params
@@ -48,6 +78,7 @@ export async function action({ request, params }: ActionArgs) {
 
   return namedAction(request, {
     async create() {
+      // for (const item of submission.value.selectItems) {
       await prisma.menu.create({
         data: {
           name: submission.value.name,
@@ -57,11 +88,24 @@ export async function action({ request, params }: ActionArgs) {
           branch: {
             connect: { id: branchId },
           },
+          availabilities: {
+            connect: submission.value.selectItems ? submission.value.selectItems.map(id => ({ id })) : [],
+          },
         },
       })
+      // }
       return redirect('')
     },
     async update() {
+      await prisma.menu.update({
+        where: { id: submission.value.id },
+        data: {
+          availabilities: {
+            set: [],
+          },
+        },
+      })
+
       await prisma.menu.update({
         where: { id: submission.value.id },
         data: {
@@ -69,8 +113,15 @@ export async function action({ request, params }: ActionArgs) {
           type: submission.value.type,
           currency: submission.value.currency,
           image: submission.value.image,
+          availabilities: {
+            connect: submission.value.selectItems ? submission.value.selectItems.map(id => ({ id })) : [],
+          },
+          branch: {
+            connect: { id: branchId },
+          },
         },
       })
+
       return redirect('')
     },
     async delete() {
@@ -81,7 +132,8 @@ export async function action({ request, params }: ActionArgs) {
 }
 
 export default function Menus() {
-  const { branch } = useRouteLoaderData('routes/admin_.$branchId') as any
+  const data = useLoaderData()
+
   const fetcher = useFetcher()
   const isSubmitting = fetcher.state !== 'idle'
   const [searchParams, setSearchParams] = useSearchParams()
@@ -95,7 +147,6 @@ export default function Menus() {
     },
     shouldRevalidate: 'onBlur',
   })
-
   const addItem = searchParams.get('addItem')
   const editItem = searchParams.get('editItem')
   const deleteItem = searchParams.get('deleteItem')
@@ -104,126 +155,44 @@ export default function Menus() {
     <main>
       <HeaderWithButton queryKey="addItem" queryValue="true" buttonLabel="Add" />
       <div className="flex flex-wrap gap-2 p-4">
-        {branch.menus.map(menu => (
+        {data.menus.map(menu => (
           <Square itemId={menu.id} name={menu.name} to={menu.id} key={menu.id} />
         ))}
       </div>
       {/* ANCHOR ADD */}
-      <Dialog.Root
-        open={addItem ? true : false}
-        onOpenChange={() => {
-          searchParams.delete('addItem')
-          setSearchParams(searchParams)
-        }}
-      >
-        <Dialog.Overlay className="fixed inset-0 bg-black bg-opacity-80" />
-        <Dialog.Content className="data-[state=open]:animate-contentShow fixed top-[50%] left-[50%] max-h-[85vh] w-[90vw] max-w-[450px] translate-x-[-50%] translate-y-[-50%] rounded-[6px] bg-white p-[25px] shadow-[hsl(206_22%_7%_/_35%)_0px_10px_38px_-10px,_hsl(206_22%_7%_/_20%)_0px_10px_20px_-15px] focus:outline-none">
-          <Dialog.Close className="absolute top-0 right-0 m-3">
-            <XIcon />
-          </Dialog.Close>
-          <Dialog.Title className="text-mauve12 m-0 text-[17px] font-medium">Add Menu</Dialog.Title>
-          <Dialog.Description className="text-mauve11 mt-[10px] mb-5 text-[15px] leading-normal">
-            Enter into the fields below the information about the menu you want to add.
-          </Dialog.Description>
-          <fetcher.Form method="POST" {...form.props} action="?/create">
-            <Field
-              labelProps={{ children: 'Name' }}
-              inputProps={{
-                ...conform.input(fields.name, { type: 'text' }),
-                required: true,
-              }}
-              errors={[fields?.name.errors]}
-            />
-            <Field
-              labelProps={{ children: 'Type' }}
-              inputProps={{
-                ...conform.input(fields.type, { type: 'text' }),
-                required: true,
-              }}
-              errors={[fields?.type.errors]}
-            />
-            <Field
-              labelProps={{ children: 'Currency' }}
-              inputProps={{
-                ...conform.input(fields.currency, { type: 'text' }),
-                required: true,
-              }}
-              errors={[fields?.currency.errors]}
-            />
-            <Field
-              labelProps={{ children: 'Image' }}
-              inputProps={{
-                ...conform.input(fields.image, { type: 'url' }),
-                required: true,
-              }}
-              errors={[fields?.image.errors]}
-            />
-            <Button size="medium" type="submit" variant="secondary">
-              {isSubmitting ? 'Adding menu...' : 'Add menu'}
-            </Button>
-            <input type="hidden" value={addItem ? addItem : ''} {...conform.input(fields.id)} />
-          </fetcher.Form>
-        </Dialog.Content>
-      </Dialog.Root>
-      {/* ANCHOR EDIT */}
-      <Dialog.Root
-        open={editItem ? true : false}
-        onOpenChange={() => {
-          searchParams.delete('editItem')
-          setSearchParams(searchParams)
-        }}
-      >
-        <Dialog.Overlay className="fixed inset-0 bg-black bg-opacity-80" />
-        <Dialog.Content className="data-[state=open]:animate-contentShow fixed top-[50%] left-[50%] max-h-[85vh] w-[90vw] max-w-[450px] translate-x-[-50%] translate-y-[-50%] rounded-[6px] bg-white p-[25px] shadow-[hsl(206_22%_7%_/_35%)_0px_10px_38px_-10px,_hsl(206_22%_7%_/_20%)_0px_10px_20px_-15px] focus:outline-none">
-          <Dialog.Close className="absolute top-0 right-0 m-3">
-            <XIcon />
-          </Dialog.Close>
-          <Dialog.Title className="text-mauve12 m-0 text-[17px] font-medium">Edit Menu</Dialog.Title>
-          <Dialog.Description className="text-mauve11 mt-[10px] mb-5 text-[15px] leading-normal">
-            Enter into the fields below the information about the menu you want to edit.
-          </Dialog.Description>
-          <fetcher.Form method="POST" {...form.props} action="?/update" name="EDIT">
-            <Field
-              labelProps={{ htmlFor: fields.name.id, children: 'Name' }}
-              inputProps={{
-                ...conform.input(fields.name, { type: 'text' }),
-                defaultValue: branch.menus.find(menu => menu.id === editItem)?.name,
-              }}
-              errors={[fields?.name.errors]}
-            />
-            <Field
-              labelProps={{ htmlFor: fields.type.id, children: 'Type' }}
-              inputProps={{
-                ...conform.input(fields.type, { type: 'text' }),
-                // autoComplete: data.menu?.type,
-                defaultValue: branch.menus.find(menu => menu.id === editItem)?.type,
-              }}
-              errors={[fields?.type.errors]}
-            />
-            <Field
-              labelProps={{ htmlFor: fields.currency.id, children: 'Currency' }}
-              inputProps={{
-                ...conform.input(fields.currency, { type: 'text' }),
 
-                defaultValue: branch.menus.find(menu => menu.id === editItem)?.currency,
-              }}
-              errors={[fields?.currency.errors]}
-            />
-            <Field
-              labelProps={{ htmlFor: fields.image.id, children: 'Image' }}
-              inputProps={{
-                ...conform.input(fields.image, { type: 'url' }),
-                defaultValue: branch.menus.find(menu => menu.id === editItem)?.image,
-              }}
-              errors={[fields?.image.errors]}
-            />
-            <Button size="medium" type="submit" variant="secondary">
-              {isSubmitting ? 'Editing menu...' : 'Edit menu'}
-            </Button>
-            <input type="hidden" value={editItem ? editItem : ''} {...conform.input(fields.id)} />
-          </fetcher.Form>
-        </Dialog.Content>
-      </Dialog.Root>
+      <ScrollableQueryDialog title="Add Menu" description="Add to the fields you want to add" query={'addItem'}>
+        <fetcher.Form method="POST" {...form.props} action="?/create">
+          <MenuForm
+            intent="add"
+            menus={data.menus}
+            editSubItemId={editItem}
+            isSubmitting={isSubmitting}
+            fields={fields}
+            addingData={{ data: data.availabilities, keys: ['dayOfWeek'] }}
+          />
+          <input type="hidden" value={addItem ? addItem : ''} {...conform.input(fields.id)} />
+        </fetcher.Form>
+      </ScrollableQueryDialog>
+      {/* ANCHOR EDIT */}
+      <ScrollableQueryDialog
+        title="Edit Menu"
+        description="Enter into the fields below the information about the menu you want to edit."
+        query={'editItem'}
+      >
+        <fetcher.Form method="POST" {...form.props} action="?/update" className="">
+          <MenuForm
+            intent="edit"
+            menus={data.menus}
+            editSubItemId={editItem}
+            isSubmitting={isSubmitting}
+            fields={fields}
+            addingData={{ data: data.availabilities, keys: ['dayOfWeek'] }}
+          />
+          <input type="hidden" value={editItem ? editItem : ''} {...conform.input(fields.id)} />
+        </fetcher.Form>
+      </ScrollableQueryDialog>
+
       {/* ANCHOR DELETE */}
       <Dialog.Root
         open={deleteItem ? true : false}

@@ -87,8 +87,10 @@ model Branch {
   chainId       String?
   updatedAt     DateTime?      @updatedAt
   createdAt     DateTime       @default(now())
-  MenuCategory  MenuCategory[]
-  MenuItem      MenuItem[]
+
+  availabilities Availabilities[]
+  MenuCategory   MenuCategory[]
+  MenuItem       MenuItem[]
 }
 
 model Table {
@@ -111,13 +113,11 @@ model Table {
 }
 
 model Menu {
-  id              String           @id @default(cuid())
-  name            String?
-  type            String?
-  currency        String?
-  fromHour        Decimal?
-  toHour          Decimal?
-  allday          Boolean?
+  id       String  @id @default(cuid())
+  name     String?
+  type     String?
+  currency String?
+
   branchId        String
   branch          Branch           @relation(fields: [branchId], references: [id], onDelete: Cascade, onUpdate: Cascade)
   menuCategories  MenuCategory[]
@@ -138,9 +138,10 @@ model Availabilities {
   menu           Menu?         @relation(fields: [menuId], references: [id], onDelete: Cascade, onUpdate: Cascade)
   menuCategory   MenuCategory? @relation(fields: [menuCategoryId], references: [id])
   menuCategoryId String?
-
-  updatedAt DateTime? @updatedAt
-  createdAt DateTime  @default(now())
+  branchId       String?
+  branch         Branch?       @relation(fields: [branchId], references: [id])
+  updatedAt      DateTime?     @updatedAt
+  createdAt      DateTime      @default(now())
 
   @@unique([dayOfWeek, startTime, endTime, menuId])
 }

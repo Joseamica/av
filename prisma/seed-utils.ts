@@ -1,8 +1,8 @@
 import { faker } from '@faker-js/faker'
-import type { EmployeeRoles, Role } from '@prisma/client'
+import type { EmployeeRoles } from '@prisma/client'
 import { prisma } from '~/db.server'
 
-import { createPassword, getPasswordHash } from '~/utils'
+import { getPasswordHash } from '~/utils'
 
 // const {faker} = require('@faker-js/faker')
 const AVOQADO_LOGO =
@@ -152,7 +152,7 @@ export async function createChainAndBranches() {
 
       // Create menu, availabilities, categories, products, and modifiers for each branch
       const menu = await createMenu(branch.id) // Your existing createMenu function
-      await createAvailabilities(menu.id) // Your existing createAvailabilities function
+      await createAvailabilities(branch.id, menu.id) // Your existing createAvailabilities function
       const categories = await createCategories(menu.id, branch.id) // Your existing createCategories function
       await createProductsAndModifiers(categories, branch.id) // Your existing createProductsAndModifiers function
     }
@@ -300,7 +300,7 @@ export async function createProductsAndModifiers(categories: any, branchId: stri
   )
 }
 
-export async function createAvailabilities(menuId: string) {
+export async function createAvailabilities(branchId: string, menuId: string) {
   for (let i = 1; i <= 7; i++) {
     await prisma.availabilities.create({
       data: {
@@ -308,6 +308,7 @@ export async function createAvailabilities(menuId: string) {
         startTime: '00:00',
         endTime: '23:59',
         menu: { connect: { id: menuId } },
+        branch: { connect: { id: branchId } },
       },
     })
   }

@@ -191,12 +191,12 @@ export default function Index() {
             }}
             errors={[fields?.name.errors]}
           />
-          {/* <Field
+          <Field
             labelProps={{ children: 'Image' }}
             inputProps={{
               ...conform.input(fields.image, { type: 'url' }),
               required: true,
-              defaultValue: branch.branches.find(branch => branch.id === editItem)?.image,
+              defaultValue: data.branch ? data.branch.image : '',
             }}
             errors={[fields?.image.errors]}
           />
@@ -205,7 +205,7 @@ export default function Index() {
             inputProps={{
               ...conform.input(fields.address, { type: 'text' }),
               required: true,
-              defaultValue: branch.branches.find(branch => branch.id === editItem)?.address,
+              defaultValue: data.branch ? data.branch.address : '',
             }}
             errors={[fields?.address.errors]}
           />
@@ -214,7 +214,7 @@ export default function Index() {
             inputProps={{
               ...conform.input(fields.extraAddress, { type: 'text' }),
               required: true,
-              defaultValue: branch.branches.find(branch => branch.id === editItem)?.extraAddress,
+              defaultValue: data.branch ? data.branch.extraAddress : '',
             }}
             errors={[fields?.extraAddress.errors]}
           />
@@ -223,7 +223,7 @@ export default function Index() {
             inputProps={{
               ...conform.input(fields.city, { type: 'text' }),
               required: true,
-              defaultValue: branch.branches.find(branch => branch.id === editItem)?.city,
+              defaultValue: data.branch ? data.branch.city : '',
             }}
             errors={[fields?.city.errors]}
           />
@@ -235,7 +235,7 @@ export default function Index() {
             inputProps={{
               ...conform.input(fields.timezone, { type: 'text' }),
               required: true,
-              defaultValue: branch.branches.find(branch => branch.id === editItem)?.timezone,
+              defaultValue: data.branch ? data.branch.timezone : '',
               placeholder: 'America/New_York',
             }}
             errors={fields?.timezone.errors}
@@ -245,7 +245,7 @@ export default function Index() {
             inputProps={{
               ...conform.input(fields.phone, { type: 'phone' }),
               required: true,
-              defaultValue: branch.branches.find(branch => branch.id === editItem)?.phone,
+              defaultValue: data.branch ? data.branch.phone : '',
             }}
             errors={[fields?.phone.errors]}
           />
@@ -254,7 +254,7 @@ export default function Index() {
             inputProps={{
               ...conform.input(fields.email, { type: 'email' }),
               required: true,
-              defaultValue: branch.branches.find(branch => branch.id === editItem)?.email,
+              defaultValue: data.branch ? data.branch.email : '',
             }}
             errors={[fields?.email.errors]}
           />
@@ -263,7 +263,7 @@ export default function Index() {
             inputProps={{
               ...conform.input(fields.language, { type: 'text' }),
               required: true,
-              defaultValue: branch.branches.find(branch => branch.id === editItem)?.language,
+              defaultValue: data.branch ? data.branch.language : '',
             }}
             errors={[fields?.language.errors]}
           />
@@ -272,7 +272,7 @@ export default function Index() {
             inputProps={{
               ...conform.input(fields.cuisine, { type: 'text' }),
               required: true,
-              defaultValue: branch.branches.find(branch => branch.id === editItem)?.cuisine,
+              defaultValue: data.branch ? data.branch.cuisine : '',
             }}
             errors={[fields?.cuisine.errors]}
           />
@@ -281,7 +281,7 @@ export default function Index() {
             inputProps={{
               ...conform.input(fields.wifiName, { type: 'text' }),
               required: true,
-              defaultValue: branch.branches.find(branch => branch.id === editItem)?.wifiName,
+              defaultValue: data.branch ? data.branch.wifiName : '',
             }}
             errors={[fields?.wifiName.errors]}
           />
@@ -290,7 +290,7 @@ export default function Index() {
             inputProps={{
               ...conform.input(fields.wifiPwd, { type: 'text' }),
               required: true,
-              defaultValue: branch.branches.find(branch => branch.id === editItem)?.wifiPwd,
+              defaultValue: data.branch ? data.branch.wifiPwd : '',
             }}
             errors={[fields?.wifiPwd.errors]}
           />
@@ -299,7 +299,7 @@ export default function Index() {
             inputProps={{
               ...conform.input(fields.tipsPercentages, { type: 'text' }),
               required: true,
-              defaultValue: branch.branches.find(branch => branch.id === editItem)?.tipsPercentages,
+              defaultValue: data.branch ? data.branch.tipsPercentages : '',
               pattern: '^(d{2},)*d{2}$', // Adding pattern attribute to enforce the format client-side
             }}
             errors={[fields?.tipsPercentages.errors]}
@@ -309,10 +309,10 @@ export default function Index() {
             inputProps={{
               ...conform.input(fields.paymentMethods, { type: 'text' }),
               required: true,
-              defaultValue: branch.branches.find(branch => branch.id === editItem)?.paymentMethods,
+              defaultValue: data.branch ? data.branch.paymentMethods : '',
             }}
             errors={[fields?.paymentMethods.errors]}
-          /> */}
+          />
           <Spacer size="md" />
           <Button size="medium" type="submit" variant="secondary">
             {isSubmitting ? 'Editing branch...' : 'Edit branch'}

@@ -11,7 +11,7 @@ import { prisma } from '~/db.server'
 import { Button } from '~/components'
 import { HeaderWithButton } from '~/components/admin/headers'
 import { ProductForm } from '~/components/admin/products/product-form'
-import { QueryDialog } from '~/components/admin/ui/dialogs/dialog'
+import { QueryDialog, ScrollableQueryDialog } from '~/components/admin/ui/dialogs/dialog'
 import { ErrorList } from '~/components/admin/ui/forms'
 import { Square } from '~/components/admin/ui/square'
 import { ButtonLink } from '~/components/ui/buttons/button'
@@ -140,7 +140,7 @@ export default function Products() {
         </fetcher.Form>
       </QueryDialog>
       {/* ANCHOR EDIT */}
-      <QueryDialog title="Edit Product" description="Modify the fields you want to edit" query={'editItem'}>
+      <ScrollableQueryDialog title="Edit Product" description="Modify the fields you want to edit" query={'editItem'}>
         <fetcher.Form method="POST" {...form.props} action="?/update">
           <ProductForm
             intent="edit"
@@ -152,7 +152,7 @@ export default function Products() {
           />
           <input type="hidden" value={editItem ? editItem : ''} {...conform.input(fields.id)} />
         </fetcher.Form>
-      </QueryDialog>
+      </ScrollableQueryDialog>
 
       {/* ANCHOR DELETE */}
       <QueryDialog title="Delete Product" description="Are you sure that you want to delete this item?" query={'deleteItem'}>

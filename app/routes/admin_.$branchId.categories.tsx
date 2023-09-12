@@ -1,10 +1,11 @@
 import { conform, useForm } from '@conform-to/react'
-import { useFetcher, useParams, useRouteLoaderData, useSearchParams } from '@remix-run/react'
+import { useFetcher, useLoaderData, useParams, useRouteLoaderData, useSearchParams } from '@remix-run/react'
 
 import { type ActionArgs, type LoaderArgs, json, redirect } from '@remix-run/node'
 
 import { getFieldsetConstraint, parse } from '@conform-to/zod'
 import { namedAction } from 'remix-utils'
+import invariant from 'tiny-invariant'
 import { z } from 'zod'
 import { prisma } from '~/db.server'
 
@@ -30,7 +31,13 @@ const categoriesFormSchema = z.object({
   selectItems: z.string().nonempty('You must select at least one category'),
 })
 export async function loader({ request, params }: LoaderArgs) {
-  return json({ success: true })
+  const categories = await prisma.menuCategory.findMany({
+    where: {
+      branchId: params.branchId,
+    },
+  })
+  invariant(categories, 'categories must be defined')
+  return json({ categories })
 }
 export async function action({ request, params }: ActionArgs) {
   const formData = await request.formData()
@@ -101,12 +108,13 @@ export async function action({ request, params }: ActionArgs) {
 }
 
 export default function Name() {
+  const data = useLoaderData()
   const { branch } = useRouteLoaderData('routes/admin_.$branchId') as any
   const { branchId } = useParams()
 
   const fetcher = useFetcher()
   const isSubmitting = fetcher.state !== 'idle'
-  const [searchParams, setSearchParams] = useSearchParams()
+  const [searchParams] = useSearchParams()
 
   const [form, fields] = useForm({
     id: 'categories',
@@ -130,7 +138,7 @@ export default function Name() {
         Download Your Data
       </ButtonLink>
       <div className="flex flex-wrap gap-2 p-4">
-        {branch.menuCategories.map(category => (
+        {data.categories.map(category => (
           <Square itemId={category.id} name={category.name} to={category.id} key={category.id} />
         ))}
       </div>
@@ -138,7 +146,7 @@ export default function Name() {
         <fetcher.Form method="POST" {...form.props} action="?/create">
           <CategoryForm
             intent="add"
-            categories={branch.menuCategories}
+            categories={data.categories}
             editSubItemId={editItem}
             isSubmitting={isSubmitting}
             fields={fields}
@@ -151,7 +159,7 @@ export default function Name() {
         <fetcher.Form method="POST" {...form.props} action="?/update">
           <CategoryForm
             intent="edit"
-            categories={branch.menuCategories}
+            categories={data.categories}
             editSubItemId={editItem}
             isSubmitting={isSubmitting}
             fields={fields}
