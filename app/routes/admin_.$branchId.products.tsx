@@ -60,7 +60,7 @@ export async function action({ request, params }: ActionArgs) {
           description: submission.value.description ?? '',
           price: submission.value.price,
 
-          menuCategory: {
+          category: {
             connect: {
               id: submission.value.selectItems,
             },
@@ -79,7 +79,7 @@ export async function action({ request, params }: ActionArgs) {
           name: submission.value.name,
           description: submission.value.description ?? '',
           price: submission.value.price,
-          menuCategory: {
+          category: {
             connect: {
               id: submission.value.selectItems,
             },
@@ -134,7 +134,7 @@ export default function Products() {
             editSubItemId={editItem}
             isSubmitting={isSubmitting}
             fields={fields}
-            addingData={{ data: branch.menuCategories, keys: ['name'] }}
+            addingData={{ data: branch.categories, keys: ['name'] }}
           />
           <input type="hidden" value={addItem ? addItem : ''} {...conform.input(fields.id)} />
         </fetcher.Form>
@@ -148,7 +148,7 @@ export default function Products() {
             editSubItemId={editItem}
             isSubmitting={isSubmitting}
             fields={fields}
-            addingData={{ data: branch.menuCategories, keys: ['name'] }}
+            addingData={{ data: branch.categories, keys: ['name'] }}
           />
           <input type="hidden" value={editItem ? editItem : ''} {...conform.input(fields.id)} />
         </fetcher.Form>

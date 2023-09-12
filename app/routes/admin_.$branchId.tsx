@@ -47,7 +47,7 @@ export async function loader({ request, params }: LoaderArgs) {
         menus: {
           include: {
             availabilities: true,
-            menuCategories: {
+            categories: {
               include: {
                 menuItems: true,
               },
@@ -64,7 +64,7 @@ export async function loader({ request, params }: LoaderArgs) {
     const branch = {
       ...data,
       availabilities: data.menus.flatMap(menu => menu.availabilities),
-      menuCategories: await prisma.menuCategory.findMany({
+      categories: await prisma.category.findMany({
         where: {
           menu: {
             some: {
@@ -77,7 +77,7 @@ export async function loader({ request, params }: LoaderArgs) {
           menu: true,
         },
       }),
-      menuItems: data.menus.flatMap(menu => menu.menuCategories.flatMap(category => category.menuItems)),
+      menuItems: data.menus.flatMap(menu => menu.categories.flatMap(category => category.menuItems)),
     }
 
     return json({ branch })

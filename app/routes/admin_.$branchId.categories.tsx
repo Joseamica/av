@@ -31,7 +31,7 @@ const categoriesFormSchema = z.object({
   selectItems: z.array(z.string()).nonempty('You must select at least one category'),
 })
 export async function loader({ request, params }: LoaderArgs) {
-  const categories = await prisma.menuCategory.findMany({
+  const categories = await prisma.category.findMany({
     where: {
       branchId: params.branchId,
     },
@@ -64,13 +64,18 @@ export async function action({ request, params }: ActionArgs) {
 
   return namedAction(request, {
     async create() {
-      await prisma.menuCategory.create({
+      await prisma.category.create({
         data: {
           name: capitalizeFirstLetter(submission.value.name),
           image: submission.value.image,
           pdf: submission.value.pdf,
           menu: {
             connect: submission.value.selectItems ? submission.value.selectItems.map(id => ({ id })) : [],
+          },
+          branch: {
+            connect: {
+              id: params.branchId,
+            },
           },
         },
       })
@@ -79,14 +84,14 @@ export async function action({ request, params }: ActionArgs) {
     },
     async update() {
       const newMenuIds = submission.value.selectItems
-      await prisma.menuCategory.update({
+      await prisma.category.update({
         where: { id: submission.value.id },
         data: {
           menu: { set: [] },
         },
       })
       for (const item of newMenuIds) {
-        await prisma.menuCategory.update({
+        await prisma.category.update({
           where: { id: submission.value.id },
           data: {
             name: capitalizeFirstLetter(submission.value.name),
@@ -95,6 +100,11 @@ export async function action({ request, params }: ActionArgs) {
             menu: {
               connect: {
                 id: item,
+              },
+            },
+            branch: {
+              connect: {
+                id: params.branchId,
               },
             },
           },

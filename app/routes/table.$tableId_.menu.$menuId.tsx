@@ -18,7 +18,7 @@ import { formatCurrency, getCurrency } from '~/utils'
 
 import { H4, H5, H6, LinkButton, Modal, Spacer } from '~/components'
 
-type MenuCategory = {
+type Category = {
   id: string
   name: string
   menuId: string
@@ -43,7 +43,7 @@ export async function loader({ request, params }: LoaderArgs) {
   const cart = JSON.parse(session.get('cart') || '[]') as CartItem[]
 
   const [categories, cartItems, currency] = await Promise.all([
-    prisma.menuCategory.findMany({
+    prisma.category.findMany({
       where: { menu: { some: { id: menuId } } },
       include: {
         menuItems: true,
@@ -142,7 +142,7 @@ export default function MenuId() {
             'no-scrollbar dark:bg-night-bg_principal sticky top-[62px] flex items-center space-x-4 overflow-x-scroll whitespace-nowrap rounded-xl bg-day-bg_principal px-5 py-6 shadow-lg overflow-y-hidden',
           )}
         >
-          {data.categories.map((category: MenuCategory) => (
+          {data.categories.map((category: Category) => (
             <Link
               ref={el => (categoryRefs.current[category.id] = el)}
               to={`#${category.id}`}
@@ -157,7 +157,7 @@ export default function MenuId() {
           ))}
         </motion.div>
         <div className="p-2 space-y-2">
-          {data.categories.map((categories: MenuCategory) => {
+          {data.categories.map((categories: Category) => {
             const dishes = categories.menuItems
 
             return (

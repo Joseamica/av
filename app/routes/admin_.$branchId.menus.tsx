@@ -35,7 +35,7 @@ export async function loader({ request, params }: LoaderArgs) {
     },
     include: {
       availabilities: true,
-      menuCategories: {
+      categories: {
         include: {
           menuItems: true,
         },

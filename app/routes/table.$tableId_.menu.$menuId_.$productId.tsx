@@ -69,7 +69,7 @@ export async function loader({ request, params }: LoaderArgs) {
 
   const session = await getSession(request)
 
-  const categories = await prisma.menuCategory.findMany({
+  const categories = await prisma.category.findMany({
     where: { menu: { some: { id: menuId } } },
     include: {
       menuItems: true,

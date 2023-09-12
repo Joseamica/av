@@ -1,12 +1,12 @@
 import { Link } from '@remix-run/react'
 import React from 'react'
 
-import type { MenuCategory } from '@prisma/client'
+import type { Category } from '@prisma/client'
 import clsx from 'clsx'
 import { motion } from 'framer-motion'
 
 type Props = {
-  categories: MenuCategory[]
+  categories: Category[]
   isSticky?: boolean
   [key: string]: any
   categoryId?: string
@@ -39,7 +39,7 @@ export function CategoriesBar({ categories, isSticky, categoryId }: Props): JSX.
         // },
       )}
     >
-      {categories.map((category: MenuCategory) => (
+      {categories.map((category: Category) => (
         <Link
           ref={el => (categoryRefs.current[category.id] = el!)}
           to={`#${category.id}`}

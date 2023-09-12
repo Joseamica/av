@@ -40,7 +40,7 @@ import {
   SwitchButton,
 } from '~/components'
 
-type MenuCategory = {
+type Category = {
   id: string
   name: string
   menuId: string

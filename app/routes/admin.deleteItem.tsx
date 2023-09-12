@@ -40,7 +40,7 @@ export async function action({ request, params }: ActionArgs) {
       })
       break
     case 'categories':
-      await prisma.menuCategory.delete({
+      await prisma.category.delete({
         where: {
           id: id,
         },

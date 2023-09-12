@@ -85,7 +85,7 @@ export function ProductForm({
                 {...conform.input(fields.selectItems, { type: 'radio' })}
                 name="selectItems"
                 value={keys.id}
-                defaultChecked={isEditing ? products.find(product => product.id === editSubItemId)?.menuCategoryId === keys.id : false}
+                defaultChecked={isEditing ? products.find(product => product.id === editSubItemId)?.categoryId === keys.id : false}
               />
               <H5>{keys[addingData.keys]}</H5>
             </label>

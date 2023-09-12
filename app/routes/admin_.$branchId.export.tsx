@@ -15,7 +15,7 @@ export async function loader({ request, params }: ActionArgs) {
       csv = convertToCSV(products)
       break
     case 'categories':
-      const categories = await prisma.menuCategory.findMany({ where: { branchId } })
+      const categories = await prisma.category.findMany({ where: { branchId } })
       csv = convertToCSV(categories)
       break
   }
