@@ -429,7 +429,7 @@ export async function action({ request, params }: ActionArgs) {
       }
 
       //createCartItems
-      await createCartItems(cartItems, shareDish, userId, order.id)
+      await createCartItems(cartItems, shareDish, userId, order.id, branchId)
       //Aqui se usa el request.method para identificar que boton se esta usando, en este caso Patch es que se esta pagando
       if (request.method === 'PATCH') {
         const tipPercentage = formData.get('tipPercentage') as string

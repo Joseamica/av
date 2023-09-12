@@ -8,10 +8,9 @@ datasource db {
 }
 
 model Chain {
-  id       String   @id @default(cuid())
-  name     String
-  branches Branch[]
-
+  id           String    @id @default(cuid())
+  name         String
+  branches     Branch[]
   updatedAt    DateTime? @updatedAt
   createdAt    DateTime  @default(now())
   moderatorIds String[]
@@ -47,84 +46,80 @@ model Chain {
 // }
 
 model Branch {
-  id           String   @id @default(cuid())
-  name         String
+  id               String            @id @default(cuid())
+  name             String
   // restaurantId    String
-  address      String
-  extraAddress String
-  city         String
-  country      String?
-  timezone     String?
-  phone        String?
-  email        String   @unique
-  language     String?  @default("en")
-  image        String
+  address          String
+  extraAddress     String
+  city             String
+  country          String?
+  timezone         String?
+  phone            String?
+  email            String            @unique
+  language         String?           @default("en")
+  image            String
   // rating          Float?
   // rating_quantity Int?
-  managerIds   String[]
-
-  cuisine         String
-  wifiName        String?
-  wifiPwd         String?
+  managerIds       String[]
+  cuisine          String
+  wifiName         String?
+  wifiPwd          String?
   // coordinates     Json?
   // open            Int?
   // close           Int?
-  tipsPercentages Decimal[]        @default([10, 12, 15])
-  paymentMethods  String[]         @default(["cash", "card"])
-  social          String[]         @default([])
-  menus           Menu[]
-  tables          Table[]
-  orders          Order[]
-  users           User[]
-  employees       Employee[]
-  feedbacks       Feedback[]
-  payments        Payments[]
-  availabilities  Availabilities[]
-  categories      Category[]
-  menuItems       MenuItem[]
+  tipsPercentages  Decimal[]         @default([10, 12, 15])
+  paymentMethods   String[]          @default(["cash", "card"])
+  social           String[]          @default([])
+  menus            Menu[]
+  tables           Table[]
+  orders           Order[]
+  users            User[]
+  employees        Employee[]
+  feedbacks        Feedback[]
+  payments         Payments[]
+  availabilities   Availabilities[]
+  categories       Category[]
+  menuItems        MenuItem[]
   // restaurant      Restaurant     @relation(fields: [restaurantId], references: [id], onDelete: Cascade, onUpdate: Cascade)
-
-  notifications Notification[]
-  chain         Chain?         @relation(fields: [chainId], references: [id])
-  chainId       String?
-  updatedAt     DateTime?      @updatedAt
-  createdAt     DateTime       @default(now())
+  notifications    Notification[]
+  chain            Chain?            @relation(fields: [chainId], references: [id])
+  chainId          String?
+  updatedAt        DateTime?         @updatedAt
+  createdAt        DateTime          @default(now())
+  productModifiers ProductModifier[]
 }
 
 model Table {
-  id                String     @id @default(cuid())
+  id                String         @id @default(cuid())
   number            Int
   floorId           String?
   locationId        String?
   seats             Int?
-  order_in_progress Boolean    @default(false)
-  branch            Branch     @relation(fields: [branchId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  order_in_progress Boolean        @default(false)
+  branch            Branch         @relation(fields: [branchId], references: [id], onDelete: Cascade, onUpdate: Cascade)
   branchId          String
   order             Order?
   users             User[]
   employees         Employee[]
   feedbacks         Feedback[]
-
-  updatedAt     DateTime?      @updatedAt
-  createdAt     DateTime       @default(now())
-  notifications Notification[]
+  updatedAt         DateTime?      @updatedAt
+  createdAt         DateTime       @default(now())
+  notifications     Notification[]
 }
 
 model Menu {
-  id       String  @id @default(cuid())
-  name     String?
-  type     String?
-  currency String?
-
+  id              String           @id @default(cuid())
+  name            String?
+  type            String?
+  currency        String?
   branchId        String
   branch          Branch           @relation(fields: [branchId], references: [id], onDelete: Cascade, onUpdate: Cascade)
   categories      Category[]
   personalizeMenu Boolean?         @default(false)
   image           String?
   availabilities  Availabilities[]
-
-  updatedAt DateTime? @updatedAt
-  createdAt DateTime  @default(now())
+  updatedAt       DateTime?        @updatedAt
+  createdAt       DateTime         @default(now())
 }
 
 model Availabilities {
@@ -197,27 +192,28 @@ model Order {
 }
 
 model CartItem {
-  id            String      @id @default(cuid())
-  plu           String?
-  name          String?
-  image         String?
-  price         Float
-  creationDate  String?
-  quantity      Int
-  orderId       String?
-  menuItemId    String?
-  menuItem      MenuItem?   @relation(fields: [menuItemId], references: [id])
-  order         Order?      @relation(fields: [orderId], references: [id])
-  comments      String?
-  paid          Boolean?    @default(false)
-  paidBy        String?
-  stock         Int?
-  modifier      Modifiers[]
-  feedback      Feedback?   @relation(fields: [feedbackId], references: [id])
-  feedbackId    String?
-  user          User[]
-  activeOnOrder Boolean?
-  rating        String?
+  id               String            @id @default(cuid())
+  plu              String?
+  name             String?
+  image            String?
+  price            Float
+  creationDate     String?
+  quantity         Int
+  orderId          String?
+  menuItemId       String?
+  menuItem         MenuItem?         @relation(fields: [menuItemId], references: [id])
+  order            Order?            @relation(fields: [orderId], references: [id])
+  comments         String?
+  paid             Boolean?          @default(false)
+  paidBy           String?
+  stock            Int?
+  modifier         Modifiers[]
+  feedback         Feedback?         @relation(fields: [feedbackId], references: [id])
+  feedbackId       String?
+  user             User[]
+  activeOnOrder    Boolean?
+  rating           String?
+  productModifiers ProductModifier[]
 }
 
 model Modifiers {
@@ -234,6 +230,19 @@ model Modifiers {
   cartItemId      String?
 }
 
+model ProductModifier {
+  id         String    @id @default(cuid())
+  name       String?
+  quantity   Int?      @default(0)
+  plu        String?   @unique
+  extraPrice Decimal?
+  total      Decimal?
+  cartItem   CartItem? @relation(fields: [cartItemId], references: [id])
+  cartItemId String?
+  branchId   String?
+  branch     Branch?   @relation(fields: [branchId], references: [id])
+}
+
 model ModifierGroup {
   id         String      @id @default(cuid())
   // type             String      @default("radio")
@@ -241,7 +250,7 @@ model ModifierGroup {
   plu        String?     @unique
   max        Int?        @default(0)
   min        Int?        @default(0)
-  multiMax   Int?        @default(0)
+  multiMax   Int?        @default(1)
   multiply   Int?        @default(0)
   // nameTranslations Json?
   modifiers  Modifiers[]

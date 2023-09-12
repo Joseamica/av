@@ -168,7 +168,7 @@ export async function logout(request: Request, path = '/') {
   })
 }
 
-export function addToCart(cart: CartItem[], variantId: string, quantity: number, modifiers: string[]) {
+export function addToCart(cart: CartItem[], variantId: string, quantity: number, modifiers: any) {
   let added = false
   for (let item of cart) {
     if (item.variantId === variantId) {

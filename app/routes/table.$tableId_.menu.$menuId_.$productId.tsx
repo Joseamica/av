@@ -30,14 +30,6 @@ const createModifierSchema = min => {
   return z.array(z.string()).optional()
 }
 
-// const productIdSchema = z.object({
-//   modifier: z.array(z.string()).nonempty('You must select at least 1'),
-//   productId: z.string(),
-//   quantity: z.number().min(1).max(10),
-//   shareDish: z.array(z.string()).optional(),
-//   sendComments: z.string().optional(),
-// })
-
 const createDynamicSchema = modifierGroups => {
   let dynamicFields = {}
 
@@ -51,6 +43,7 @@ const createDynamicSchema = modifierGroups => {
     quantity: z.number().min(1).max(10),
     shareDish: z.array(z.string()).optional(),
     sendComments: z.string().optional(),
+    modifiers: z.string().optional(),
   })
 }
 
@@ -63,36 +56,30 @@ export async function loader({ request, params }: LoaderArgs) {
 
   invariant(menuId, 'No existe el ID del menu')
 
-  const product = await prisma.menuItem.findFirst({
-    where: { id: productId },
-  })
-
   const session = await getSession(request)
-
-  const categories = await prisma.category.findMany({
-    where: { menu: { some: { id: menuId } } },
-    include: {
-      menuItems: true,
-    },
-  })
-
-  const modifierGroup = await prisma.modifierGroup.findMany({
-    where: { menuItems: { some: { id: productId } } },
-    include: { modifiers: true },
-  })
-  //Find users on table that are not the current user,
-  //this is to show users to share dishes with and you don't appear
-  const usersOnTable = await prisma.user.findMany({
-    where: { tableId, id: { not: session.get('userId') } },
-  })
-
   const cart = JSON.parse(session.get('cart') || '[]') as CartItem[]
 
-  const cartItems = await getCartItems(cart)
-
-  const currency = await getCurrency(tableId)
-
-  const menu = await getMenu(branch.id)
+  const [categories, modifierGroup, usersOnTable, cartItems, currency, menu, product] = await Promise.all([
+    prisma.category.findMany({
+      where: { menu: { some: { id: menuId } } },
+      include: {
+        menuItems: true,
+      },
+    }),
+    prisma.modifierGroup.findMany({
+      where: { menuItems: { some: { id: productId } } },
+      include: { modifiers: true },
+    }),
+    prisma.user.findMany({
+      where: { tableId, id: { not: session.get('userId') } },
+    }),
+    getCartItems(cart),
+    getCurrency(tableId),
+    getMenu(branch.id),
+    prisma.menuItem.findUnique({
+      where: { id: productId },
+    }),
+  ])
 
   return json({
     categories,
@@ -142,12 +129,13 @@ export async function action({ request, params }: ActionArgs) {
 
   const session = await getSession(request)
   const cart = JSON.parse(session.get('cart') || '[]')
-  const allSelectedModifierIds = Object.values(modifierGroup)
-    .flat()
-    .map(item => (Array.isArray(item) ? item : [item]))
-    .flat()
 
-  console.log('', allSelectedModifierIds)
+  const modifiers = JSON.parse(value.modifiers)
+  const allSelectedModifierIds = Object.keys(modifiers).map(modifierId => {
+    const modifier = modifiers[modifierId]
+    return { modifierId, quantity: modifier.quantity, groupId: modifier.groupId, extraPrice: modifier.extraPrice }
+  })
+
   addToCart(cart, value.productId, value.quantity, allSelectedModifierIds)
   session.set('cart', JSON.stringify(cart))
   session.set('shareUserIds', JSON.stringify(value.shareDish))
@@ -163,6 +151,8 @@ export default function ProductId() {
   const params = useParams()
   // console.log('fetcher', fetcher)
   const [quantity, setQuantity] = React.useState<number>(1)
+  const [modifiers, setModifiers] = React.useState({})
+  const [groupModifierCounts, setGroupModifierCounts] = React.useState({})
 
   const [form, fields] = useForm({
     id: 'productId',
@@ -176,6 +166,58 @@ export default function ProductId() {
   })
 
   let isSubmitting = fetcher.state !== 'idle'
+
+  const handleCheckboxChange = (modifierId, isChecked, extraPrice, modifierGroup) => {
+    // Existing count for the group or 0 if not initialized
+    const currentGroupCount = groupModifierCounts[modifierGroup.id] || 0
+
+    if (isChecked && currentGroupCount >= modifierGroup.max) {
+      // Show some warning or error to user
+      return
+    }
+
+    // Update state for group modifier counts
+    setGroupModifierCounts({
+      ...groupModifierCounts,
+      [modifierGroup.id]: isChecked ? currentGroupCount + 1 : currentGroupCount - 1,
+    })
+
+    // Your existing logic for updating modifiers
+    if (isChecked) {
+      setModifiers({
+        ...modifiers,
+        [modifierId]: { quantity: 1, extraPrice: extraPrice, groupId: modifierGroup.id },
+      })
+    } else {
+      const updatedModifiers = { ...modifiers }
+      delete updatedModifiers[modifierId]
+      setModifiers(updatedModifiers)
+    }
+  }
+  const handleQuantityChange = (modifierId, change, modifierGroup) => {
+    const newQuantity = modifiers[modifierId].quantity + change
+
+    // Check if we can increase quantity
+    if (newQuantity > modifierGroup.max) {
+      // Show some warning or error to user
+      return
+    }
+
+    if (newQuantity < 1) {
+      const updatedModifiers = { ...modifiers }
+      delete updatedModifiers[modifierId]
+      setModifiers(updatedModifiers)
+      return
+    }
+
+    setModifiers({
+      ...modifiers,
+      [modifierId]: {
+        ...modifiers[modifierId],
+        quantity: newQuantity,
+      },
+    })
+  }
 
   return (
     <Modal
@@ -239,7 +281,7 @@ export default function ProductId() {
                     })
                     .map((props, index) => {
                       const correspondingModifier = modifierGroup.modifiers.find((modifier: Modifiers) => modifier.id === props.value)
-                      console.log(modifierGroup.min)
+
                       // Safeguard in case correspondingModifier is undefined
                       if (!correspondingModifier) {
                         return null
@@ -248,8 +290,24 @@ export default function ProductId() {
                       return (
                         <label htmlFor={props.id} key={index} className="flex flex-row space-x-3 text-sm justify-between items-center">
                           <FlexRow>
-                            <input {...props} />
+                            <input
+                              {...props}
+                              onChange={e =>
+                                handleCheckboxChange(props.value, e.target.checked, correspondingModifier.extraPrice, modifierGroup)
+                              }
+                            />
                             <H5>{correspondingModifier.name}</H5>
+                            {modifiers[props.value] && (
+                              <>
+                                <button type="button" onClick={() => handleQuantityChange(props.value, -1, modifierGroup)}>
+                                  -
+                                </button>
+                                <span>{modifiers[props.value].quantity}</span>
+                                <button type="button" onClick={() => handleQuantityChange(props.value, 1, modifierGroup)}>
+                                  +
+                                </button>
+                              </>
+                            )}
                           </FlexRow>
                           <H5 className="place-content-end">{formatCurrency(data.currency, Number(correspondingModifier.extraPrice))}</H5>
                         </label>
@@ -270,6 +328,7 @@ export default function ProductId() {
         </Button>
         <input type="hidden" name="productId" value={data.product.id} />
         <input type="hidden" name="quantity" value={quantity} />
+        <input type="hidden" name="modifiers" value={JSON.stringify(modifiers)} />
       </fetcher.Form>
     </Modal>
   )
