@@ -35,7 +35,7 @@ export async function loader({ params, request }: LoaderArgs) {
 
   const cartItems = await prisma.cartItem.findMany({
     where: { user: { some: { id: userId } } },
-    include: { menuItem: true },
+    include: { product: true },
   })
 
   const currency = await getCurrency(tableId)

@@ -54,7 +54,7 @@ export async function loader({ request, params }: LoaderArgs) {
                 name: 'asc',
               },
               include: {
-                menuItems: {
+                products: {
                   orderBy: {
                     name: 'asc',
                   },
@@ -82,11 +82,11 @@ export async function loader({ request, params }: LoaderArgs) {
           },
         },
         include: {
-          menuItems: true,
+          products: true,
           menu: true,
         },
       }),
-      menuItems: data.menus.flatMap(menu => menu.categories.flatMap(category => category.menuItems)),
+      products: data.menus.flatMap(menu => menu.categories.flatMap(category => category.products)),
     }
 
     return json({ branch })

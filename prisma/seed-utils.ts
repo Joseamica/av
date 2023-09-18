@@ -282,7 +282,7 @@ export async function createProductsAndModifiers(categories: any, branchId: stri
   return Promise.all(
     categories.flatMap((category, i) =>
       range(1, 2).map(j =>
-        prisma.menuItem.create({
+        prisma.product.create({
           data: {
             name: `${category.name}${j}`,
             plu: `PLU-${category.name}-${j}`,
@@ -331,7 +331,7 @@ export async function cleanDatabase() {
     'menu',
     'user',
     'category',
-    'menuItem',
+    'product',
     'modifierGroup',
     'modifiers',
     'cartItem',

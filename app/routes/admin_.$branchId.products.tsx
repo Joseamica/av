@@ -33,7 +33,7 @@ const productSchema = z.object({
 export const handle = { active: 'Products' }
 
 export async function loader({ request, params }: LoaderArgs) {
-  const products = await prisma.menuItem.findMany({
+  const products = await prisma.product.findMany({
     where: {
       branchId: params.branchId,
     },
@@ -62,7 +62,7 @@ export async function action({ request, params }: ActionArgs) {
 
   return namedAction(request, {
     async create() {
-      await prisma.menuItem.create({
+      await prisma.product.create({
         data: {
           plu: submission.value.plu,
           image: submission.value.image,
@@ -81,7 +81,7 @@ export async function action({ request, params }: ActionArgs) {
       return redirect('')
     },
     async update() {
-      await prisma.menuItem.update({
+      await prisma.product.update({
         where: { id: submission.value.id },
         data: {
           plu: submission.value.plu,

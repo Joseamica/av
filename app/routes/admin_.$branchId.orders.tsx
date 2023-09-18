@@ -47,7 +47,7 @@ export async function loader({ request, params }: LoaderArgs) {
     const order = await getOrder(orderId, {
       table: true,
       users: true,
-      cartItems: { include: { menuItem: true } },
+      cartItems: { include: { product: true } },
       payments: true,
     })
     console.log('order', order)

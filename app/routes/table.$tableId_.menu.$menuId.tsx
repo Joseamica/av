@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from 'react'
 import { json } from '@remix-run/node'
 import type { LoaderArgs } from '@remix-run/server-runtime'
 
-import type { CartItem, MenuItem } from '@prisma/client'
+import type { CartItem, Product } from '@prisma/client'
 import clsx from 'clsx'
 import { motion } from 'framer-motion'
 import invariant from 'tiny-invariant'
@@ -22,7 +22,7 @@ type Category = {
   id: string
   name: string
   menuId: string
-  menuItems: MenuItem[]
+  products: Product[]
   pdf?: boolean
   image?: string
 }
@@ -46,7 +46,7 @@ export async function loader({ request, params }: LoaderArgs) {
     prisma.category.findMany({
       where: { menu: { some: { id: menuId } } },
       include: {
-        menuItems: true,
+        products: true,
       },
     }),
     getCartItems(cart),
@@ -64,7 +64,7 @@ export async function loader({ request, params }: LoaderArgs) {
 export default function MenuId() {
   const data = useLoaderData()
   const [activeCategoryId, setActiveCategoryId] = useState<string | null>(null)
-  const dishCategoryRefs = useRef<{ [key: string]: HTMLElement | null }>({})
+  const productCategoryRefs = useRef<{ [key: string]: HTMLElement | null }>({})
   const categoryRefs = useRef<{ [key: string]: any }>({})
   const categoryBarRef = useRef(null)
 
@@ -99,7 +99,7 @@ export default function MenuId() {
       },
     )
 
-    Object.values(dishCategoryRefs.current).forEach(div => {
+    Object.values(productCategoryRefs.current).forEach(div => {
       if (div) {
         observer.observe(div)
       }
@@ -116,7 +116,7 @@ export default function MenuId() {
     }
 
     return () => {
-      Object.values(dishCategoryRefs.current).forEach(div => {
+      Object.values(productCategoryRefs.current).forEach(div => {
         if (div) {
           observer.unobserve(div)
         }
@@ -158,40 +158,40 @@ export default function MenuId() {
         </motion.div>
         <div className="p-2 space-y-2">
           {data.categories.map((categories: Category) => {
-            const dishes = categories.menuItems
+            const products = categories.products
 
             return (
               <div
                 key={categories.id}
                 className="p-3 bg-white rounded-lg scroll-mt-32"
                 id={categories.id}
-                ref={el => (dishCategoryRefs.current[categories.id] = el)}
+                ref={el => (productCategoryRefs.current[categories.id] = el)}
               >
                 <h3>{categories.name}</h3>
                 <Spacer spaceY="1" />
                 <div className="flex flex-col divide-y">
-                  {dishes.map((dish: MenuItem) => {
+                  {products.map((product: Product) => {
                     return (
                       <Link
-                        key={dish.id}
+                        key={product.id}
                         preventScrollReset
-                        // to={`?dishId=${dish.id}`}
-                        to={dish.id}
+                        // to={`?productId=${product.id}`}
+                        to={product.id}
                         className="flex flex-row items-center justify-between py-2 space-x-2"
                       >
                         <div className="flex flex-col ">
-                          <H4 boldVariant="semibold">{dish.name}</H4>
-                          <H6 variant="secondary">{dish.description}</H6>
+                          <H4 boldVariant="semibold">{product.name}</H4>
+                          <H6 variant="secondary">{product.description}</H6>
                           <Spacer spaceY="1" />
                           <H5 variant="price" className="tracking-tighter">
-                            {formatCurrency(data.currency, dish.price)}
+                            {formatCurrency(data.currency, product.price)}
                           </H5>
                         </div>
 
                         <motion.img
                           whileHover={{ scale: 1 }}
                           whileTap={{ scale: 0.8 }}
-                          src={dish.image ? dish.image : data.branch.image}
+                          src={product.image ? product.image : data.branch.image}
                           // onError={() => console.log('image error')}
                           className="object-cover w-24 bg-white rounded-lg dark:bg-secondaryDark h-28 max-h-24 shrink-0"
                           loading="lazy"

@@ -217,6 +217,7 @@ async function createCategories(menuId, branchId) {
             pdf: index === 0,
             // nameTranslations: {en},
             image: AVOQADO_LOGO,
+            branch: { connect: { id: branchId } },
         },
     })));
 }
@@ -249,7 +250,7 @@ async function createProductsAndModifiers(categories, branchId) {
     })));
     console.log("🍔 Created the menu's modifiers...");
     console.log("🍔 Created the menu's products...");
-    return Promise.all(categories.flatMap((category, i) => range(1, 2).map(j => db_server_1.prisma.menuItem.create({
+    return Promise.all(categories.flatMap((category, i) => range(1, 2).map(j => db_server_1.prisma.product.create({
         data: {
             name: `${category.name}${j}`,
             plu: `PLU-${category.name}-${j}`,
@@ -259,6 +260,7 @@ async function createProductsAndModifiers(categories, branchId) {
             available: true,
             category: { connect: { id: category.id } },
             modifierGroups: { connect: { id: modifierGroup.id } },
+            branch: { connect: { id: branchId } },
         },
     }))));
 }
@@ -294,7 +296,7 @@ async function cleanDatabase() {
         'menu',
         'user',
         'category',
-        'menuItem',
+        'product',
         'modifierGroup',
         'modifiers',
         'cartItem',

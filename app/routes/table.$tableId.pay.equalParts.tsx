@@ -225,7 +225,7 @@ export async function loader({ request, params }: LoaderArgs) {
   const cartItems = await prisma.cartItem.findMany({
     // FIX
     where: { orderId: order.id, activeOnOrder: true },
-    include: { menuItem: true, user: true },
+    include: { product: true, user: true },
   })
   const total = order.total
 

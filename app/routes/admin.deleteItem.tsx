@@ -33,7 +33,7 @@ export async function action({ request, params }: ActionArgs) {
       })
       break
     case 'products':
-      await prisma.menuItem.delete({
+      await prisma.product.delete({
         where: {
           id: id,
         },

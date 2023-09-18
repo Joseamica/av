@@ -257,7 +257,7 @@ export async function loader({ request, params }: LoaderArgs) {
   const url = new URL(request.url)
   const dishId = url.searchParams.get('dishId') || ''
 
-  const dish = await prisma.menuItem.findFirst({
+  const dish = await prisma.product.findFirst({
     where: { id: dishId },
   })
 
@@ -266,7 +266,7 @@ export async function loader({ request, params }: LoaderArgs) {
   const categories = await prisma.category.findMany({
     where: { menu: { some: { id: menuId } } },
     include: {
-      menuItems: true,
+      products: true,
     },
   })
   //Find users on table that are not the current user,

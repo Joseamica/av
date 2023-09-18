@@ -4,7 +4,7 @@ import React from 'react'
 import type { ActionArgs, LoaderArgs } from '@remix-run/node'
 import { json, redirect } from '@remix-run/node'
 
-import type { CartItem, MenuItem, ModifierGroup, Modifiers, User } from '@prisma/client'
+import type { CartItem, ModifierGroup, Modifiers, Product, User } from '@prisma/client'
 import clsx from 'clsx'
 import { AnimatePresence, motion } from 'framer-motion'
 import invariant from 'tiny-invariant'
@@ -46,7 +46,7 @@ export async function loader({ request, params }: LoaderArgs) {
   const url = new URL(request.url)
   const dishId = url.searchParams.get('dishId') || ''
 
-  const dish = await prisma.menuItem.findFirst({
+  const dish = await prisma.product.findFirst({
     where: { id: dishId },
   })
 
@@ -55,12 +55,12 @@ export async function loader({ request, params }: LoaderArgs) {
   const categories = await prisma.category.findMany({
     where: { menu: { some: { id: menuId } } },
     include: {
-      menuItems: true,
+      products: true,
     },
   })
 
   const modifierGroup = await prisma.modifierGroup.findMany({
-    where: { menuItems: { some: { id: dishId } } },
+    where: { products: { some: { id: dishId } } },
     include: { modifiers: true },
   })
   //Find users on table that are not the current user,
@@ -183,8 +183,8 @@ export default function Search() {
         </label>
         <div className="flex flex-col p-2 space-y-2">
           {data.categories.map((categories: any) => {
-            const filteredItems = categories.menuItems.filter((menuItem: MenuItem) =>
-              searchText === '' ? null : menuItem.name.toLowerCase().includes(searchText),
+            const filteredItems = categories.products.filter((product: Product) =>
+              searchText === '' ? null : product.name.toLowerCase().includes(searchText),
             )
             return (
               <div key={categories.id}>
@@ -195,26 +195,26 @@ export default function Search() {
                     <AnimatePresence initial={false}>
                       <div className="">
                         {filteredItems &&
-                          filteredItems.map((dish: MenuItem) => (
+                          filteredItems.map((product: Product) => (
                             <motion.div
-                              key={dish.id}
+                              key={product.id}
                               initial={{ opacity: 0, height: 0 }}
                               animate={{ opacity: 1, height: 'auto' }}
                               exit={{ opacity: 0, height: 0 }}
                               className="p-2 space-y-1 overflow-hidden bg-white dark:bg-transparent"
                             >
-                              <Link key={dish.id} preventScrollReset to={`?dishId=${dish.id}`} className="p-2">
+                              <Link key={product.id} preventScrollReset to={`?dishId=${product.id}`} className="p-2">
                                 <FlexRow justify="between">
                                   <div className="flex flex-col ">
-                                    <H3>{dish.name}</H3>
-                                    <H5>{dish.description}</H5>
+                                    <H3>{product.name}</H3>
+                                    <H5>{product.description}</H5>
                                     <Spacer spaceY="1" />
-                                    <H3>{formatCurrency(data.currency, dish.price)}</H3>
+                                    <H3>{formatCurrency(data.currency, product.price)}</H3>
                                   </div>
                                   <motion.img
                                     whileHover={{ scale: 1 }}
                                     whileTap={{ scale: 0.8 }}
-                                    src={dish.image ? dish.image : ''}
+                                    src={product.image ? product.image : ''}
                                     // onError={() => console.log('image error')}
                                     className="object-cover w-24 bg-white rounded-lg dark:bg-secondaryDark max-h-24 shrink-0"
                                     loading="lazy"

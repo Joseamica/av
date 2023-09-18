@@ -63,11 +63,11 @@ export async function loader({ request, params }: LoaderArgs) {
     prisma.category.findMany({
       where: { menu: { some: { id: menuId } } },
       include: {
-        menuItems: true,
+        products: true,
       },
     }),
     prisma.modifierGroup.findMany({
-      where: { menuItems: { some: { id: productId } } },
+      where: { products: { some: { id: productId } } },
       include: { modifiers: true },
     }),
     prisma.user.findMany({
@@ -76,7 +76,7 @@ export async function loader({ request, params }: LoaderArgs) {
     getCartItems(cart),
     getCurrency(tableId),
     getMenu(branch.id),
-    prisma.menuItem.findUnique({
+    prisma.product.findUnique({
       where: { id: productId },
     }),
   ])
@@ -102,7 +102,7 @@ export async function action({ request, params }: ActionArgs) {
   const formData = await request.formData()
 
   const modifierGroup = await prisma.modifierGroup.findMany({
-    where: { menuItems: { some: { id: productId } } },
+    where: { products: { some: { id: productId } } },
   })
 
   const dynamicSchema = createDynamicSchema(modifierGroup)

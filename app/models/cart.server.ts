@@ -3,7 +3,7 @@ import { prisma } from '~/db.server'
 
 export async function getCartItems(cart: CartItem[]) {
   const uniqueVariantIds = [...new Set(cart.map(item => item.variantId))]
-  const uniqueItems = await prisma.menuItem.findMany({
+  const uniqueItems = await prisma.product.findMany({
     where: {
       id: {
         in: uniqueVariantIds,
@@ -42,7 +42,7 @@ export function createCartItems(cartItems: any, shareDish: any, userId: string, 
             Number(item.price) +
             Number(item.modifiers.flatMap(modifier => modifier.extraPrice * modifier.quantity).reduce((a, b) => a + b, 0) as number),
           name: item.name,
-          menuItemId: item.id,
+          productId: item.id,
           // modifier: {
           //   connect: item.modifiers.map(modifier => ({
           //     id: modifier.id,
