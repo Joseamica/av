@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { type LoaderArgs, json } from '@remix-run/node'
 
 import clsx from 'clsx'
+import invariant from 'tiny-invariant'
 import { prisma } from '~/db.server'
 import { getSession } from '~/session.server'
 
@@ -16,6 +17,7 @@ export async function loader({ request, params }: LoaderArgs) {
 
   const session = await getSession(request)
   const userId = session.get('userId')
+  invariant(userId, 'User not found')
 
   const userRoles = await prisma.user.findFirst({
     where: { id: userId },
@@ -48,8 +50,15 @@ export async function loader({ request, params }: LoaderArgs) {
           include: {
             availabilities: true,
             categories: {
+              orderBy: {
+                name: 'asc',
+              },
               include: {
-                menuItems: true,
+                menuItems: {
+                  orderBy: {
+                    name: 'asc',
+                  },
+                },
               },
             },
           },

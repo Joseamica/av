@@ -6,7 +6,7 @@
   ],
   "settings": {
     "editor.fontSize": 14,
-    "terminal.integrated.fontSize": 14, // Change the number to your preferred terminal font size
+    "terminal.integrated.fontSize": 15, // Change the number to your preferred terminal font size
 
     "workbench.colorCustomizations": {
       "activityBar.activeBackground": "#1a1a1a",

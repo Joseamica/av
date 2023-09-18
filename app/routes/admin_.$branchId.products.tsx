@@ -1,10 +1,11 @@
 import { conform, useForm } from '@conform-to/react'
-import { Outlet, useFetcher, useParams, useRouteLoaderData, useSearchParams } from '@remix-run/react'
+import { Outlet, useFetcher, useLoaderData, useParams, useRouteLoaderData, useSearchParams } from '@remix-run/react'
 
-import { type ActionArgs, json, redirect } from '@remix-run/node'
+import { type ActionArgs, LoaderArgs, json, redirect } from '@remix-run/node'
 
 import { getFieldsetConstraint, parse } from '@conform-to/zod'
 import { namedAction } from 'remix-utils'
+import invariant from 'tiny-invariant'
 import { z } from 'zod'
 import { prisma } from '~/db.server'
 
@@ -31,6 +32,15 @@ const productSchema = z.object({
 
 export const handle = { active: 'Products' }
 
+export async function loader({ request, params }: LoaderArgs) {
+  const products = await prisma.menuItem.findMany({
+    where: {
+      branchId: params.branchId,
+    },
+  })
+  invariant(products, 'categories must be defined')
+  return json({ products })
+}
 export async function action({ request, params }: ActionArgs) {
   const formData = await request.formData()
   const submission = parse(formData, {
@@ -93,6 +103,7 @@ export async function action({ request, params }: ActionArgs) {
   })
 }
 export default function Products() {
+  const data = useLoaderData()
   const { branch } = useRouteLoaderData('routes/admin_.$branchId') as any
   const { branchId } = useParams()
 
@@ -121,7 +132,7 @@ export default function Products() {
         Download Your Data
       </ButtonLink>
       <div className="flex flex-wrap gap-2 p-4">
-        {branch.menuItems.map(product => (
+        {data.products.map(product => (
           <Square itemId={product.id} name={product.name} to={product.id} key={product.id} />
         ))}
       </div>
@@ -130,7 +141,7 @@ export default function Products() {
         <fetcher.Form method="POST" {...form.props} action="?/create">
           <ProductForm
             intent="add"
-            products={branch.menuItems}
+            products={data.products}
             editSubItemId={editItem}
             isSubmitting={isSubmitting}
             fields={fields}
@@ -144,7 +155,7 @@ export default function Products() {
         <fetcher.Form method="POST" {...form.props} action="?/update">
           <ProductForm
             intent="edit"
-            products={branch.menuItems}
+            products={data.products}
             editSubItemId={editItem}
             isSubmitting={isSubmitting}
             fields={fields}

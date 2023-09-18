@@ -299,11 +299,20 @@ export default function ProductId() {
                             <H5>{correspondingModifier.name}</H5>
                             {modifiers[props.value] && (
                               <>
-                                <button type="button" onClick={() => handleQuantityChange(props.value, -1, modifierGroup)}>
+                                <button
+                                  type="button"
+                                  onClick={() => handleQuantityChange(props.value, -1, modifierGroup)}
+                                  className="border h-5 w-5 justify-center items-center bg-slate-200
+                                  "
+                                >
                                   -
                                 </button>
                                 <span>{modifiers[props.value].quantity}</span>
-                                <button type="button" onClick={() => handleQuantityChange(props.value, 1, modifierGroup)}>
+                                <button
+                                  type="button"
+                                  onClick={() => handleQuantityChange(props.value, 1, modifierGroup)}
+                                  className="border h-5 w-5 justify-center items-center"
+                                >
                                   +
                                 </button>
                               </>
