@@ -9,7 +9,11 @@ export function PayButton() {
   const { paymentRadio, showModal, setShowModal } = usePayment()
 
   return (
-    <button className="flex flex-row items-center justify-between" type="button" onClick={currentState => setShowModal({ ...currentState, payment: true })}>
+    <button
+      className="flex flex-row items-center justify-between"
+      type="button"
+      onClick={currentState => setShowModal({ ...currentState, payment: true })}
+    >
       <H5>Método de pago</H5>
       <FlexRow>
         <H3>{Translate('es', paymentRadio)}</H3>

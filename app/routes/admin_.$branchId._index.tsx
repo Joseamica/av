@@ -39,7 +39,7 @@ const branchSchema = z.object({
   wifiName: z.string().min(1).max(50),
   wifiPwd: z.string().min(1).max(50),
   tipsPercentages: z.string().refine(str => /^(\d{2},)*\d{2}$/.test(str), { message: 'Must be two-digit numbers separated by commas' }),
-  paymentMethods: z.array(z.string()),
+  paymentMethods: z.string(),
 })
 
 export async function loader({ request, params }: LoaderArgs) {
@@ -59,7 +59,7 @@ export async function action({ request, params }: ActionArgs) {
   const submission = parse(formData, {
     schema: branchSchema,
   })
-
+  console.log(submission)
   if (submission.intent !== 'submit') {
     return json({ status: 'idle', submission } as const)
   }
@@ -73,6 +73,7 @@ export async function action({ request, params }: ActionArgs) {
     )
   }
   const tipsArray = submission.value.tipsPercentages.split(',').map(Number)
+  const paymentsArray = submission.value.paymentMethods.split(',').map(String)
 
   await prisma.branch.update({
     where: { id: branchId },
@@ -90,7 +91,7 @@ export async function action({ request, params }: ActionArgs) {
       wifiName: submission.value.wifiName,
       wifiPwd: submission.value.wifiPwd,
       tipsPercentages: tipsArray,
-      paymentMethods: submission.value.paymentMethods,
+      paymentMethods: paymentsArray,
     },
   })
 
