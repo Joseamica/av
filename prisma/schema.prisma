@@ -78,6 +78,8 @@ model Branch {
   feedbacks        Feedback[]
   payments         Payments[]
   availabilities   Availabilities[]
+  modifierGroups   ModifierGroup[]
+  modifiers        Modifiers[]
   categories       Category[]
   products         Product[]
   // restaurant      Restaurant     @relation(fields: [restaurantId], references: [id], onDelete: Cascade, onUpdate: Cascade)
@@ -140,9 +142,10 @@ model Availabilities {
 }
 
 model Category {
-  id             String           @id @default(cuid())
-  name           String
-  image          String?
+  id    String  @id @default(cuid())
+  name  String
+  image String?
+
   description    String?
   pdf            Boolean?         @default(false)
   availabilities Availabilities[]
@@ -167,37 +170,37 @@ model Product {
   category       Category?       @relation(fields: [categoryId], references: [id], onDelete: Cascade, onUpdate: Cascade)
   modifierGroups ModifierGroup[]
   cartItems      CartItem[]
-  updatedAt      DateTime?       @updatedAt
-  createdAt      DateTime        @default(now())
   branch         Branch?         @relation(fields: [branchId], references: [id])
   branchId       String?
+  updatedAt      DateTime?       @updatedAt
+  createdAt      DateTime        @default(now())
 }
 
 model Order {
-  id           String     @id @default(cuid())
-  tip          Decimal?
-  paid         Boolean?
-  total        Decimal?
-  paidDate     DateTime?
-  creationDate DateTime
-  orderedDate  DateTime
-  active       Boolean?
-  table        Table?     @relation(fields: [tableId], references: [id])
-  tableId      String?    @unique
-  users        User[]
-  branch       Branch?    @relation(fields: [branchId], references: [id])
-  branchId     String?
-  cartItems    CartItem[]
-  payments     Payments[]
+  id        String     @id @default(cuid())
+  tip       Decimal?
+  paid      Boolean?
+  total     Decimal?
+  active    Boolean?
+  table     Table?     @relation(fields: [tableId], references: [id])
+  tableId   String?    @unique
+  users     User[]
+  branch    Branch?    @relation(fields: [branchId], references: [id])
+  branchId  String?
+  cartItems CartItem[]
+  payments  Payments[]
+  paidDate  DateTime?
+  updatedAt DateTime?  @updatedAt
+  createdAt DateTime   @default(now())
 }
 
 model CartItem {
-  id               String            @id @default(cuid())
-  plu              String?
-  name             String?
-  image            String?
-  price            Float
-  creationDate     String?
+  id    String  @id @default(cuid())
+  plu   String?
+  name  String?
+  image String?
+  price Float
+
   quantity         Int
   orderId          String?
   productId        String?
@@ -214,6 +217,8 @@ model CartItem {
   activeOnOrder    Boolean?
   rating           String?
   productModifiers ProductModifier[]
+  updatedAt        DateTime?         @updatedAt
+  createdAt        DateTime          @default(now())
 }
 
 model Modifiers {
@@ -228,6 +233,10 @@ model Modifiers {
   modifierGroupId String?
   cartItems       CartItem[]
   cartItemId      String?
+  updatedAt       DateTime?      @updatedAt
+  createdAt       DateTime       @default(now())
+  branch          Branch?        @relation(fields: [branchId], references: [id])
+  branchId        String?
 }
 
 model ProductModifier {
@@ -241,6 +250,8 @@ model ProductModifier {
   cartItemId String?
   branchId   String?
   branch     Branch?   @relation(fields: [branchId], references: [id])
+  updatedAt  DateTime? @updatedAt
+  createdAt  DateTime  @default(now())
 }
 
 model ModifierGroup {
@@ -259,6 +270,8 @@ model ModifierGroup {
 
   updatedAt DateTime? @updatedAt
   createdAt DateTime  @default(now())
+  branch    Branch?   @relation(fields: [branchId], references: [id])
+  branchId  String?
 }
 
 model User {
@@ -341,19 +354,20 @@ enum EmployeeRoles {
 }
 
 model Feedback {
-  id           String     @id @default(cuid())
-  type         String
-  report       String
-  comments     String?
-  creationDate String?
-  branch       Branch?    @relation(fields: [branchId], references: [id])
-  branchId     String?
-  employees    Employee[]
-  table        Table?     @relation(fields: [tableId], references: [id])
-  tableId      String?
-  cartItems    CartItem[]
-  user         User?      @relation(fields: [userId], references: [id])
-  userId       String?
+  id        String     @id @default(cuid())
+  type      String
+  report    String
+  comments  String?
+  branch    Branch?    @relation(fields: [branchId], references: [id])
+  branchId  String?
+  employees Employee[]
+  table     Table?     @relation(fields: [tableId], references: [id])
+  tableId   String?
+  cartItems CartItem[]
+  user      User?      @relation(fields: [userId], references: [id])
+  userId    String?
+  updatedAt DateTime?  @updatedAt
+  createdAt DateTime   @default(now())
 }
 
 model Session {

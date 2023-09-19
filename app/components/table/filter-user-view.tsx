@@ -1,14 +1,15 @@
 import clsx from 'clsx'
 import { AnimatePresence, motion } from 'framer-motion'
 
-import { formatCurrency } from '~/utils'
 import { CartItemDetails } from '../cart-item-details'
 import { SectionContainer } from '../containers/section-container'
+import { CashIcon, ChevronDownIcon, HamburgerIcon, ShoppingCartIcon, UserCircleIcon, XCashIcon, XHamburgerIcon } from '../icons'
 import { FlexRow } from '../util/flexrow'
 import { Spacer } from '../util/spacer'
-import { H3, H6 } from '../util/typography'
+import { H3, H5, H6 } from '../util/typography'
 import { Underline } from '../util/underline'
-import { CashIcon, ChevronDownIcon, HamburgerIcon, ShoppingCartIcon, UserCircleIcon, XCashIcon, XHamburgerIcon } from '../icons'
+
+import { formatCurrency } from '~/utils'
 
 export function FilterUserView({
   order,
@@ -34,7 +35,7 @@ export function FilterUserView({
                     <FlexRow className="items-center space-x-2 divide-x-2">
                       <div className="flex flex-col items-center rounded-xl p-1  ">
                         <UserCircleIcon fill={user.color || '#000'} className="min-h-10 min-w-10 h-8 w-8" />
-                        <H3>{user.name}</H3>
+                        <H5>{user.name}</H5>
                       </div>
                       <div className="flex flex-col space-y-2 p-2">
                         {user.cartItems?.length === 1 ? (

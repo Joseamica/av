@@ -74,6 +74,13 @@ export async function action({ request, params }: ActionArgs) {
         },
       })
       break
+    case 'modifierGroups':
+      await prisma.modifierGroup.delete({
+        where: {
+          id: id,
+        },
+      })
+      break
   }
 
   return redirect(redirectTo)

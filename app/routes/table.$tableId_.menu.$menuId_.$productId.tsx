@@ -224,8 +224,9 @@ export default function ProductId() {
       onClose={() => navigate(`/table/${params.tableId}/menu/${params.menuId}`)}
       title={data.product.name}
       imgHeader={data.product.image}
+      // fullScreen={true}
     >
-      <fetcher.Form method="POST" className="w-full h-full p-4 space-y-2 bg-white" {...form.props}>
+      <fetcher.Form method="POST" className="w-full  p-4 space-y-2 bg-white" {...form.props}>
         <H3 boldVariant="semibold">{data.product.name}</H3>
         <H4> {formatCurrency(data.currency, data.product?.price)}</H4>
         <H5 variant="secondary">{data.product.description}</H5>
@@ -235,10 +236,15 @@ export default function ProductId() {
           quantity={quantity}
           disabled={quantity <= 1}
         />
-        <Spacer>
-          <Separator.Root className="bg-zinc-200 data-[orientation=horizontal]:h-px data-[orientation=horizontal]:w-full data-[orientation=vertical]:h-full data-[orientation=vertical]:w-px " />
-        </Spacer>
-        {data.usersOnTable.length > 0 && <H4>¿Quieres compartir?</H4>}
+
+        {data.usersOnTable.length > 0 && (
+          <>
+            <Spacer>
+              <Separator.Root className="bg-zinc-200 data-[orientation=horizontal]:h-px data-[orientation=horizontal]:w-full data-[orientation=vertical]:h-full data-[orientation=vertical]:w-px " />
+            </Spacer>
+            <H4>¿Quieres compartir?</H4>
+          </>
+        )}
         {data.usersOnTable.map((user: User) => {
           return (
             <div key={user.id} className="flex items-center mt-2">
@@ -255,78 +261,80 @@ export default function ProductId() {
             </div>
           )
         })}
-
         <Spacer>
           <Separator.Root className="bg-zinc-200 data-[orientation=horizontal]:h-px data-[orientation=horizontal]:w-full data-[orientation=vertical]:h-full data-[orientation=vertical]:w-px " />
         </Spacer>
         <div className="space-y-4">
-          {data.modifierGroup.map((modifierGroup: any) => {
-            return (
-              <div key={modifierGroup.id} className="space-y-2">
-                <FlexRow justify="between">
-                  <FlexRow>
-                    <H3> {modifierGroup.name}</H3>
-                    <H6>Min {modifierGroup.min}</H6>
-                    <H6>max {modifierGroup.max}.</H6>
-                  </FlexRow>
-                  <div className="px-3  border rounded-full">{modifierGroup.min > 0 ? <H6>Requerido</H6> : <H6>Opcional</H6>}</div>
-                </FlexRow>
-                <div className="flex flex-col space-y-2">
-                  {conform
-                    .collection(fields[modifierGroup.id], {
-                      type: 'checkbox',
-                      options: modifierGroup.modifiers.map((modifier: Modifiers) => {
-                        return modifier.id
-                      }),
-                    })
-                    .map((props, index) => {
-                      const correspondingModifier = modifierGroup.modifiers.find((modifier: Modifiers) => modifier.id === props.value)
+          {data.modifierGroup.length > 0
+            ? data.modifierGroup?.map((modifierGroup: any) => {
+                return (
+                  <div key={modifierGroup.id} className="space-y-2">
+                    <FlexRow justify="between">
+                      <FlexRow>
+                        <H3> {modifierGroup.name}</H3>
+                        <H6>Min {modifierGroup.min}</H6>
+                        <H6>max {modifierGroup.max}.</H6>
+                      </FlexRow>
+                      <div className="px-3  border rounded-full">{modifierGroup.min > 0 ? <H6>Requerido</H6> : <H6>Opcional</H6>}</div>
+                    </FlexRow>
+                    <div className="flex flex-col space-y-2">
+                      {conform
+                        .collection(fields[modifierGroup.id], {
+                          type: 'checkbox',
+                          options: modifierGroup.modifiers.map((modifier: Modifiers) => {
+                            return modifier.id
+                          }),
+                        })
+                        .map((props, index) => {
+                          const correspondingModifier = modifierGroup.modifiers.find((modifier: Modifiers) => modifier.id === props.value)
 
-                      // Safeguard in case correspondingModifier is undefined
-                      if (!correspondingModifier) {
-                        return null
-                      }
+                          // Safeguard in case correspondingModifier is undefined
+                          if (!correspondingModifier) {
+                            return null
+                          }
 
-                      return (
-                        <label htmlFor={props.id} key={index} className="flex flex-row space-x-3 text-sm justify-between items-center">
-                          <FlexRow>
-                            <input
-                              {...props}
-                              onChange={e =>
-                                handleCheckboxChange(props.value, e.target.checked, correspondingModifier.extraPrice, modifierGroup)
-                              }
-                            />
-                            <H5>{correspondingModifier.name}</H5>
-                            {modifiers[props.value] && (
-                              <>
-                                <button
-                                  type="button"
-                                  onClick={() => handleQuantityChange(props.value, -1, modifierGroup)}
-                                  className="border h-5 w-5 justify-center items-center bg-slate-200
-                                  "
-                                >
-                                  -
-                                </button>
-                                <span>{modifiers[props.value].quantity}</span>
-                                <button
-                                  type="button"
-                                  onClick={() => handleQuantityChange(props.value, 1, modifierGroup)}
-                                  className="border h-5 w-5 justify-center items-center"
-                                >
-                                  +
-                                </button>
-                              </>
-                            )}
-                          </FlexRow>
-                          <H5 className="place-content-end">{formatCurrency(data.currency, Number(correspondingModifier.extraPrice))}</H5>
-                        </label>
-                      )
-                    })}
-                  <ErrorList errors={[fields[modifierGroup.id]?.error]} />
-                </div>
-              </div>
-            )
-          })}
+                          return (
+                            <label htmlFor={props.id} key={index} className="flex flex-row space-x-3 text-sm justify-between items-center">
+                              <FlexRow>
+                                <input
+                                  {...props}
+                                  onChange={e =>
+                                    handleCheckboxChange(props.value, e.target.checked, correspondingModifier.extraPrice, modifierGroup)
+                                  }
+                                />
+                                <H5>{correspondingModifier.name}</H5>
+                                {modifiers[props.value] && (
+                                  <>
+                                    <button
+                                      type="button"
+                                      onClick={() => handleQuantityChange(props.value, -1, modifierGroup)}
+                                      className="border-2 h-4 w-4 flex justify-center items-center border-day-principal rounded-sm"
+                                    >
+                                      <span>-</span>
+                                    </button>
+                                    <span>{modifiers[props.value].quantity}</span>
+                                    <button
+                                      type="button"
+                                      onClick={() => handleQuantityChange(props.value, 1, modifierGroup)}
+                                      className="border-2 h-4 w-4 flex justify-center items-center border-day-principal rounded-sm"
+                                    >
+                                      <span>+</span>
+                                    </button>
+                                  </>
+                                )}
+                              </FlexRow>
+                              <H5 className="place-content-end">
+                                + {formatCurrency(data.currency, Number(correspondingModifier.extraPrice))}
+                              </H5>
+                            </label>
+                          )
+                        })}
+                      <ErrorList errors={[fields[modifierGroup.id]?.error]} />
+                    </div>
+                  </div>
+                )
+              })
+            : null}
         </div>
 
         <Spacer spaceY="1" />

@@ -57,42 +57,44 @@ export default function User() {
   const changeName = searchParams.get('changeName')
 
   return (
-    <SectionContainer className="">
-      <img src="" alt="profile_pic" className="h-20 w-20 rounded-full" />
-      <div className="flex flex-col items-center justify-center space-y-2">
+    <div>
+      <SectionContainer className="">
         <H1>{data.user.name}</H1>
-        <Link to="?changeName=true" className="rounded-full border border-gray_light px-2 py-1 text-xs">
-          Cambiar nombre
-        </Link>
-        {changeName ? (
-          <FlexRow>
-            <input name="name" placeholder="Escribe el nombre..." className="h-10 rounded-full border pl-2 text-sm " />
-            <Button size="small">Cambiar</Button>
-          </FlexRow>
-        ) : null}
-      </div>
-      <Spacer spaceY="2" />
-      <div>
-        <H2>Tus platillos ordenados</H2>
-        <Spacer spaceY="1" />
-        <hr />
-        <Spacer spaceY="1" />
-        <div className="space-y-2">
-          {data.cartItems.map((item: CartItem, index: number) => {
-            return (
-              <FlexRow
-                className="w-full justify-between"
-                key={item.id}
-                // unActive={item.paid ? true : false}
-                // showCollapse={true}
-              >
-                <FlexRow>
-                  <H4>{item.quantity}</H4>
-                  <H3>{item.name}</H3>
-                </FlexRow>
-                <FlexRow>
-                  <H4>{formatCurrency(data.currency, item.price)}</H4>
-                  {/* {item.paid ? (
+        {/* <img src="" alt="profile_pic" className="h-20 w-20 rounded-full" />
+        <div className="flex flex-col items-center justify-center space-y-2">
+      
+          <Link to="?changeName=true" className="rounded-full border border-gray_light px-2 py-1 text-xs">
+            Cambiar nombre
+          </Link>
+          {changeName ? (
+            <FlexRow>
+              <input name="name" placeholder="Escribe el nombre..." className="h-10 rounded-full border pl-2 text-sm " />
+              <Button size="small">Cambiar</Button>
+            </FlexRow>
+          ) : null}
+        </div> */}
+        <Spacer spaceY="2" />
+        <div>
+          <H2>Tus platillos ordenados</H2>
+          <Spacer spaceY="1" />
+          <hr />
+          <Spacer spaceY="1" />
+          <div className="space-y-2">
+            {data.cartItems.map((item: CartItem, index: number) => {
+              return (
+                <FlexRow
+                  className="w-full justify-between"
+                  key={item.id}
+                  // unActive={item.paid ? true : false}
+                  // showCollapse={true}
+                >
+                  <FlexRow>
+                    <H4>{item.quantity}</H4>
+                    <H3>{item.name}</H3>
+                  </FlexRow>
+                  <FlexRow>
+                    <H4>{formatCurrency(data.currency, item.price)}</H4>
+                    {/* {item.paid ? (
                     <H6 className="rounded-full p-1 text-success">{`Pagado ${item.paidBy}`}</H6>
                   ) : (
                     <input
@@ -106,30 +108,34 @@ export default function User() {
                     name={`price-${item.id}`}
                     value={item.price}
                   /> */}
+                  </FlexRow>
                 </FlexRow>
-              </FlexRow>
-            )
-          })}
+              )
+            })}
+          </div>
+          <Spacer spaceY="2" />
+          <H2>Pagos</H2>
+          <Spacer spaceY="1" />
+          <hr />
+          <Spacer spaceY="1" />
+          <div>
+            <FlexRow justify="between">
+              <H4>Propina:</H4>
+              <H2 boldVariant="semibold">{formatCurrency(data.currency, data.totalTip)}</H2>
+            </FlexRow>
+            <FlexRow justify="between">
+              <H4>Total: </H4>
+              <H2 boldVariant="semibold">{formatCurrency(data.currency, data.totalPaid)}</H2>
+            </FlexRow>
+          </div>
         </div>
-        <Spacer spaceY="2" />
-        <H2>Pagos</H2>
-        <Spacer spaceY="1" />
-        <hr />
-        <Spacer spaceY="1" />
-        <div>
-          <FlexRow justify="between">
-            <H4>Propina:</H4>
-            <H2 boldVariant="semibold">{formatCurrency(data.currency, data.totalTip)}</H2>
-          </FlexRow>
-          <FlexRow justify="between">
-            <H4>Total: </H4>
-            <H2 boldVariant="semibold">{formatCurrency(data.currency, data.totalPaid)}</H2>
-          </FlexRow>
-        </div>
-      </div>
-      <Form action="/logout" method="POST">
-        <button type="submit">Logout</button>
+      </SectionContainer>
+      <Spacer spaceY="2" />
+      <Form action="/logout" method="POST" className="flex justify-center">
+        <button type="submit" className="rounded-full border px-4 py-2 self-center bg-day-principal text-white">
+          Logout
+        </button>
       </Form>
-    </SectionContainer>
+    </div>
   )
 }

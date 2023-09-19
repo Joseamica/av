@@ -390,8 +390,6 @@ export async function action({ request, params }: ActionArgs) {
           data: {
             branchId: branchId,
             tableId: tableId,
-            creationDate: new Date(),
-            orderedDate: new Date(),
             active: true,
             paid: false,
             total: cartItemsTotal,

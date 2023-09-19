@@ -34,7 +34,6 @@ const orderFormSchema = z.object({
   tip: z.number().optional(),
   total: z.number().optional(),
   paidDate: z.string().optional(),
-  creationDate: z.string().optional(),
 })
 
 export async function loader({ request, params }: LoaderArgs) {
@@ -79,7 +78,6 @@ export async function action({ request, params }: ActionArgs) {
           tip: Number(formValues.tip),
           total: Number(formValues.total),
           paidDate: formValues.paidDate && new Date(formValues.paidDate as string),
-          creationDate: new Date(formValues.creationDate as string),
         },
       })
       return redirect(redirectTo)

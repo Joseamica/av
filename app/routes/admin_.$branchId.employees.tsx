@@ -15,7 +15,7 @@ import { passwordSchema } from '~/utils/user-validation'
 import { Button, H5 } from '~/components'
 import { EmployeeForm } from '~/components/admin/employees/employee-form'
 import { HeaderWithButton } from '~/components/admin/headers'
-import { QueryDialog } from '~/components/admin/ui/dialogs/dialog'
+import { QueryDialog, ScrollableQueryDialog } from '~/components/admin/ui/dialogs/dialog'
 import { ErrorList } from '~/components/admin/ui/forms'
 import { Square } from '~/components/admin/ui/square'
 
@@ -176,7 +176,7 @@ export default function Employees() {
           />
         ))}
       </div>
-      <QueryDialog title="Add Employee" description="Add to the fields you want to add" query={'addItem'}>
+      <ScrollableQueryDialog title="Add Employee" description="Add to the fields you want to add" query={'addItem'}>
         <fetcher.Form method="POST" {...form.props} action="?/create">
           <EmployeeForm
             intent="add"
@@ -188,8 +188,8 @@ export default function Employees() {
           />
           <input type="hidden" value={addItem ? addItem : ''} {...conform.input(fields.id)} />
         </fetcher.Form>
-      </QueryDialog>
-      <QueryDialog title="Edit Employee" description="Modify the fields you want to edit" query={'editItem'}>
+      </ScrollableQueryDialog>
+      <ScrollableQueryDialog title="Edit Employee" description="Modify the fields you want to edit" query={'editItem'}>
         <fetcher.Form method="POST" {...form.props} action="?/update">
           <EmployeeForm
             intent="edit"
@@ -201,7 +201,7 @@ export default function Employees() {
           />
           <input type="hidden" value={editItem ? editItem : ''} {...conform.input(fields.id)} />
         </fetcher.Form>
-      </QueryDialog>
+      </ScrollableQueryDialog>
 
       <QueryDialog title="Delete Employee" description="Are you sure that you want to delete this item?" query={'deleteItem'}>
         <fetcher.Form method="POST" action="/admin/deleteItem" name="DELETE">

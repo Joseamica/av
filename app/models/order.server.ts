@@ -36,8 +36,6 @@ export async function findOrCreateOrder(branchId: Branch['id'], tableId: Table['
       data: {
         paid: false,
         active: true,
-        creationDate: new Date(),
-        orderedDate: new Date(),
         branch: {
           connect: {
             id: branchId,

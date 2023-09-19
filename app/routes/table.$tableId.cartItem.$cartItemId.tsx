@@ -1,13 +1,18 @@
 import { Form, Link, useLoaderData, useNavigate, useSearchParams } from '@remix-run/react'
-import { type ActionArgs, type LoaderArgs, redirect, json } from '@remix-run/node'
+
+import { type ActionArgs, type LoaderArgs, json, redirect } from '@remix-run/node'
+
 import type { User } from '@prisma/client'
 import invariant from 'tiny-invariant'
-import { Button, FlexRow, H3, H4, H5, ItemContainer, LinkButton, Modal, SendComments, Spacer, UserCircleIcon, StarIcon } from '~/components'
 import { prisma } from '~/db.server'
 import { validateRedirect } from '~/redirect.server'
 import { getSession, getUserId } from '~/session.server'
-import { formatCurrency, getCurrency, getDateTime } from '~/utils'
+
 import { FOOD_REPORT_SUBJECTS } from './table.$tableId.help.report'
+
+import { formatCurrency, getCurrency, getDateTime } from '~/utils'
+
+import { Button, FlexRow, H3, H4, H5, ItemContainer, LinkButton, Modal, SendComments, Spacer, StarIcon, UserCircleIcon } from '~/components'
 
 export async function loader({ request, params }: LoaderArgs) {
   const { tableId, cartItemId } = params
@@ -41,7 +46,6 @@ export async function action({ request, params }: ActionArgs) {
       await prisma.feedback.create({
         data: {
           type: 'food',
-          creationDate: date.toString(),
           report: subject + ' ' + sendComments,
           tableId: params.tableId,
           userId: await getUserId(session),
@@ -85,7 +89,13 @@ export default function CartItemId() {
           // REPORT
           <div className="space-y-2">
             {Object.entries(FOOD_REPORT_SUBJECTS).map(([key, value]) => (
-              <LinkButton to={`?report=true&by=food&subject=${value}`} key={key} size="small" className="mx-1" variant={subject === value ? 'primary' : 'secondary'}>
+              <LinkButton
+                to={`?report=true&by=food&subject=${value}`}
+                key={key}
+                size="small"
+                className="mx-1"
+                variant={subject === value ? 'primary' : 'secondary'}
+              >
                 {value}
               </LinkButton>
             ))}
@@ -106,7 +116,10 @@ export default function CartItemId() {
             <FlexRow justify="center">
               {Array.from({ length: 5 }).map((_, index) => (
                 <Link to={`?rate=true&rating=${index + 1}`} key={index}>
-                  <StarIcon key={index} className={`h-8 w-8 ${index + 1 <= Number(searchParams.get('rating')) ? 'fill-yellow-500' : 'fill-gray-400'}`} />
+                  <StarIcon
+                    key={index}
+                    className={`h-8 w-8 ${index + 1 <= Number(searchParams.get('rating')) ? 'fill-yellow-500' : 'fill-gray-400'}`}
+                  />
                 </Link>
               ))}
             </FlexRow>

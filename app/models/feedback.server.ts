@@ -22,7 +22,6 @@ export async function createFeedBack(
   return prisma.feedback.create({
     data: {
       report,
-      creationDate: date.toString(),
       type,
       comments,
       tableId,

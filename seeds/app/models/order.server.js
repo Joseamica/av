@@ -23,8 +23,6 @@ async function findOrCreateOrder(branchId, tableId, userId) {
             data: {
                 paid: false,
                 active: true,
-                creationDate: new Date(),
-                orderedDate: new Date(),
                 branch: {
                     connect: {
                         id: branchId,
