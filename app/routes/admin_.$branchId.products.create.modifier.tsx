@@ -82,8 +82,7 @@ export async function action({ request, params }: ActionArgs) {
         data: {
           name: submission.value.name,
           plu: submission.value.plu,
-          min: submission.value.min ? submission.value.min : 0,
-          max: submission.value.max ? submission.value.max : 0,
+          extraPrice: submission.value.extraPrice,
           // multiply: submission.value.multiply,
           branch: {
             connect: {
@@ -128,7 +127,7 @@ export default function CreateModifierGroup() {
           <XIcon />
         </Dialog.Close>
         <Dialog.Content className="bg-white p-8 rounded-md min-w-[450px]">
-          <Dialog.Title className="text-mauve12 m-0 text-[17px] font-medium">Add Modifier</Dialog.Title>
+          <Dialog.Title className="text-mauve12 m-0 text-[17px] font-medium">Add Modifier Group</Dialog.Title>
           <Dialog.Description className="text-mauve11 mt-[10px] mb-5 text-[15px] leading-normal">
             Modify the fields you want to add
           </Dialog.Description>

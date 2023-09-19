@@ -1,6 +1,6 @@
 import { conform, useForm } from '@conform-to/react'
 import * as Dialog from '@radix-ui/react-dialog'
-import { useFetcher, useLoaderData, useNavigate, useParams, useRouteLoaderData, useSearchParams } from '@remix-run/react'
+import { useFetcher, useLoaderData, useNavigate, useParams, useSearchParams } from '@remix-run/react'
 
 import { type ActionArgs, type LoaderArgs, json, redirect } from '@remix-run/node'
 
@@ -14,8 +14,21 @@ import { checkboxSchema } from '~/utils/zod-extensions'
 import { XIcon } from '~/components'
 import { ModifierForm } from '~/components/admin/products/modifier-form'
 import { ModifierGroupForm } from '~/components/admin/products/modifier-group-form'
-import { ProductForm } from '~/components/admin/products/product-form'
-import { ScrollableQueryDialog } from '~/components/admin/ui/dialogs/dialog'
+
+const modifierSchema = z.object({
+  id: z.string().optional(),
+  plu: z
+    .string()
+    .min(5)
+    .refine(value => value.startsWith('PLU-'), { message: 'PLU must start with "PLU-"' }),
+  name: z.string().min(2),
+  min: z.number().min(0).optional(),
+  max: z.number().min(0).optional(),
+  extraPrice: z.number().min(0).optional(),
+
+  selectItems: z.array(z.string()).optional(),
+  modifierGroups: z.string().optional(),
+})
 
 const modifierGroupSchema = z.object({
   id: z.string().optional(),
@@ -61,6 +74,20 @@ export async function loader({ request, params }: LoaderArgs) {
       branchId: params.branchId,
     },
   })
+  const modifierGroup = await prisma.modifierGroup.findUnique({
+    where: {
+      id: params.id,
+    },
+    include: {
+      products: true,
+      modifiers: true,
+    },
+  })
+  const modifiers = await prisma.modifiers.findMany({
+    where: {
+      branchId: params.branchId,
+    },
+  })
 
   const modifier = await prisma.modifiers.findUnique({
     where: {
@@ -68,18 +95,26 @@ export async function loader({ request, params }: LoaderArgs) {
     },
   })
 
-  return json({ products, modifierGroups, modifier })
+  return json({ products, modifierGroups, modifierGroup, modifiers, modifier })
 }
 
 export async function action({ request, params }: ActionArgs) {
   const formData = await request.formData()
   const submission = parse(formData, {
-    schema: modifierGroupSchema,
+    schema: intent => {
+      switch (intent) {
+        case 'editModifier':
+          return modifierSchema
+        case 'editModifierG':
+          return modifierGroupSchema
+        default:
+          throw new Error('invalid intent')
+      }
+    },
   })
+
   console.log('submission', submission)
-  if (submission.intent !== 'submit') {
-    return json({ status: 'idle', submission } as const)
-  }
+
   if (!submission.value) {
     return json(
       {
@@ -91,10 +126,10 @@ export async function action({ request, params }: ActionArgs) {
   }
 
   return namedAction(request, {
-    async update() {
+    async updateModifierG() {
       await prisma.modifierGroup.update({
         where: {
-          id: submission.value.id,
+          id: params.id,
         },
         data: {
           name: submission.value.name,
@@ -112,7 +147,32 @@ export async function action({ request, params }: ActionArgs) {
           modifiers: { connect: submission.value.modifiers ? submission.value.modifiers.map(id => ({ id })) : [] },
         },
       })
-      return redirect(`/admin/${params.branchId}/products`)
+      return redirect(`/admin/${params.branchId}/products?filter=modifierG`)
+    },
+    async updateModifier() {
+      await prisma.modifiers.update({
+        where: {
+          id: params.id,
+        },
+        data: {
+          name: submission.value.name,
+          plu: submission.value.plu,
+          extraPrice: submission.value.extraPrice,
+
+          // multiply: submission.value.multiply,
+          branch: {
+            connect: {
+              id: params.branchId,
+            },
+          },
+          modifierGroups: {
+            connect: {
+              id: submission.value.modifierGroups,
+            },
+          },
+        },
+      })
+      return redirect(`/admin/${params.branchId}/products?filter=modifiers`)
     },
   })
 }
@@ -134,26 +194,25 @@ export default function EditModifierGroup() {
   const isSubmitting = fetcher.state !== 'idle'
   const navigate = useNavigate()
   const params = useParams()
-  const [searchParams, setSearchParams] = useSearchParams()
+  const [searchParams] = useSearchParams()
 
   const edit = searchParams.get('edit')
-
   return (
     <>
-      <Dialog.Root open={edit === 'modifierG'} onOpenChange={() => navigate(`/admin/${params.branchId}/products`)}>
+      <Dialog.Root open={edit === 'modifierG'} onOpenChange={() => navigate(`/admin/${params.branchId}/products?filter=modifierG`)}>
         <Dialog.Overlay className="fixed top-0 left-0 right-0 bottom-0 grid place-items-center overflow-y-auto bg-black bg-opacity-80">
           <Dialog.Close className="absolute top-0 right-0 m-3 bg-white rounded-full p-3">
             <XIcon />
           </Dialog.Close>
           <Dialog.Content className="bg-white p-8 rounded-md min-w-[450px]">
-            <Dialog.Title className="text-mauve12 m-0 text-[17px] font-medium">Add Modifier Group</Dialog.Title>
+            <Dialog.Title className="text-mauve12 m-0 text-[17px] font-medium">Edit Modifier Group</Dialog.Title>
             <Dialog.Description className="text-mauve11 mt-[10px] mb-5 text-[15px] leading-normal">
               Modify the fields you want to add
             </Dialog.Description>
-            <fetcher.Form method="POST" {...form.props} action="?/update">
+            <fetcher.Form method="POST" {...form.props} action="?/updateModifierG">
               <ModifierGroupForm
                 intent="edit"
-                modifierGroups={data.modifierGroups}
+                modifierGroups={data.modifierGroup}
                 isSubmitting={isSubmitting}
                 editSubItemId={edit}
                 fields={fields}
@@ -165,20 +224,29 @@ export default function EditModifierGroup() {
         </Dialog.Overlay>
       </Dialog.Root>
 
-      <ScrollableQueryDialog title="Edit Modifier" query="edit" value="modifier">
-        <fetcher.Form method="POST" {...form.props} action="?/update">
-          <ModifierForm
-            intent="edit"
-            modifiers={data.modifier}
-            isSubmitting={isSubmitting}
-            editSubItemId={edit}
-            fields={fields}
-            addingData={{ data: data.modifierGroups, keys: ['name'] }}
-          />
-
-          <input type="hidden" value={''} {...conform.input(fields.id)} />
-        </fetcher.Form>
-      </ScrollableQueryDialog>
+      <Dialog.Root open={edit === 'modifier'} onOpenChange={() => navigate(`/admin/${params.branchId}/products?filter=modifiers`)}>
+        <Dialog.Overlay className="fixed top-0 left-0 right-0 bottom-0 grid place-items-center overflow-y-auto bg-black bg-opacity-80">
+          <Dialog.Close className="absolute top-0 right-0 m-3 bg-white rounded-full p-3">
+            <XIcon />
+          </Dialog.Close>
+          <Dialog.Content className="bg-white p-8 rounded-md min-w-[450px]">
+            <Dialog.Title className="text-mauve12 m-0 text-[17px] font-medium">Edit Modifier</Dialog.Title>
+            <Dialog.Description className="text-mauve11 mt-[10px] mb-5 text-[15px] leading-normal">
+              Modify the fields you want to add
+            </Dialog.Description>
+            <fetcher.Form method="POST" {...form.props} action="?/updateModifier">
+              <ModifierForm
+                intent="edit"
+                modifiers={data.modifier}
+                isSubmitting={isSubmitting}
+                editSubItemId={edit}
+                fields={fields}
+                addingData={{ data: data.modifierGroups, keys: ['name'] }}
+              />
+            </fetcher.Form>
+          </Dialog.Content>
+        </Dialog.Overlay>
+      </Dialog.Root>
     </>
   )
 }

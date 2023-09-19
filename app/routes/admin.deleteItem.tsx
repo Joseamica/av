@@ -9,79 +9,105 @@ export async function action({ request, params }: ActionArgs) {
   const model = data.model as string
   const redirectTo = data.redirect as string
 
-  switch (model) {
-    case 'availabilities':
+  const modelFunctions = {
+    availabilities: async () => {
       await prisma.availabilities.delete({
         where: {
           id: id,
         },
       })
-
-      return redirect(redirectTo)
-    case 'menus':
+    },
+    menus: async () => {
       await prisma.menu.delete({
         where: {
           id: id,
         },
       })
-      break
-    case 'branches':
+    },
+    branches: async () => {
       await prisma.branch.delete({
         where: {
           id: id,
         },
       })
-      break
-    case 'products':
-      await prisma.product.delete({
-        where: {
-          id: id,
-        },
-      })
-      break
-    case 'categories':
+    },
+    products: async () => {
+      // FIXME This is bad practice, temporal solution
+      try {
+        await prisma.product.delete({
+          where: {
+            id: id,
+          },
+        })
+      } catch (e) {
+        console.log('Error deleting product:', e)
+      }
+
+      try {
+        await prisma.modifierGroup.delete({
+          where: {
+            id: id,
+          },
+        })
+      } catch (e) {
+        console.log('Error deleting modifierGroup:', e)
+      }
+
+      try {
+        await prisma.modifiers.delete({
+          where: {
+            id: id,
+          },
+        })
+      } catch (e) {
+        console.log('Error deleting modifiers:', e)
+      }
+    },
+    categories: async () => {
       await prisma.category.delete({
         where: {
           id: id,
         },
       })
-      break
-    case 'payments':
+    },
+    payments: async () => {
       await prisma.payments.delete({
         where: {
           id: id,
         },
       })
-      break
-    case 'users':
+    },
+    users: async () => {
       await prisma.user.delete({
         where: {
           id: id,
         },
       })
-      break
-    case 'employees':
+    },
+    employees: async () => {
       await prisma.employee.delete({
         where: {
           id: id,
         },
       })
-      break
-    case 'notifications':
+    },
+    notifications: async () => {
       await prisma.notification.delete({
         where: {
           id: id,
         },
       })
-      break
-    case 'modifierGroups':
+    },
+    modifierGroups: async () => {
       await prisma.modifierGroup.delete({
         where: {
           id: id,
         },
       })
-      break
+    },
   }
+
+  await modelFunctions[model]()
 
   return redirect(redirectTo)
 }

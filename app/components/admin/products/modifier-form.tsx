@@ -41,8 +41,6 @@ export function ModifierForm({
     }
   }
 
-  console.log('addingData', addingData)
-  console.log('modifiers', modifiers)
   return (
     <>
       <Field
@@ -61,7 +59,7 @@ export function ModifierForm({
         inputProps={{
           ...conform.input(fields.plu, { type: 'text' }),
           required: true,
-
+          readOnly: true,
           //   name: 'plu',
           //   value: autoCode,
           defaultValue: isEditing ? modifiers.plu : autoCode,
@@ -76,6 +74,7 @@ export function ModifierForm({
 
           //   name: 'extraPrice',
           //   value: autoCode,
+
           defaultValue: isEditing ? modifiers.extraPrice : '',
         }}
         errors={[fields?.extraPrice.errors]}
@@ -91,8 +90,8 @@ export function ModifierForm({
             <label key={keys.id} className="flex items-center space-x-2">
               <input
                 type="checkbox"
-                {...conform.input(fields.selectItems, { type: 'radio' })}
-                name="selectItems"
+                {...conform.input(fields.modifierGroups, { type: 'radio' })}
+                name="modifierGroups"
                 value={keys.id}
                 defaultChecked={isEditing ? modifiers.modifierGroupId === keys.id : false}
               />
@@ -100,12 +99,12 @@ export function ModifierForm({
             </label>
           )
         })}
-        {fields.selectItems.errors && <ErrorList errors={fields.selectItems.errors} />}
+        {fields.modifierGroups.errors && <ErrorList errors={fields.modifierGroups.errors} />}
       </div>
 
       <Spacer size="md" />
 
-      <Button size="medium" type="submit" variant="secondary" name="intent" value={isEditing ? 'editModifier' : 'submit'}>
+      <Button size="medium" type="submit" variant="secondary" name={conform.INTENT} value={isEditing ? 'editModifier' : 'submit'}>
         {isSubmitting ? (isEditing ? 'Editing modifier...' : 'Adding modifier...') : isEditing ? 'Edit modifier' : 'Add modifier'}
       </Button>
     </>

@@ -55,7 +55,7 @@ export function ModifierGroupForm({
           ...conform.input(fields.name, { type: 'text' }),
           required: true,
           placeholder: 'Tipo de salsa',
-          defaultValue: isEditing ? modifierGroups.find(product => product.id === editSubItemId)?.name : '',
+          defaultValue: isEditing ? modifierGroups.name : '',
           onChange: handleNameChange, // Add this line
         }}
         errors={[fields?.name.errors]}
@@ -65,50 +65,59 @@ export function ModifierGroupForm({
         inputProps={{
           ...conform.input(fields.plu, { type: 'text' }),
           required: true,
-
-          //   name: 'plu',
-          //   value: autoCode,
-          defaultValue: isEditing ? modifierGroups.find(product => product.id === editSubItemId)?.plu : autoCode,
+          defaultValue: isEditing ? modifierGroups.plu : autoCode,
         }}
         errors={[fields?.plu.errors]}
       />
       <H5>Select Options</H5>
-      <div className="flex flex-col border p-1">
-        <FlexRow>
-          <input type="checkbox" {...conform.input(fields.required, { type: 'checkbox' })} onChange={() => setRequired(!required)} />
-          <H6 variant="secondary">Required Selection</H6>
-        </FlexRow>
-        {required && (
-          <Field
-            labelProps={{}}
-            inputProps={{
-              ...conform.input(fields.min, { type: 'number' }),
-              required: true,
-              defaultValue: isEditing ? modifierGroups.find(product => product.id === editSubItemId)?.min : 1,
-            }}
-            errors={[fields?.min.errors]}
-          />
-        )}
-        <Spacer size="sm" />
+      <div className="flex flex-col border p-2 rounded-sm">
         <FlexRow>
           <input
             type="checkbox"
             {...conform.input(fields.required, { type: 'checkbox' })}
+            onChange={() => setRequired(!required)}
+            defaultChecked={isEditing ? modifierGroups.min : false}
+          />
+          <H6 variant="secondary">Required Selection</H6>
+        </FlexRow>
+        <Spacer spaceY="1" />
+
+        {required ||
+          (modifierGroups.min && (
+            <Field
+              labelProps={{}}
+              inputProps={{
+                ...conform.input(fields.min, { type: 'number' }),
+                required: true,
+                defaultValue: isEditing ? modifierGroups.min : 1,
+              }}
+              errors={[fields?.min.errors]}
+            />
+          ))}
+        <FlexRow>
+          <input
+            type="checkbox"
+            {...conform.input(fields.required, { type: 'checkbox' })}
+            defaultChecked={isEditing ? modifierGroups.max : false}
             onChange={() => setMaxSelection(!maxSelection)}
           />
           <H6 variant="secondary">Maximum selection</H6>
+          <Spacer size="sm" />
         </FlexRow>
-        {maxSelection && (
-          <Field
-            labelProps={{}}
-            inputProps={{
-              ...conform.input(fields.max, { type: 'number' }),
-              required: true,
-              defaultValue: isEditing ? modifierGroups.find(product => product.id === editSubItemId)?.max : 1,
-            }}
-            errors={[fields?.max.errors]}
-          />
-        )}
+        <Spacer spaceY="1" />
+
+        {maxSelection ||
+          (modifierGroups.max && (
+            <Field
+              labelProps={{}}
+              inputProps={{
+                ...conform.input(fields.max, { type: 'number' }),
+                required: true,
+                defaultValue: isEditing ? modifierGroups.max : 1,
+              }}
+              errors={[fields?.max.errors]}
+            />
+          ))}
       </div>
       <Spacer size="sm" />
       <CheckboxField
@@ -118,7 +127,7 @@ export function ModifierGroupForm({
         buttonProps={{
           ...conform.input(fields.multiMax, { type: 'number' }),
           required: true,
-          defaultValue: isEditing ? modifierGroups.find(product => product.id === editSubItemId)?.multiMax : '',
+          defaultChecked: isEditing ? modifierGroups.multiMax : false,
         }}
         errors={[fields?.multiMax.errors]}
       />
@@ -136,7 +145,7 @@ export function ModifierGroupForm({
                 {...conform.input(fields.selectItems, { type: 'checkbox' })}
                 name="selectItems"
                 value={keys.id}
-                defaultChecked={isEditing ? modifierGroups.find(product => product.id === editSubItemId)?.categoryId === keys.id : false}
+                defaultChecked={isEditing ? modifierGroups.products.find(product => product.id === keys.id) : false}
               />
               <H5>{keys[addingData.keys]}</H5>
             </label>
@@ -157,7 +166,7 @@ export function ModifierGroupForm({
                 {...conform.input(fields.modifiers, { type: 'checkbox' })}
                 name="modifiers"
                 value={keys.id}
-                defaultChecked={isEditing ? modifierGroups.find(product => product.id === editSubItemId)?.categoryId === keys.id : false}
+                defaultChecked={isEditing ? modifierGroups.modifiers.find(modifier => modifier.id === keys.id) : false}
               />
               <H5>{keys.name}</H5>
             </label>
@@ -167,7 +176,7 @@ export function ModifierGroupForm({
       </div>
       <Spacer size="md" />
 
-      <Button size="medium" type="submit" variant="secondary">
+      <Button size="medium" type="submit" variant="secondary" name={conform.INTENT} value={isEditing ? 'editModifierG' : 'submit'}>
         {isSubmitting
           ? isEditing
             ? 'Editing modifier Group...'

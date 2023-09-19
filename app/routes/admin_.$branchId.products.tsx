@@ -36,12 +36,6 @@ const productSchema = z.object({
 export const handle = { active: 'Products' }
 
 export async function loader({ request, params }: LoaderArgs) {
-  // const products = await prisma.product.findMany({
-  //   where: {
-  //     branchId: params.branchId,
-  //   },
-  // })
-
   const products = await prisma.product.findMany({
     where: {
       branchId: params.branchId,
@@ -219,7 +213,7 @@ export default function Products() {
         </button>
       </FlexRow>
       <Separator.Root className="bg-zinc-200 data-[orientation=horizontal]:h-px data-[orientation=horizontal]:w-full data-[orientation=vertical]:h-full data-[orientation=vertical]:w-px " />
-
+      {/* FIXME */}
       <ButtonLink variant="secondary" size="small" download="products" href={`/admin/${branchId}/export?dataType=products`}>
         Download Your Data
       </ButtonLink>
@@ -243,7 +237,13 @@ export default function Products() {
             {data.modifierGroups?.map(modifierG => {
               return (
                 <div className="flex flex-col" key={modifierG.id}>
-                  <Square itemId={modifierG.id} name={modifierG.name} to={`edit/${modifierG.id}?edit=modifierG`} key={modifierG.id} />
+                  <Square
+                    itemId={modifierG.id}
+                    name={modifierG.name}
+                    to={`edit/${modifierG.id}?edit=modifierG`}
+                    key={modifierG.id}
+                    editIsRoute={true}
+                  />
                 </div>
               )
             })}
