@@ -14,25 +14,9 @@ import MainAdminContainer from '~/components/admin/main-container'
 
 export async function loader({ request, params }: LoaderArgs) {
   const { branchId } = params
+  const user = await requireAdmin(request)
 
-  const session = await getSession(request)
-  const userId = session.get('userId')
-  if (!userId) {
-    return redirect('/login')
-  }
-
-  const userRoles = await prisma.user.findFirst({
-    where: { id: userId },
-    include: {
-      roles: {
-        include: {
-          permissions: true,
-        },
-      },
-    },
-  })
-
-  const roles = userRoles?.roles.map(role => role.name)
+  const roles = user?.roles.map(role => role.name)
 
   if (roles.includes('admin') || roles.includes('moderator')) {
     const data = await prisma.branch.findUnique({

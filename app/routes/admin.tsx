@@ -1,4 +1,5 @@
-import { Form, Link, useLoaderData } from '@remix-run/react'
+import * as DropdownMenu from '@radix-ui/react-dropdown-menu'
+import { Form, Link, useLoaderData, useSubmit } from '@remix-run/react'
 import { FaEdit } from 'react-icons/fa'
 
 import { type ActionArgs, type LoaderArgs, json, redirect } from '@remix-run/node'
@@ -8,29 +9,16 @@ import invariant from 'tiny-invariant'
 import { prisma } from '~/db.server'
 import { getSession } from '~/session.server'
 
+import { requireAdmin } from '~/utils/permissions.server'
+
 import { Button, H2 } from '~/components'
 import { EditRestDialog } from '~/components/admin/ui/dialogs/edit-rest-dialog'
 import SelectBranchDialog from '~/components/admin/ui/dialogs/select-branch-dialog'
 
 export const loader = async ({ request }: LoaderArgs) => {
   // const admin = await requireAdmin(request)
-  const session = await getSession(request)
-  const userId = session.get('userId')
+  const user = await requireAdmin(request)
 
-  if (!userId) {
-    return redirect('/login')
-  }
-
-  const user = await prisma.user.findFirst({
-    where: { id: userId },
-    include: {
-      roles: {
-        include: {
-          permissions: true,
-        },
-      },
-    },
-  })
   if (!user || user.roles.length === 0) {
     return json({ error: 'User does not have any roles assigned' }, { status: 403 })
   }
@@ -41,7 +29,7 @@ export const loader = async ({ request }: LoaderArgs) => {
   if (roles.includes('moderator')) {
     whereClause = {
       moderatorIds: {
-        has: userId,
+        has: user.id,
       },
     }
   }
@@ -67,7 +55,7 @@ export const loader = async ({ request }: LoaderArgs) => {
     })
   }
 
-  return json({ chains, selectedChain })
+  return json({ chains, selectedChain, user })
 }
 
 export async function action({ request, params }: ActionArgs) {
@@ -90,11 +78,11 @@ export default function Admin() {
       <EditRestDialog />
       <SelectBranchDialog selectedChain={data.selectedChain} isBranches={isBranches} />
 
-      <div className="fixed top-20 w-full flex justify-between">
+      <div className="fixed top-0 w-full flex justify-between p-4 border items-center">
         <H2 className="">Avoqado</H2>
         <H2>Chains</H2>
 
-        <p>userComp</p>
+        <UserDropdown />
       </div>
 
       <div className="flex flex-grow justify-center items-center gap-2">
@@ -118,9 +106,67 @@ export default function Admin() {
           </div>
         ))}
       </div>
-      <Form method="POST" action="/logout">
-        <Button type="submit">Logout</Button>
-      </Form>
     </main>
+  )
+}
+
+function UserDropdown() {
+  // const user = useUser()
+  const data = useLoaderData()
+
+  const submit = useSubmit()
+  return (
+    <DropdownMenu.Root>
+      <DropdownMenu.Trigger asChild>
+        <Link
+          to={`/users/${data.user.username}`}
+          // this is for progressive enhancement
+          onClick={e => e.preventDefault()}
+          className="flex items-center gap-2 rounded-full border py-2 pl-2 pr-4 outline-none bg-night-400 hover:bg-night-400 focus:bg-night-400 radix-state-open:bg-night-400 text-white"
+        >
+          {/* <img
+            className="h-8 w-8 rounded-full object-cover"
+            alt={data.user.name ?? data.user.username}
+            // src={getUserImgSrc(data.user.imageId)}
+            src={data.user.image}
+          /> */}
+          <span className="text-body-sm font-bold">{data.user.name ?? data.user.username}</span>
+        </Link>
+      </DropdownMenu.Trigger>
+      <DropdownMenu.Portal>
+        <DropdownMenu.Content sideOffset={8} align="start" className="flex flex-col rounded-3xl border bg-white ">
+          {/* bg-[#323232] */}
+          {/* <DropdownMenu.Item asChild>
+            <Link
+              prefetch="intent"
+              to={`/users/${data.user.username}`}
+              className="rounded-t-3xl px-7 py-5 outline-none hover:bg-night-500 radix-highlighted:bg-night-500"
+            >
+              👤 Profile
+            </Link>
+          </DropdownMenu.Item>
+          <DropdownMenu.Item asChild>
+            <Link prefetch="intent" to="/favorites" className="px-7 py-5 outline-none hover:bg-night-500 radix-highlighted:bg-night-500">
+              🔖 Favorites
+            </Link>
+          </DropdownMenu.Item>
+          <DropdownMenu.Item asChild>
+            <Link prefetch="intent" to="/bookings" className="px-7 py-5 outline-none hover:bg-night-500 radix-highlighted:bg-night-500">
+              🚀 Bookings
+            </Link>
+          </DropdownMenu.Item> */}
+          <DropdownMenu.Item asChild>
+            <Form
+              action="/logout"
+              method="POST"
+              className="rounded-b-3xl px-7 py-5 outline-none radix-highlighted:bg-night-500"
+              onClick={e => submit(e.currentTarget)}
+            >
+              <button type="submit">🚪 Logout</button>
+            </Form>
+          </DropdownMenu.Item>
+        </DropdownMenu.Content>
+      </DropdownMenu.Portal>
+    </DropdownMenu.Root>
   )
 }
