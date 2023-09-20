@@ -2,7 +2,7 @@ import { conform, useForm } from '@conform-to/react'
 import { Link, useFetcher, useLoaderData, useSearchParams } from '@remix-run/react'
 import { useRouteLoaderData } from 'react-router'
 
-import { type ActionArgs, LoaderArgs, json, redirect } from '@remix-run/node'
+import { type ActionArgs, type LoaderArgs, json, redirect } from '@remix-run/node'
 
 import { getFieldsetConstraint, parse } from '@conform-to/zod'
 import { z } from 'zod'

@@ -1,7 +1,7 @@
 import { Link, Outlet, useMatches } from '@remix-run/react'
 import { useState } from 'react'
 
-import { type LoaderArgs, json } from '@remix-run/node'
+import { type LoaderArgs, json, redirect } from '@remix-run/node'
 
 import clsx from 'clsx'
 import invariant from 'tiny-invariant'
@@ -17,7 +17,9 @@ export async function loader({ request, params }: LoaderArgs) {
 
   const session = await getSession(request)
   const userId = session.get('userId')
-  invariant(userId, 'User not found')
+  if (!userId) {
+    return redirect('/login')
+  }
 
   const userRoles = await prisma.user.findFirst({
     where: { id: userId },

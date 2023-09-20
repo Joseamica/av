@@ -225,7 +225,7 @@ const TRANSLATIONS = {
     paypal: 'Paypal',
   },
   es: {
-    card: 'Tarjeta',
+    card: 'Tarjeta/Apple Pay/Google Pay',
     cash: 'Efectivo',
     paypal: 'Paypal',
   },

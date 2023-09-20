@@ -17,6 +17,10 @@ export const loader = async ({ request }: LoaderArgs) => {
   const session = await getSession(request)
   const userId = session.get('userId')
 
+  if (!userId) {
+    return redirect('/login')
+  }
+
   const user = await prisma.user.findFirst({
     where: { id: userId },
     include: {
@@ -30,7 +34,7 @@ export const loader = async ({ request }: LoaderArgs) => {
   if (!user || user.roles.length === 0) {
     return json({ error: 'User does not have any roles assigned' }, { status: 403 })
   }
-  const roles = user.roles.map(role => role.name)
+  const roles = user.roles?.map(role => role.name)
 
   let chains = null
   let whereClause = {}
