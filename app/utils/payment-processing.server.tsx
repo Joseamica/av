@@ -1,4 +1,7 @@
 // PaymentProcessing.js
+import { prisma } from '~/db.server'
+import { getSession } from '~/session.server'
+
 import { getDomainUrl, getStripeSession } from './stripe.server'
 
 import { createQueryString } from '~/utils'
@@ -41,6 +44,8 @@ export async function handlePaymentProcessing({
   extraData,
   itemData,
 }: handlePaymentProcessingProps): Promise<{ type: 'redirect'; url: string } | { type: 'error'; message: string }> {
+  const session = await getSession(request)
+  const userId = session.get('userId')
   switch (paymentMethod) {
     case 'card':
       try {
@@ -60,6 +65,17 @@ export async function handlePaymentProcessing({
         return { type: 'redirect', url: '/error' }
       }
     case 'cash':
+      await prisma.notification.create({
+        data: {
+          message: `${total + tip}`,
+          method: 'push',
+          status: 'pending',
+          type: 'payment',
+          branchId: extraData.branchId,
+          tableId: extraData.tableId,
+          userId: userId,
+        },
+      })
       const params = {
         typeOfPayment,
         amount: total + tip,

@@ -1,5 +1,5 @@
 import { conform, useForm } from '@conform-to/react'
-import { useFetcher, useLoaderData, useParams, useRouteLoaderData, useSearchParams } from '@remix-run/react'
+import { Link, useFetcher, useLoaderData, useParams, useRouteLoaderData, useSearchParams } from '@remix-run/react'
 
 import { type ActionArgs, type LoaderArgs, json, redirect } from '@remix-run/node'
 
@@ -9,11 +9,11 @@ import { namedAction } from 'remix-utils'
 import { z } from 'zod'
 import { prisma } from '~/db.server'
 
-import { Button, H5 } from '~/components'
+import { Button, FlexRow, H2, H5 } from '~/components'
 import { EmployeeForm } from '~/components/admin/employees/employee-form'
 import { HeaderWithButton } from '~/components/admin/headers'
 import { QueryDialog } from '~/components/admin/ui/dialogs/dialog'
-import { ErrorList } from '~/components/admin/ui/forms'
+import { ErrorList, Field } from '~/components/admin/ui/forms'
 import { Square } from '~/components/admin/ui/square'
 
 export const handle = { active: 'Notifications' }
@@ -33,6 +33,13 @@ export async function loader({ request, params }: LoaderArgs) {
   const notifications = await prisma.notification.findMany({
     where: {
       branchId,
+    },
+    include: {
+      user: {
+        select: {
+          name: true,
+        },
+      },
     },
   })
 
@@ -132,12 +139,13 @@ export async function action({ request, params }: ActionArgs) {
 
 export default function Notifications() {
   const data = useLoaderData()
+
   const { branch } = useRouteLoaderData('routes/admin_.$branchId') as any
   const { branchId } = useParams()
 
   const fetcher = useFetcher()
   const isSubmitting = fetcher.state !== 'idle'
-  const [searchParams] = useSearchParams()
+  const [searchParams, setSearchParams] = useSearchParams()
 
   const [form, fields] = useForm({
     id: 'notifications',
@@ -153,24 +161,53 @@ export default function Notifications() {
   const addItem = searchParams.get('addItem')
   const editItem = searchParams.get('editItem')
   const deleteItem = searchParams.get('deleteItem')
+  const notificationId = searchParams.get('notificationId')
+
+  const notification = data.notifications.find(notification => notification.id === notificationId)
 
   return (
     <main>
       <HeaderWithButton queryKey="addItem" queryValue="true" buttonLabel="Add" />
       <div className="flex flex-wrap gap-2 p-4">
         {data.notifications.map(notification => (
-          <Square
-            itemId={notification.id}
-            name={
-              <>
-                <H5 boldVariant="bold">{notification.id}</H5>
-              </>
-            }
-            to={notification.id}
-            key={notification.id}
-          />
+          // <Square
+          //   itemId={notification.id}
+          //   name={
+          //     <>
+          //       <H5 boldVariant="bold">{notification.type}</H5>
+          //     </>
+          //   }
+          //   to={notification.id}
+          //   key={notification.id}
+          // />
+          <div key={notification.id} className="flex flex-col">
+            <button
+              onClick={() => {
+                searchParams.set('notificationId', notification.id)
+                setSearchParams(searchParams)
+              }}
+            >
+              {notification.type}
+            </button>
+          </div>
         ))}
       </div>
+      <QueryDialog title="Manage Notification" description="Manage the notification" query={'notificationId'}>
+        <H2>{notification.type}</H2>
+        <p>{notification.message}</p>
+        <p>{notification.status}</p>
+        <p>{notification.method}</p>
+        <FlexRow>
+          <H2>Usuario:</H2>
+          <p>{notification.user.name}</p>
+        </FlexRow>
+        <fetcher.Form method="POST" {...form.props} action="?/update">
+          <Button variant="custom" custom="bg-success border-button-successOutline">
+            Accept
+          </Button>
+          <Button variant="danger">Reject</Button>
+        </fetcher.Form>
+      </QueryDialog>
       <QueryDialog title="Add Employee" description="Add to the fields you want to add" query={'addItem'}>
         <fetcher.Form method="POST" {...form.props} action="?/create">
           <EmployeeForm

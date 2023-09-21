@@ -134,6 +134,7 @@ export async function action({ request, params }: ActionArgs) {
     request,
     redirectTo,
     typeOfPayment: 'custom',
+    extraData: { branchId, tableId },
   })
 
   if (result.type === 'redirect') {
