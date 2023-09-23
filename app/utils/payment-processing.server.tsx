@@ -1,6 +1,7 @@
 // PaymentProcessing.js
 import { prisma } from '~/db.server'
 import { getSession } from '~/session.server'
+import { sendWaNotification } from '~/twilio.server'
 
 import { getDomainUrl, getStripeSession } from './stripe.server'
 
@@ -46,6 +47,7 @@ export async function handlePaymentProcessing({
 }: handlePaymentProcessingProps): Promise<{ type: 'redirect'; url: string } | { type: 'error'; message: string }> {
   const session = await getSession(request)
   const userId = session.get('userId')
+
   switch (paymentMethod) {
     case 'card':
       try {
@@ -65,31 +67,34 @@ export async function handlePaymentProcessing({
         return { type: 'redirect', url: '/error' }
       }
     case 'cash':
+      // sendWaNotification({ body: `El cliente ha pagado en efectivo la cantidad de ${total + tip} pesos`, to: '525512956265' })
       await prisma.notification.create({
         data: {
-          message: `${total + tip}`,
+          message: `${JSON.stringify({ amount: total, tip: tip, total: total + tip, orderId: extraData.order.id })}`,
           method: 'push',
           status: 'pending',
-          type: 'payment',
+          type: 'cash payment',
           branchId: extraData.branchId,
           tableId: extraData.tableId,
           userId: userId,
         },
       })
-      const params = {
-        typeOfPayment,
-        amount: total + tip,
-        tip: tip,
-        paymentMethod: paymentMethod,
-        isOrderAmountFullPaid: isOrderAmountFullPaid,
-        itemData,
-      }
-      const queryString = createQueryString(params)
+      return { type: 'redirect', url: '..' }
+    //NOTE: HABILITATE THIS WHEN WE WANT TO CREATE THE PAYMENT WITHOUT AUTORIZATION
+    // const params = {
+    //   typeOfPayment,
+    //   amount: total + tip,
+    //   tip: tip,
+    //   paymentMethod: paymentMethod,
+    //   isOrderAmountFullPaid: isOrderAmountFullPaid,
+    //   itemData,
+    // }
+    // const queryString = createQueryString(params)
 
-      return {
-        type: 'redirect',
-        url: `${redirectTo}/payment/success?${queryString}`,
-      }
+    // return {
+    //   type: 'redirect',
+    //   url: `${redirectTo}/payment/success?${queryString}`,
+    // }
   }
 
   return { type: 'error', message: `Unknown payment method: ${paymentMethod}` }

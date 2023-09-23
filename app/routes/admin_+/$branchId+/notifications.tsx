@@ -1,38 +1,45 @@
 import { conform, useForm } from '@conform-to/react'
-import { useFetcher, useLoaderData, useParams, useRouteLoaderData, useSearchParams } from '@remix-run/react'
+import { Link, Outlet, useFetcher, useLoaderData, useParams, useRouteLoaderData, useSearchParams } from '@remix-run/react'
 
 import { type ActionArgs, type LoaderArgs, json, redirect } from '@remix-run/node'
 
 import { getFieldsetConstraint, parse } from '@conform-to/zod'
 import bcrypt from 'bcryptjs'
+import clsx from 'clsx'
 import { namedAction } from 'remix-utils'
 import { z } from 'zod'
 import { prisma } from '~/db.server'
 
-import { Button, H5 } from '~/components'
+import { Button } from '~/components'
 import { EmployeeForm } from '~/components/admin/employees/employee-form'
 import { HeaderWithButton } from '~/components/admin/headers'
 import { QueryDialog } from '~/components/admin/ui/dialogs/dialog'
 import { ErrorList } from '~/components/admin/ui/forms'
-import { Square } from '~/components/admin/ui/square'
 
 export const handle = { active: 'Notifications' }
 
-const employeesShema = z.object({
-  id: z.string(),
-  name: z.string().nonempty('Name is required'),
-  email: z.string().email('Invalid email'),
-  password: z.string().nonempty('Password is required'),
-  image: z.string().url(),
-  phone: z.string().nonempty('Phone is required'),
-  role: z.enum(['manager', 'waiter']),
-})
+// const notificationsSchema = z.object({
+//   id: z.string(),
+//   name: z.string().nonempty('Name is required'),
+//   email: z.string().email('Invalid email'),
+//   password: z.string().nonempty('Password is required'),
+//   image: z.string().url(),
+//   phone: z.string().nonempty('Phone is required'),
+//   role: z.enum(['manager', 'waiter']),
+// })
 
 export async function loader({ request, params }: LoaderArgs) {
   const { branchId } = params
   const notifications = await prisma.notification.findMany({
     where: {
       branchId,
+      status: {
+        in: ['pending', 'rejected', 'received'],
+      },
+    },
+    include: {
+      table: true,
+      user: true,
     },
   })
 
@@ -44,7 +51,7 @@ export async function action({ request, params }: ActionArgs) {
 
   const submission = await parse(formData, {
     schema: () => {
-      return employeesShema.superRefine(async (data, ctx) => {
+      return notificationsSchema.superRefine(async (data, ctx) => {
         const existingEmployee = await prisma.employee.findUnique({
           where: { email: data.email },
           select: { id: true },
@@ -139,16 +146,16 @@ export default function Notifications() {
   const isSubmitting = fetcher.state !== 'idle'
   const [searchParams] = useSearchParams()
 
-  const [form, fields] = useForm({
-    id: 'notifications',
-    constraint: getFieldsetConstraint(employeesShema),
-    lastSubmission: fetcher.data?.submission,
+  // const [form, fields] = useForm({
+  //   id: 'notifications',
+  //   constraint: getFieldsetConstraint(notificationsSchema),
+  //   lastSubmission: fetcher.data?.submission,
 
-    onValidate({ formData }) {
-      return parse(formData, { schema: employeesShema })
-    },
-    shouldRevalidate: 'onBlur',
-  })
+  //   onValidate({ formData }) {
+  //     return parse(formData, { schema: notificationsSchema })
+  //   },
+  //   shouldRevalidate: 'onBlur',
+  // })
 
   const addItem = searchParams.get('addItem')
   const editItem = searchParams.get('editItem')
@@ -159,18 +166,35 @@ export default function Notifications() {
       <HeaderWithButton queryKey="addItem" queryValue="true" buttonLabel="Add" />
       <div className="flex flex-wrap gap-2 p-4">
         {data.notifications.map(notification => (
-          <Square
-            itemId={notification.id}
-            name={
-              <>
-                <H5 boldVariant="bold">{notification.id}</H5>
-              </>
-            }
-            to={notification.id}
-            key={notification.id}
-          />
+          // <Square
+          //   itemId={notification.id}
+          //   name={
+          //     <>
+          //       <H5 boldVariant="bold">{notification.id}</H5>
+          //     </>
+          //   }
+          //   to={notification.id}
+          //   key={notification.id}
+          // />
+          <div key={notification.id}>
+            <Link
+              to={notification.id}
+              className={clsx('flex flex-col items-center justify-center p-2 border rounded-xl', {
+                'border-red-500 bg-red-200': notification.status === 'rejected',
+                // 'border-green-500': notification.status === 'accepted',
+                'border-yellow-500 bg-yellow-200': notification.status === 'pending',
+              })}
+            >
+              <span> {notification.type.toUpperCase()}</span>
+              <span>{notification.user.name}</span>
+              <span>Table: {notification.table.number}</span>
+              <span>Total: {JSON.parse(notification.message).total}</span>
+              <span className="font-bold">Status: {notification.status}</span>
+            </Link>
+          </div>
         ))}
       </div>
+      {/* 
       <QueryDialog title="Add Employee" description="Add to the fields you want to add" query={'addItem'}>
         <fetcher.Form method="POST" {...form.props} action="?/create">
           <EmployeeForm
@@ -209,7 +233,8 @@ export default function Notifications() {
 
           <ErrorList errors={[...form.errors]} id={form.errorId} />
         </fetcher.Form>
-      </QueryDialog>
+      </QueryDialog> */}
+      <Outlet />
     </main>
   )
 }

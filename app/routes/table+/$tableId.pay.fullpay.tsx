@@ -146,6 +146,7 @@ export async function action({ request, params }: ActionArgs) {
     request,
     redirectTo,
     typeOfPayment: 'fullpay',
+    extraData: { branchId, tableId, order },
   })
 
   if (result.type === 'redirect') {

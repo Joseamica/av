@@ -98,7 +98,7 @@ const UserItemContainer = ({ user, handleAmountChange, handleCollapse, collapsed
             type="checkbox"
             name="selectedUsers"
             value={user.total}
-            className="h-5 w-5"
+            className="w-5 h-5"
             onChange={e => handleAmountChange(e, user.total)}
             onClick={e => e.stopPropagation()} // Add this line
           />
@@ -250,6 +250,7 @@ export async function action({ request, params }: ActionArgs) {
     request,
     redirectTo,
     typeOfPayment: 'perPerson',
+    extraData: { branchId, tableId, order },
   })
 
   if (result.type === 'redirect') {

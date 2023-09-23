@@ -77,8 +77,8 @@ export default function EqualParts() {
           <H5 variant="secondary" className="mr-2 text-end xs:text-sm">
             Elige personas en mesa y cuántas pagarás.
           </H5>
-          <div className=" p-4 xs:flex xs:h-1/4 xs:flex-row xs:items-center xs:p-2">
-            <div className="z-0 flex flex-row justify-center space-x-2 p-4 ">
+          <div className="p-4  xs:flex xs:h-1/4 xs:flex-row xs:items-center xs:p-2">
+            <div className="z-0 flex flex-row justify-center p-4 space-x-2 ">
               {/* Add more circles with decreasing radius and increasing stroke width */}
 
               <AnimatePresence>
@@ -123,7 +123,7 @@ export default function EqualParts() {
               </AnimatePresence>
             </div>
 
-            <div className="flex flex-col space-y-2 p-2 xs:space-y-1">
+            <div className="flex flex-col p-2 space-y-2 xs:space-y-1">
               <div className="flex flex-row items-center justify-between space-y-2 xs:space-x-2 ">
                 <div className="flex flex-col items-center">
                   <p className="text-md shrink-0 xs:text-xs">Personas en</p>
@@ -204,6 +204,7 @@ export async function action({ request, params }: ActionArgs) {
     request,
     redirectTo,
     typeOfPayment: 'equalParts',
+    extraData: { branchId, tableId, order },
   })
 
   if (result.type === 'redirect') {

@@ -1,6 +1,6 @@
 import { conform, useForm } from '@conform-to/react'
 import * as Dialog from '@radix-ui/react-dialog'
-import { useFetcher, useLoaderData, useNavigate, useParams, useRouteLoaderData, useSearchParams } from '@remix-run/react'
+import { useFetcher, useLoaderData, useNavigate, useParams } from '@remix-run/react'
 
 import { type ActionArgs, type LoaderArgs, json, redirect } from '@remix-run/node'
 
@@ -13,8 +13,6 @@ import { checkboxSchema } from '~/utils/zod-extensions'
 
 import { XIcon } from '~/components'
 import { ModifierGroupForm } from '~/components/admin/products/modifier-group-form'
-import { ProductForm } from '~/components/admin/products/product-form'
-import { ScrollableQueryDialog } from '~/components/admin/ui/dialogs/dialog'
 
 const modifierGroupSchema = z.object({
   id: z.string().optional(),

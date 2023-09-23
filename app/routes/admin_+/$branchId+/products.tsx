@@ -12,7 +12,7 @@ import { prisma } from '~/db.server'
 
 import { getSearchParams } from '~/utils'
 
-import { Button, FlexRow, H2, H5, Spacer } from '~/components'
+import { Button, FlexRow, H2, H5 } from '~/components'
 import { HeaderWithButton } from '~/components/admin/headers'
 import { ProductForm } from '~/components/admin/products/product-form'
 import { QueryDialog, ScrollableQueryDialog } from '~/components/admin/ui/dialogs/dialog'
@@ -37,9 +37,9 @@ export const handle = { active: 'Products' }
 
 export async function loader({ request, params }: LoaderArgs) {
   const products = await prisma.product.findMany({
-    where: {
-      branchId: params.branchId,
-    },
+    // where: {
+    //   branchId: params.branchId,
+    // },
     orderBy: {
       category: {
         name: 'asc',
@@ -218,7 +218,9 @@ export default function Products() {
         Download Your Data
       </ButtonLink>
 
-      {/* <H2>Numero de platillos: {data.products.length}</H2> */}
+      <H2>Number of products: {data.products.length}</H2>
+      <H2 className="p-4">Products</H2>
+
       <div className="flex flex-wrap gap-2 p-4">
         {data.products.map(product => {
           return (

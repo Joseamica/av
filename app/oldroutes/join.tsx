@@ -79,7 +79,7 @@ export async function action({ request }: DataFunctionArgs) {
   })
 }
 
-export default function Join() {
+export default function Name() {
   const actionData = useActionData()
   const formAction = useFormAction()
   const navigation = useNavigation()

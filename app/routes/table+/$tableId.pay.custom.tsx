@@ -44,7 +44,7 @@ export default function CustomPay() {
         }}
       >
         <Form method="POST" preventScrollReset>
-          <div className="bg-componentBg dark:bg-DARK_0 flex w-full flex-row items-center px-4 py-2  ">
+          <div className="flex flex-row items-center w-full px-4 py-2 bg-componentBg dark:bg-DARK_0 ">
             <label htmlFor="custom" className={clsx('bg-componentBg dark:bg-DARK_0 dark:text-mainTextDark text-6xl text-[#9CA3AF]')}>
               {data.currency}
             </label>
@@ -134,6 +134,7 @@ export async function action({ request, params }: ActionArgs) {
     request,
     redirectTo,
     typeOfPayment: 'custom',
+    extraData: { branchId, tableId, order },
   })
 
   if (result.type === 'redirect') {

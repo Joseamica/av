@@ -78,7 +78,7 @@ export default function PerDish() {
       >
         <Form method="POST" preventScrollReset>
           <H5 className="px-2 text-end">Selecciona los platillos que deseas pagar</H5>
-          <div className="space-y-2 p-2">
+          <div className="p-2 space-y-2">
             {data.cartItems?.map((item: CartItem, index: number) => {
               return (
                 <ItemContainer
@@ -94,13 +94,13 @@ export default function PerDish() {
                   <FlexRow>
                     <H4 className={clsx({ ' line-through ': item.paid })}>{formatCurrency(data.currency, item.price * item.quantity)}</H4>
                     {item.paid ? (
-                      <H6 className="rounded-full p-1 text-success">{`Pagado ${item.paidBy}`}</H6>
+                      <H6 className="p-1 rounded-full text-success">{`Pagado ${item.paidBy}`}</H6>
                     ) : (
                       <input
                         type="checkbox"
                         onChange={event => handleAmountChange(event, item.price * item.quantity)}
                         name={`item-${item.id}`}
-                        className="h-5 w-5"
+                        className="w-5 h-5"
                       />
                     )}
                     <input type="hidden" name={`price-${item.id}`} value={item.price * item.quantity} />
@@ -159,6 +159,7 @@ export async function action({ request, params }: ActionArgs) {
     redirectTo,
     typeOfPayment: 'perDish',
     itemData: JSON.stringify(itemData),
+    extraData: { branchId, tableId, order },
   })
 
   if (result.type === 'redirect') {

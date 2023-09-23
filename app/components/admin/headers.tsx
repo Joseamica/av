@@ -1,6 +1,5 @@
 import { Form, Link, useLocation, useSearchParams } from '@remix-run/react'
 
-import { AddMenuDialog } from './menus/dialogs/add'
 import { QueryDialog } from './ui/dialogs/dialog'
 
 import { ChevronLeftIcon, PlusIcon } from '~/components/icons'
@@ -27,11 +26,11 @@ export function HeaderSection({
     return (
       <>
         <FlexRow className="flex justify-between w-full">
-          <div className="flex space-x-2 text-gray-500 items-center">
+          <div className="flex items-center space-x-2 text-gray-500">
             {/* <Link to={backPath}>
             <ChevronLeftIcon className="w-12 h-12" />
           </Link> */}
-            <Link to={backPath} className="text-blue-700 hover:underline text-ellipsis overflow-hidden">
+            <Link to={backPath} className="overflow-hidden text-blue-700 hover:underline text-ellipsis">
               <H1>{title}</H1>
             </Link>
             <span>&gt;</span>
@@ -45,11 +44,11 @@ export function HeaderSection({
             <button
               name="_action"
               value="del"
-              className="flex items-center space-x-2 rounded-full border-2 bg-warning text-white px-4 py-2"
+              className="flex items-center px-4 py-2 space-x-2 text-white border-2 rounded-full bg-warning"
             >
               <H4>Yes</H4>
             </button>
-            <Link to={`?accessItem=${breadcrumb}`} className="flex items-center space-x-2 rounded-full border-2 bg-white px-4 py-2">
+            <Link to={`?accessItem=${breadcrumb}`} className="flex items-center px-4 py-2 space-x-2 bg-white border-2 rounded-full">
               <H4>No</H4>
             </Link>
           </Form>
@@ -66,7 +65,7 @@ export function HeaderSection({
         <>
           <div className="flex-grow" /> {/* This will push the Add button to the right */}
           <Link to={addQuery}>
-            <FlexRow className="rounded-full border-2 bg-white px-4 py-2">
+            <FlexRow className="px-4 py-2 bg-white border-2 rounded-full">
               Add <PlusIcon className="w-6 h-6" />
             </FlexRow>
           </Link>
@@ -100,15 +99,15 @@ export const HeaderWithButton: React.FC<HeaderWithButtonProps> = ({
   }
 
   return (
-    <div className="flex flex-row justify-between bg-white h-20 items-center p-4 border-b-2">
+    <div className="flex flex-row items-center justify-between h-20 p-4 bg-white border-b-2">
       <FlexRow>
-        <Link to=".." className="hover:bg-button-primary rounded-full hover:text-white">
+        <Link to=".." className="rounded-full hover:bg-button-primary hover:text-white">
           <ChevronLeftIcon className="w-10 h-10" />
         </Link>
         <H1 className="capitalize">{title}</H1>
       </FlexRow>
       <button onClick={handleButtonClick}>
-        <FlexRow className="rounded-full border-2 bg-white px-4 py-2 hover:bg-button-primary hover:text-white">
+        <FlexRow className="px-4 py-2 bg-white border-2 rounded-full hover:bg-button-primary hover:text-white">
           {buttonLabel} <IconComponent className="w-6 h-6" />
         </FlexRow>
       </button>
