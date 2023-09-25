@@ -200,8 +200,8 @@ export default function EditModifierGroup() {
   return (
     <>
       <Dialog.Root open={edit === 'modifierG'} onOpenChange={() => navigate(`/admin/${params.branchId}/products?filter=modifierG`)}>
-        <Dialog.Overlay className="fixed top-0 left-0 right-0 bottom-0 grid place-items-center overflow-y-auto bg-black bg-opacity-80">
-          <Dialog.Close className="absolute top-0 right-0 m-3 bg-white rounded-full p-3">
+        <Dialog.Overlay className="fixed top-0 bottom-0 left-0 right-0 grid overflow-y-auto bg-black place-items-center bg-opacity-80">
+          <Dialog.Close className="absolute top-0 right-0 p-3 m-3 bg-white rounded-full">
             <XIcon />
           </Dialog.Close>
           <Dialog.Content className="bg-white p-8 rounded-md min-w-[450px]">
@@ -225,8 +225,8 @@ export default function EditModifierGroup() {
       </Dialog.Root>
 
       <Dialog.Root open={edit === 'modifier'} onOpenChange={() => navigate(`/admin/${params.branchId}/products?filter=modifiers`)}>
-        <Dialog.Overlay className="fixed top-0 left-0 right-0 bottom-0 grid place-items-center overflow-y-auto bg-black bg-opacity-80">
-          <Dialog.Close className="absolute top-0 right-0 m-3 bg-white rounded-full p-3">
+        <Dialog.Overlay className="fixed top-0 bottom-0 left-0 right-0 grid overflow-y-auto bg-black place-items-center bg-opacity-80">
+          <Dialog.Close className="absolute top-0 right-0 p-3 m-3 bg-white rounded-full">
             <XIcon />
           </Dialog.Close>
           <Dialog.Content className="bg-white p-8 rounded-md min-w-[450px]">

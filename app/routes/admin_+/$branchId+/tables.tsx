@@ -99,7 +99,7 @@ export default function Tables() {
   const [searchParams] = useSearchParams()
 
   const itemId = searchParams.get('itemId')
-  const tableIdUrl = `https://av.fly.dev/table/${data.table.id}`
+  const tableIdUrl = `https://av.fly.dev/table/${data.table?.id}`
 
   const [domain, setDomain] = useState(tableIdUrl)
 

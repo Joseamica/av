@@ -68,6 +68,9 @@ export function EditOrderDialog({ form, fields, order }) {
         <Button size="medium" type="submit" variant="secondary" name="_action" value="edit">
           {isSubmitting ? 'Edit order...' : 'Edit order'}
         </Button>
+        <Button size="medium" type="submit" variant="secondary" name="_action" value="delete">
+          {isSubmitting ? 'Delete order...' : 'Delete order'}
+        </Button>
       </fetcher.Form>
     </QueryDialog>
   )

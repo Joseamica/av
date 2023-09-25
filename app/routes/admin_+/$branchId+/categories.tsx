@@ -1,5 +1,5 @@
 import { conform, useForm } from '@conform-to/react'
-import { useFetcher, useLoaderData, useParams, useRouteLoaderData, useSearchParams } from '@remix-run/react'
+import { Outlet, useFetcher, useLoaderData, useParams, useRouteLoaderData, useSearchParams } from '@remix-run/react'
 
 import { type ActionArgs, type LoaderArgs, json, redirect } from '@remix-run/node'
 
@@ -189,6 +189,7 @@ export default function Name() {
           <ErrorList errors={[...form.errors]} id={form.errorId} />
         </fetcher.Form>
       </QueryDialog>
+      <Outlet />
     </main>
   )
 }

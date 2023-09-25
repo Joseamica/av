@@ -277,13 +277,13 @@ export default function Products() {
       {/* ANCHOR ADD */}
       <QueryDialog title="Add Product" description="Modify the fields you want to add" query={'addItem'}>
         <FlexRow justify="between">
-          <Link to="?addProduct=true" className="h-32 w-32 border flex justify-center items-center ">
+          <Link to="?addProduct=true" className="flex items-center justify-center w-32 h-32 border " preventScrollReset>
             Product
           </Link>
-          <Link to="create/modifierG" className="h-32 w-32 border flex justify-center items-center  ">
+          <Link to="create/modifierG" className="flex items-center justify-center w-32 h-32 border " preventScrollReset>
             Modifier group
           </Link>
-          <Link to="create/modifier" className="h-32 w-32 border flex justify-center items-center ">
+          <Link to="create/modifier" className="flex items-center justify-center w-32 h-32 border " preventScrollReset>
             Modifier
           </Link>
         </FlexRow>

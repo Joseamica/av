@@ -31,9 +31,10 @@ export function Square({
     <FlexRow key={itemId} {...rest}>
       <Link
         to={to}
-        className="w-24 h-24 hover:bg-button-primary hover:text-white flex justify-center items-center bg-white break-all rounded-2xl border shadow text-sm p-1"
+        className="flex items-center justify-center w-24 h-24 p-1 text-sm break-all bg-white border shadow hover:bg-button-primary hover:text-white rounded-2xl"
+        preventScrollReset
       >
-        <div className="flex flex-col space-y-2 items-center text-center">{name}</div>
+        <div className="flex flex-col items-center space-y-2 text-center">{name}</div>
       </Link>
       <div className="basic-flex-col">
         <button className="icon-button " onClick={handleEdit}>

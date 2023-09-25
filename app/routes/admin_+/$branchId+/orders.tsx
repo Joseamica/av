@@ -49,7 +49,6 @@ export async function loader({ request, params }: LoaderArgs) {
       cartItems: { include: { product: true } },
       payments: true,
     })
-    console.log('order', order)
 
     return json({ order })
   }
@@ -59,10 +58,11 @@ export async function loader({ request, params }: LoaderArgs) {
 export async function action({ request, params }: ActionArgs) {
   const formData = await request.formData()
   const formValues = Object.fromEntries(formData.entries())
+  console.log('formValues', formValues)
 
   const searchParams = getSearchParams({ request })
   const searchParamsValues = Object.fromEntries(searchParams)
-  console.log('searchParamsData', searchParamsValues)
+
   const orderId = searchParamsValues.itemId ?? searchParamsValues.editItem
   const redirectTo = safeRedirect(formData.get('redirectTo'), '')
 
@@ -82,7 +82,7 @@ export async function action({ request, params }: ActionArgs) {
       })
       return redirect(redirectTo)
 
-    case ACTIONS.DELETE:
+    case 'delete':
       await prisma.order.delete({
         where: { id: orderId },
       })

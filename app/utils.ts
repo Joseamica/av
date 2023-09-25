@@ -25,7 +25,6 @@ const DEFAULT_REDIRECT = '/'
  * @param {string} defaultRedirect The redirect to use if the to is unsafe.
  */
 export function safeRedirect(to: any | string | null | undefined, defaultRedirect: string = DEFAULT_REDIRECT) {
-  console.log('to', to)
   if (!to || typeof to !== 'string') {
     return defaultRedirect
   }
@@ -189,7 +188,7 @@ export async function getDateTimeTz(tableId: string) {
     timeZone: 'America/Mexico_City',
   })
   const d = new Date(output)
-  console.log('d', d)
+
   return output
 }
 

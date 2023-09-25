@@ -191,7 +191,6 @@ export function updateCartItem(cart: CartItem[], variantId: string, quantity: nu
   let updated = false
   for (let item of cart) {
     if (item.variantId === variantId) {
-      console.log('item.quantity', item.quantity)
       if (quantity === 0) {
         return removeCartItem(cart, variantId)
       }
