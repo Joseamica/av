@@ -1,32 +1,27 @@
-import { conform, useForm } from '@conform-to/react'
 import { Link, Outlet, useFetcher, useLoaderData, useParams, useRouteLoaderData, useSearchParams } from '@remix-run/react'
 
 import { type ActionArgs, type LoaderArgs, json, redirect } from '@remix-run/node'
 
-import { getFieldsetConstraint, parse } from '@conform-to/zod'
+import { parse } from '@conform-to/zod'
 import bcrypt from 'bcryptjs'
 import clsx from 'clsx'
 import { namedAction } from 'remix-utils'
 import { z } from 'zod'
 import { prisma } from '~/db.server'
 
-import { Button } from '~/components'
-import { EmployeeForm } from '~/components/admin/employees/employee-form'
 import { HeaderWithButton } from '~/components/admin/headers'
-import { QueryDialog } from '~/components/admin/ui/dialogs/dialog'
-import { ErrorList } from '~/components/admin/ui/forms'
 
 export const handle = { active: 'Notifications' }
 
-// const notificationsSchema = z.object({
-//   id: z.string(),
-//   name: z.string().nonempty('Name is required'),
-//   email: z.string().email('Invalid email'),
-//   password: z.string().nonempty('Password is required'),
-//   image: z.string().url(),
-//   phone: z.string().nonempty('Phone is required'),
-//   role: z.enum(['manager', 'waiter']),
-// })
+const notificationsSchema = z.object({
+  id: z.string(),
+  name: z.string().nonempty('Name is required'),
+  email: z.string().email('Invalid email'),
+  password: z.string().nonempty('Password is required'),
+  image: z.string().url(),
+  phone: z.string().nonempty('Phone is required'),
+  role: z.enum(['manager', 'waiter']),
+})
 
 export async function loader({ request, params }: LoaderArgs) {
   const { branchId } = params

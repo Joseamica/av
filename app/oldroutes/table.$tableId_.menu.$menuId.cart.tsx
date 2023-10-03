@@ -366,13 +366,14 @@ export async function action({ request, params }: ActionArgs) {
 
       const items = cartItems.map(item => {
         return {
-          plu: item.id,
+          id: item.id,
           quantity: item.quantity,
           name: item.name,
         }
       })
+      const itemsList = items.map(item => `${item.name} (Cantidad: ${item.quantity})`).join(', ')
 
-      console.log(`${username} de la mesa ${table.number} ha ordenado ${JSON.stringify(items)}`)
+      console.log(`${username} de la mesa ${table.number} ha ordenado [${itemsList}]`)
 
       let order: (Order & { users?: User[] }) | null = await prisma.order.findFirst({
         where: {

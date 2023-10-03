@@ -6,6 +6,7 @@ import { type ActionArgs, type LoaderArgs, json, redirect } from '@remix-run/nod
 import clsx from 'clsx'
 import invariant from 'tiny-invariant'
 import { validateRedirect } from '~/redirect.server'
+import { getSession, sessionStorage } from '~/session.server'
 
 import { getBranchId, getPaymentMethods, getTipsPercentages } from '~/models/branch.server'
 import { getMenu } from '~/models/menu.server'
@@ -51,7 +52,7 @@ export default function CustomPay() {
             <input
               type="number"
               name="amountToPay"
-              min="0"
+              min="10"
               id="custom"
               inputMode="decimal"
               onChange={handleAmountChange} // Handle input changes
@@ -93,6 +94,7 @@ export async function action({ request, params }: ActionArgs) {
   const formData = await request.formData()
   const data = Object.fromEntries(formData)
   const total = Number(formData.get('amountToPay')) as number
+  const session = await getSession(request)
 
   //VALIDATIONS
   try {
@@ -138,7 +140,11 @@ export async function action({ request, params }: ActionArgs) {
   })
 
   if (result.type === 'redirect') {
-    return redirect(result.url)
+    session.flash('notification', 'Se ha enviado la solicitud de pago al mesero.')
+
+    return redirect(result.url, {
+      headers: { 'Set-Cookie': await sessionStorage.commitSession(session) },
+    })
   }
 
   return json({ status: 400, error: result.message })

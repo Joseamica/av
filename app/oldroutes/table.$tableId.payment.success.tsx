@@ -74,7 +74,7 @@ export const loader = async ({ params, request }: LoaderArgs) => {
       await updatePaidItemsAndUserData(itemData, username || '')
       session.flash('notification', 'Pago realizado con éxito')
       break
-    case 'fullpay':
+    case 'full-bill':
       session.flash('notification', 'Haz pagado la cuenta completa con éxito')
       await prisma.order.update({
         where: { id: order.id },

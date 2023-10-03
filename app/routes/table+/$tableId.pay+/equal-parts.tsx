@@ -203,7 +203,7 @@ export async function action({ request, params }: ActionArgs) {
     isOrderAmountFullPaid,
     request,
     redirectTo,
-    typeOfPayment: 'equalParts',
+    typeOfPayment: 'equal-parts',
     extraData: { branchId, tableId, order },
   })
 

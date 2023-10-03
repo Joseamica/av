@@ -33,39 +33,6 @@ type LoaderData = {
   userId: string
 }
 
-export default function FullPay() {
-  const data = useLiveLoader<LoaderData>()
-  const navigate = useNavigate()
-
-  return (
-    <Modal onClose={() => navigate('..')} title="Pagar cuenta completa">
-      <Payment
-        state={{
-          amountLeft: data.amountLeft,
-          amountToPayState: data.total,
-          currency: data.currency,
-          paymentMethods: data.paymentMethods,
-          tipsPercentages: data.tipsPercentages,
-        }}
-      >
-        <div>
-          <BillAmount
-            amountLeft={data.amountLeft}
-            currency={data.currency}
-            paidUsers={data.paidUsers}
-            total={data.total}
-            userId={data.userId}
-          />
-          <Spacer spaceY="2" />
-          <Form method="POST" preventScrollReset>
-            <Payment.Form />
-          </Form>
-        </div>
-      </Payment>
-    </Modal>
-  )
-}
-
 // ANCHOR LOADER
 export async function loader({ request, params }: LoaderArgs) {
   const { tableId } = params
@@ -73,6 +40,7 @@ export async function loader({ request, params }: LoaderArgs) {
   const amountLeft = await getAmountLeftToPay(tableId)
   const order = await getOrder(tableId)
   const total = order?.total
+
   const session = await getSession(request)
   const userId = session.get('userId')
 
@@ -86,7 +54,6 @@ export async function loader({ request, params }: LoaderArgs) {
   }
 
   const currency = await getCurrency(tableId)
-  console.log('server currency', currency)
 
   const language = (await getBranch(tableId)).language
 
@@ -145,7 +112,7 @@ export async function action({ request, params }: ActionArgs) {
     isOrderAmountFullPaid: true,
     request,
     redirectTo,
-    typeOfPayment: 'fullpay',
+    typeOfPayment: 'full-bill',
     extraData: { branchId, tableId, order },
   })
 
@@ -154,4 +121,37 @@ export async function action({ request, params }: ActionArgs) {
   }
 
   return json({ success: true })
+}
+
+export default function FullPay() {
+  const data = useLiveLoader<LoaderData>()
+  const navigate = useNavigate()
+
+  return (
+    <Modal onClose={() => navigate('..')} title="Pagar cuenta completa">
+      <Payment
+        state={{
+          amountLeft: data.amountLeft,
+          amountToPayState: data.total,
+          currency: data.currency,
+          paymentMethods: data.paymentMethods,
+          tipsPercentages: data.tipsPercentages,
+        }}
+      >
+        <div>
+          <BillAmount
+            amountLeft={data.amountLeft}
+            currency={data.currency}
+            paidUsers={data.paidUsers}
+            total={data.total}
+            userId={data.userId}
+          />
+          <Spacer spaceY="2" />
+          <Form method="POST" preventScrollReset>
+            <Payment.Form />
+          </Form>
+        </div>
+      </Payment>
+    </Modal>
+  )
 }

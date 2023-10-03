@@ -40,10 +40,22 @@ export default function FullPay() {
   return (
     <Modal onClose={() => navigate('..')} title="Pagar cuenta completa">
       <Payment
-        state={{ amountLeft: data.amountLeft, amountToPayState: data.total, currency: data.currency, paymentMethods: data.paymentMethods, tipsPercentages: data.tipsPercentages }}
+        state={{
+          amountLeft: data.amountLeft,
+          amountToPayState: data.total,
+          currency: data.currency,
+          paymentMethods: data.paymentMethods,
+          tipsPercentages: data.tipsPercentages,
+        }}
       >
         <div>
-          <BillAmount amountLeft={data.amountLeft} currency={data.currency} paidUsers={data.paidUsers} total={data.total} userId={data.userId} />
+          <BillAmount
+            amountLeft={data.amountLeft}
+            currency={data.currency}
+            paidUsers={data.paidUsers}
+            total={data.total}
+            userId={data.userId}
+          />
           <Spacer spaceY="2" />
           <Form method="POST" preventScrollReset>
             <Payment.Form />
@@ -133,7 +145,7 @@ export async function action({ request, params }: ActionArgs) {
     isOrderAmountFullPaid: true,
     request,
     redirectTo,
-    typeOfPayment: 'fullpay',
+    typeOfPayment: 'full-bill',
   })
 
   if (result.type === 'redirect') {

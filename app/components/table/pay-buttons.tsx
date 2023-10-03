@@ -1,15 +1,13 @@
-import {useState} from 'react'
-// * UTILS
-import {Spacer} from '../util/spacer'
-// * CUSTOM COMPONENTS
-import {Modal as ModalPortal} from '~/components/modals'
-import {Button, LinkButton} from '../ui/buttons/button'
+import { useState } from 'react'
 
-export function PayButtons({
-  setShowPaymentOptions,
-}: {
-  setShowPaymentOptions?: (value: boolean) => void
-}) {
+import { Button, LinkButton } from '../ui/buttons/button'
+// * UTILS
+import { Spacer } from '../util/spacer'
+
+// * CUSTOM COMPONENTS
+import { Modal as ModalPortal } from '~/components/modals'
+
+export function PayButtons({ setShowPaymentOptions }: { setShowPaymentOptions?: (value: boolean) => void }) {
   const [showSplit, setShowSplit] = useState(false)
 
   const handleFullPay = () => {
@@ -35,15 +33,11 @@ export function PayButtons({
         Dividir cuenta
       </Button>
       <Spacer spaceY="1" />
-      <LinkButton to="pay/fullpay" onClick={handleFullPay}>
+      <LinkButton to="pay/full-bill" onClick={handleFullPay}>
         Pagar la cuenta completa
       </LinkButton>
       <Spacer spaceY="2" />
-      <ModalPortal
-        isOpen={showSplit}
-        handleClose={() => setShowSplit(false)}
-        title="Dividir cuenta"
-      >
+      <ModalPortal isOpen={showSplit} handleClose={() => setShowSplit(false)} title="Dividir cuenta">
         <div className="flex flex-col space-y-2 bg-white p-2">
           <LinkButton to="pay/perDish" onClick={handleSplitPay}>
             Pagar por platillo
@@ -51,7 +45,7 @@ export function PayButtons({
           <LinkButton to="pay/perPerson" onClick={handleSplitPay}>
             Pagar por usuario
           </LinkButton>
-          <LinkButton to="pay/equalParts" onClick={handleSplitPay}>
+          <LinkButton to="pay/equal-parts" onClick={handleSplitPay}>
             Pagar en partes iguales
           </LinkButton>
           <LinkButton to="pay/custom" onClick={handleSplitPay}>

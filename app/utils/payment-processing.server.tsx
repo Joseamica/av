@@ -3,6 +3,8 @@ import { prisma } from '~/db.server'
 import { getSession } from '~/session.server'
 import { sendWaNotification } from '~/twilio.server'
 
+import { EVENTS } from '~/events'
+
 import { getDomainUrl, getStripeSession } from './stripe.server'
 
 import { createQueryString } from '~/utils'
@@ -79,6 +81,8 @@ export async function handlePaymentProcessing({
           userId: userId,
         },
       })
+      EVENTS.ISSUE_CHANGED(extraData.tableId)
+
       return { type: 'redirect', url: '..' }
     //NOTE: HABILITATE THIS WHEN WE WANT TO CREATE THE PAYMENT WITHOUT AUTORIZATION
     // const params = {

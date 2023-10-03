@@ -1,11 +1,11 @@
-import type {PaymentMethod} from '@prisma/client'
+import type { PaymentMethod } from '@prisma/client'
 import initStripe from 'stripe'
-import {createQueryString} from '~/utils'
+
+import { createQueryString } from '~/utils'
 
 // copied from (https://github.com/kentcdodds/kentcdodds.com/blob/ebb36d82009685e14da3d4b5d0ce4d577ed09c63/app/utils/misc.tsx#L229-L237)
 export function getDomainUrl(request: Request) {
-  const host =
-    request.headers.get('X-Forwarded-Host') ?? request.headers.get('host')
+  const host = request.headers.get('X-Forwarded-Host') ?? request.headers.get('host')
   if (!host) {
     throw new Error('Could not determine domain URL.')
   }
@@ -44,6 +44,8 @@ export const getStripeSession = async (
   // console.log('e', extraData)
 
   const stripe = initStripe(process.env.STRIPE_SECRET_KEY)
+  const account = await stripe.accounts.retrieve('acct_1NuRFGBAuNoVK1pM')
+  console.log('acount', account)
   const lineItems = [
     {
       price_data: {
@@ -70,6 +72,7 @@ export const getStripeSession = async (
 
   const session = await stripe.checkout.sessions.create({
     mode: 'payment',
+
     payment_method_types: ['card'],
     line_items: lineItems,
     metadata: {
@@ -78,6 +81,13 @@ export const getStripeSession = async (
       paymentMethod,
       typeOfPayment,
       extraData: extraData ? JSON.stringify(extraData) : undefined,
+    },
+    // FIXME - add dynamic destination depending of the branch
+    payment_intent_data: {
+      application_fee_amount: 100,
+      transfer_data: {
+        destination: 'acct_1NuRFGBAuNoVK1pM',
+      },
     },
     success_url: `${domainUrl}/payment/success?${queryString}`,
     cancel_url: `${domainUrl}`,

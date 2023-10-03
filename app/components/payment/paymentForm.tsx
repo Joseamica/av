@@ -1,4 +1,4 @@
-import { useNavigation } from '@remix-run/react'
+import { useLocation, useNavigation } from '@remix-run/react'
 
 import clsx from 'clsx'
 import { AnimatePresence, motion } from 'framer-motion'
@@ -50,6 +50,9 @@ export function PaymentForm() {
 
   const showPayContent = context.total > 0
 
+  const location = useLocation()
+  const isFullBillRoute = location.pathname.includes('full-bill') // Check if it's the full-bill route
+
   return (
     <>
       <div className="dark:bg-night-bg_principal dark:text-night-text_principal sticky inset-x-0 bottom-0 flex flex-col justify-center rounded-t-xl border-2 border-button-textNotSelected border-opacity-70 bg-day-bg_principal px-3">
@@ -92,10 +95,7 @@ export function PaymentForm() {
               <Spacer spaceY="2" />
               <Button fullWith={true} disabled={isSubmitting}>
                 {isSubmitting ? 'Procesando...' : 'Pagar'}{' '}
-                {formatCurrency(
-                  context.currency,
-                  context.total, // Update the total amount
-                )}
+                {formatCurrency(context.currency, isFullBillRoute ? context.amountLeft + context.tip : context.total)}
               </Button>
             </motion.div>
           )}

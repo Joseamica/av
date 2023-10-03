@@ -95,7 +95,7 @@ export const action = async ({ request }: ActionArgs) => {
   //     //   const itemData = extraData
   //     //   await updatePaidItemsAndUserData(itemData, userName || '')
   //     // }
-  //     // if (metadata.typeOfPayment === 'fullpay') {
+  //     // if (metadata.typeOfPayment === 'full-bill') {
   //     //   await prisma.order.update({
   //     //     where: {id: metadata.orderId},
   //     //     data: {

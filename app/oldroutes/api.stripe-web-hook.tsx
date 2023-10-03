@@ -1,8 +1,10 @@
-import type {PaymentMethod} from '@prisma/client'
-import type {ActionArgs} from '@remix-run/node'
-import {json} from '@remix-run/node'
+import type { ActionArgs } from '@remix-run/node'
+import { json } from '@remix-run/node'
+
+import type { PaymentMethod } from '@prisma/client'
 import Stripe from 'stripe'
-import {prisma} from '~/db.server'
+import { prisma } from '~/db.server'
+
 // import { getUserId } from "~/session.server";
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
@@ -24,16 +26,12 @@ interface Metadata {
 //FIXME VER SI ES RELEVANTE O NO, sino BORRAR
 
 // [credit @kiliman to get this webhook working](https://github.com/remix-run/remix/discussions/1978)
-export const action = async ({request}: ActionArgs) => {
+export const action = async ({ request }: ActionArgs) => {
   const payload = await request.text()
   const sig = request.headers.get('stripe-signature')
   let event: Stripe.Event
   try {
-    event = stripe.webhooks.constructEvent(
-      payload,
-      sig,
-      process.env.STRIPE_WEBHOOK_ENDPOINT_SECRET,
-    )
+    event = stripe.webhooks.constructEvent(payload, sig, process.env.STRIPE_WEBHOOK_ENDPOINT_SECRET)
     if (event.type === 'checkout.session.completed') {
       console.log('✅ se ha registrado un pago')
     }
@@ -42,7 +40,7 @@ export const action = async ({request}: ActionArgs) => {
     }
   } catch (err: any) {
     console.log(err)
-    throw json({errors: [{message: err.message}]}, 400)
+    throw json({ errors: [{ message: err.message }] }, 400)
   }
 
   // console.log('event', event)
@@ -97,7 +95,7 @@ export const action = async ({request}: ActionArgs) => {
   //     //   const itemData = extraData
   //     //   await updatePaidItemsAndUserData(itemData, userName || '')
   //     // }
-  //     // if (metadata.typeOfPayment === 'fullpay') {
+  //     // if (metadata.typeOfPayment === 'full-bill') {
   //     //   await prisma.order.update({
   //     //     where: {id: metadata.orderId},
   //     //     data: {
@@ -129,22 +127,19 @@ export const action = async ({request}: ActionArgs) => {
   //     // - Exit the function or throw the error to be caught higher up
   //   }
   // }
-  return new Response(null, {status: 200})
+  return new Response(null, { status: 200 })
 }
 
-const updatePaidItemsAndUserData = async (
-  itemData: {itemId: string; price: string}[],
-  userName: string,
-) => {
+const updatePaidItemsAndUserData = async (itemData: { itemId: string; price: string }[], userName: string) => {
   // Loop through items and update price and paid
-  for (const {itemId} of itemData) {
+  for (const { itemId } of itemData) {
     const cartItem = await prisma.cartItem.findUnique({
-      where: {id: itemId},
+      where: { id: itemId },
     })
     if (cartItem) {
       await prisma.cartItem.update({
-        where: {id: itemId},
-        data: {paid: true, paidBy: userName},
+        where: { id: itemId },
+        data: { paid: true, paidBy: userName },
       })
     }
   }
