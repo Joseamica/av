@@ -1,4 +1,4 @@
-import { type ActionArgs, redirect } from '@remix-run/node'
+import { type ActionArgs, json, redirect } from '@remix-run/node'
 
 import invariant from 'tiny-invariant'
 import { prisma } from '~/db.server'
@@ -8,10 +8,16 @@ import { cleanUserData } from '~/models/user.server'
 
 import { EVENTS } from '~/events'
 
+import { getSearchParams } from '~/utils'
+
 export const action = async ({ request, params }: ActionArgs) => {
+  const formData = await request.formData()
+  const redirectTo = formData.get('redirectTo') as string
   const { tableId } = params
   invariant(tableId, 'Mesa no encontrada!')
   const session = await getSession(request)
+  const searchParams = getSearchParams({ request })
+  const from = searchParams.get('from')
 
   const order = await prisma.order.findFirst({
     where: {
@@ -23,36 +29,45 @@ export const action = async ({ request, params }: ActionArgs) => {
     },
   })
   // EVENTS.TABLE_CHANGED(tableId)
-  invariant(order, 'Orden no existe')
+
   // Update each user to set `paid` to 0
-  for (let user of order.users) {
-    await cleanUserData(user.id)
+  if (order) {
+    if (order.users.length >= 1) {
+      for (let user of order.users) {
+        await cleanUserData(user.id)
+      }
+    }
+
+    console.time('update table')
+    await prisma.table.update({
+      where: {
+        id: tableId,
+      },
+      data: {
+        users: { set: [] },
+      },
+    })
+    console.timeEnd('update table')
+    await prisma.order.update({
+      where: {
+        id: order.id,
+      },
+      data: {
+        active: false,
+        table: { disconnect: true },
+        users: { set: [] },
+      },
+    })
+    session.unset('cart')
+    session.unset('tableId')
+    // session.unset('tableSession')
+    EVENTS.ISSUE_CHANGED(tableId)
+    return redirect(from === 'admin' ? redirectTo : '/thankyou', {
+      headers: { 'Set-Cookie': await sessionStorage.commitSession(session) },
+    })
+  } else {
+    return redirect(redirectTo)
   }
-  await prisma.table.update({
-    where: {
-      id: tableId,
-    },
-    data: {
-      users: { set: [] },
-    },
-  })
-  await prisma.order.update({
-    where: {
-      id: order.id,
-    },
-    data: {
-      active: false,
-      table: { disconnect: true },
-      users: { set: [] },
-    },
-  })
-  session.unset('cart')
-  session.unset('tableId')
-  // session.unset('tableSession')
-  EVENTS.ISSUE_CHANGED(tableId)
-  return redirect('/thankyou', {
-    headers: { 'Set-Cookie': await sessionStorage.commitSession(session) },
-  })
 }
 // export async function loader({ request, params }: LoaderArgs) {
 //   const { tableId } = params;

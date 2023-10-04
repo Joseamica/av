@@ -351,7 +351,7 @@ export function Payment({
                     </FlexRow>
                   ) : (
                     <FlexRow className="rounded-full bg-gray_light px-2 py-1">
-                      <H6>Cambiar</H6>
+                      <H4>Cambiar</H4>
                       <ChevronRightIcon className="h-4 w-4" />
                     </FlexRow>
                   )}

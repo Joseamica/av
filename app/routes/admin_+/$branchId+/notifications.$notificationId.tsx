@@ -30,9 +30,10 @@ export async function loader({ request, params }: LoaderArgs) {
     include: {
       table: true,
       user: true,
+      employees: true,
     },
   })
-  console.log('notification', notification)
+
   return json({ notification })
 }
 export async function action({ request, params }: ActionArgs) {
@@ -103,11 +104,7 @@ export default function Name() {
     },
     shouldRevalidate: 'onBlur',
   })
-
-  const amount = Number(JSON.parse(data.notification.message).amount)
-  const tip = Number(JSON.parse(data.notification.message).tip)
-  const total = Number(JSON.parse(data.notification.message).total)
-  const orderId = JSON.parse(data.notification.message).orderId
+  console.log('data.notification', data.notification)
 
   return (
     <Dialog.Root open={true} onOpenChange={() => navigate(`/admin/${params.branchId}/notifications`)}>
@@ -123,26 +120,54 @@ export default function Name() {
             STATUS: {data.notification.status}
           </Dialog.Description>
           <div className="my-2 border">
-            <FlexRow>
-              <H3>Table:</H3>
-              <H5 boldVariant="bold">{data.notification.table.number}</H5>
-            </FlexRow>
-            <FlexRow>
-              <H3>User:</H3>
-              <H5 boldVariant="bold">{data.notification.user.name}</H5>
-            </FlexRow>
-            <FlexRow>
-              <H3>Amount:</H3>
-              <H5 boldVariant="bold">{amount}</H5>
-            </FlexRow>
-            <FlexRow>
-              <H3>Tip</H3>
-              <H5 boldVariant="bold">{tip}</H5>
-            </FlexRow>
-            <FlexRow>
-              <H3>Total to pay:</H3>
-              <H5 boldVariant="bold">{total}</H5>
-            </FlexRow>
+            {data.notification.employees.length > 0 && (
+              <FlexRow>
+                <H3>Calling to:</H3>
+                <H5 boldVariant="bold">
+                  <div className="flex flex-col space-x-2">
+                    {data.notification.employees.map(employee => (
+                      <span key={employee.id}>{employee.name}</span>
+                    ))}
+                  </div>
+                </H5>
+              </FlexRow>
+            )}
+            {data.notification.type === 'call' ? (
+              <>
+                {' '}
+                <FlexRow>
+                  <H3>Table:</H3>
+                  <H5 boldVariant="bold">{data.notification.table.number}</H5>
+                </FlexRow>
+                <FlexRow>
+                  <H3>User:</H3>
+                  <H5 boldVariant="bold">{data.notification.user.name}</H5>
+                </FlexRow>
+              </>
+            ) : (
+              <>
+                <FlexRow>
+                  <H3>Table:</H3>
+                  <H5 boldVariant="bold">{data.notification.table.number}</H5>
+                </FlexRow>
+                <FlexRow>
+                  <H3>User:</H3>
+                  <H5 boldVariant="bold">{data.notification.user.name}</H5>
+                </FlexRow>
+                <FlexRow>
+                  <H3>Amount:</H3>
+                  <H5 boldVariant="bold">{data.notification?.amount}</H5>
+                </FlexRow>
+                <FlexRow>
+                  <H3>Tip</H3>
+                  <H5 boldVariant="bold">{data.notification?.tip}</H5>
+                </FlexRow>
+                <FlexRow>
+                  <H3>Total to pay:</H3>
+                  <H5 boldVariant="bold">{data.notification?.total}</H5>
+                </FlexRow>
+              </>
+            )}
           </div>
           <fetcher.Form method="POST" {...form.props} action="?/updateNotification" className="flex flex-row space-x-2">
             <Button type="submit" disabled={isSubmitting} size="small" variant="primary" name={conform.INTENT} value="accept">
@@ -159,10 +184,10 @@ export default function Name() {
               Reject
             </Button>
             <input type="hidden" value={data.notification.id ? data.notification.id : ''} {...conform.input(fields.id)} />
-            <input type="hidden" value={amount} {...conform.input(fields.amount)} />
-            <input type="hidden" value={tip} {...conform.input(fields.tip)} />
-            <input type="hidden" value={total} {...conform.input(fields.total)} />
-            <input type="hidden" value={orderId} {...conform.input(fields.orderId)} />
+            <input type="hidden" value={data.notification.amount} {...conform.input(fields.amount)} />
+            <input type="hidden" value={data.notification.tip} {...conform.input(fields.tip)} />
+            <input type="hidden" value={data.notification.total} {...conform.input(fields.total)} />
+            <input type="hidden" value={data.notification.orderId} {...conform.input(fields.orderId)} />
             <input type="hidden" value={data.notification.user.id} {...conform.input(fields.userId)} />
           </fetcher.Form>
         </Dialog.Content>
@@ -194,4 +219,13 @@ export default function Name() {
     //   </fetcher.Form>
     // </QueryDialog>
   )
+}
+
+function safelyParseJSON(jsonString) {
+  try {
+    return JSON.parse(jsonString)
+  } catch (e) {
+    console.error('Failed to parse JSON:', e)
+    return null
+  }
 }

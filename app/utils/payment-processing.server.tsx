@@ -72,13 +72,17 @@ export async function handlePaymentProcessing({
       // sendWaNotification({ body: `El cliente ha pagado en efectivo la cantidad de ${total + tip} pesos`, to: '525512956265' })
       await prisma.notification.create({
         data: {
-          message: `${JSON.stringify({ amount: total, tip: tip, total: total + tip, orderId: extraData.order.id })}`,
+          message: `Cash payment`,
+          amount: total,
+          tip: tip,
+          total: total + tip,
           method: 'push',
           status: 'pending',
           type: 'cash payment',
           branchId: extraData.branchId,
           tableId: extraData.tableId,
           userId: userId,
+          orderId: extraData.order.id,
         },
       })
       EVENTS.ISSUE_CHANGED(extraData.tableId)

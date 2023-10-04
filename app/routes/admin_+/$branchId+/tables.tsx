@@ -1,5 +1,5 @@
 import { useForm } from '@conform-to/react'
-import { useActionData, useLoaderData, useLocation, useRouteLoaderData, useSearchParams } from '@remix-run/react'
+import { Form, useActionData, useLoaderData, useLocation, useRouteLoaderData, useSearchParams } from '@remix-run/react'
 import QRCode from 'qrcode.react'
 import { useState } from 'react'
 
@@ -9,12 +9,13 @@ import { getFieldsetConstraint, parse } from '@conform-to/zod'
 import type { Table } from '@prisma/client'
 import { safeRedirect } from 'remix-utils'
 import { z } from 'zod'
+import { prisma } from '~/db.server'
 
 import { getTable, handleAddAction, handleDeleteAction, handleEditAction } from '~/models/admin/table/table.server'
 
 import { getSearchParams } from '~/utils'
 
-import { Spacer } from '~/components'
+import { Button, Spacer } from '~/components'
 import { HeaderSection, HeaderWithButton } from '~/components/admin/headers'
 import { AddTableDialog } from '~/components/admin/tables/dialogs/add'
 import { EditTableDialog } from '~/components/admin/tables/dialogs/edit'
@@ -30,7 +31,7 @@ const ACTIONS = {
 }
 
 const categoriesFormSchema = z.object({
-  number: z.number().min(1).max(100),
+  number: z.number().min(1).max(1000),
   seats: z.number().min(1).max(100),
 })
 
@@ -58,12 +59,30 @@ export async function action({ request, params }: ActionArgs) {
   const { branchId } = params
   const formData = await request.formData()
   const formValues = Object.fromEntries(formData.entries())
+  const _action = formValues._action
 
   const searchParams = getSearchParams({ request })
   const searchParamsValues = Object.fromEntries(searchParams)
 
   const tableId = searchParamsValues.itemId ?? searchParamsValues.editItem
   const redirectTo = safeRedirect(formData.get('redirectTo'), '')
+
+  // if(_action === 'clean') {
+  //   await prisma.table.update({
+  //     where:{
+  //       id: tableId
+  //     },
+  //     data:{
+  //       order:{
+  //         disconnect: true
+  //       },
+  //      users:{
+  //       set: []
+  //     },
+
+  //     }
+
+  //   })
 
   switch (formValues._action) {
     case ACTIONS.ADD:
@@ -102,6 +121,7 @@ export default function Tables() {
   const tableIdUrl = `https://av.fly.dev/table/${data.table?.id}`
 
   const [domain, setDomain] = useState(tableIdUrl)
+  const location = useLocation()
 
   // const handleClick = () => {
   //   let url = tableIdUrl
@@ -121,6 +141,14 @@ export default function Tables() {
           onFocus={e => setDomain(`https://av.fly.dev/table/${data.table.id}`)}
           className="w-1/2 px-3 py-2 text-black border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
         /> */}
+        <Form method="post" action={`/table/${itemId}/processes/endOrder?from=admin`}>
+          <Spacer spaceY="2">
+            <Button name="_action" value="clean" variant="danger" size="small">
+              Clean table
+            </Button>
+          </Spacer>
+          <input type="hidden" name="redirectTo" value={location.pathname + location.search} />
+        </Form>
         <QRCode value={tableIdUrl} size={256} />
         <Spacer size="sm" />
         {/* <button onClick={handleClick} className="p-2 rounded-full bg-DARK_PRIMARY_1">
@@ -146,6 +174,8 @@ export default function Tables() {
         {branch.tables?.map((table: Table) => (
           <div key={table.id}>
             <Container editQuery={`?editItem=${table.id}`} name={table.number} itemIdQuery={`?itemId=${table.id}`} />
+            {/* todo */}
+            <span>clean</span>
           </div>
         ))}
       </div>

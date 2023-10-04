@@ -177,21 +177,22 @@ model Product {
 }
 
 model Order {
-  id        String     @id @default(cuid())
-  tip       Decimal?
-  paid      Boolean?
-  total     Decimal?
-  active    Boolean?
-  table     Table?     @relation(fields: [tableId], references: [id])
-  tableId   String?    @unique
-  users     User[]
-  branch    Branch?    @relation(fields: [branchId], references: [id])
-  branchId  String?
-  cartItems CartItem[]
-  payments  Payments[]
-  paidDate  DateTime?
-  updatedAt DateTime?  @updatedAt
-  createdAt DateTime   @default(now())
+  id            String         @id @default(cuid())
+  tip           Decimal?
+  paid          Boolean?
+  total         Decimal?
+  active        Boolean?
+  table         Table?         @relation(fields: [tableId], references: [id])
+  tableId       String?        @unique
+  users         User[]
+  branch        Branch?        @relation(fields: [branchId], references: [id])
+  branchId      String?
+  cartItems     CartItem[]
+  payments      Payments[]
+  paidDate      DateTime?
+  updatedAt     DateTime?      @updatedAt
+  createdAt     DateTime       @default(now())
+  notifications Notification[]
 }
 
 model CartItem {
@@ -406,20 +407,25 @@ enum PaymentMethod {
 }
 
 model Notification {
-  id        String             @id @default(cuid())
-  method    NotificationMethod
+  id        String              @id @default(cuid())
+  method    NotificationMethod?
   type      String?
-  status    StatusMethod
-  message   String
+  status    StatusMethod?
+  message   String?
   branchId  String?
-  branch    Branch?            @relation(fields: [branchId], references: [id])
+  branch    Branch?             @relation(fields: [branchId], references: [id])
   tableId   String?
-  table     Table?             @relation(fields: [tableId], references: [id])
+  table     Table?              @relation(fields: [tableId], references: [id])
   userId    String?
-  user      User?              @relation(fields: [userId], references: [id])
+  user      User?               @relation(fields: [userId], references: [id])
   employees Employee[]
-  updatedAt DateTime?          @updatedAt
-  createdAt DateTime           @default(now())
+  updatedAt DateTime?           @updatedAt
+  createdAt DateTime            @default(now())
+  amount    Decimal?
+  tip       Decimal?
+  total     Decimal?
+  orderId   String?
+  order     Order?              @relation(fields: [orderId], references: [id])
 }
 
 enum StatusMethod {

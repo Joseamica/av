@@ -35,159 +35,62 @@ export async function loader({ request, params }: LoaderArgs) {
     include: {
       table: true,
       user: true,
+      employees: true,
     },
   })
 
   return json({ notifications })
 }
 
-export async function action({ request, params }: ActionArgs) {
-  const formData = await request.formData()
-
-  const submission = await parse(formData, {
-    schema: () => {
-      return notificationsSchema.superRefine(async (data, ctx) => {
-        const existingEmployee = await prisma.employee.findUnique({
-          where: { email: data.email },
-          select: { id: true },
-        })
-        if (existingEmployee) {
-          ctx.addIssue({
-            path: ['email'],
-            code: z.ZodIssueCode.custom,
-            message: 'A employee already exists with this email',
-          })
-          return
-        }
-      })
-    },
-    // acceptMultipleErrors: () => true,
-    async: true,
-  })
-
-  if (submission.intent !== 'submit') {
-    return json({ status: 'idle', submission } as const)
-  }
-  if (!submission.value) {
-    return json(
-      {
-        status: 'error',
-        submission,
-      } as const,
-      { status: 400 },
-    )
-  }
-
-  const hashedPassword = await bcrypt.hash(submission.value.password, 10)
-
-  return namedAction(request, {
-    async create() {
-      await prisma.employee.create({
-        data: {
-          name: submission.value.name,
-          role: submission.value.role,
-          email: submission.value.email,
-
-          password: {
-            connectOrCreate: {
-              where: {
-                employeeId: submission.value.id,
-              },
-              create: {
-                hash: hashedPassword,
-              },
-            },
-          },
-          phone: submission.value.phone,
-          image: submission.value.image,
-          branchId: params.branchId,
-        },
-      })
-      return redirect('')
-    },
-    async update() {
-      await prisma.employee.update({
-        where: { id: submission.value.id },
-        data: {
-          name: submission.value.name,
-          role: submission.value.role,
-          email: submission.value.email,
-          password: {
-            connectOrCreate: {
-              where: {
-                employeeId: submission.value.id,
-              },
-              create: {
-                hash: hashedPassword,
-              },
-            },
-          },
-          phone: submission.value.phone,
-          image: submission.value.image,
-          branchId: params.branchId,
-        },
-      })
-      return redirect('')
-    },
-  })
-}
-
 export default function Notifications() {
   const data = useLoaderData()
-  const { branch } = useRouteLoaderData('routes/admin_+/$branchId') as any
-  const { branchId } = useParams()
 
   const fetcher = useFetcher()
+
+  const params = useParams()
+
   const isSubmitting = fetcher.state !== 'idle'
-  const [searchParams] = useSearchParams()
-
-  // const [form, fields] = useForm({
-  //   id: 'notifications',
-  //   constraint: getFieldsetConstraint(notificationsSchema),
-  //   lastSubmission: fetcher.data?.submission,
-
-  //   onValidate({ formData }) {
-  //     return parse(formData, { schema: notificationsSchema })
-  //   },
-  //   shouldRevalidate: 'onBlur',
-  // })
-
-  const addItem = searchParams.get('addItem')
-  const editItem = searchParams.get('editItem')
-  const deleteItem = searchParams.get('deleteItem')
-
   return (
     <main>
       <HeaderWithButton queryKey="addItem" queryValue="true" buttonLabel="Add" />
       <div className="flex flex-wrap gap-2 p-4">
-        {data.notifications.map(notification => (
-          // <Square
-          //   itemId={notification.id}
-          //   name={
-          //     <>
-          //       <H5 boldVariant="bold">{notification.id}</H5>
-          //     </>
-          //   }
-          //   to={notification.id}
-          //   key={notification.id}
-          // />
-          <div key={notification.id}>
-            <Link
-              to={notification.id}
-              className={clsx('flex flex-col items-center justify-center p-2 border rounded-xl', {
-                'border-red-500 bg-red-200': notification.status === 'rejected',
-                // 'border-green-500': notification.status === 'accepted',
-                'border-yellow-500 bg-yellow-200': notification.status === 'pending',
-              })}
-            >
-              <span> {notification.type.toUpperCase()}</span>
-              <span>{notification.user.name}</span>
-              <span>Table: {notification.table.number}</span>
-              <span>Total: {JSON.parse(notification.message).total}</span>
-              <span className="font-bold">Status: {notification.status}</span>
-            </Link>
-          </div>
-        ))}
+        {data.notifications.map(notification => {
+          return (
+            // <Square
+            //   itemId={notification.id}
+            //   name={
+            //     <>
+            //       <H5 boldVariant="bold">{notification.id}</H5>
+            //     </>
+            //   }
+            //   to={notification.id}
+            //   key={notification.id}
+            // />
+            <div key={notification.id}>
+              <Link
+                to={notification.id}
+                className={clsx('flex flex-col items-center justify-center p-2 border rounded-xl', {
+                  'border-red-500 bg-red-200': notification.status === 'rejected',
+                  // 'border-green-500': notification.status === 'accepted',
+                  'border-yellow-500 bg-yellow-200': notification.status === 'pending',
+                })}
+              >
+                <span> {notification.type?.toUpperCase()}</span>
+                <span>User: {notification.user?.name}</span>
+                <span>Table: {notification.table?.number}</span>
+                {notification.total && <span>Total: {notification.total}</span>}
+                {notification.employees.length > 0 && <span>To: {notification.employees.map(employee => employee.name)}</span>}
+                <span className="font-bold">Status: {notification.status}</span>
+              </Link>
+              <fetcher.Form method="POST" action="/admin/deleteItem" name="DELETE">
+                <button disabled={isSubmitting}>Delete</button>
+                <input type="hidden" name="id" value={notification.id} />
+                <input type="hidden" name="model" value="notifications" />
+                <input type="hidden" name="redirect" value={`/admin/${params.branchId}/notifications`} />
+              </fetcher.Form>
+            </div>
+          )
+        })}
       </div>
       {/* 
       <QueryDialog title="Add Employee" description="Add to the fields you want to add" query={'addItem'}>

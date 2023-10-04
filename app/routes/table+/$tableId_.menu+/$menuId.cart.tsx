@@ -372,6 +372,16 @@ export async function action({ request, params }: ActionArgs) {
         }
       })
 
+      // await prisma.notification.create({
+      //   data: {
+      //     message: `${username} de la mesa ${table.number} ha ordenado ${JSON.stringify(items)}`,
+      //     branchId: branchId,
+      //     tableId: tableId,
+      //     method: 'whatsapp',
+      //     status: 'pending',
+      //   },
+      // })
+
       console.log(`${username} de la mesa ${table.number} ha ordenado ${JSON.stringify(items)}`)
 
       let order: (Order & { users?: User[] }) | null = await prisma.order.findFirst({
