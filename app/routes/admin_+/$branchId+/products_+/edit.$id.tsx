@@ -132,6 +132,16 @@ export async function action({ request, params }: ActionArgs) {
           id: params.id,
         },
         data: {
+          products: {
+            set: [],
+          },
+        },
+      })
+      await prisma.modifierGroup.update({
+        where: {
+          id: params.id,
+        },
+        data: {
           name: submission.value.name,
           plu: submission.value.plu,
           min: submission.value.min ? submission.value.min : 0,

@@ -5,9 +5,10 @@ import { type ActionArgs, type LoaderArgs, json, redirect } from '@remix-run/nod
 import type { User } from '@prisma/client'
 import invariant from 'tiny-invariant'
 import { prisma } from '~/db.server'
-import { FOOD_REPORT_SUBJECTS } from '~/oldroutes/table.$tableId.help.report'
 import { validateRedirect } from '~/redirect.server'
 import { getSession, getUserId } from '~/session.server'
+
+import { FOOD_REPORT_SUBJECTS } from './$tableId.help+/report'
 
 import { formatCurrency, getCurrency, getDateTime } from '~/utils'
 

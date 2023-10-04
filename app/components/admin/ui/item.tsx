@@ -42,7 +42,7 @@ export default function Item({ title, itemToMap, queryValue, params }: ItemProps
   if (Array.isArray(itemToMap)) {
     return (
       <div>
-        <FlexRow justify="between">
+        {/* <FlexRow justify="between">
           <H1>{title}</H1>
           <FlexRow>
             <button
@@ -51,7 +51,7 @@ export default function Item({ title, itemToMap, queryValue, params }: ItemProps
                 searchParams.set('editSub', queryValue)
                 setSearchParams(searchParams)
               }}
-              className="flex-2 rounded-full border-2 bg-white px-4 py-2"
+              className="flex  rounded-full border-2 bg-white px-4 py-2"
             >
               <p>Edit</p> <IoPencil className="w-6 h-6" />
             </button>
@@ -61,12 +61,12 @@ export default function Item({ title, itemToMap, queryValue, params }: ItemProps
                 searchParams.set('showDel', 'true')
                 setSearchParams(searchParams)
               }}
-              className="flex-2 rounded-full border-2 bg-white px-4 py-2"
+              className="flex rounded-full border-2 bg-white px-4 py-2"
             >
               <p>Delete</p> <XIcon className="w-6 h-6" />
             </button>
           </FlexRow>
-        </FlexRow>
+        </FlexRow> */}
         <Spacer size="sm" />
         {itemToMap?.length > 0 ? (
           <div className="border rounded-xl shadow-lg">

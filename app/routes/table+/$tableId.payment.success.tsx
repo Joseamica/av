@@ -62,6 +62,7 @@ export const loader = async ({ params, request }: LoaderArgs) => {
       table.number
     }\x1b[0m ha pagado en efectivo propina \x1b[33m${tip}\x1b[0m dando un total \x1b[35m${amount + tip}\x1b[0m`,
   )
+
   switch (typeOfPayment) {
     case 'cartPay':
       session.flash('notification', 'Haz pagado productos con éxito')
@@ -91,7 +92,7 @@ export const loader = async ({ params, request }: LoaderArgs) => {
   EVENTS.ISSUE_CHANGED(tableId)
   await assignExpirationAndValuesToOrder(amountLeft, tip, amount, order)
   sendWaNotification({
-    to: ['573016295610'],
+    to: ['5215512956265'],
     body: `El usuario ${username} de la mesa ${table.number} quiere pagar en efectivo propina: ${tip} dando un total ${amount + tip}`,
   })
 

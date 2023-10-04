@@ -2,12 +2,16 @@ import { type ActionArgs, redirect } from '@remix-run/node'
 
 import { prisma } from '~/db.server'
 
+import { getSearchParams } from '~/utils'
+
 export async function action({ request, params }: ActionArgs) {
   const formData = await request.formData()
   const data = Object.fromEntries(formData.entries())
   const id = data.id as string
   const model = data.model as string
   const redirectTo = data.redirect as string
+  const searchParams = getSearchParams({ request })
+  const mode = searchParams.get('mode')
 
   const modelFunctions = {
     availabilities: async () => {
@@ -71,11 +75,19 @@ export async function action({ request, params }: ActionArgs) {
       })
     },
     payments: async () => {
-      await prisma.payments.delete({
-        where: {
-          id: id,
-        },
-      })
+      if (mode === 'deleteAll') {
+        await prisma.payments.deleteMany({
+          where: {
+            branchId: id,
+          },
+        })
+      } else {
+        await prisma.payments.delete({
+          where: {
+            id: id,
+          },
+        })
+      }
     },
     users: async () => {
       await prisma.user.delete({

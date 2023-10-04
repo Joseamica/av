@@ -19,6 +19,17 @@ export const action = async ({ request, params }: ActionArgs) => {
   const searchParams = getSearchParams({ request })
   const from = searchParams.get('from')
 
+  if (from === 'admin') {
+    await prisma.table.update({
+      where: {
+        id: tableId,
+      },
+      data: {
+        users: { set: [] },
+      },
+    })
+  }
+
   const order = await prisma.order.findFirst({
     where: {
       tableId,

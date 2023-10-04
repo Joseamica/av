@@ -9,6 +9,7 @@ import { prisma } from '~/db.server'
 import { validateRedirect } from '~/redirect.server'
 import { getSession, getUserId, sessionStorage } from '~/session.server'
 
+import { getBranchId } from '~/models/branch.server'
 import { createFeedBack } from '~/models/feedback.server'
 
 import { getUrl } from '~/utils'
@@ -28,9 +29,10 @@ export async function action({ request, params }: ActionArgs) {
   const redirectTo = validateRedirect(request.redirect, `/table/${tableId}`)
   const session = await getSession(request)
   const userId = await getUserId(session)
+  const username = session.get('username')
+  const tableNumber = (await prisma.table.findUnique({ where: { id: tableId } })).number
 
-  const data = Object.fromEntries(formData.entries())
-  console.log('data', data)
+  const branchId = await getBranchId(tableId)
 
   const type = formData.get('type') as string
   const reports = formData.get('reports') as string
@@ -46,6 +48,22 @@ export async function action({ request, params }: ActionArgs) {
   if (type && proceed) {
     switch (type) {
       case 'waiter':
+        await prisma.notification.create({
+          data: {
+            type: 'informative',
+            table: { connect: { id: tableId } },
+            user: { connect: { id: userId } },
+            employees: { connect: selected.map(id => ({ id })) },
+            message: `Usuario ${username} de la mesa ${tableNumber} quiere reportar a un mesero`,
+            status: 'received',
+            branch: {
+              connect: {
+                id: branchId,
+              },
+            },
+          },
+        })
+
         await createFeedBack(type, reports, comments, tableId, userId, selected, 'employees')
         break
       case 'food':

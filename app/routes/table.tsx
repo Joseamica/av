@@ -8,6 +8,7 @@ import { prisma } from '~/db.server'
 import { validateRedirect } from '~/redirect.server'
 import { getSession, getUserId, getUsername, sessionStorage } from '~/session.server'
 
+import { getBranchId } from '~/models/branch.server'
 import { findOrCreateUser } from '~/models/user.server'
 
 import { EVENTS } from '~/events'
@@ -116,6 +117,7 @@ export const action = async ({ request, params }: ActionArgs) => {
       const sessionId = createdUser.sessions.find(session => session.id)?.id
       sessionId && session.set('sessionId', sessionId)
       console.log(createdUser)
+
       session.set('username', name)
       session.set('user_color', color)
       session.set('userId', createdUser.id)
@@ -126,6 +128,23 @@ export const action = async ({ request, params }: ActionArgs) => {
     // const expiryTime = formatISO(addHours(new Date(), 4))
     // session.set('expiryTime', expiryTime)
     if (tableId) {
+      const table = await prisma.table.findUnique({
+        where: {
+          id: tableId,
+        },
+      })
+      console.log('Table number' + table?.number)
+      const branchId = await getBranchId(tableId)
+      await prisma.notification.create({
+        data: {
+          message: `El usuario ${name} se ha unido a la mesa ${table?.number}`,
+          tableId: tableId,
+          branchId,
+          status: 'received',
+          userId: createdUser.id,
+          type: 'informative',
+        },
+      })
       console.log('\x1b[44m%s\x1b[0m', 'table.tsx line:147 SSE TRIGGER because tableId exists and user entered name')
       EVENTS.ISSUE_CHANGED(tableId)
       session.set('tableId', tableId)

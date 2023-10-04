@@ -134,7 +134,7 @@ export default function MenuId() {
 
   return (
     <>
-      <Modal title={`${data.branch.name} Menu`} onClose={() => navigate(`/table/${params.tableId}`)}>
+      <Modal title={`${data.branch.name} Menu `} onClose={() => navigate(`/table/${params.tableId}`)}>
         <motion.div
           id="categoryBar"
           ref={categoryBarRef}

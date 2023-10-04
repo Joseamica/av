@@ -1,25 +1,25 @@
-import { EventEmitter } from "events";
+import { EventEmitter } from 'events'
 
-let emitter: EventEmitter;
+let emitter: EventEmitter
 
 declare global {
-  var __emitter: EventEmitter | undefined;
+  var __emitter: EventEmitter | undefined
 }
 
-if (process.env.NODE_ENV === "production") {
-  emitter = new EventEmitter();
+if (process.env.NODE_ENV === 'production') {
+  emitter = new EventEmitter()
 } else {
   if (!global.__emitter) {
-    global.__emitter = new EventEmitter();
+    global.__emitter = new EventEmitter()
   }
-  emitter = global.__emitter;
+  emitter = global.__emitter
 }
 
 export const EVENTS = {
-  ISSUE_CHANGED: (tableId: string, data?: any) => {
-    emitter.emit("/", data);
-    emitter.emit(`/table/${tableId}`, data);
+  ISSUE_CHANGED: (tableId?: string, data?: any) => {
+    emitter.emit('/', data)
+    emitter.emit(`/table/${tableId}`, data)
   },
-};
+}
 
-export { emitter };
+export { emitter }

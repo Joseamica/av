@@ -50,6 +50,9 @@ export async function handlePaymentProcessing({
   const session = await getSession(request)
   const userId = session.get('userId')
 
+  const username = await prisma.user.findUnique({ where: { id: userId } }).then(user => user?.name)
+  const tableNumber = await prisma.table.findUnique({ where: { id: extraData.tableId } }).then(table => table?.number)
+
   switch (paymentMethod) {
     case 'card':
       try {
@@ -83,6 +86,19 @@ export async function handlePaymentProcessing({
           tableId: extraData.tableId,
           userId: userId,
           orderId: extraData.order.id,
+        },
+      })
+      await prisma.notification.create({
+        data: {
+          message: `Usuario ${username} de la mesa ${tableNumber} quiere pagar en efectivo un monto: $${total}, propina: ${tip} un total de ${
+            total + tip
+          } pesos`,
+          type: 'informative',
+          branchId: extraData.branchId,
+          tableId: extraData.tableId,
+          userId: userId,
+          orderId: extraData.order.id,
+          status: 'received',
         },
       })
       EVENTS.ISSUE_CHANGED(extraData.tableId)

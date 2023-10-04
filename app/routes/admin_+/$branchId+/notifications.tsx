@@ -9,6 +9,7 @@ import { namedAction } from 'remix-utils'
 import { z } from 'zod'
 import { prisma } from '~/db.server'
 
+import { DeleteIcon, FlexRow, H2, H6 } from '~/components'
 import { HeaderWithButton } from '~/components/admin/headers'
 
 export const handle = { active: 'Notifications' }
@@ -67,27 +68,53 @@ export default function Notifications() {
             //   key={notification.id}
             // />
             <div key={notification.id}>
-              <Link
-                to={notification.id}
-                className={clsx('flex flex-col items-center justify-center p-2 border rounded-xl', {
-                  'border-red-500 bg-red-200': notification.status === 'rejected',
-                  // 'border-green-500': notification.status === 'accepted',
-                  'border-yellow-500 bg-yellow-200': notification.status === 'pending',
-                })}
-              >
-                <span> {notification.type?.toUpperCase()}</span>
-                <span>User: {notification.user?.name}</span>
-                <span>Table: {notification.table?.number}</span>
-                {notification.total && <span>Total: {notification.total}</span>}
-                {notification.employees.length > 0 && <span>To: {notification.employees.map(employee => employee.name)}</span>}
-                <span className="font-bold">Status: {notification.status}</span>
-              </Link>
-              <fetcher.Form method="POST" action="/admin/deleteItem" name="DELETE">
-                <button disabled={isSubmitting}>Delete</button>
-                <input type="hidden" name="id" value={notification.id} />
-                <input type="hidden" name="model" value="notifications" />
-                <input type="hidden" name="redirect" value={`/admin/${params.branchId}/notifications`} />
-              </fetcher.Form>
+              {notification.type !== 'informative' && (
+                <>
+                  <Link
+                    to={notification.id}
+                    className={clsx('flex flex-col items-center justify-center p-2 border rounded-xl', {
+                      'border-red-500 bg-red-200': notification.status === 'rejected',
+                      // 'border-green-500': notification.status === 'accepted',
+                      'border-yellow-500 bg-yellow-200': notification.status === 'pending',
+                    })}
+                  >
+                    <span> {notification.type?.toUpperCase()}</span>
+                    <span>User: {notification.user?.name}</span>
+                    <span>Table: {notification.table?.number}</span>
+                    {notification.total && <span>Total: {notification.total}</span>}
+                    {notification.employees.length > 0 && <span>To: {notification.employees.map(employee => employee.name)}</span>}
+                    <span className="font-bold">Status: {notification.status}</span>
+                  </Link>
+                  <fetcher.Form method="POST" action="/admin/deleteItem" name="DELETE">
+                    <button disabled={isSubmitting}>Delete</button>
+                    <input type="hidden" name="id" value={notification.id} />
+                    <input type="hidden" name="model" value="notifications" />
+                    <input type="hidden" name="redirect" value={`/admin/${params.branchId}/notifications`} />
+                  </fetcher.Form>
+                </>
+              )}
+            </div>
+          )
+        })}
+      </div>
+      <H2>Informatives:</H2>
+      <div>
+        {data.notifications.map((notification: { id: string; type: string; message: string }) => {
+          return (
+            <div key={notification.id}>
+              {notification.type === 'informative' && (
+                <FlexRow className="border rounded-xl px-2 py-1" justify="between">
+                  <H6>{notification.message}</H6>
+                  <fetcher.Form method="POST" action="/admin/deleteItem" name="DELETE">
+                    <button disabled={isSubmitting} className="p-1 text-white border rounded-full bg-warning">
+                      <DeleteIcon className="fill-white" />
+                    </button>
+                    <input type="hidden" name="id" value={notification.id} />
+                    <input type="hidden" name="model" value="notifications" />
+                    <input type="hidden" name="redirect" value={`/admin/${params.branchId}/notifications`} />
+                  </fetcher.Form>
+                </FlexRow>
+              )}
             </div>
           )
         })}

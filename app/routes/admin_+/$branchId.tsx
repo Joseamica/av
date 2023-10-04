@@ -25,7 +25,7 @@ export async function loader({ request, params }: LoaderArgs) {
       },
       include: {
         feedbacks: true,
-        tables: true,
+        tables: { include: { order: true } },
         orders: {
           include: {
             cartItems: true,

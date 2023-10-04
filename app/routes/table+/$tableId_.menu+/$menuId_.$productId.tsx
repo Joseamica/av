@@ -131,9 +131,11 @@ export async function action({ request, params }: ActionArgs) {
   const cart = JSON.parse(session.get('cart') || '[]')
 
   const modifiers = JSON.parse(value.modifiers)
+
   const allSelectedModifierIds = Object.keys(modifiers).map(modifierId => {
     const modifier = modifiers[modifierId]
-    return { modifierId, quantity: modifier.quantity, groupId: modifier.groupId, extraPrice: modifier.extraPrice }
+
+    return { modifierId, quantity: modifier.quantity, groupId: modifier.groupId, extraPrice: modifier.extraPrice, name: modifier.name }
   })
 
   addToCart(cart, value.productId, value.quantity, allSelectedModifierIds)
@@ -167,7 +169,7 @@ export default function ProductId() {
 
   let isSubmitting = fetcher.state !== 'idle'
 
-  const handleCheckboxChange = (modifierId, isChecked, extraPrice, modifierGroup) => {
+  const handleCheckboxChange = (modifierId, isChecked, extraPrice, modifierName, modifierGroup) => {
     // Existing count for the group or 0 if not initialized
     const currentGroupCount = groupModifierCounts[modifierGroup.id] || 0
 
@@ -186,7 +188,12 @@ export default function ProductId() {
     if (isChecked) {
       setModifiers({
         ...modifiers,
-        [modifierId]: { quantity: 1, extraPrice: extraPrice, groupId: modifierGroup.id },
+        [modifierId]: {
+          quantity: 1,
+          extraPrice: extraPrice,
+          groupId: modifierGroup.id,
+          name: modifierName, // Add the name here
+        },
       })
     } else {
       const updatedModifiers = { ...modifiers }
@@ -218,6 +225,13 @@ export default function ProductId() {
       },
     })
   }
+
+  const [isSmallScreen, setIsSmallScreen] = React.useState(false)
+
+  React.useEffect(() => {
+    // Update isSmallScreen state based on window size
+    setIsSmallScreen(window.innerWidth < 375)
+  }, [])
 
   return (
     <Modal
@@ -299,7 +313,13 @@ export default function ProductId() {
                                 <input
                                   {...props}
                                   onChange={e =>
-                                    handleCheckboxChange(props.value, e.target.checked, correspondingModifier.extraPrice, modifierGroup)
+                                    handleCheckboxChange(
+                                      props.value,
+                                      e.target.checked,
+                                      correspondingModifier.extraPrice,
+                                      correspondingModifier.name,
+                                      modifierGroup,
+                                    )
                                   }
                                 />
                                 <H5>{correspondingModifier.name}</H5>
@@ -341,7 +361,11 @@ export default function ProductId() {
         <SendComments />
 
         <Button name="_action" value="proceed" fullWith={true} disabled={isSubmitting} className="sticky bottom-5">
-          Agregar {data.product.name}
+          <span className={isSmallScreen ? 'text-sm' : ''}>
+            {isSmallScreen && data.product.name.length > 13
+              ? 'Agregar ' + data.product.name.substring(0, 14) + '...'
+              : 'Agregar ' + data.product.name}
+          </span>
         </Button>
         <input type="hidden" name="productId" value={data.product.id} />
         <input type="hidden" name="quantity" value={quantity} />

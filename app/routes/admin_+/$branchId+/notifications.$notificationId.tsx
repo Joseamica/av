@@ -8,7 +8,9 @@ import { getFieldsetConstraint, parse } from '@conform-to/zod'
 import { z } from 'zod'
 import { prisma } from '~/db.server'
 
-import { Button, FlexRow, H3, H5, XIcon } from '~/components'
+import { EVENTS } from '~/events'
+
+import { Button, FlexRow, H2, H3, H5, XIcon } from '~/components'
 import { QueryDialog } from '~/components/admin/ui/dialogs/dialog'
 
 const noficationsSchema = z.object({
@@ -37,8 +39,19 @@ export async function loader({ request, params }: LoaderArgs) {
   return json({ notification })
 }
 export async function action({ request, params }: ActionArgs) {
-  const formData = await request.formData()
+  const { branchId, notificationId } = params
 
+  const formData = await request.formData()
+  const notification = await prisma.notification.findUnique({
+    where: {
+      id: notificationId,
+    },
+    include: {
+      table: true,
+      user: true,
+      employees: true,
+    },
+  })
   const submission = parse(formData, {
     schema: noficationsSchema,
   })
@@ -82,6 +95,7 @@ export async function action({ request, params }: ActionArgs) {
       },
     })
   }
+  EVENTS.ISSUE_CHANGED(notification.table.id)
 
   return redirect(`/admin/${params.branchId}/notifications`)
 }
@@ -114,7 +128,7 @@ export default function Name() {
         </Dialog.Close>
         <Dialog.Content className="bg-white p-8 rounded-md min-w-[450px]">
           <Dialog.Title className="text-mauve12 m-0 text-[17px] font-medium">
-            {'Mesa ' + data.notification.table.number + ' ' + 'de: ' + data.notification.user.name}
+            {'Mesa ' + data.notification.table?.number + ' ' + 'de: ' + data.notification.user.name}
           </Dialog.Title>
           <Dialog.Description className="text-mauve11 mt-[10px] mb-5 text-[15px] leading-normal">
             STATUS: {data.notification.status}
@@ -134,25 +148,24 @@ export default function Name() {
             )}
             {data.notification.type === 'call' ? (
               <>
-                {' '}
                 <FlexRow>
                   <H3>Table:</H3>
-                  <H5 boldVariant="bold">{data.notification.table.number}</H5>
+                  <H5 boldVariant="bold">{data.notification.table?.number}</H5>
                 </FlexRow>
                 <FlexRow>
                   <H3>User:</H3>
-                  <H5 boldVariant="bold">{data.notification.user.name}</H5>
+                  <H5 boldVariant="bold">{data.notification.user?.name}</H5>
                 </FlexRow>
               </>
             ) : (
               <>
                 <FlexRow>
                   <H3>Table:</H3>
-                  <H5 boldVariant="bold">{data.notification.table.number}</H5>
+                  <H5 boldVariant="bold">{data.notification.table?.number}</H5>
                 </FlexRow>
                 <FlexRow>
                   <H3>User:</H3>
-                  <H5 boldVariant="bold">{data.notification.user.name}</H5>
+                  <H5 boldVariant="bold">{data.notification.user?.name}</H5>
                 </FlexRow>
                 <FlexRow>
                   <H3>Amount:</H3>

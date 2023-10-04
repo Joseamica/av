@@ -1,5 +1,5 @@
 import { conform, useForm } from '@conform-to/react'
-import { useFetcher, useLoaderData, useParams, useRouteLoaderData, useSearchParams } from '@remix-run/react'
+import { Form, useFetcher, useLoaderData, useParams, useRouteLoaderData, useSearchParams } from '@remix-run/react'
 
 import { type ActionArgs, type LoaderArgs, json, redirect } from '@remix-run/node'
 
@@ -106,7 +106,7 @@ export async function action({ request, params }: ActionArgs) {
 
 export default function Payments() {
   const data = useLoaderData()
-  const { branch } = useRouteLoaderData('routes/admin_+/$branchId') as any
+
   const { branchId } = useParams()
 
   const fetcher = useFetcher()
@@ -131,6 +131,13 @@ export default function Payments() {
   return (
     <main>
       <HeaderWithButton queryKey="addItem" queryValue="true" buttonLabel="Add" />
+      <fetcher.Form className="flex justify-end p-2" method="POST" action="/admin/deleteItem?mode=deleteAll" name="DELETE">
+        <Button size="small" variant="danger" type="submit">
+          Delete All
+        </Button>
+        <input type="hidden" name="model" value="payments" />
+        <input type="hidden" name="redirect" value={`/admin/${branchId}/payments`} />
+      </fetcher.Form>
       <div className="flex flex-wrap gap-2 p-4">
         {data.payments.map(payment => (
           <Square
