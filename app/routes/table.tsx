@@ -97,6 +97,7 @@ export const action = async ({ request, params }: ActionArgs) => {
 
   let redirectTo = validateRedirect(formData.get('redirect'), url)
   const tableId = getTableIdFromUrl(url)
+  const branchId = await getBranchId(tableId)
 
   const searchParams = new URLSearchParams(request.url)
 
@@ -117,6 +118,7 @@ export const action = async ({ request, params }: ActionArgs) => {
         color: color ? color : '#000000',
         tableId: tableId ? tableId : null,
         orderId: isOrderActive ? isOrderActive.id : null,
+        branchId,
         // role: 'user',
         sessions: {
           create: {

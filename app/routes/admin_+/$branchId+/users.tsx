@@ -171,16 +171,19 @@ export default function Users() {
       <HeaderWithButton queryKey="addItem" queryValue="true" buttonLabel="Add" />
       <div className="flex flex-wrap gap-2 p-4">
         {data.users.map(user => (
-          <Square
-            itemId={user.id}
-            name={
-              <>
-                <H5 boldVariant="bold">{user.name}</H5>
-              </>
-            }
-            to={user.id}
-            key={user.id}
-          />
+          <div key={user.id}>
+            <Square
+              itemId={user.id}
+              name={
+                <>
+                  <H5 boldVariant="bold">{user.name}</H5>
+                </>
+              }
+              to={user.id}
+              key={user.id}
+            />
+            {!user.password ? <span>Guest</span> : ''}
+          </div>
         ))}
       </div>
       <QueryDialog title="Add User" description="Add to the fields you want to add" query={'addItem'}>
