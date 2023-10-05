@@ -23,7 +23,7 @@ export async function loader({ request, params }: LoaderArgs) {
       },
       include: {
         feedbacks: true,
-        tables: { include: { order: true } },
+        tables: { include: { order: true, users: true } },
         orders: {
           include: {
             cartItems: true,

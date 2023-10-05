@@ -128,6 +128,7 @@ export default function Tables() {
   //   let url = tableIdUrl
   //   saveAs(url, 'qr')
   // }
+  console.log('data.table', branch.tables)
 
   if (itemId) {
     return (
@@ -242,6 +243,10 @@ export default function Tables() {
         {branch.tables?.map((table: Table) => (
           <div key={table.id} className={table.order ? 'border-4 border-green-400 rounded-xl' : ''}>
             <Container editQuery={`?editItem=${table.id}`} name={table.number} itemIdQuery={`?itemId=${table.id}`} />
+            <div className="flex flex-col">
+              {table.users?.length > 0 && <span className="text-blue-400">user on table</span>}
+              {table.order && <span className="text-green-400">an order is active</span>}
+            </div>
             {/* todo */}
             {/* <span>clean</span> */}
           </div>

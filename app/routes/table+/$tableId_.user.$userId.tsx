@@ -55,6 +55,7 @@ export default function User() {
   const data = useLoaderData()
   const [searchParams] = useSearchParams()
   const changeName = searchParams.get('changeName')
+  console.log(data.user)
 
   return (
     <div>
@@ -121,11 +122,11 @@ export default function User() {
           <div>
             <FlexRow justify="between">
               <H4>Propina:</H4>
-              <H2 boldVariant="semibold">{formatCurrency(data.currency, data.totalTip)}</H2>
+              <H2 boldVariant="semibold">{formatCurrency(data.currency, data.user?.tip)}</H2>
             </FlexRow>
             <FlexRow justify="between">
               <H4>Total: </H4>
-              <H2 boldVariant="semibold">{formatCurrency(data.currency, data.totalPaid)}</H2>
+              <H2 boldVariant="semibold">{formatCurrency(data.currency, data.user?.total)}</H2>
             </FlexRow>
           </div>
         </div>
