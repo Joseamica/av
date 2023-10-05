@@ -1,12 +1,10 @@
 import { Link, Outlet, useMatches } from '@remix-run/react'
 import { useState } from 'react'
 
-import { type LoaderArgs, type V2_MetaFunction, json, redirect } from '@remix-run/node'
+import { type LoaderArgs, type V2_MetaFunction, json } from '@remix-run/node'
 
 import clsx from 'clsx'
-import invariant from 'tiny-invariant'
 import { prisma } from '~/db.server'
-import { getSession } from '~/session.server'
 
 import { requireAdmin } from '~/utils/permissions.server'
 

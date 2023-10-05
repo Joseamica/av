@@ -140,14 +140,14 @@ function QuantityButton({
   increaseValue?: string
 }) {
   return (
-    <div className="flex items-center justify-between w-32 p-1 rounded-full dark:bg-button-primary">
+    <div className="flex items-center justify-between w-32 p-1 rounded-full bg-button-primary">
       {/* NOTE - Esto es que si el componente isForm, entonces aparezca el icono de basura cuando este en quantity <= 1*/}
       {isForm ? (
         <>
           {quantity <= 1 ? (
             <button
               type={'submit'}
-              className="flex items-center justify-center w-10 h-10 text-2xl rounded-full shadow-lg dark:bg-mainDark dark:text-night-text_principal bg-day-bg_principal text-warning disabled:text-gray-300 xs:h-7 xs:w-7"
+              className="flex items-center justify-center w-10 h-10 text-2xl rounded-full shadow-lg bg-mainDark text-night-text_principal bg-day-bg_principal text-warning disabled:text-gray-300 xs:h-7 xs:w-7"
               onClick={onDecrease}
               disabled={disabled}
               name={name}
@@ -158,7 +158,7 @@ function QuantityButton({
           ) : (
             <button
               type={isForm ? 'submit' : 'button'}
-              className="w-10 h-10 text-2xl rounded-full shadow-lg dark:bg-mainDark dark:bg-night-bg_principal dark:text-night-text_principal bg-day-bg_principal disabled:text-gray-300 xs:h-7 xs:w-7"
+              className="w-10 h-10 text-2xl rounded-full shadow-lg bg-mainDark bg-night-bg_principal text-night-text_principal bg-day-bg_principal disabled:text-gray-300 xs:h-7 xs:w-7"
               onClick={onDecrease}
               disabled={disabled}
               name={name}
@@ -171,7 +171,7 @@ function QuantityButton({
       ) : (
         <button
           type={isForm ? 'submit' : 'button'}
-          className="w-10 h-10 text-2xl rounded-full shadow-lg dark:bg-mainDark dark:bg-night-bg_principal dark:text-night-text_principal bg-day-bg_principal disabled:text-gray-300 xs:h-7 xs:w-7"
+          className="w-10 h-10 text-2xl rounded-full shadow-lg bg-mainDark bg-night-bg_principal text-night-text_principal bg-day-bg_principal disabled:text-gray-300 xs:h-7 xs:w-7"
           onClick={onDecrease}
           disabled={disabled}
           name={name}
@@ -184,7 +184,7 @@ function QuantityButton({
       <button
         type={isForm ? 'submit' : 'button'}
         onClick={onIncrease}
-        className="w-10 h-10 text-2xl rounded-full shadow-lg dark:bg-mainDark dark:bg-night-bg_principal dark:text-night-text_principal bg-day-bg_principal xs:h-7 xs:w-7"
+        className="w-10 h-10 text-2xl rounded-full shadow-lg bg-mainDark bg-night-bg_principal text-night-text_principal bg-day-bg_principal xs:h-7 xs:w-7"
         name={name}
         value={increaseValue}
       >
