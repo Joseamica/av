@@ -15,6 +15,19 @@ import { Button, H2 } from '~/components'
 import { EditRestDialog } from '~/components/admin/ui/dialogs/edit-rest-dialog'
 import SelectBranchDialog from '~/components/admin/ui/dialogs/select-branch-dialog'
 
+export const meta = () => {
+  return [
+    { title: 'Very cool app | Remix' },
+    {
+      property: 'og:title',
+      content: 'Very cool app',
+    },
+    {
+      name: 'description',
+      content: 'This app is the best',
+    },
+  ]
+}
 export const loader = async ({ request }: LoaderArgs) => {
   // const admin = await requireAdmin(request)
   const user = await requireAdmin(request)

@@ -197,11 +197,11 @@ function QuantityButton({
  * A link that looks like a button
  */
 const ButtonLink = React.forwardRef<HTMLAnchorElement, React.ComponentPropsWithRef<typeof AnchorOrLink> & ButtonProps>(function ButtonLink(
-  { children, variant = 'primary', className, size = 'large', ...rest },
+  { children, variant = 'primary', className, size = 'large', fullWith, ...rest },
   ref,
 ) {
   return (
-    <AnchorOrLink ref={ref} className={getClassName({ className })} {...rest}>
+    <AnchorOrLink ref={ref} className={getClassName({ className, fullWith })} {...rest}>
       <ButtonInner variant={variant} size={size}>
         {children}
       </ButtonInner>

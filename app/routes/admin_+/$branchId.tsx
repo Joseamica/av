@@ -1,7 +1,7 @@
 import { Link, Outlet, useMatches } from '@remix-run/react'
 import { useState } from 'react'
 
-import { type LoaderArgs, json, redirect } from '@remix-run/node'
+import { type LoaderArgs, type V2_MetaFunction, json, redirect } from '@remix-run/node'
 
 import clsx from 'clsx'
 import invariant from 'tiny-invariant'
@@ -81,6 +81,19 @@ export async function loader({ request, params }: LoaderArgs) {
   throw json({ error: 'Unauthorized', requiredRole: 'admin' }, { status: 403 })
 }
 
+export const meta: V2_MetaFunction = () => {
+  return [
+    { title: 'Admin' },
+    {
+      property: 'og:title',
+      content: 'Very cool app',
+    },
+    {
+      name: 'description',
+      content: 'This app is the best',
+    },
+  ]
+}
 export default function AdminBranch() {
   const matches = useMatches()
   // console.log('useMatches', matches)

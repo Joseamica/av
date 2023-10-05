@@ -1,6 +1,6 @@
 import { Link, Outlet, isRouteErrorResponse, useLoaderData, useRouteError } from '@remix-run/react'
 
-import type { ActionArgs, LoaderArgs } from '@remix-run/node'
+import type { ActionArgs, LoaderArgs, V2_MetaFunction } from '@remix-run/node'
 import { json, redirect } from '@remix-run/node'
 
 // * UTILS, DB, EVENTS
@@ -20,6 +20,20 @@ import { getSearchParams, getTableIdFromUrl } from '~/utils'
 import { HeaderV2, Notification, UserForm } from '~/components'
 
 const SESSION_EXPIRATION_TIME = 1000 * 60 * 60 * 24 * 30 //30 days
+
+export const meta: V2_MetaFunction = () => {
+  return [
+    { title: 'Table' },
+    {
+      property: 'og:title',
+      content: 'Very cool app',
+    },
+    {
+      name: 'description',
+      content: 'This app is the best',
+    },
+  ]
+}
 
 //ANCHOR LOADER
 export const loader = async ({ request }: LoaderArgs) => {

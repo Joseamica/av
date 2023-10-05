@@ -1,7 +1,7 @@
 import { Form, Link } from '@remix-run/react'
 import { useState } from 'react'
 
-import { Button } from './ui/buttons/button'
+import { Button, ButtonLink } from './ui/buttons/button'
 import { FlexRow } from './util/flexrow'
 import { Spacer } from './util/spacer'
 import { H4 } from './util/typography'
@@ -63,15 +63,17 @@ export function ContentForm({ errorClass, error, pathname }: { errorClass: strin
           </div>
         </FlexRow>
         <Spacer spaceY="4" />
-
-        <Button fullWith={true} name="_action" value="proceed">
-          Continuar a la mesa
-        </Button>
-        <Spacer spaceY="2" />
-
-        <Link to="/join" className="self-center  underline underline-offset-4">
-          O puedes iniciar sesión aquí
-        </Link>
+        <div className="w-full justify-center flex flex-col items-center">
+          <Button fullWith={true} name="_action" value="proceed">
+            Continuar a la mesa
+          </Button>
+          <Spacer spaceY="2">
+            <span>ó</span>
+          </Spacer>
+          <ButtonLink to="/join" fullWith={true} variant="secondary">
+            O puedes iniciar sesión aquí
+          </ButtonLink>
+        </div>
       </div>
     </Form>
   )
