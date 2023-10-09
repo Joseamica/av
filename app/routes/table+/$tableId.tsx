@@ -278,6 +278,7 @@ export default function Table() {
         tableNumber={data.table.number}
         usersInTable={data.usersInTable}
         isOrderActive={data.order?.active}
+        exclude="report"
       />
     )
   }

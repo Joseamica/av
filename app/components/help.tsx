@@ -1,8 +1,9 @@
 import { Link } from '@remix-run/react'
+
+import { FeedBackIcon, ManagerIcon, WaiterIcon, WifiIcon } from './icons'
 import { FlexRow } from './util/flexrow'
 import { Spacer } from './util/spacer'
 import { H5 } from './util/typography'
-import { FeedBackIcon, ManagerIcon, WaiterIcon, WifiIcon } from './icons'
 
 const REPORT_TYPES = {
   waiter: {
@@ -37,11 +38,14 @@ const REPORT_TYPES = {
   },
 }
 
-export function Help() {
+export function Help({ exclude }: { exclude: string }) {
   return (
     <Spacer spaceY="2">
       <FlexRow className="w-full justify-around">
         {Object.values(REPORT_TYPES).map((type, index) => {
+          if (type.name === exclude) {
+            return null
+          }
           return (
             <div className="flex flex-col items-center space-y-1 " key={index}>
               <Link

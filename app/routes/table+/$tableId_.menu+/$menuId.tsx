@@ -16,7 +16,7 @@ import { getCartItems } from '~/models/cart.server'
 
 import { formatCurrency, getCurrency } from '~/utils'
 
-import { H4, H5, H6, LinkButton, Modal, Spacer } from '~/components'
+import { H4, H5, H6, LinkButton, Modal, ShoppingCartIcon, Spacer } from '~/components'
 
 type Category = {
   id: string
@@ -134,7 +134,18 @@ export default function MenuId() {
 
   return (
     <>
-      <Modal title={`${data.branch.name} Menu `} onClose={() => navigate(`/table/${params.tableId}`)}>
+      <Modal
+        title={`${data.branch.name} Menu `}
+        onClose={() => navigate(`/table/${params.tableId}`)}
+        showCart={
+          data.cartItems?.length > 0 && (
+            <Link to={`/table/${params.tableId}/menu/${params.menuId}/cart`} className="flex space-x-2 border rounded-xl px-2 py-1">
+              <ShoppingCartIcon className="h-5 w-5" />
+              <span className="text-sm">{cartItemsAdded}</span>
+            </Link>
+          )
+        }
+      >
         <motion.div
           id="categoryBar"
           ref={categoryBarRef}
@@ -211,7 +222,14 @@ export default function MenuId() {
               disabled={isSubmitting}
               className="sticky inset-x-0 w-full mb-2 bottom-4"
             >
-              {isSubmitting ? `Agregando platillos... (${cartItemsAdded})` : `Ir al carrito (${cartItemsAdded})`}
+              {isSubmitting ? (
+                `Agregando platillos... (${cartItemsAdded})`
+              ) : (
+                <div className="flex space-x-2 items-center">
+                  <ShoppingCartIcon className="fill-white h-5 w-5" />
+                  <span> Ir al carrito {cartItemsAdded}</span>
+                </div>
+              )}
             </LinkButton>
           ) : null}
         </div>

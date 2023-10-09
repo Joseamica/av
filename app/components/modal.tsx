@@ -5,7 +5,7 @@ import React from 'react'
 import clsx from 'clsx'
 import { AnimatePresence, motion } from 'framer-motion'
 
-import { ChevronLeftIcon, XIcon } from './icons'
+import { ChevronLeftIcon, ShoppingCartIcon, XIcon } from './icons'
 import { BackButton } from './ui/buttons/back-button'
 import { Button } from './ui/buttons/button'
 
@@ -56,6 +56,7 @@ export function Modal({
   goBack = false,
   imgHeader,
   justify = 'between',
+  showCart,
 }: {
   children: ReactNode
   onClose: () => void
@@ -65,6 +66,7 @@ export function Modal({
   ariaLabel?: string
   goBack?: boolean
   imgHeader?: string
+  showCart?: JSX.Element
 } & { justify?: keyof typeof justifyItems }) {
   const navigate = useNavigate()
 
@@ -142,10 +144,20 @@ export function Modal({
               />
             </div>
           ) : (
-            <div className="sticky inset-x-0 top-0 z-10 flex flex-row items-center justify-between w-full p-4 border-b-2 dark:bg-night-bg_principal dark:text-night-text_principal bg-day-bg_principal">
-              {goBack ? <BackButton url={''} /> : <div />}
-              {title}
-              <XIcon className="p-1 rounded-full shadow-lg h-7 w-7 dark:text-night-700" onClick={onClose} />
+            <div className="sticky inset-x-0 top-0 z-10 flex gap-x-2 flex-row items-center justify-between w-full p-4 border-b-2 dark:bg-night-bg_principal dark:text-night-text_principal bg-day-bg_principal">
+              {showCart ? (
+                <>
+                  <XIcon className="p-1 rounded-full border h-7 w-7 dark:text-night-700" onClick={onClose} />
+                  <p className="font-bold">{title}</p>
+                  {showCart}
+                </>
+              ) : (
+                <>
+                  {goBack ? <BackButton url={''} /> : <div />}
+                  <p>{title}</p>
+                  <XIcon onClick={onClose} />
+                </>
+              )}
             </div>
           )}
           {children}

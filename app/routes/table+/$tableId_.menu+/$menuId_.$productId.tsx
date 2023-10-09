@@ -155,6 +155,7 @@ export default function ProductId() {
   const [quantity, setQuantity] = React.useState<number>(1)
   const [modifiers, setModifiers] = React.useState({})
   const [groupModifierCounts, setGroupModifierCounts] = React.useState({})
+  const [temporalModifiers, setTemporalModifiers] = React.useState([])
 
   const [form, fields] = useForm({
     id: 'productId',
@@ -233,6 +234,19 @@ export default function ProductId() {
     setIsSmallScreen(window.innerWidth < 375)
   }, [])
 
+  // console.log('temporalModifiers', temporalModifiers)
+  const handleCheck = (event, id) => {
+    console.log('event', event)
+    const itemName = event.target.name
+    console.log('itemName', itemName)
+    const isChecked = event.target.checked
+
+    if (isChecked) {
+      setTemporalModifiers([...temporalModifiers, id])
+    } else {
+      setTemporalModifiers(temporalModifiers.filter(itemId => itemId !== id))
+    }
+  }
   return (
     <Modal
       onClose={() => navigate(`/table/${params.tableId}/menu/${params.menuId}`)}
@@ -281,75 +295,124 @@ export default function ProductId() {
         <div className="space-y-4">
           {data.modifierGroup.length > 0
             ? data.modifierGroup?.map((modifierGroup: any) => {
+                // console.log('modifierGroup', modifierGroup)
                 return (
-                  <div key={modifierGroup.id} className="space-y-2">
-                    <FlexRow justify="between">
-                      <FlexRow>
-                        <H3> {modifierGroup.name}</H3>
-                        <H6>Min {modifierGroup.min}</H6>
-                        <H6>max {modifierGroup.max}.</H6>
-                      </FlexRow>
-                      <div className="px-3  border rounded-full">{modifierGroup.min > 0 ? <H6>Requerido</H6> : <H6>Opcional</H6>}</div>
+                  // <div key={modifierGroup.id} className="space-y-2">
+                  //   <FlexRow justify="between">
+                  //     <FlexRow>
+                  //       <H3> {modifierGroup.name}</H3>
+                  //       <H6>Min {modifierGroup.min}</H6>
+                  //       <H6>max {modifierGroup.max}.</H6>
+                  //     </FlexRow>
+                  //     <div className="px-3  border rounded-full">{modifierGroup.min > 0 ? <H6>Requerido</H6> : <H6>Opcional</H6>}</div>
+                  //   </FlexRow>
+                  //   <div className="flex flex-col space-y-2">
+                  //     {conform
+                  //       .collection(fields[modifierGroup.id], {
+                  //         type: 'checkbox',
+                  //         options: modifierGroup.modifiers.map((modifier: Modifiers) => {
+                  //           return modifier.id
+                  //         }),
+                  //       })
+                  //       .map((props, index) => {
+                  //         const correspondingModifier = modifierGroup.modifiers.find((modifier: Modifiers) => modifier.id === props.value)
+
+                  //         // Safeguard in case correspondingModifier is undefined
+                  //         if (!correspondingModifier) {
+                  //           return null
+                  //         }
+
+                  //         return (
+                  //           <label htmlFor={props.id} key={index} className="flex flex-row space-x-3 text-sm justify-between items-center">
+                  //             <FlexRow>
+                  //               <input
+                  //                 {...props}
+                  //                 onChange={e =>
+                  //                   handleCheckboxChange(
+                  //                     props.value,
+                  //                     e.target.checked,
+                  //                     correspondingModifier.extraPrice,
+                  //                     correspondingModifier.name,
+                  //                     modifierGroup,
+                  //                   )
+                  //                 }
+                  //               />
+                  //               <H5>{correspondingModifier.name}</H5>
+                  //               {modifiers[props.value] && (
+                  //                 <>
+                  //                   <button
+                  //                     type="button"
+                  //                     onClick={() => handleQuantityChange(props.value, -1, modifierGroup)}
+                  //                     className="border-2 h-4 w-4 flex justify-center items-center border-day-principal rounded-sm"
+                  //                   >
+                  //                     <span>-</span>
+                  //                   </button>
+                  //                   <span>{modifiers[props.value].quantity}</span>
+                  //                   <button
+                  //                     type="button"
+                  //                     onClick={() => handleQuantityChange(props.value, 1, modifierGroup)}
+                  //                     className="border-2 h-4 w-4 flex justify-center items-center border-day-principal rounded-sm"
+                  //                   >
+                  //                     <span>+</span>
+                  //                   </button>
+                  //                 </>
+                  //               )}
+                  //             </FlexRow>
+                  //             <H5 className="place-content-end">
+                  //               + {formatCurrency(data.currency, Number(correspondingModifier.extraPrice))}
+                  //             </H5>
+                  //           </label>
+                  //         )
+                  //       })}
+                  //     <ErrorList errors={[fields[modifierGroup.id]?.error]} />
+                  //   </div>
+                  // </div>
+                  <div key={modifierGroup.name} className="space-y-2">
+                    <FlexRow>
+                      <H3> {modifierGroup.name}</H3>
+                      <H6>Min {modifierGroup.min}</H6>
+                      <H6>max {modifierGroup.max}.</H6>
                     </FlexRow>
-                    <div className="flex flex-col space-y-2">
-                      {conform
-                        .collection(fields[modifierGroup.id], {
-                          type: 'checkbox',
-                          options: modifierGroup.modifiers.map((modifier: Modifiers) => {
-                            return modifier.id
-                          }),
-                        })
-                        .map((props, index) => {
-                          const correspondingModifier = modifierGroup.modifiers.find((modifier: Modifiers) => modifier.id === props.value)
-
-                          // Safeguard in case correspondingModifier is undefined
-                          if (!correspondingModifier) {
-                            return null
-                          }
-
-                          return (
-                            <label htmlFor={props.id} key={index} className="flex flex-row space-x-3 text-sm justify-between items-center">
-                              <FlexRow>
-                                <input
-                                  {...props}
-                                  onChange={e =>
-                                    handleCheckboxChange(
-                                      props.value,
-                                      e.target.checked,
-                                      correspondingModifier.extraPrice,
-                                      correspondingModifier.name,
-                                      modifierGroup,
-                                    )
-                                  }
-                                />
-                                <H5>{correspondingModifier.name}</H5>
-                                {modifiers[props.value] && (
-                                  <>
-                                    <button
-                                      type="button"
-                                      onClick={() => handleQuantityChange(props.value, -1, modifierGroup)}
-                                      className="border-2 h-4 w-4 flex justify-center items-center border-day-principal rounded-sm"
-                                    >
-                                      <span>-</span>
-                                    </button>
-                                    <span>{modifiers[props.value].quantity}</span>
-                                    <button
-                                      type="button"
-                                      onClick={() => handleQuantityChange(props.value, 1, modifierGroup)}
-                                      className="border-2 h-4 w-4 flex justify-center items-center border-day-principal rounded-sm"
-                                    >
-                                      <span>+</span>
-                                    </button>
-                                  </>
-                                )}
-                              </FlexRow>
-                              <H5 className="place-content-end">
-                                + {formatCurrency(data.currency, Number(correspondingModifier.extraPrice))}
-                              </H5>
-                            </label>
-                          )
-                        })}
-                      <ErrorList errors={[fields[modifierGroup.id]?.error]} />
+                    <div>
+                      {modifierGroup.modifiers.map((modifier: Modifiers) => {
+                        return (
+                          <label key={modifier.name} className="flex flex-row space-x-3 text-sm justify-between items-center">
+                            <FlexRow>
+                              <input
+                                type="checkbox"
+                                name={modifierGroup.id}
+                                value={modifier.id}
+                                checked={temporalModifiers.includes(modifier.id)}
+                                onChange={e => handleCheck(e, modifier.id)}
+                                // onChange={e =>
+                                //   handleCheckboxChange(modifier.id, e.target.checked, modifier.extraPrice, modifier.name, modifierGroup)
+                                // }
+                              />
+                              <H5>{modifier.name}</H5>
+                              {modifiers[modifier.id] && (
+                                <>
+                                  <button
+                                    type="button"
+                                    onClick={() => handleQuantityChange(modifier.id, -1, modifierGroup)}
+                                    className="border-2 h-4 w-4 flex justify-center items-center border-day-principal rounded-sm"
+                                  >
+                                    <span>-</span>
+                                  </button>
+                                  <span>{modifiers[modifier.id].quantity}</span>
+                                  <button
+                                    type="button"
+                                    onClick={() => handleQuantityChange(modifier.id, 1, modifierGroup)}
+                                    className="border-2 h-4 w-4 flex justify-center items-center border-day-principal rounded-sm"
+                                  >
+                                    <span>+</span>
+                                  </button>
+                                </>
+                              )}
+                            </FlexRow>
+                            <H5 className="place-content-end">+ {formatCurrency(data.currency, Number(modifier.extraPrice))}</H5>
+                          </label>
+                        )
+                      })}
                     </div>
                   </div>
                 )

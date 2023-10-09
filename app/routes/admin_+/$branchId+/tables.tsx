@@ -128,8 +128,7 @@ export default function Tables() {
   //   let url = tableIdUrl
   //   saveAs(url, 'qr')
   // }
-  console.log('data.table', branch.tables)
-
+  // console.log('data.table.cartItems', data.table?.order)
   if (itemId) {
     return (
       <div>

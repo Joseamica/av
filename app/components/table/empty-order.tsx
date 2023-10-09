@@ -1,3 +1,4 @@
+import { Outlet } from '@remix-run/react'
 import { useEffect } from 'react'
 
 import introJs from 'intro.js'
@@ -5,7 +6,7 @@ import 'intro.js/introjs.css'
 
 // * MODELS
 // * CUSTOM COMPONENTS
-import { FlexRow, H4, H5, RestaurantInfoCard, SectionContainer, Spacer, UserButton } from '~/components/'
+import { FlexRow, H4, H5, Help, RestaurantInfoCard, SectionContainer, Spacer, UserButton } from '~/components/'
 
 export function EmptyOrder({
   branch,
@@ -14,6 +15,7 @@ export function EmptyOrder({
   tableNumber,
   usersInTable,
   isOrderActive,
+  exclude,
 }: {
   branch: any
   menu: any
@@ -21,6 +23,7 @@ export function EmptyOrder({
   tableNumber: number
   usersInTable: any
   isOrderActive: boolean
+  exclude: string
 }) {
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -48,6 +51,7 @@ export function EmptyOrder({
       <Spacer spaceY="3">
         <h3 className="text-secondaryTextDark flex shrink-0 justify-center pr-2 text-sm">{`Mesa ${tableNumber}`}</h3>
       </Spacer>
+      <Help exclude={exclude} />
       {usersInTable && (
         <SectionContainer
           className="dark:bg-DARK_1 dark:bg-night-bg_principal dark:text-night-text_principal flex flex-col justify-start rounded-lg bg-day-bg_principal p-2 drop-shadow-md dark:drop-shadow-none"
@@ -69,6 +73,7 @@ export function EmptyOrder({
           ))}
         </SectionContainer>
       )}
+      <Outlet />
     </main>
   )
 }
