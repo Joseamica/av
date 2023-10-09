@@ -155,7 +155,7 @@ export function Modal({
                 <>
                   {goBack ? <BackButton url={''} /> : <div />}
                   <p>{title}</p>
-                  <XIcon onClick={onClose} />
+                  <XIcon className="p-1 rounded-full border h-7 w-7 dark:text-night-700" onClick={onClose} />
                 </>
               )}
             </div>
