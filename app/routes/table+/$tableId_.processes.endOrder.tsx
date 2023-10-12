@@ -4,6 +4,7 @@ import invariant from 'tiny-invariant'
 import { prisma } from '~/db.server'
 import { getSession, sessionStorage } from '~/session.server'
 
+import { getBranchId } from '~/models/branch.server'
 import { cleanUserData } from '~/models/user.server'
 
 import { EVENTS } from '~/events'
@@ -18,6 +19,7 @@ export const action = async ({ request, params }: ActionArgs) => {
   const session = await getSession(request)
   const searchParams = getSearchParams({ request })
   const from = searchParams.get('from')
+  const branchId = await getBranchId(tableId)
 
   if (from === 'admin') {
     await prisma.table.update({
@@ -72,7 +74,7 @@ export const action = async ({ request, params }: ActionArgs) => {
     session.unset('cart')
     session.unset('tableId')
     // session.unset('tableSession')
-    EVENTS.ISSUE_CHANGED(tableId)
+    EVENTS.ISSUE_CHANGED(tableId, branchId)
     return redirect(from === 'admin' ? redirectTo : '/thankyou', {
       headers: { 'Set-Cookie': await sessionStorage.commitSession(session) },
     })

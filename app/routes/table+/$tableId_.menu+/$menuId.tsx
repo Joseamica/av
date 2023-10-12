@@ -46,7 +46,11 @@ export async function loader({ request, params }: LoaderArgs) {
     prisma.category.findMany({
       where: { menu: { some: { id: menuId } } },
       include: {
-        products: true,
+        products: {
+          where: {
+            available: true,
+          },
+        },
       },
     }),
     getCartItems(cart),

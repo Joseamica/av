@@ -49,11 +49,49 @@ export async function handlePaymentProcessing({
 }: handlePaymentProcessingProps): Promise<{ type: 'redirect'; url: string } | { type: 'error'; message: string }> {
   const session = await getSession(request)
   const userId = session.get('userId')
+  const employeesNumbers = await prisma.employee
+    .findMany({ where: { branchId: extraData.branchId } })
+    .then(employees => employees.map(employee => employee?.phone))
 
   const username = await prisma.user.findUnique({ where: { id: userId } }).then(user => user?.name)
   const tableNumber = await prisma.table.findUnique({ where: { id: extraData.tableId } }).then(table => table?.number)
 
   switch (paymentMethod) {
+    case 'terminal':
+      sendWaNotification({ body: `El cliente quiere pagar en terminal fisica la cantidad de ${total + tip} pesos`, to: employeesNumbers })
+
+      await prisma.notification.create({
+        data: {
+          message: `Terminal payment`,
+          amount: total,
+          tip: tip,
+          total: total + tip,
+          method: 'push',
+          status: 'pending',
+          type: 'terminal payment',
+          branchId: extraData.branchId,
+          tableId: extraData.tableId,
+          userId: userId,
+          orderId: extraData.order.id,
+        },
+      })
+      await prisma.notification.create({
+        data: {
+          message: `Usuario ${username} de la mesa ${tableNumber} quiere pagar con la terminal un monto: $${total}, propina: ${tip} un total de ${
+            total + tip
+          } pesos`,
+          type: 'informative',
+          branchId: extraData.branchId,
+          tableId: extraData.tableId,
+          userId: userId,
+          orderId: extraData.order.id,
+          status: 'received',
+        },
+      })
+      EVENTS.ISSUE_CHANGED(extraData.tableId, extraData.branchId)
+
+      return { type: 'redirect', url: '..' }
+
     case 'card':
       try {
         const stripeRedirectUrl = await getStripeSession(
@@ -72,7 +110,7 @@ export async function handlePaymentProcessing({
         return { type: 'redirect', url: '/error' }
       }
     case 'cash':
-      // sendWaNotification({ body: `El cliente ha pagado en efectivo la cantidad de ${total + tip} pesos`, to: '525512956265' })
+      sendWaNotification({ body: `El cliente quiere pagar en efectivo la cantidad de ${total + tip} pesos`, to: employeesNumbers })
       await prisma.notification.create({
         data: {
           message: `Cash payment`,
@@ -101,7 +139,7 @@ export async function handlePaymentProcessing({
           status: 'received',
         },
       })
-      EVENTS.ISSUE_CHANGED(extraData.tableId)
+      EVENTS.ISSUE_CHANGED(extraData.tableId, extraData.branchId)
 
       return { type: 'redirect', url: '..' }
     //NOTE: HABILITATE THIS WHEN WE WANT TO CREATE THE PAYMENT WITHOUT AUTORIZATION

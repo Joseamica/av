@@ -27,7 +27,7 @@ export async function action({ request, params }: ActionArgs) {
   const names = formData.getAll('names') as [string]
 
   const redirectTo = validateRedirect(request.redirect, `..`)
-
+  const username = session.get('username')
   const table = await getTable(tableId)
   console.log(`Llaman al mesero ${names} ${table?.number}`)
 
@@ -35,10 +35,10 @@ export async function action({ request, params }: ActionArgs) {
 
   await prisma.notification.create({
     data: {
-      message: `Llamada de la mesa ${table?.number}`,
-      type: 'call',
+      message: `El usuario ${username} de la mesa ${table?.number} llama al mesero`,
+      type: 'informative',
       method: 'push',
-      status: 'pending',
+      status: 'received',
       branchId: table?.branchId,
       employees: {
         connect: ids.map(id => ({ id })),

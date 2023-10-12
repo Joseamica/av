@@ -7,6 +7,7 @@ import { type ActionArgs, type LoaderArgs, json, redirect } from '@remix-run/nod
 import { getFieldsetConstraint, parse } from '@conform-to/zod'
 import { z } from 'zod'
 import { prisma } from '~/db.server'
+import { getSession, sessionStorage } from '~/session.server'
 
 import { EVENTS } from '~/events'
 
@@ -40,6 +41,7 @@ export async function loader({ request, params }: LoaderArgs) {
 }
 export async function action({ request, params }: ActionArgs) {
   const { branchId, notificationId } = params
+  const session = await getSession(request)
 
   const formData = await request.formData()
   const notification = await prisma.notification.findUnique({
@@ -87,6 +89,7 @@ export async function action({ request, params }: ActionArgs) {
         status: 'accepted',
       },
     })
+    session.flash('notification', 'Se ha aplicado el pago correctamente.')
   } else {
     await prisma.notification.update({
       where: { id: submission.value.id },
@@ -97,7 +100,11 @@ export async function action({ request, params }: ActionArgs) {
   }
   EVENTS.ISSUE_CHANGED(notification.table.id)
 
-  return redirect(`/admin/${params.branchId}/notifications`)
+  return redirect(`/admin/${params.branchId}/notifications`, {
+    headers: {
+      'Set-Cookie': await sessionStorage.commitSession(session),
+    },
+  })
 }
 
 export default function Name() {

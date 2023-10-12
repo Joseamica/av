@@ -10,6 +10,7 @@ import invariant from 'tiny-invariant'
 import { prisma } from '~/db.server'
 import { validateRedirect } from '~/redirect.server'
 import { getSession, sessionStorage, updateCartItem } from '~/session.server'
+import { sendWaNotification } from '~/twilio.server'
 
 import { getBranch, getBranchId, getPaymentMethods, getTipsPercentages } from '~/models/branch.server'
 import { createCartItems, getCartItems } from '~/models/cart.server'
@@ -323,6 +324,12 @@ export async function action({ request, params }: ActionArgs) {
   let cart = JSON.parse(session.get('cart') || '[]')
   const quantityStr = cart.find((item: { variantId: string }) => item.variantId === variantId)?.quantity
   const userId = session.get('userId')
+  const employeesNumbers = await prisma.employee
+    .findMany({
+      where: { branchId: branchId },
+      select: { phone: true },
+    })
+    .then(employees => employees.map(employee => employee.phone))
 
   const cartItems = await getCartItems(cart)
 
@@ -366,23 +373,30 @@ export async function action({ request, params }: ActionArgs) {
 
       const items = cartItems.map(item => {
         return {
-          plu: item.id,
-          quantity: item.quantity,
+          id: item.id,
           name: item.name,
+          price: item.price,
+          quantity: item.quantity,
+          comments: item.comments,
+          modifiers: item.modifiers,
         }
       })
+      const formattedItems = items
+        .map(item => {
+          const modifiers = item.modifiers
+            .map(modifier => {
+              return `${modifier.name} **//Precio Extra: ${modifier.extraPrice}, Cantidad: ${modifier.quantity}, Total de modificadores: ${
+                Number(modifier.quantity) * Number(modifier.extraPrice)
+              }**//`
+            })
+            .join(', ')
 
-      // await prisma.notification.create({
-      //   data: {
-      //     message: `${username} de la mesa ${table.number} ha ordenado ${JSON.stringify(items)}`,
-      //     branchId: branchId,
-      //     tableId: tableId,
-      //     method: 'whatsapp',
-      //     status: 'pending',
-      //   },
-      // })
+          return `${item.name} >>Precio: ${item.price}, Cantidad: ${item.quantity}, Modificadores: ${modifiers}<<`
+        })
+        .join('; ')
 
-      console.log(`${username} de la mesa ${table.number} ha ordenado ${JSON.stringify(items)}`)
+      console.log(`${username} de la mesa ${table.number} ha ordenado:`)
+      console.log(formattedItems)
 
       let order: (Order & { users?: User[] }) | null = await prisma.order.findFirst({
         where: {
@@ -435,9 +449,8 @@ export async function action({ request, params }: ActionArgs) {
           })
         }
       }
-      console.log('cartItems', cartItems)
 
-      await createCartItems(cartItems, shareDish, userId, order.id, branchId)
+      await createCartItems(cartItems, shareDish, userId, order.id, branchId, items)
       //Aqui se usa el request.method para identificar que boton se esta usando, en este caso Patch es que se esta pagando
       if (request.method === 'PATCH') {
         const tipPercentage = formData.get('tipPercentage') as string
@@ -446,6 +459,17 @@ export async function action({ request, params }: ActionArgs) {
 
         const tip = amountToPay * (Number(tipPercentage) / 100)
         const menuCurrency = await getMenu(branchId).then((menu: any) => menu?.currency || 'mxn')
+        await prisma.notification.create({
+          data: {
+            message: `${username} de la mesa ${table.number} ha ordenado ${formattedItems}`,
+            branchId: branchId,
+            tableId: tableId,
+            method: 'whatsapp',
+            status: 'received',
+            type: 'informative',
+          },
+        })
+        EVENTS.ISSUE_CHANGED(tableId, branchId)
 
         const result = await handlePaymentProcessing({
           paymentMethod: paymentMethod as string,
@@ -493,8 +517,19 @@ export async function action({ request, params }: ActionArgs) {
       //   .catch(err => console.error('error:' + err))
 
       session.unset('cart')
-      EVENTS.ISSUE_CHANGED(tableId)
 
+      sendWaNotification({ to: employeesNumbers, body: `${username} de la mesa ${table.number} ha ordenado ${formattedItems}` })
+      await prisma.notification.create({
+        data: {
+          message: `${username} de la mesa ${table.number} ha ordenado ${formattedItems}`,
+          branchId: branchId,
+          tableId: tableId,
+          method: 'whatsapp',
+          status: 'received',
+          type: 'informative',
+        },
+      })
+      EVENTS.ISSUE_CHANGED(tableId, branchId)
       return redirect(redirectTo, {
         headers: { 'Set-Cookie': await sessionStorage.commitSession(session) },
       })

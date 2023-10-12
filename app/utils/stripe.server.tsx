@@ -85,6 +85,7 @@ export const getStripeSession = async (
     // FIXME - add dynamic destination depending of the branch
     payment_intent_data: {
       application_fee_amount: 100,
+
       transfer_data: {
         destination: 'acct_1NuRFGBAuNoVK1pM',
       },

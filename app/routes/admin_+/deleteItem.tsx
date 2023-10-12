@@ -104,11 +104,19 @@ export async function action({ request, params }: ActionArgs) {
       })
     },
     notifications: async () => {
-      await prisma.notification.delete({
-        where: {
-          id: id,
-        },
-      })
+      if (mode === 'deleteAll') {
+        await prisma.notification.deleteMany({
+          where: {
+            branchId: id,
+          },
+        })
+      } else {
+        await prisma.notification.delete({
+          where: {
+            id: id,
+          },
+        })
+      }
     },
     modifierGroups: async () => {
       await prisma.modifierGroup.delete({

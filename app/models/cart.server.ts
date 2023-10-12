@@ -2,6 +2,7 @@ import type { CartItem } from '@prisma/client'
 import { prisma } from '~/db.server'
 
 export async function getCartItems(cart: CartItem[]) {
+  // console.log('%ccart.server.ts line:5 cart', 'color: white; background-color: #007acc;', cart[0].modifiers)
   const uniqueVariantIds = [...new Set(cart.map(item => item.variantId))]
   const uniqueItems = await prisma.product.findMany({
     where: {
@@ -14,14 +15,16 @@ export async function getCartItems(cart: CartItem[]) {
 
   const itemsMap = new Map(uniqueItems.map(item => [item.id, item]))
   //get all modifier groups for each item
-  const modifierGroups = uniqueItems.map(item => item.modifierGroups).flat()
+
   //get all modifiers for each modifier group
 
   const cartItems = cart.map((item: any) => ({
     ...itemsMap.get(item.variantId),
     quantity: item.quantity,
-    modifierGroups: modifierGroups,
+
     modifiers: item.modifiers,
+
+    comments: item.sendComments,
   }))
   return cartItems
 }
@@ -30,7 +33,7 @@ export function removeCartItem(cart: CartItem[], variantId: string) {
   return cart.filter(item => item.id !== variantId)
 }
 
-export function createCartItems(cartItems: any, shareDish: any, userId: string, orderId: string, branchId: string) {
+export function createCartItems(cartItems: any, shareDish: any, userId: string, orderId: string, branchId: string, items: any) {
   return Promise.all(
     cartItems.map(item =>
       prisma.cartItem.create({
@@ -38,27 +41,25 @@ export function createCartItems(cartItems: any, shareDish: any, userId: string, 
           image: item.image,
           plu: item.name.substring(0, 1) + item.id.substring(0, 3) + item.name.substring(item.name.length - 1, item.name.length),
           quantity: Number(item.quantity),
-          price:
-            Number(item.price) +
-            Number(item.modifiers.flatMap(modifier => modifier.extraPrice * modifier.quantity).reduce((a, b) => a + b, 0) as number),
+          price: Number(item.price),
+          // + Number(item.modifiers.flatMap(modifier => modifier.extraPrice * modifier.quantity).reduce((a, b) => a + b, 0) as number),
           name: item.name,
           productId: item.id,
           // modifier: {
-          //   connect: item.modifiers.map(modifier => ({
-          //     id: modifier.id,
-          //   })),
+          //   item.modifierGroup.flatMap(modifierGroup => modifierGroup.modifiers),
           // },
+
           productModifiers: {
-            createMany: {
-              data: item.modifiers.flatMap(modifier => ({
-                quantity: modifier.quantity,
-                extraPrice: modifier.extraPrice,
-                total: modifier.quantity * modifier.extraPrice,
-                branchId: branchId,
-                name: modifier.name,
-              })),
-            },
+            create: item.modifiers.map(modifier => ({
+              name: modifier.name,
+              extraPrice: Number(modifier.extraPrice),
+              quantity: Number(modifier.quantity),
+              total: modifier.quantity * modifier.extraPrice,
+              branchId: branchId,
+              comments: modifier.comments,
+            })),
           },
+
           //if shareDish is not empty, connect the users to the cartItem
           user: {
             connect: shareDish.length > 0 ? [{ id: userId }, ...shareDish.map(id => ({ id: id }))] : { id: userId },

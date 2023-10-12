@@ -1,0 +1,16 @@
+[
+  {
+    "id": 1,
+    "quantity": 4,
+    "name": "Stevia",
+    "extraPrice": 4,
+    "modifierGroupId": 4
+  },
+  {
+    "id": 2,
+    "quantity": 2,
+    "name": "Monk Fruit",
+    "extraPrice": 10,
+    "modifierGroupId": 4
+  }
+]

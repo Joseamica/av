@@ -13,7 +13,7 @@ import { useSessionTimeout } from '~/hooks/use-session-timeout'
 import { getSession, getUserDetails } from '~/session.server'
 import { useLiveLoader } from '~/use-live-loader'
 
-import { getBranch } from '~/models/branch.server'
+import { getBranch, getBranchId } from '~/models/branch.server'
 import { getMenu } from '~/models/menu.server'
 import { getOrder } from '~/models/order.server'
 import { getTable } from '~/models/table.server'
@@ -172,11 +172,12 @@ export async function action({ request, params }: ActionArgs) {
   invariant(tableId, 'Mesa no encontrada!')
   const formData = await request.formData()
   const _action = formData.get('_action') as string
+  const branchId = await getBranchId(tableId)
 
   switch (_action) {
     case 'endOrder':
       // EVENTS.ISSUE_CHANGED(tableId)
-      EVENTS.ISSUE_CHANGED(tableId, 'endOrder')
+      EVENTS.ISSUE_CHANGED(tableId, branchId, 'endOrder')
   }
 
   return json({ success: true })

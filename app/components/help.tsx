@@ -38,7 +38,7 @@ const REPORT_TYPES = {
   },
 }
 
-export function Help({ exclude }: { exclude: string }) {
+export function Help({ exclude }: { exclude?: string }) {
   return (
     <Spacer spaceY="2">
       <FlexRow className="w-full justify-around">

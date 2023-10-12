@@ -8,8 +8,9 @@ import clsx from 'clsx'
 import { namedAction } from 'remix-utils'
 import { z } from 'zod'
 import { prisma } from '~/db.server'
+import { useLiveLoader } from '~/use-live-loader'
 
-import { DeleteIcon, FlexRow, H2, H6 } from '~/components'
+import { Button, DeleteIcon, FlexRow, H2, H6 } from '~/components'
 import { HeaderWithButton } from '~/components/admin/headers'
 
 export const handle = { active: 'Notifications' }
@@ -44,7 +45,7 @@ export async function loader({ request, params }: LoaderArgs) {
 }
 
 export default function Notifications() {
-  const data = useLoaderData()
+  const data = useLiveLoader()
 
   const fetcher = useFetcher()
 
@@ -54,6 +55,14 @@ export default function Notifications() {
   return (
     <main>
       <HeaderWithButton queryKey="addItem" queryValue="true" buttonLabel="Add" />
+      <fetcher.Form method="POST" action="/admin/deleteItem?mode=deleteAll" name="DELETE">
+        <Button variant="danger" disabled={isSubmitting}>
+          Delete all
+        </Button>
+        <input type="hidden" name="id" value={params.branchId} />
+        <input type="hidden" name="model" value="notifications" />
+        <input type="hidden" name="redirect" value={`/admin/${params.branchId}/notifications`} />
+      </fetcher.Form>
       <div className="flex flex-wrap gap-2 p-4">
         {data.notifications.map(notification => {
           return (
@@ -97,14 +106,28 @@ export default function Notifications() {
           )
         })}
       </div>
-      <H2>Informatives:</H2>
-      <div>
+      <H2>Informative:</H2>
+
+      <div className="space-y-2">
         {data.notifications.map((notification: { id: string; type: string; message: string }) => {
+          const date = new Date(notification.createdAt)
+
+          const hours = date.getUTCHours()
+          const minutes = date.getUTCMinutes()
+          const seconds = date.getUTCSeconds()
           return (
-            <div key={notification.id}>
+            <div
+              key={notification.id}
+              className={clsx('font-semibold', {
+                'bg-purple-300 rounded-xl': notification.message.includes('Modificadores'),
+                'bg-green-300 rounded-xl': notification.message.includes('pagar'),
+                'border-4 border-black rounded-xl': notification.message.includes('llama al mesero'),
+              })}
+            >
               {notification.type === 'informative' && (
                 <FlexRow className="border rounded-xl px-2 py-1" justify="between">
-                  <H6>{notification.message}</H6>
+                  <H6>{`${hours}:${minutes}:${seconds}`}</H6>
+                  <H6>{colorNumbers(notification.message)}</H6>
                   <fetcher.Form method="POST" action="/admin/deleteItem" name="DELETE">
                     <button disabled={isSubmitting} className="p-1 text-white border rounded-full bg-warning">
                       <DeleteIcon className="fill-white" />
@@ -162,4 +185,40 @@ export default function Notifications() {
       <Outlet />
     </main>
   )
+}
+
+const colorNumbers = text => {
+  const chars = text.split('')
+  let isNumber = false
+  let currentNumber = ''
+  const parts = []
+
+  chars.forEach((char, index) => {
+    if (!isNaN(char) && char !== ' ') {
+      isNumber = true
+      currentNumber += char
+    } else {
+      if (isNumber) {
+        parts.push(
+          <span key={index} className="text-blue-500">
+            {currentNumber}
+          </span>,
+        )
+        currentNumber = ''
+        isNumber = false
+      }
+      parts.push(char)
+    }
+  })
+
+  // Catch the last number, if there is one
+  if (isNumber) {
+    parts.push(
+      <span key={chars.length} style={{ color: 'red' }}>
+        {currentNumber}
+      </span>,
+    )
+  }
+
+  return parts
 }

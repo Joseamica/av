@@ -27,6 +27,7 @@ export const loader = async ({ params, request }: LoaderArgs) => {
 
   const searchParams = new URL(request.url).searchParams
   const paymentMethod = searchParams.get('paymentMethod')
+
   const typeOfPayment = searchParams.get('typeOfPayment')
   const total = Number(searchParams.get('amount'))
   const tip = Number(searchParams.get('tip'))
@@ -57,11 +58,55 @@ export const loader = async ({ params, request }: LoaderArgs) => {
     })
   }
   const username = user?.name
-  console.log(
-    `Usuario \x1b[34m${username}\x1b[0m de la mesa \x1b[32m${
-      table.number
-    }\x1b[0m ha pagado en efectivo propina \x1b[33m${tip}\x1b[0m dando un total \x1b[35m${amount + tip}\x1b[0m`,
-  )
+  const employeesNumbers = await prisma.employee
+    .findMany({
+      where: { branchId: branchId },
+      select: { phone: true },
+    })
+    .then(employees => employees.map(employee => employee.phone))
+
+  if (paymentMethod === 'cash') {
+    console.log(
+      `Usuario \x1b[34m${username}\x1b[0m de la mesa \x1b[32m${
+        table.number
+      }\x1b[0m ha pagado en efectivo ${amount},propina \x1b[33m${tip}\x1b[0m dando un total \x1b[35m${amount + tip}\x1b[0m`,
+    )
+    await prisma.notification.create({
+      data: {
+        message: `El usuario ${username} de la mesa ${table.number} quiere pagar en efectivo: ${amount} propina: ${tip} dando un total ${
+          amount + tip
+        }`,
+        amount: amount,
+        tip: tip,
+        total: amount + tip,
+        method: 'push',
+        status: 'received',
+        type: 'informative',
+        branchId: branchId,
+        tableId: tableId,
+        userId: userId,
+        orderId: order.id,
+      },
+    })
+    sendWaNotification({
+      to: employeesNumbers,
+      body: `El usuario ${username} de la mesa ${table.number} quiere pagar en efectivo: ${amount} propina: ${tip} dando un total ${
+        amount + tip
+      }`,
+    })
+  } else if (paymentMethod === 'card') {
+    console.log(
+      `Usuario \x1b[34m${username}\x1b[0m de la mesa \x1b[32m${
+        table.number
+      }\x1b[0m ha pagado en tarjeta ${amount}, propina \x1b[33m${tip}\x1b[0m dando un total \x1b[35m${amount + tip}\x1b[0m`,
+    )
+    sendWaNotification({
+      to: employeesNumbers,
+      body: `El usuario ${username} de la mesa ${table.number} quiere pagar en tarjeta ${amount} propina: ${tip} dando un total ${
+        amount + tip
+      }`,
+    })
+  }
 
   switch (typeOfPayment) {
     case 'cartPay':
@@ -89,12 +134,8 @@ export const loader = async ({ params, request }: LoaderArgs) => {
       session.flash('notification', 'Pago realizado con éxito')
   }
 
-  EVENTS.ISSUE_CHANGED(tableId)
   await assignExpirationAndValuesToOrder(amountLeft, tip, amount, order)
-  sendWaNotification({
-    to: ['5215512956265'],
-    body: `El usuario ${username} de la mesa ${table.number} quiere pagar en efectivo propina: ${tip} dando un total ${amount + tip}`,
-  })
+  EVENTS.ISSUE_CHANGED(tableId, branchId)
 
   return redirect(`/table/${tableId}`, {
     headers: { 'Set-Cookie': await sessionStorage.commitSession(session) },

@@ -56,11 +56,16 @@ export async function loader({ request, params }: LoaderArgs) {
   // })
 
   if (tableId) {
-    const table = await getTable(tableId, {
-      users: true,
-      order: { include: { users: true, payments: true, cartItems: { include: { productModifiers: true } } } },
-      employees: true,
-      feedbacks: true,
+    const table = await prisma.table.findFirst({
+      where: { id: tableId },
+      include: {
+        users: true,
+        order: {
+          include: { users: true, payments: true, cartItems: { include: { productModifiers: true } } },
+        },
+        employees: true,
+        feedbacks: true,
+      },
     })
 
     return json({ table })

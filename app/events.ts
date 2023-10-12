@@ -16,8 +16,9 @@ if (process.env.NODE_ENV === 'production') {
 }
 
 export const EVENTS = {
-  ISSUE_CHANGED: (tableId?: string, data?: any) => {
+  ISSUE_CHANGED: (tableId?: string, branchId?: string, data?: any) => {
     emitter.emit('/', data)
+    emitter.emit(`/admin/${branchId}/notifications`, data)
     emitter.emit(`/table/${tableId}`, data)
   },
 }

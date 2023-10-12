@@ -31,7 +31,7 @@ export function ModifierGroupForm({
   const isEditing = intent === 'edit'
 
   const [autoCode, setAutoCode] = React.useState('')
-  const [required, setRequired] = React.useState(false)
+  const [required, setRequired] = React.useState(modifierGroups.min > 0)
   const [maxSelection, setMaxSelection] = React.useState(true)
 
   const handleNameChange = event => {
@@ -76,29 +76,28 @@ export function ModifierGroupForm({
             type="checkbox"
             {...conform.input(fields.required, { type: 'checkbox' })}
             onChange={() => setRequired(!required)}
-            defaultChecked={isEditing ? modifierGroups.min : false}
+            defaultChecked={isEditing ? required : false}
           />
           <H6 variant="secondary">Required Selection</H6>
         </FlexRow>
         <Spacer spaceY="1" />
 
-        {required ||
-          (modifierGroups.min && (
-            <Field
-              labelProps={{}}
-              inputProps={{
-                ...conform.input(fields.min, { type: 'number' }),
-                required: true,
-                defaultValue: isEditing ? modifierGroups.min : 1,
-              }}
-              errors={[fields?.min.errors]}
-            />
-          ))}
+        {required && (
+          <Field
+            labelProps={{}}
+            inputProps={{
+              ...conform.input(fields.min, { type: 'number' }),
+              required: true,
+              defaultValue: isEditing ? modifierGroups.min : 1,
+            }}
+            errors={[fields?.min.errors]}
+          />
+        )}
         <FlexRow>
           <input
             type="checkbox"
             {...conform.input(fields.required, { type: 'checkbox' })}
-            defaultChecked={isEditing ? modifierGroups.max : false}
+            defaultChecked={isEditing ? maxSelection : false}
             onChange={() => setMaxSelection(!maxSelection)}
           />
           <H6 variant="secondary">Maximum selection</H6>
@@ -106,18 +105,17 @@ export function ModifierGroupForm({
         </FlexRow>
         <Spacer spaceY="1" />
 
-        {maxSelection ||
-          (modifierGroups.max && (
-            <Field
-              labelProps={{}}
-              inputProps={{
-                ...conform.input(fields.max, { type: 'number' }),
-                required: true,
-                defaultValue: isEditing ? modifierGroups.max : 1,
-              }}
-              errors={[fields?.max.errors]}
-            />
-          ))}
+        {maxSelection && (
+          <Field
+            labelProps={{}}
+            inputProps={{
+              ...conform.input(fields.max, { type: 'number' }),
+              required: true,
+              defaultValue: isEditing ? modifierGroups.max : 1,
+            }}
+            errors={[fields?.max.errors]}
+          />
+        )}
       </div>
       <Spacer size="sm" />
       <CheckboxField

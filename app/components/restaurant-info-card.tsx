@@ -40,10 +40,10 @@ export function RestaurantInfoCard({
             data-intro="Aquí puedes ver la carta de platillos y bebidas que ofrece el restaurante."
             data-step="1"
             data-title="Carta"
-            className="dark:bg-mainDark dark:text-mainTextDark dark:bg-night-bg_principal dark:text-night-text_principal flex items-center justify-between rounded-b-3xl bg-day-bg_principal px-6 py-4 text-lg drop-shadow-xl"
+            className="dark:bg-mainDark dark:text-mainTextDark dark:bg-night-bg_principal animate-pulse  dark:text-night-text_principal flex items-center justify-between rounded-b-3xl bg-day-bg_principal px-6 py-4 text-lg drop-shadow-xl"
           >
             <RestMenuIcon className="h-6 w-6" />
-            <span>Ver la carta</span>
+            <span>Ordena aquí</span>
             <div />
           </Link>
         </div>

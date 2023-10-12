@@ -11,7 +11,7 @@ import { usePayment } from './paymentV3'
 import { formatCurrency } from '~/utils'
 
 function TipModal() {
-  const { setShowModal, setTipRadio, tipRadio, currency, total, tipsPercentages } = usePayment()
+  const { setShowModal, setTipRadio, tipRadio, currency, total, tipsPercentages, tip } = usePayment()
 
   const handleModal = () => {
     setShowModal(currentState => ({ ...currentState, tip: false }))
@@ -20,6 +20,7 @@ function TipModal() {
   const handleTipChange = e => {
     setTipRadio(Number(e.target.value))
   }
+  console.log(tipRadio, total)
 
   return (
     <>
@@ -32,7 +33,8 @@ function TipModal() {
                 className={clsx(
                   'flex w-full flex-row items-center justify-center space-x-2 rounded-lg border border-button-outline border-opacity-40 px-3 py-1 text-center shadow-lg',
                   {
-                    'text-2 rounded-full bg-button-primary px-2 py-1  text-white  ring-4   ring-button-outline': tipRadio.toString() === tipPercentage,
+                    'text-2 rounded-full bg-button-primary px-2 py-1  text-white  ring-4   ring-button-outline':
+                      tipRadio.toString() === tipPercentage,
                   },
                 )}
               >
@@ -56,10 +58,13 @@ function TipModal() {
               </label>
             ))}
         </div>
+        {/* <Spacer spaceY="2" />
+        <div className="cursor-pointer flex w-full flex-row items-center justify-center space-x-2 rounded-lg border border-button-outline border-opacity-40 px-3 py-2 shadow-lg">
+          <span>Otro</span>
+          <input type="text" onChange={handleTipChange} />
+        </div> */}
         <Spacer spaceY="2" />
-        <H3 className="flex w-full flex-row justify-center">
-          <Underline>Estas dejando {formatCurrency(currency, (tipRadio * total) / 100)} de propina</Underline>
-        </H3>
+        <H3 className="flex w-full flex-row justify-center">Tu propina: {formatCurrency(currency, tip)}</H3>
         <Spacer spaceY="2" />
         <Button fullWith={true} onClick={handleModal}>
           Asignar

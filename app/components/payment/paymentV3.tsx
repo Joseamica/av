@@ -26,7 +26,7 @@ function Payment({
     tip: false,
     payment: false,
   })
-  const [paymentRadio, setPaymentRadio] = React.useState('cash')
+  const [paymentRadio, setPaymentRadio] = React.useState('card')
   const [tipRadio, setTipRadio] = React.useState(12)
   const tip = Number(state.amountToPayState) * (Number(tipRadio) / 100)
   const total = Number(state.amountToPayState) + tip

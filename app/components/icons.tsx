@@ -60,9 +60,9 @@ export function XCashIcon({ size = 24, stroke = 'currentColor', className }: { s
   )
 }
 
-export function CheckIcon() {
+export function CheckIcon({ className, title }: { className?: string; title?: string }) {
   return (
-    <svg width="24" height="24" fill="none" viewBox="0 0 24 24">
+    <svg width="24" height="24" fill="none" viewBox="0 0 24 24" className={className}>
       <path
         stroke="currentColor"
         strokeLinecap="round"

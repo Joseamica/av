@@ -163,6 +163,7 @@ model Product {
   image          String
   name           String
   description    String
+  //best name for turning off or on
   price          Decimal
   productType    Int? //Products 1, Modifiers 2, Modifier Groups 3, and Bundles 4
   available      Boolean

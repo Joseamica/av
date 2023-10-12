@@ -1,6 +1,8 @@
 import { conform, useForm } from '@conform-to/react'
 import * as Separator from '@radix-ui/react-separator'
 import { Link, Outlet, useFetcher, useLoaderData, useParams, useRouteLoaderData, useSearchParams } from '@remix-run/react'
+import React from 'react'
+import { FaPause, FaPlay } from 'react-icons/fa'
 
 import { type ActionArgs, type LoaderArgs, json, redirect } from '@remix-run/node'
 
@@ -37,14 +39,20 @@ export const handle = { active: 'Products' }
 
 export async function loader({ request, params }: LoaderArgs) {
   const products = await prisma.product.findMany({
-    // where: {
-    //   branchId: params.branchId,
-    // },
-    orderBy: {
-      category: {
-        name: 'asc',
-      },
+    where: {
+      branchId: params.branchId,
     },
+    orderBy: [
+      {
+        available: 'asc', // Sort by createdAt field in the parent model
+      },
+      {
+        category: {
+          name: 'asc', // Sort by name field in the related model
+        },
+      },
+    ],
+
     include: {
       category: true,
     },
@@ -80,6 +88,27 @@ export async function loader({ request, params }: LoaderArgs) {
 }
 export async function action({ request, params }: ActionArgs) {
   const formData = await request.formData()
+  const searchParams = getSearchParams({ request })
+  const { branchId } = params
+  const available = formData.get('available') as string
+  const id = formData.get('id') as string
+
+  if (available === 'true') {
+    await prisma.product.update({
+      where: { id, branchId },
+      data: {
+        available: false,
+      },
+    })
+  } else if (available === 'false') {
+    await prisma.product.update({
+      where: { id, branchId },
+      data: {
+        available: true,
+      },
+    })
+  }
+
   const submission = parse(formData, {
     schema: productSchema,
   })
@@ -227,6 +256,19 @@ export default function Products() {
             <div className="flex flex-col" key={product.id}>
               <H5 boldVariant="semibold">{product.category.name}</H5>
               <Square itemId={product.id} name={product.name} to={product.id} key={product.id} />
+              <fetcher.Form method="POST">
+                <button
+                  className="icon-button w-10 flex items-center justify-center "
+                  onClick={() => {
+                    searchParams.set('available', product.available)
+                    setSearchParams(searchParams)
+                  }}
+                >
+                  {product.available ? <FaPause /> : <FaPlay className="fill-green-300" />}
+                </button>
+                <input type="hidden" name="id" value={product.id} />
+                <input type="hidden" name="available" value={product.available} />
+              </fetcher.Form>
             </div>
           )
         })}
