@@ -20,59 +20,6 @@ import { Spacer } from '~/components'
 import { Modal } from '~/components/modal'
 import Payment from '~/components/payment/paymentV3'
 
-export default function CustomPay() {
-  const data = useLoaderData()
-  const actionData = useActionData()
-  const [amountToPay, setAmountToPay] = React.useState(0)
-
-  //todo translate cash,card, a espanol
-
-  const handleAmountChange = e => {
-    setAmountToPay(Number(e.target.value))
-  }
-  const navigate = useNavigate()
-
-  return (
-    <Modal onClose={() => navigate('..', { replace: true })} fullScreen={false} title="Pagar un monto personalizado">
-      {actionData?.status === 400 && <div>Error message here</div>}
-      <Payment
-        state={{
-          amountLeft: data.amountLeft,
-          amountToPayState: amountToPay,
-          currency: data.currency,
-          paymentMethods: data.paymentMethods,
-          tipsPercentages: data.tipsPercentages,
-        }}
-      >
-        <Form method="POST" preventScrollReset>
-          <div className="flex flex-row items-center w-full px-4 py-2 bg-componentBg dark:bg-DARK_0 ">
-            <label htmlFor="custom" className={clsx('bg-componentBg dark:bg-DARK_0 dark:text-mainTextDark text-6xl text-[#9CA3AF]')}>
-              {data.currency}
-            </label>
-            <input
-              type="number"
-              name="amountToPay"
-              min="10"
-              id="custom"
-              inputMode="decimal"
-              onChange={handleAmountChange} // Handle input changes
-              className={clsx(
-                `dark:bg-DARK-0 flex h-20 w-full bg-transparent text-6xl placeholder:p-2 placeholder:text-6xl focus:outline-none focus:ring-0`,
-                {
-                  'animate-pulse placeholder:text-warning': actionData?.amountToPay,
-                },
-              )}
-              placeholder="0.00"
-            />
-          </div>
-
-          <Spacer spaceY="1" />
-          <Payment.Form />
-        </Form>
-      </Payment>
-    </Modal>
-  )
-}
 //ANCHOR Loader
 
 export async function loader({ request, params }: LoaderArgs) {
@@ -148,4 +95,58 @@ export async function action({ request, params }: ActionArgs) {
   }
 
   return json({ status: 400, error: result.message })
+}
+
+export default function CustomPay() {
+  const data = useLoaderData()
+  const actionData = useActionData()
+  const [amountToPay, setAmountToPay] = React.useState(0)
+
+  //todo translate cash,card, a espanol
+
+  const handleAmountChange = e => {
+    setAmountToPay(Number(e.target.value))
+  }
+  const navigate = useNavigate()
+
+  return (
+    <Modal onClose={() => navigate('..', { replace: true })} fullScreen={false} title="Pagar un monto personalizado">
+      {actionData?.status === 400 && <div>Error message here</div>}
+      <Payment
+        state={{
+          amountLeft: data.amountLeft,
+          amountToPayState: amountToPay,
+          currency: data.currency,
+          paymentMethods: data.paymentMethods,
+          tipsPercentages: data.tipsPercentages,
+        }}
+      >
+        <Form method="POST" preventScrollReset>
+          <div className="flex flex-row items-center w-full px-4 py-2 bg-componentBg dark:bg-DARK_0 ">
+            <label htmlFor="custom" className={clsx('bg-componentBg dark:bg-DARK_0 dark:text-mainTextDark text-6xl text-[#9CA3AF]')}>
+              {data.currency}
+            </label>
+            <input
+              type="number"
+              name="amountToPay"
+              min="10"
+              id="custom"
+              inputMode="decimal"
+              onChange={handleAmountChange} // Handle input changes
+              className={clsx(
+                `dark:bg-DARK-0 flex h-20 w-full bg-transparent text-6xl placeholder:p-2 placeholder:text-6xl focus:outline-none focus:ring-0`,
+                {
+                  'animate-pulse placeholder:text-warning': actionData?.amountToPay,
+                },
+              )}
+              placeholder="0.00"
+            />
+          </div>
+
+          <Spacer spaceY="1" />
+          <Payment.Form />
+        </Form>
+      </Payment>
+    </Modal>
+  )
 }

@@ -32,7 +32,7 @@ export function ModifierGroupForm({
 
   const [autoCode, setAutoCode] = React.useState('')
   const [required, setRequired] = React.useState(modifierGroups.min > 0)
-  const [maxSelection, setMaxSelection] = React.useState(true)
+  const [maxSelection, setMaxSelection] = React.useState(modifierGroups.max > 0)
 
   const handleNameChange = event => {
     const name = event.target.value

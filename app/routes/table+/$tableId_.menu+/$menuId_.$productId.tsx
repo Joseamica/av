@@ -75,7 +75,7 @@ export async function action({ request, params }: ActionArgs) {
   const cart = JSON.parse(session.get('cart') || '[]')
   addToCart(cart, productId, productQuantity, modifiers, sendComments)
   session.set('cart', JSON.stringify(cart))
-  // session.set('shareUserIds', JSON.stringify(value.shareDish))
+
   return redirect(`/table/${tableId}/menu/${params.menuId}`, {
     headers: { 'Set-Cookie': await sessionStorage.commitSession(session) },
   })
@@ -109,6 +109,18 @@ export default function ProductId() {
     })
     setErrors(newErrors)
     return Object.keys(newErrors).length === 0
+  }
+
+  const getModifierQuantity = modifier => {
+    return tmodifiers.find(tmodifier => tmodifier.id === modifier.id)?.quantity
+  }
+
+  const totalModifierQuantity = tmodifiers.reduce((acc, tmodifier) => {
+    return acc + tmodifier.quantity
+  }, 0)
+
+  const removeModifier = modifier => {
+    setTmodifiers(tmodifiers.filter((tmodifier: any) => tmodifier.id !== modifier.id))
   }
 
   return (
@@ -152,37 +164,49 @@ export default function ProductId() {
                   return (
                     <div key={modifierGroup.id}>
                       <FlexRow justify="between" className="py-2">
-                        <FlexRow>
+                        <div className="block justify-center items-center">
                           <H3> {modifierGroup.name}</H3>
-                          {modifierGroup.min === 1 && modifierGroup.max === 1 ? (
-                            <H6>Choose 1</H6>
-                          ) : (
-                            <>
-                              <H6>Min {modifierGroup.min}</H6>
-                              <H6>max {modifierGroup.max}.</H6>
-                            </>
-                          )}
-                        </FlexRow>
+                          <div>
+                            <H6 variant="secondary">
+                              {(modifierGroup.min === 1 && modifierGroup.max === 0) || (modifierGroup.min === 1 && modifierGroup.max === 1)
+                                ? ''
+                                : modifierGroup.min === modifierGroup.max
+                                ? `Elige ${modifierGroup.min} `
+                                : modifierGroup.min > 1 && modifierGroup.max > 1
+                                ? `Elige desde ${modifierGroup.min} hasta ${modifierGroup.max} `
+                                : modifierGroup.min > 1
+                                ? `Elige al menos ${modifierGroup.min} `
+                                : modifierGroup.max > 0
+                                ? `Elige hasta ${modifierGroup.max} `
+                                : ''}
+                            </H6>
+                          </div>
+                        </div>
 
                         <div
                           className={clsx('px-3  border rounded-full', {
                             'bg-warning text-white fill-white animate-bounce': modifierGroup.id === errors.id,
                           })}
                         >
-                          {isRequired ? <H6>Requerido</H6> : <H6>Opcional</H6>}
+                          {isRequired ? <H6>Obligatorio</H6> : <H6>Opcional</H6>}
                         </div>
                       </FlexRow>
 
                       <div className="flex flex-col space-y-2">
                         {modifierGroup.modifiers.map((modifier: Modifiers) => {
-                          // Fix 2: Add type annotation to modifier parameter
-
                           return (
-                            <div
+                            <button
+                              type="button"
+                              disabled={
+                                modifierGroup.max !== 0 &&
+                                totalModifierQuantity >= modifierGroup.max &&
+                                !tmodifiers.flatMap((tmodifier: any) => tmodifier.id).includes(modifier.id)
+                              }
                               onClick={() => {
                                 if (tmodifiers.flatMap((tmodifier: any) => tmodifier.id).includes(modifier.id)) {
-                                  setTmodifiers(tmodifiers.filter((tmodifier: any) => tmodifier.id !== modifier.id))
+                                  removeModifier(modifier)
                                 } else {
+                                  setErrors({})
                                   setTmodifiers([
                                     ...tmodifiers,
                                     {
@@ -199,23 +223,6 @@ export default function ProductId() {
                               key={modifier.id}
                               className="flex items-center space-x-2 justify-between cursor-pointer"
                             >
-                              {/* <input
-                                type={modifierGroup.max === 1 ? 'radio' : 'checkbox'}
-                                name="modifiers"
-                                value={modifier.name}
-                                id={modifier.id}
-                                required={isRequired}
-                                onClick={() => {
-                                  if (modifiers.includes(modifier.name)) {
-                                    setModifiers(modifiers.filter((id: string) => id !== modifier.name))
-                                  } else {
-                                    setModifiers([...modifiers, modifier.name])
-                                  }
-                                }}
-                              />
-                              <label htmlFor={modifier.id} className="text-sm">
-                                {modifier.name}
-                              </label> */}
                               <FlexRow>
                                 <div
                                   className={clsx('border rounded-full h-5 w-5 flex justify-center items-center text-center p-1', {
@@ -230,19 +237,19 @@ export default function ProductId() {
                                   )}
                                 </div>
                                 <H5>{modifier.name}</H5>
-                                {modifierGroup.max > 1 && (
+                                {/* ANCHOR - and + counters */}
+                                {modifierGroup.max > 1 && modifierGroup.multiMax >= 1 && (
                                   <div className="flex space-x-2 items-center">
                                     {tmodifiers.flatMap((tmodifier: any) => tmodifier.id).includes(modifier.id) && (
                                       <>
-                                        <button
+                                        <div
                                           className="border-2 h-4 w-4 flex justify-center items-center border-day-principal rounded-sm"
-                                          type="button"
                                           onClick={e => {
                                             e.stopPropagation()
 
                                             if (
                                               tmodifiers.flatMap(tmodifier => tmodifier.id).includes(modifier.id) &&
-                                              tmodifiers.find(tmodifier => tmodifier.id === modifier.id).quantity > 1
+                                              getModifierQuantity(modifier) > 1
                                             ) {
                                               const item = tmodifiers.map(tmodifier => {
                                                 if (tmodifier.id === modifier.id) {
@@ -257,17 +264,21 @@ export default function ProductId() {
                                           }}
                                         >
                                           -
-                                        </button>
+                                        </div>
                                         <span className="text-xs">
                                           {tmodifiers.flatMap(tmodifier => tmodifier.id).includes(modifier.id) &&
-                                            tmodifiers.find(tmodifier => tmodifier.id === modifier.id).quantity}
+                                            getModifierQuantity(modifier)}
                                         </span>
-                                        <button
+
+                                        <div
                                           className="border-2 h-4 w-4 flex justify-center items-center border-day-principal rounded-sm"
-                                          type="button"
                                           onClick={e => {
                                             e.stopPropagation()
-                                            if (tmodifiers.flatMap(tmodifier => tmodifier.id).includes(modifier.id)) {
+                                            if (
+                                              tmodifiers.flatMap(tmodifier => tmodifier.id).includes(modifier.id) &&
+                                              modifierGroup.max > getModifierQuantity(modifier) &&
+                                              totalModifierQuantity < modifierGroup.max
+                                            ) {
                                               const item = tmodifiers.map(tmodifier => {
                                                 if (tmodifier.id === modifier.id) {
                                                   return { ...tmodifier, quantity: tmodifier.quantity + 1 }
@@ -279,7 +290,7 @@ export default function ProductId() {
                                           }}
                                         >
                                           +
-                                        </button>
+                                        </div>
                                       </>
                                     )}
                                   </div>
@@ -287,7 +298,7 @@ export default function ProductId() {
                               </FlexRow>
 
                               <H6>+ {formatCurrency(data.currency, Number(modifier.extraPrice))}</H6>
-                            </div>
+                            </button>
                           )
                         })}
                         {modifierGroup.id === errors.id ? <ErrorList id={errors.id} errors={[errors.message]} /> : null}
@@ -308,12 +319,19 @@ export default function ProductId() {
           <Spacer spaceY="1" />
 
           <Button name="_action" value="proceed" fullWith={true} disabled={isSubmitting} className="sticky bottom-5">
-            Agregar {data.product.name}
+            Agregar {data.product.name}{' '}
+            {formatCurrency(
+              data.currency,
+              data.product.price * productQuantity +
+                tmodifiers.reduce((acc, tmodifier) => {
+                  return acc + tmodifier.extraPrice * tmodifier.quantity
+                }, 0) *
+                  productQuantity,
+            )}
           </Button>
           <input type="hidden" name="productId" value={data.product.id} />
           <input type="hidden" name="productQuantity" value={productQuantity} />
           <input type="hidden" name="modifiers" value={JSON.stringify(tmodifiers)} />
-          {/* <input type="hidden" name="modifierCounts" value={JSON.stringify(modifierCounts)} /> */}
 
           <input type="hidden" name="errors" value={JSON.stringify(errors)} />
         </fetcher.Form>

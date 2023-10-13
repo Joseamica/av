@@ -1,5 +1,5 @@
 import type { PaymentMethod } from '@prisma/client'
-import initStripe from 'stripe'
+import Stripe from 'stripe'
 
 import { createQueryString } from '~/utils'
 
@@ -43,16 +43,22 @@ export const getStripeSession = async (
   // const e = JSON.parse(decodeURIComponent(encodedExtraData))
   // console.log('e', extraData)
 
-  const stripe = initStripe(process.env.STRIPE_SECRET_KEY)
+  const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
+    apiVersion: '2022-11-15',
+  })
   const account = await stripe.accounts.retrieve('acct_1NuRFGBAuNoVK1pM')
-  console.log('acount', account)
+  // console.log('account' , account)
   const lineItems = [
     {
       price_data: {
         currency: currency,
         product_data: {
-          name: 'Tu pago',
-          // Add more product data if needed
+          name: 'Estas pagando tu cuenta con Avoqado services',
+          description: 'Recibirás un correo de Avoqado Services con el detalle de tu pago',
+
+          images: [
+            'https://firebasestorage.googleapis.com/v0/b/avoqado-d0a24.appspot.com/o/AVOQADO.png?alt=media&token=fae6250d-743c-4dbc-8432-19b4bbdcc35a',
+          ],
         },
         unit_amount: amount,
       },
@@ -83,12 +89,28 @@ export const getStripeSession = async (
       extraData: extraData ? JSON.stringify(extraData) : undefined,
     },
     // FIXME - add dynamic destination depending of the branch
+    // invoice_creation:true,
+    // invoice_creation: {
+
+    // },
+    invoice_creation: {
+      enabled: true,
+      invoice_data: {
+        custom_fields: [
+          {
+            name: 'productos',
+            value: 'TEST',
+          },
+        ],
+      },
+    },
     payment_intent_data: {
-      application_fee_amount: 100,
+      application_fee_amount: 1000,
 
       transfer_data: {
         destination: 'acct_1NuRFGBAuNoVK1pM',
       },
+      on_behalf_of: 'acct_1NuRFGBAuNoVK1pM', // The account you are acting on behalf of
     },
     success_url: `${domainUrl}/payment/success?${queryString}`,
     cancel_url: `${domainUrl}`,

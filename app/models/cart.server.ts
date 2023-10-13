@@ -4,6 +4,7 @@ import { prisma } from '~/db.server'
 export async function getCartItems(cart: CartItem[]) {
   // console.log('%ccart.server.ts line:5 cart', 'color: white; background-color: #007acc;', cart[0].modifiers)
   const uniqueVariantIds = [...new Set(cart.map(item => item.variantId))]
+
   const uniqueItems = await prisma.product.findMany({
     where: {
       id: {
@@ -14,18 +15,22 @@ export async function getCartItems(cart: CartItem[]) {
   })
 
   const itemsMap = new Map(uniqueItems.map(item => [item.id, item]))
-  //get all modifier groups for each item
+  // console.log('itemsMap', itemsMap)
 
-  //get all modifiers for each modifier group
+  const cartItems = cart.map((item: any) => {
+    const modifierExtraPrices = Number(
+      item.modifiers.flatMap(modifier => modifier.extraPrice * modifier.quantity).reduce((a, b) => a + b, 0),
+    )
 
-  const cartItems = cart.map((item: any) => ({
-    ...itemsMap.get(item.variantId),
-    quantity: item.quantity,
+    return {
+      ...itemsMap.get(item.variantId),
+      quantity: item.quantity,
+      price: Number({ ...itemsMap.get(item.variantId) }.price) + modifierExtraPrices,
+      modifiers: item.modifiers,
 
-    modifiers: item.modifiers,
-
-    comments: item.sendComments,
-  }))
+      comments: item.sendComments,
+    }
+  })
   return cartItems
 }
 
@@ -35,14 +40,18 @@ export function removeCartItem(cart: CartItem[], variantId: string) {
 
 export function createCartItems(cartItems: any, shareDish: any, userId: string, orderId: string, branchId: string, items: any) {
   return Promise.all(
-    cartItems.map(item =>
-      prisma.cartItem.create({
+    cartItems.map(item => {
+      console.log(
+        Number(item.price) +
+          Number(item.modifiers.flatMap(modifier => modifier.extraPrice * modifier.quantity).reduce((a, b) => a + b, 0) as number),
+      )
+      return prisma.cartItem.create({
         data: {
           image: item.image,
           plu: item.name.substring(0, 1) + item.id.substring(0, 3) + item.name.substring(item.name.length - 1, item.name.length),
           quantity: Number(item.quantity),
           price: Number(item.price),
-          // + Number(item.modifiers.flatMap(modifier => modifier.extraPrice * modifier.quantity).reduce((a, b) => a + b, 0) as number),
+          // Number(item.modifiers.flatMap(modifier => modifier.extraPrice * modifier.quantity).reduce((a, b) => a + b, 0) as number),
           name: item.name,
           productId: item.id,
           // modifier: {
@@ -67,7 +76,7 @@ export function createCartItems(cartItems: any, shareDish: any, userId: string, 
           activeOnOrder: true,
           orderId: orderId,
         },
-      }),
-    ),
+      })
+    }),
   )
 }

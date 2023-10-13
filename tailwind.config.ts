@@ -107,6 +107,7 @@ export default {
           notSelected: '#ECECF1',
           textNotSelected: '#8E8EA0',
         },
+        main: '#2e8857',
         gray_light: '#EBECF1',
         warning: '#FF8080',
         disabled: '#9898A1',

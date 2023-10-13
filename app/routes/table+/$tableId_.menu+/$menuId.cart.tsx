@@ -26,225 +26,6 @@ import { handlePaymentProcessing } from '~/utils/payment-processing.server'
 import { Button, FlexRow, H2, H3, H4, H5, ItemContainer, Modal, QuantityButton, Spacer, Underline } from '~/components'
 import Payment, { usePayment } from '~/components/payment/paymentV3'
 
-export default function Cart() {
-  const data = useLoaderData()
-  const [item, setItem] = React.useState('')
-  const fetcher = useFetcher()
-  const params = useParams()
-
-  // const cart = searchParams.get('cart')
-  const navigate = useNavigate()
-  const [showPaymentOptions, setShowPaymentOptions] = useState(false)
-
-  const onClose = () => {
-    navigate(`/table/${params.tableId}/menu/${params.menuId}`)
-  }
-
-  React.useEffect(() => {
-    if (data.cartItems?.length === 0) {
-      onClose()
-    }
-  }, [data.cartItems, navigate, params])
-
-  const cartItemsQuantity = data.cartItems?.reduce((acc, item) => {
-    return acc + item.quantity
-  }, 0)
-
-  const cartItemsTotal = data.cartItems?.reduce((acc, item) => {
-    return acc + Number(item.price) * item.quantity
-  }, 0)
-
-  let isSubmitting = fetcher.state === 'submitting' || fetcher.state === 'loading'
-
-  return (
-    <>
-      <Modal onClose={onClose} title="Carrito">
-        <Payment
-          state={{
-            amountLeft: data.amountLeft,
-            amountToPayState: cartItemsTotal,
-            currency: data.currency,
-            paymentMethods: data.paymentMethods,
-            tipsPercentages: data.tipsPercentages,
-          }}
-        >
-          <fetcher.Form method="POST" preventScrollReset>
-            <div className="p-2">
-              <div className="space-y-2">
-                {data.cartItems?.map((items: CartItem, index: number) => {
-                  return (
-                    <ItemContainer key={index} className="flex flex-row items-center justify-between space-x-2 ">
-                      <input type="hidden" name="variantId" value={item} />
-                      <FlexRow justify="between" className="w-full pr-2">
-                        <H4>{items.name}</H4>
-                        <H5 className="shrink-0">{formatCurrency(data.currency, items.price)}</H5>
-                      </FlexRow>
-                      <QuantityButton
-                        isForm={true}
-                        onDecrease={() => setItem(items.id)}
-                        onIncrease={() => setItem(items.id)}
-                        quantity={items.quantity}
-                        name="_action"
-                        decreaseValue="decreaseQuantity"
-                        increaseValue="increaseQuantity"
-                      />
-                    </ItemContainer>
-                  )
-                })}
-              </div>
-            </div>
-            <Spacer spaceY="2" />
-            {!showPaymentOptions ? (
-              <div className="sticky bottom-0 p-2 border-t rounded-t-lg border-x bg-day-bg_principal">
-                <FlexRow justify="between" className="px-2">
-                  <H4>Numero de platillos: </H4>
-                  <H3>{cartItemsQuantity}</H3>
-                </FlexRow>
-                <FlexRow justify="between" className="px-2">
-                  <H4>Total: </H4>
-                  <Underline>
-                    <H2>{formatCurrency(data.currency, cartItemsTotal)}</H2>
-                  </Underline>
-                </FlexRow>
-                <Spacer spaceY="3" />
-                <Button
-                  name="_action"
-                  value="submitCart"
-                  type="submit"
-                  size="medium"
-                  disabled={isSubmitting || data.cartItems?.length === 0}
-                  className="w-full"
-                >
-                  {isSubmitting ? (
-                    'Agregando platillos...'
-                  ) : (
-                    <div>
-                      <span className="font-light">Ordenar y </span>
-                      {<span className="font-bold button-outline underline-offset-8">pagar después</span>}
-                    </div>
-                  )}
-                </Button>
-                <Spacer spaceY="1" />
-                <Button
-                  onClick={() => setShowPaymentOptions(true)}
-                  className="w-full text-white"
-                  type="button"
-                  size="medium"
-                  variant="custom"
-                  custom="bg-success border-button-successOutline"
-                >
-                  ¡ Quiero pagar ahora 👍🏼 !
-                </Button>
-              </div>
-            ) : (
-              <CartPayment setShowPaymentOptions={setShowPaymentOptions} />
-            )}
-          </fetcher.Form>
-        </Payment>
-      </Modal>
-      <Outlet />
-    </>
-  )
-}
-
-const variants = {
-  hidden: {
-    height: 0,
-    opacity: 0,
-    transition: {
-      opacity: { duration: 0.2 },
-      height: { duration: 0.4 },
-    },
-  },
-  visible: {
-    height: 'auto',
-    opacity: 1,
-    transition: {
-      duration: 0.5,
-    },
-  },
-}
-
-export function CartPayment({ setShowPaymentOptions }: { setShowPaymentOptions: any }) {
-  const data = useLoaderData()
-  const navigation = useNavigation()
-  const { showModal, paymentRadio, tip, tipRadio } = usePayment()
-
-  const total = data.cartItemsTotal
-
-  const isSubmitting = navigation.state !== 'idle'
-
-  return (
-    <>
-      <div className="sticky inset-x-0 bottom-0 flex flex-col justify-center px-3 border-4 dark:bg-night-bg_principal dark:text-night-text_principal rounded-t-xl bg-day-bg_principal">
-        <Spacer spaceY="2" />
-        <motion.div variants={variants} initial="hidden" animate={'visible'} exit="hidden" className="flex flex-col">
-          <FlexRow justify="between">
-            <H5>Cantidad por {data.cartItems.length} platillos:</H5>
-            <H3>{formatCurrency(data.currency, total ? total : 0)}</H3>
-          </FlexRow>
-          <Spacer spaceY="1" />
-
-          <hr />
-          <Spacer spaceY="2" />
-
-          <Payment.TipButton />
-
-          <Spacer spaceY="2" />
-
-          <Payment.PayButton />
-
-          <Spacer spaceY="2" />
-          <hr />
-          <Spacer spaceY="2" />
-          <FlexRow justify="between">
-            <H5>Total:</H5>
-            <Underline>
-              <H3>
-                {formatCurrency(
-                  data.currency,
-                  total + tip, // Update the total amount
-                )}
-              </H3>
-            </Underline>
-          </FlexRow>
-          <Spacer spaceY="2" />
-
-          <Spacer spaceY="2" />
-          <Button
-            fullWith={true}
-            disabled={isSubmitting}
-            name="_action"
-            value="submitCart"
-            formMethod="PATCH"
-            variant="custom"
-            custom="bg-button-successOutline border-green-700"
-            className="text-button-successBg"
-          >
-            {isSubmitting ? 'Procesando...' : 'Pagar y ordenar'}
-          </Button>
-          <Spacer spaceY="1" />
-          <Button onClick={() => setShowPaymentOptions(false)} to="" variant={'danger'}>
-            Volver
-          </Button>
-        </motion.div>
-        {/* )}
-        </AnimatePresence> */}
-      </div>
-
-      {/* ANCHOR MODAL TIP */}
-      {showModal.tip && <Payment.TipModal />}
-
-      {showModal.payment && <Payment.PayModal />}
-
-      <input type="hidden" name="paymentMethod" value={paymentRadio} />
-      <input type="hidden" name="tipPercentage" value={tipRadio} />
-      <input type="hidden" name="cartItems" value={data.cartItems} />
-      <input type="hidden" name="amountToPay" value={data?.cartItemsTotal} />
-    </>
-  )
-}
-
 // ANCHOR LOADER
 export async function loader({ request, params }: LoaderArgs) {
   const { tableId, menuId } = params
@@ -536,4 +317,219 @@ export async function action({ request, params }: ActionArgs) {
   }
 
   return json({ success: true }, { headers: { 'Set-Cookie': await sessionStorage.commitSession(session) } })
+}
+
+export default function Cart() {
+  const data = useLoaderData()
+  const [item, setItem] = React.useState('')
+  const fetcher = useFetcher()
+  const params = useParams()
+
+  // const cart = searchParams.get('cart')
+  const navigate = useNavigate()
+  const [showPaymentOptions, setShowPaymentOptions] = useState(false)
+
+  const onClose = () => {
+    navigate(`/table/${params.tableId}/menu/${params.menuId}`)
+  }
+
+  React.useEffect(() => {
+    if (data.cartItems?.length === 0) {
+      onClose()
+    }
+  }, [data.cartItems, navigate, params])
+
+  const cartItemsQuantity = data.cartItems?.reduce((acc, item) => {
+    return acc + item.quantity
+  }, 0)
+
+  let isSubmitting = fetcher.state === 'submitting' || fetcher.state === 'loading'
+
+  return (
+    <>
+      <Modal onClose={onClose} title="Carrito">
+        <Payment
+          state={{
+            amountLeft: data.amountLeft,
+            amountToPayState: data.artItemsTotal,
+            currency: data.currency,
+            paymentMethods: data.paymentMethods,
+            tipsPercentages: data.tipsPercentages,
+          }}
+        >
+          <fetcher.Form method="POST" preventScrollReset>
+            <div className="p-2">
+              <div className="space-y-2">
+                {data.cartItems?.map((items: CartItem, index: number) => {
+                  return (
+                    <ItemContainer key={index} className="flex flex-row items-center justify-between space-x-2 ">
+                      <input type="hidden" name="variantId" value={item} />
+                      <FlexRow justify="between" className="w-full pr-2">
+                        <H4>{items.name}</H4>
+                        <H5 className="shrink-0">{formatCurrency(data.currency, items.price)}</H5>
+                      </FlexRow>
+                      <QuantityButton
+                        isForm={true}
+                        onDecrease={() => setItem(items.id)}
+                        onIncrease={() => setItem(items.id)}
+                        quantity={items.quantity}
+                        name="_action"
+                        decreaseValue="decreaseQuantity"
+                        increaseValue="increaseQuantity"
+                      />
+                    </ItemContainer>
+                  )
+                })}
+              </div>
+            </div>
+            <Spacer spaceY="2" />
+            {!showPaymentOptions ? (
+              <div className="sticky bottom-0 p-2 border-t rounded-t-lg border-x bg-day-bg_principal">
+                <FlexRow justify="between" className="px-2">
+                  <H4>Numero de platillos: </H4>
+                  <H3>{cartItemsQuantity}</H3>
+                </FlexRow>
+                <FlexRow justify="between" className="px-2">
+                  <H4>Total: </H4>
+                  <Underline>
+                    <H2>{formatCurrency(data.currency, data.cartItemsTotal)}</H2>
+                  </Underline>
+                </FlexRow>
+                <Spacer spaceY="3" />
+                <Button
+                  name="_action"
+                  value="submitCart"
+                  type="submit"
+                  size="medium"
+                  disabled={isSubmitting || data.cartItems?.length === 0}
+                  className="w-full"
+                >
+                  {isSubmitting ? (
+                    'Agregando platillos...'
+                  ) : (
+                    <div>
+                      <span className="font-light">Ordenar y </span>
+                      {<span className="font-bold button-outline underline-offset-8">pagar después</span>}
+                    </div>
+                  )}
+                </Button>
+                <Spacer spaceY="1" />
+                <Button
+                  onClick={() => setShowPaymentOptions(true)}
+                  className="w-full text-white"
+                  type="button"
+                  size="medium"
+                  variant="custom"
+                  custom="bg-success border-button-successOutline"
+                >
+                  ¡ Quiero pagar ahora 👍🏼 !
+                </Button>
+              </div>
+            ) : (
+              <CartPayment setShowPaymentOptions={setShowPaymentOptions} />
+            )}
+          </fetcher.Form>
+        </Payment>
+      </Modal>
+      <Outlet />
+    </>
+  )
+}
+
+const variants = {
+  hidden: {
+    height: 0,
+    opacity: 0,
+    transition: {
+      opacity: { duration: 0.2 },
+      height: { duration: 0.4 },
+    },
+  },
+  visible: {
+    height: 'auto',
+    opacity: 1,
+    transition: {
+      duration: 0.5,
+    },
+  },
+}
+
+export function CartPayment({ setShowPaymentOptions }: { setShowPaymentOptions: any }) {
+  const data = useLoaderData()
+  const navigation = useNavigation()
+  const { showModal, paymentRadio, tip, tipRadio } = usePayment()
+
+  const total = data.cartItemsTotal
+
+  const isSubmitting = navigation.state !== 'idle'
+
+  return (
+    <>
+      <div className="sticky inset-x-0 bottom-0 flex flex-col justify-center px-3 border-4 dark:bg-night-bg_principal dark:text-night-text_principal rounded-t-xl bg-day-bg_principal">
+        <Spacer spaceY="2" />
+        <motion.div variants={variants} initial="hidden" animate={'visible'} exit="hidden" className="flex flex-col">
+          <FlexRow justify="between">
+            <H5>Cantidad por {data.cartItems.length} platillos:</H5>
+            <H3>{formatCurrency(data.currency, total ? total : 0)}</H3>
+          </FlexRow>
+          <Spacer spaceY="1" />
+
+          <hr />
+          <Spacer spaceY="2" />
+
+          <Payment.TipButton />
+
+          <Spacer spaceY="2" />
+
+          <Payment.PayButton />
+
+          <Spacer spaceY="2" />
+          <hr />
+          <Spacer spaceY="2" />
+          <FlexRow justify="between">
+            <H5>Total:</H5>
+            <Underline>
+              <H3>
+                {formatCurrency(
+                  data.currency,
+                  total + tip, // Update the total amount
+                )}
+              </H3>
+            </Underline>
+          </FlexRow>
+          <Spacer spaceY="2" />
+
+          <Spacer spaceY="2" />
+          <Button
+            fullWith={true}
+            disabled={isSubmitting}
+            name="_action"
+            value="submitCart"
+            formMethod="PATCH"
+            variant="custom"
+            custom="bg-button-successOutline border-green-700"
+            className="text-button-successBg"
+          >
+            {isSubmitting ? 'Procesando...' : 'Pagar y ordenar'}
+          </Button>
+          <Spacer spaceY="1" />
+          <Button onClick={() => setShowPaymentOptions(false)} to="" variant={'danger'}>
+            Volver
+          </Button>
+        </motion.div>
+        {/* )}
+        </AnimatePresence> */}
+      </div>
+
+      {/* ANCHOR MODAL TIP */}
+      {showModal.tip && <Payment.TipModal />}
+
+      {showModal.payment && <Payment.PayModal />}
+
+      <input type="hidden" name="paymentMethod" value={paymentRadio} />
+      <input type="hidden" name="tipPercentage" value={tipRadio} />
+      <input type="hidden" name="cartItems" value={data.cartItems} />
+      <input type="hidden" name="amountToPay" value={data?.cartItemsTotal} />
+    </>
+  )
 }

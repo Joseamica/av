@@ -1,5 +1,7 @@
 import { useState } from 'react'
+import { FaDivide, FaExchangeAlt, FaList } from 'react-icons/fa'
 
+import { EditIcon, OutlineUsersIcon, UsersIcon } from '../icons'
 import { Button, LinkButton } from '../ui/buttons/button'
 // * UTILS
 import { Spacer } from '../util/spacer'
@@ -40,16 +42,40 @@ export function PayButtons({ setShowPaymentOptions }: { setShowPaymentOptions?: 
       <ModalPortal isOpen={showSplit} handleClose={() => setShowSplit(false)} title="Dividir cuenta">
         <div className="flex flex-col space-y-2 bg-white p-2">
           <LinkButton to="pay/perDish" onClick={handleSplitPay}>
-            Pagar por platillo
+            <div className="flex justify-between  w-full items-center">
+              <span className="">
+                <FaList />
+              </span>
+              <span> Pagar por articulo</span>
+              <span />
+            </div>
           </LinkButton>
           <LinkButton to="pay/perPerson" onClick={handleSplitPay}>
-            Pagar por usuario
+            <div className="flex justify-between  w-full items-center">
+              <span className="">
+                <OutlineUsersIcon />
+              </span>
+              <span> Pagar por alguien mas</span>
+              <span />
+            </div>
           </LinkButton>
           <LinkButton to="pay/equal-parts" onClick={handleSplitPay}>
-            Pagar en partes iguales
+            <div className="flex justify-between  w-full items-center">
+              <span className="">
+                <FaExchangeAlt />
+              </span>
+              <span> Dividir la cuenta en partes iguales</span>
+              <span />
+            </div>
           </LinkButton>
           <LinkButton to="pay/custom" onClick={handleSplitPay}>
-            Pagar monto personalizado
+            <div className="flex justify-between  w-full">
+              <span>
+                <EditIcon />
+              </span>
+              <span>Cantidad personalizada</span>
+              <span />
+            </div>
           </LinkButton>
         </div>
       </ModalPortal>
