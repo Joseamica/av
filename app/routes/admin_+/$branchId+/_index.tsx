@@ -8,7 +8,7 @@ import { getFieldsetConstraint, parse } from '@conform-to/zod'
 import { z } from 'zod'
 import { prisma } from '~/db.server'
 
-import { Button, Spacer } from '~/components'
+import { Button, H1, Spacer } from '~/components'
 import { ScrollableQueryDialog } from '~/components/admin/ui/dialogs/dialog'
 import { Field } from '~/components/admin/ui/forms'
 import { EditIcon } from '~/components/icons'
@@ -48,8 +48,24 @@ export async function loader({ request, params }: LoaderArgs) {
     where: {
       id: branchId,
     },
+    include: {
+      orders: {
+        select: {
+          tip: true,
+        },
+      },
+      payments: {
+        select: {
+          tip: true,
+        },
+      },
+    },
   })
-  return json({ branch })
+
+  const totalTips = branch.payments.reduce((acc, order) => acc + Number(order.tip), 0)
+
+  console.log('totalTips', branch.orders)
+  return json({ branch, totalTips })
 }
 
 export async function action({ request, params }: ActionArgs) {
@@ -162,7 +178,7 @@ export default function Index() {
               </div>
               <div className="mb-4">
                 <h2 className="text-lg font-bold">Tip Percentages</h2>
-                {data.branch.tipsPercentages.map((tip, index) => (
+                {data.branch.tipsPercentages?.map((tip, index) => (
                   <div key={index} className="p-1">
                     {tip}%
                   </div>
@@ -170,7 +186,7 @@ export default function Index() {
               </div>
               <div className="mb-4">
                 <h2 className="text-lg font-bold">Payment Methods</h2>
-                {data.branch.paymentMethods.map((pm, index) => (
+                {data.branch.paymentMethods?.map((pm, index) => (
                   <div key={index} className="p-1">
                     {pm.toUpperCase()}
                   </div>
@@ -179,6 +195,7 @@ export default function Index() {
             </div>
           </div>
         </div>
+        <H1>totalTips :{data.totalTips}</H1>
       </div>
       <ScrollableQueryDialog query="editItem" title="Edit">
         <fetcher.Form method="POST" className="" {...form.props}>

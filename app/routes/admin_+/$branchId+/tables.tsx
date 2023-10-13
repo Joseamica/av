@@ -1,5 +1,5 @@
 import { useForm } from '@conform-to/react'
-import { Form, useActionData, useLoaderData, useLocation, useRouteLoaderData, useSearchParams } from '@remix-run/react'
+import { Form, Link, useActionData, useLoaderData, useLocation, useRouteLoaderData, useSearchParams } from '@remix-run/react'
 import QRCode from 'qrcode.react'
 import { useState } from 'react'
 
@@ -244,13 +244,20 @@ export default function Tables() {
       </Form> */}
       <Spacer size="sm" />
       <div className="flex flex-wrap gap-2 ">
-        {branch.tables?.map((table: Table) => (
-          <div key={table.id} className={table.order ? 'border-4 border-green-400 rounded-xl' : ''}>
-            <Container editQuery={`?editItem=${table.id}`} name={table.number} itemIdQuery={`?itemId=${table.id}`} />
-            <div className="flex flex-col">
+        {branch.tables?.map((table: any) => (
+          <div key={table.id} className={table.order ? 'border-4 border-green-400 rounded-xl space-y-2 p-1' : ''}>
+            <p className="block text-center rounded-full">
               {table.users?.length > 0 && <span className="text-blue-400">user on table</span>}
-              {table.order && <span className="text-green-400">an order is active</span>}
-            </div>
+            </p>
+            <p className="block text-center">
+              {table.order && <span className="rounded-full border text-center text-green-400">order active</span>}
+            </p>
+            <Container editQuery={`?editItem=${table.id}`} name={table.number} itemIdQuery={`?itemId=${table.id}`} />
+
+            <Link to={`/table/${table.id}`} className="rounded-full border text-center block">
+              Go to table
+            </Link>
+
             {/* todo */}
             {/* <span>clean</span> */}
           </div>

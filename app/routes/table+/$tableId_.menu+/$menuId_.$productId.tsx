@@ -1,5 +1,5 @@
 import * as Separator from '@radix-ui/react-separator'
-import { useFetcher, useLoaderData, useNavigate, useParams } from '@remix-run/react'
+import { useFetcher, useLoaderData, useNavigate } from '@remix-run/react'
 import React from 'react'
 
 import { type ActionArgs, type LoaderArgs, json, redirect } from '@remix-run/node'
@@ -65,7 +65,7 @@ export async function loader({ request, params }: LoaderArgs) {
   })
 }
 export async function action({ request, params }: ActionArgs) {
-  const { tableId, menuId, productId } = params
+  const { tableId, productId } = params
   const formData = await request.formData()
   const productQuantity = Number(formData.get('productQuantity'))
   const modifiers = JSON.parse(formData.get('modifiers') as string)
@@ -86,10 +86,9 @@ export default function ProductId() {
 
   const fetcher = useFetcher()
   const navigate = useNavigate()
-  const params = useParams()
+  // const params = useParams()
   const [productQuantity, setProductQuantity] = React.useState<number>(1)
 
-  // console.log('modifiers', modifiers)
   const [tmodifiers, setTmodifiers] = React.useState([])
 
   const [errors, setErrors] = React.useState<Record<string, string>>({})
@@ -115,17 +114,18 @@ export default function ProductId() {
     return tmodifiers.find(tmodifier => tmodifier.id === modifier.id)?.quantity
   }
 
-  const totalModifierQuantity = tmodifiers.reduce((acc, tmodifier) => {
-    return acc + tmodifier.quantity
-  }, 0)
-
+  const getTotalModifierQuantityForGroup = modifierGroupId => {
+    return tmodifiers
+      .filter(tmodifier => tmodifier.modifierGroupId === modifierGroupId)
+      .reduce((acc, tmodifier) => acc + tmodifier.quantity, 0)
+  }
   const removeModifier = modifier => {
     setTmodifiers(tmodifiers.filter((tmodifier: any) => tmodifier.id !== modifier.id))
   }
 
   return (
     <Modal
-      onClose={() => navigate(`/table/${params.tableId}/menu/${params.menuId}`)}
+      onClose={() => navigate(-1)}
       title={data.product?.name}
       imgHeader={data.product?.image}
       // fullScreen={true}
@@ -185,7 +185,7 @@ export default function ProductId() {
 
                         <div
                           className={clsx('px-3  border rounded-full', {
-                            'bg-warning text-white fill-white animate-bounce': modifierGroup.id === errors.id,
+                            'bg-warning text-white fill-white animate-bounce z-0': modifierGroup.id === errors.id,
                           })}
                         >
                           {isRequired ? <H6>Obligatorio</H6> : <H6>Opcional</H6>}
@@ -199,7 +199,7 @@ export default function ProductId() {
                               type="button"
                               disabled={
                                 modifierGroup.max !== 0 &&
-                                totalModifierQuantity >= modifierGroup.max &&
+                                getTotalModifierQuantityForGroup(modifierGroup.id) >= modifierGroup.max &&
                                 !tmodifiers.flatMap((tmodifier: any) => tmodifier.id).includes(modifier.id)
                               }
                               onClick={() => {
@@ -225,7 +225,7 @@ export default function ProductId() {
                             >
                               <FlexRow>
                                 <div
-                                  className={clsx('border rounded-full h-5 w-5 flex justify-center items-center text-center p-1', {
+                                  className={clsx('border-2 rounded-full h-5 w-5 flex justify-center items-center text-center p-1', {
                                     'bg-success text-white fill-white': tmodifiers
                                       .flatMap((tmodifier: any) => tmodifier.id)
                                       .includes(modifier.id),
@@ -243,7 +243,7 @@ export default function ProductId() {
                                     {tmodifiers.flatMap((tmodifier: any) => tmodifier.id).includes(modifier.id) && (
                                       <>
                                         <div
-                                          className="border-2 h-4 w-4 flex justify-center items-center border-day-principal rounded-sm"
+                                          className="border-2 h-4 w-4 flex justify-center items-center border-day-principal rounded-sm             "
                                           onClick={e => {
                                             e.stopPropagation()
 
@@ -277,7 +277,7 @@ export default function ProductId() {
                                             if (
                                               tmodifiers.flatMap(tmodifier => tmodifier.id).includes(modifier.id) &&
                                               modifierGroup.max > getModifierQuantity(modifier) &&
-                                              totalModifierQuantity < modifierGroup.max
+                                              getTotalModifierQuantityForGroup(modifierGroup.id) < modifierGroup.max
                                             ) {
                                               const item = tmodifiers.map(tmodifier => {
                                                 if (tmodifier.id === modifier.id) {

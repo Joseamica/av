@@ -9,7 +9,11 @@ import { z } from 'zod'
 import { prisma } from '~/db.server'
 import { getSession, sessionStorage } from '~/session.server'
 
+import { getOrder } from '~/models/admin/order/order.server'
+
 import { EVENTS } from '~/events'
+
+import { getAmountLeftToPay } from '~/utils'
 
 import { Button, FlexRow, H2, H3, H5, XIcon } from '~/components'
 import { QueryDialog } from '~/components/admin/ui/dialogs/dialog'
@@ -81,6 +85,17 @@ export async function action({ request, params }: ActionArgs) {
         branchId: params.branchId,
         orderId: submission.value.orderId,
         userId: submission.value.userId,
+      },
+    })
+    const order = await getOrder(submission.value.orderId)
+    const amountLeft = await getAmountLeftToPay(order?.tableId)
+
+    await prisma.order.update({
+      where: { id: submission.value.orderId },
+      data: {
+        tip: submission.value.tip + Number(order.tip),
+        paid: amountLeft === 0 ? true : false,
+        paidDate: new Date(),
       },
     })
     await prisma.notification.update({
