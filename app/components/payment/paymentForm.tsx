@@ -10,7 +10,7 @@ import { formatCurrency } from '~/utils'
 import { Button } from '~/components/ui/buttons/button'
 import { FlexRow } from '~/components/util/flexrow'
 import { Spacer } from '~/components/util/spacer'
-import { H2, H3, H5 } from '~/components/util/typography'
+import { H3, H4, H5 } from '~/components/util/typography'
 
 const variants = {
   hidden: {
@@ -52,7 +52,7 @@ export function PaymentForm() {
 
   const location = useLocation()
   const isFullBillRoute = location.pathname.includes('full-bill') // Check if it's the full-bill route
-
+  const avoqadoService = context.total * 0.02
   return (
     <>
       <div className="dark:bg-night-bg_principal dark:text-night-text_principal sticky inset-x-0 bottom-0 flex flex-col justify-center rounded-t-xl border-2 border-button-textNotSelected border-opacity-70 bg-day-bg_principal px-3">
@@ -60,9 +60,9 @@ export function PaymentForm() {
         <FlexRow justify="between" className={clsx({ 'py-2': !showPayContent })}>
           {showPayContent ? <H5>Queda por pagar en la mesa:</H5> : <H3>Queda por pagar:</H3>}
           {showPayContent ? (
-            <H3>{formatCurrency(context.currency, context.amountLeft ? context.amountLeft : context.total)}</H3>
+            <H4>{formatCurrency(context.currency, context.amountLeft ? context.amountLeft : context.total)}</H4>
           ) : (
-            <H2>{formatCurrency(context.currency, context.amountLeft ? context.amountLeft : context.total)}</H2>
+            <H3>{formatCurrency(context.currency, context.amountLeft ? context.amountLeft : context.total)}</H3>
           )}
         </FlexRow>
         <Spacer spaceY="1" />
@@ -78,16 +78,24 @@ export function PaymentForm() {
               <hr />
               <Spacer spaceY="2" />
 
-              <Payment.TipButton />
+              <Payment.PayButton />
 
               <Spacer spaceY="2" />
 
-              <Payment.PayButton />
+              <Payment.TipButton />
 
               <Spacer spaceY="1" />
               <hr />
               <Spacer spaceY="1" />
 
+              <FlexRow justify="between">
+                <H5>Avoqado service</H5>
+                <H4>{formatCurrency(context.currency, avoqadoService)}</H4>
+              </FlexRow>
+              <Spacer spaceY="1" />
+              {/* <hr /> */}
+
+              {/* <Spacer spaceY="1" /> */}
               <FlexRow justify="between">
                 <Payment.PayTotal />
               </FlexRow>

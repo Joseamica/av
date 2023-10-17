@@ -102,7 +102,7 @@ export const loader = async ({ params, request }: LoaderArgs) => {
     )
     sendWaNotification({
       to: employeesNumbers,
-      body: `El usuario ${username} de la mesa ${table.number} quiere pagar en tarjeta ${amount} propina: ${tip} dando un total ${
+      body: `El usuario ${username} de la mesa ${table.number} ha pagado en tarjeta (Stripe) ${amount} propina: ${tip} dando un total ${
         amount + tip
       }`,
     })

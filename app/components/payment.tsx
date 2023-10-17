@@ -368,12 +368,12 @@ export function Payment({
                   <H3>{Translate('es', paymentRadio)}</H3>
                   {showModal.payment ? (
                     <FlexRow className="rounded-full bg-gray_light px-2 py-1">
-                      <H6>Cerrar</H6>
+                      {/* <H6>Cerrar</H6> */}
                       <ChevronUpIcon className="h-4 w-4" />
                     </FlexRow>
                   ) : (
                     <FlexRow className="rounded-full bg-gray_light px-2 py-1">
-                      <H6>Cambiar</H6>
+                      {/* <H6>Cambiar</H6> */}
                       <ChevronRightIcon className="h-4 w-4" />
                     </FlexRow>
                   )}

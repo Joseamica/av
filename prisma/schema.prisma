@@ -336,6 +336,7 @@ model Employee {
   id            String         @id @default(cuid())
   role          EmployeeRoles
   name          String
+  active        Boolean?       @default(true)
   image         String?
   phone         String?
   email         String?        @unique
@@ -374,12 +375,14 @@ model Feedback {
 
 model Session {
   id             String    @id @default(uuid())
-  createdAt      DateTime  @default(now())
+  active         Boolean   @default(true)
   user           User      @relation(fields: [userId], references: [id], onDelete: Cascade)
   userId         String
   employee       Employee? @relation(fields: [employeeId], references: [id], onDelete: Cascade)
   employeeId     String?
   expirationDate DateTime
+  updatedAt      DateTime? @updatedAt
+  createdAt      DateTime  @default(now())
 }
 
 model Payments {

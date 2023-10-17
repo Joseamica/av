@@ -125,6 +125,13 @@ export async function action({ request, params }: ActionArgs) {
         },
       })
     },
+    cartItem: async () => {
+      await prisma.cartItem.delete({
+        where: {
+          id: id,
+        },
+      })
+    },
   }
 
   await modelFunctions[model]()

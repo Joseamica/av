@@ -1,5 +1,15 @@
 import { useForm } from '@conform-to/react'
-import { Form, Link, useActionData, useLoaderData, useLocation, useRouteLoaderData, useSearchParams } from '@remix-run/react'
+import {
+  Form,
+  Link,
+  useActionData,
+  useFetcher,
+  useLoaderData,
+  useLocation,
+  useParams,
+  useRouteLoaderData,
+  useSearchParams,
+} from '@remix-run/react'
 import QRCode from 'qrcode.react'
 import { useState } from 'react'
 
@@ -122,11 +132,12 @@ export default function Tables() {
 
   const { branch } = useRouteLoaderData('routes/admin_+/$branchId') as RouteLoaderData
   const [searchParams] = useSearchParams()
-
+  const { branchId } = useParams()
   const itemId = searchParams.get('itemId')
   const tableIdUrl = `https://av.fly.dev/table/${data.table?.id}`
 
   const [domain, setDomain] = useState(tableIdUrl)
+  const fetcher = useFetcher()
   const location = useLocation()
 
   // const handleClick = () => {
@@ -216,6 +227,14 @@ export default function Tables() {
                         })}
                       </div>
                     </div>
+                    <fetcher.Form method="POST" action="/admin/deleteItem" name="DELETE">
+                      <Button type="submit" size="small" variant="danger">
+                        Delete
+                      </Button>
+                      <input type="hidden" name="id" value={cartItem.id} />
+                      <input type="hidden" name="model" value="cartItem" />
+                      <input type="hidden" name="redirect" value={`/admin/${branchId}/tables?itemId=${itemId}`} />
+                    </fetcher.Form>
                   </FlexRow>
                 )
               })}

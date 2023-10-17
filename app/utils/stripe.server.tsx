@@ -46,7 +46,7 @@ export const getStripeSession = async (
   const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
     apiVersion: '2022-11-15',
   })
-  const account = await stripe.accounts.retrieve('acct_1NuRFGBAuNoVK1pM')
+  // const account = await stripe.accounts.retrieve('acct_1NuRFGBAuNoVK1pM')
   // console.log('account' , account)
   const lineItems = [
     {
@@ -66,6 +66,10 @@ export const getStripeSession = async (
     },
   ]
 
+  //5% of the amount
+  const avoqadoCommission = amount * 0.02
+  console.log('avoqado comission', avoqadoCommission)
+
   const params = {
     typeOfPayment: typeOfPayment,
     amount: amount / 100,
@@ -75,6 +79,19 @@ export const getStripeSession = async (
     isOrderAmountFullPaid: isOrderAmountFullPaid,
   }
   const queryString = createQueryString(params)
+  // const paymentIntent = await stripe.paymentIntents.create(
+  //   {
+  //     amount: amount,
+  //     currency: currency,
+  //     automatic_payment_methods: {
+  //       enabled: true,
+  //     },
+  //     application_fee_amount: 123,
+  //   },
+  //   {
+  //     stripeAccount: 'acct_1O2JglK0u0kbLQyR',
+  //   },
+  // )
 
   const session = await stripe.checkout.sessions.create({
     mode: 'payment',
@@ -93,24 +110,24 @@ export const getStripeSession = async (
     // invoice_creation: {
 
     // },
-    invoice_creation: {
-      enabled: true,
-      invoice_data: {
-        custom_fields: [
-          {
-            name: 'productos',
-            value: 'TEST',
-          },
-        ],
-      },
-    },
+    // invoice_creation: {
+    //   enabled: true,
+    //   invoice_data: {
+    //     custom_fields: [
+    //       {
+    //         name: 'productos',
+    //         value: 'TEST',
+    //       },
+    //     ],
+    //   },
+    // },
     payment_intent_data: {
-      application_fee_amount: 1000,
+      application_fee_amount: avoqadoCommission,
 
       transfer_data: {
-        destination: 'acct_1NuRFGBAuNoVK1pM',
+        destination: 'acct_1O2JglK0u0kbLQyR',
       },
-      on_behalf_of: 'acct_1NuRFGBAuNoVK1pM', // The account you are acting on behalf of
+      on_behalf_of: 'acct_1O2JglK0u0kbLQyR', // The account you are acting on behalf of
     },
     success_url: `${domainUrl}/payment/success?${queryString}`,
     cancel_url: `${domainUrl}`,

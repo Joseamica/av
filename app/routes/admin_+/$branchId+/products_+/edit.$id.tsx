@@ -135,6 +135,9 @@ export async function action({ request, params }: ActionArgs) {
           products: {
             set: [],
           },
+          modifiers: {
+            set: [],
+          },
         },
       })
       await prisma.modifierGroup.update({

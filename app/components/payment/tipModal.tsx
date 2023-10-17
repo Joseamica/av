@@ -20,18 +20,17 @@ function TipModal() {
   const handleTipChange = e => {
     setTipRadio(Number(e.target.value))
   }
-  console.log(tipRadio, total)
 
   return (
     <>
       <SubModal onClose={handleModal} title="Asignar propina">
-        <div className="flex flex-col space-y-2">
+        <div className="flex flex-col space-y-3">
           {tipsPercentages &&
             tipsPercentages.map((tipPercentage: any) => (
               <label
                 key={tipPercentage}
                 className={clsx(
-                  'flex w-full flex-row items-center justify-center space-x-2 rounded-lg border border-button-outline border-opacity-40 px-3 py-1 text-center shadow-lg',
+                  'flex w-full flex-row items-center justify-center space-x-2 rounded-full border border-button-outline border-opacity-40 px-3 py-1 text-center shadow-lg',
                   {
                     'text-2 rounded-full bg-button-primary px-2 py-1  text-white  ring-4   ring-button-outline':
                       tipRadio.toString() === tipPercentage,
@@ -63,7 +62,7 @@ function TipModal() {
           <span>Otro</span>
           <input type="text" onChange={handleTipChange} />
         </div> */}
-        <Spacer spaceY="2" />
+        <Spacer spaceY="4" />
         <H3 className="flex w-full flex-row justify-center">Tu propina: {formatCurrency(currency, tip)}</H3>
         <Spacer spaceY="2" />
         <Button fullWith={true} onClick={handleModal}>

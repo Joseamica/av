@@ -16,7 +16,7 @@ export function PayModal() {
 
   return (
     <SubModal onClose={() => setShowModal(currentState => ({ ...currentState, payment: false }))} title="Asignar método de pago">
-      <div className="space-y-2">
+      <div className="space-y-4">
         {paymentMethods.paymentMethods.map((paymentMethod: any) => {
           const translate = Translate('es', paymentMethod)
 

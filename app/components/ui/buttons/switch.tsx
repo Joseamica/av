@@ -1,4 +1,5 @@
 import { motion } from 'framer-motion'
+
 import { H4 } from '../../util/typography'
 
 const sizes = {
@@ -45,12 +46,12 @@ export function SwitchButton({
   }
   return (
     // prettier-ignore
-    <motion.button className={`flex  ${sizes[size]} ${heights[height]}  cursor-pointer items-center ${allCornersRounded ? 'rounded-xl' : ' rounded-t-xl'} bg-button-notSelected ${allCornersRounded && 'p-1'}  shadow-inner hover:cursor-pointer ${state && 'place-content-end'}`}
+    <motion.button type="button" className={`flex  ${sizes[size]} ${heights[height]}  cursor-pointer items-center ${allCornersRounded ? 'rounded-xl' : ' rounded-t-xl'} bg-button-notSelected ${allCornersRounded && 'p-1'}  shadow-inner hover:cursor-pointer ${state && 'place-content-end'}`}
       onClick={toggleSwitch}
     >
       {state ? (
         <div className="flex  w-1/2 flex-row items-center justify-center space-x-2 text-white">
-          <i className="flex h-5 w-5 items-center fill-zinc-400">{leftIcon}</i>
+          <i className="flex h-5 w-5 items-center fill-zinc-400 text-zinc-400">{leftIcon}</i>
           {stretch ? <H4 className="text-zinc-400">{leftText}</H4> : null}
         </div>
       ) : null}

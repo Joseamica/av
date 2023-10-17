@@ -27,9 +27,11 @@ function Payment({
     payment: false,
   })
   const [paymentRadio, setPaymentRadio] = React.useState('card')
-  const [tipRadio, setTipRadio] = React.useState(12)
+  const [tipRadio, setTipRadio] = React.useState(15)
   const tip = Number(state.amountToPayState) * (Number(tipRadio) / 100)
-  const total = Number(state.amountToPayState) + tip
+  const subtotal = Number(state.amountToPayState) + tip
+  const avoqadoFee = subtotal * 0.05
+  const total = subtotal + avoqadoFee
 
   const handleMethodChange = e => {
     setPaymentRadio(e.target.value)

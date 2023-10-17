@@ -1,6 +1,6 @@
-import { ChevronRightIcon, ChevronUpIcon } from '../icons'
+import { ChevronRightIcon } from '../icons'
 import { FlexRow } from '../util/flexrow'
-import { H3, H4, H5, H6 } from '../util/typography'
+import { H4, H5 } from '../util/typography'
 import { usePayment } from './paymentV3'
 
 import { formatCurrency } from '~/utils'
@@ -14,24 +14,16 @@ function TipButton() {
 
   return (
     <>
-      <button className="flex flex-row items-center justify-between" type="button" onClick={handleModal}>
+      <button className="flex flex-row items-center justify-between " type="button" onClick={handleModal}>
         <H5>Propina</H5>
-        <FlexRow>
-          <FlexRow>
-            <H4 variant="secondary">{tipRadio}%</H4>
-            <H3>{formatCurrency(currency, tip)}</H3>
+
+        <FlexRow className="border rounded-full pl-3 bg-[#F7FAFC]">
+          <H5 variant="secondary">{tipRadio}%</H5>
+          <H4>{formatCurrency(currency, tip)}</H4>
+          <FlexRow className="rounded-full bg-day-principal text-white px-2 py-1">
+            {/* <H4>Cambiar</H4> */}
+            <ChevronRightIcon className="h-4 w-4" />
           </FlexRow>
-          {showModalTip ? (
-            <FlexRow className="rounded-full bg-gray_light px-2 py-1">
-              <H6>Cerrar</H6>
-              <ChevronUpIcon className="h-4 w-4" />
-            </FlexRow>
-          ) : (
-            <FlexRow className="rounded-full bg-day-principal px-2 py-1 text-white">
-              <H4>Cambiar</H4>
-              <ChevronRightIcon className="h-4 w-4" />
-            </FlexRow>
-          )}
         </FlexRow>
       </button>
 

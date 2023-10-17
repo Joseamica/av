@@ -46,7 +46,7 @@ export function PayButtons({ setShowPaymentOptions }: { setShowPaymentOptions?: 
               <span className="">
                 <FaList />
               </span>
-              <span> Pagar por articulo</span>
+              <span className="text-base"> Pagar por articulo</span>
               <span />
             </div>
           </LinkButton>
@@ -55,7 +55,7 @@ export function PayButtons({ setShowPaymentOptions }: { setShowPaymentOptions?: 
               <span className="">
                 <OutlineUsersIcon />
               </span>
-              <span> Pagar por alguien mas</span>
+              <span className="text-base"> Pagar por alguien mas</span>
               <span />
             </div>
           </LinkButton>
@@ -64,7 +64,7 @@ export function PayButtons({ setShowPaymentOptions }: { setShowPaymentOptions?: 
               <span className="">
                 <FaExchangeAlt />
               </span>
-              <span> Dividir la cuenta en partes iguales</span>
+              <span className="text-base"> Dividir la cuenta en partes iguales</span>
               <span />
             </div>
           </LinkButton>
@@ -73,7 +73,7 @@ export function PayButtons({ setShowPaymentOptions }: { setShowPaymentOptions?: 
               <span>
                 <EditIcon />
               </span>
-              <span>Cantidad personalizada</span>
+              <span className="text-base">Cantidad personalizada</span>
               <span />
             </div>
           </LinkButton>

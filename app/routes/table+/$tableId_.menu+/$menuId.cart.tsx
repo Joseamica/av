@@ -1,5 +1,6 @@
 import { Outlet, useFetcher, useLoaderData, useNavigate, useNavigation, useParams } from '@remix-run/react'
 import React, { useState } from 'react'
+import { FaHourglassHalf } from 'react-icons/fa'
 
 import { json, redirect } from '@remix-run/node'
 import type { ActionArgs, LoaderArgs } from '@remix-run/server-runtime'
@@ -23,8 +24,24 @@ import { EVENTS } from '~/events'
 import { formatCurrency, getAmountLeftToPay, getCurrency } from '~/utils'
 import { handlePaymentProcessing } from '~/utils/payment-processing.server'
 
-import { Button, FlexRow, H2, H3, H4, H5, ItemContainer, Modal, QuantityButton, Spacer, Underline } from '~/components'
+import {
+  Button,
+  CashIcon,
+  DollarIcon,
+  FlexRow,
+  H2,
+  H3,
+  H4,
+  H5,
+  ItemContainer,
+  Modal,
+  QuantityButton,
+  Spacer,
+  SwitchButton,
+  Underline,
+} from '~/components'
 import Payment, { usePayment } from '~/components/payment/paymentV3'
+import { CustomTabs, TabButton } from '~/components/tab-button'
 
 // ANCHOR LOADER
 export async function loader({ request, params }: LoaderArgs) {
@@ -250,8 +267,6 @@ export async function action({ request, params }: ActionArgs) {
             type: 'informative',
           },
         })
-        EVENTS.ISSUE_CHANGED(tableId, branchId)
-
         const result = await handlePaymentProcessing({
           paymentMethod: paymentMethod as string,
           total: amountToPay,
@@ -261,8 +276,9 @@ export async function action({ request, params }: ActionArgs) {
           request,
           redirectTo,
           typeOfPayment: 'cartPay',
-          extraData: { branchId, tableId, order },
+          extraData: { branchId, tableId, order: order.id },
         })
+        EVENTS.ISSUE_CHANGED(tableId, branchId)
 
         if (result.type === 'redirect') {
           return redirect(result.url)
@@ -324,6 +340,7 @@ export default function Cart() {
   const [item, setItem] = React.useState('')
   const fetcher = useFetcher()
   const params = useParams()
+  const [payNow, setPayNow] = useState(false)
 
   // const cart = searchParams.get('cart')
   const navigate = useNavigate()
@@ -351,7 +368,7 @@ export default function Cart() {
         <Payment
           state={{
             amountLeft: data.amountLeft,
-            amountToPayState: data.artItemsTotal,
+            amountToPayState: data.cartItemsTotal,
             currency: data.currency,
             paymentMethods: data.paymentMethods,
             tipsPercentages: data.tipsPercentages,
@@ -384,6 +401,20 @@ export default function Cart() {
             </div>
             <Spacer spaceY="2" />
             {!showPaymentOptions ? (
+              <SwitchButton
+                state={payNow}
+                setToggle={setPayNow}
+                leftText="Pagar después"
+                rightText="Pagar ahora"
+                rightIcon={<CashIcon />}
+                leftIcon={<FaHourglassHalf />}
+                stretch
+                height="medium"
+                allCornersRounded={false}
+              />
+            ) : null}
+
+            {!showPaymentOptions ? (
               <div className="sticky bottom-0 p-2 border-t rounded-t-lg border-x bg-day-bg_principal">
                 <FlexRow justify="between" className="px-2">
                   <H4>Numero de platillos: </H4>
@@ -396,34 +427,41 @@ export default function Cart() {
                   </Underline>
                 </FlexRow>
                 <Spacer spaceY="3" />
-                <Button
-                  name="_action"
-                  value="submitCart"
-                  type="submit"
-                  size="medium"
-                  disabled={isSubmitting || data.cartItems?.length === 0}
-                  className="w-full"
-                >
-                  {isSubmitting ? (
-                    'Agregando platillos...'
-                  ) : (
+                {payNow ? (
+                  <Button
+                    onClick={() => setShowPaymentOptions(true)}
+                    className="w-full text-white"
+                    type="button"
+                    size="medium"
+                    // variant="custom"
+                    // custom="bg-success border-button-successOutline"
+                  >
                     <div>
-                      <span className="font-light">Ordenar y </span>
-                      {<span className="font-bold button-outline underline-offset-8">pagar después</span>}
+                      <span className="font-light">Pagar mis productos </span>
+                      {<span className="font-bold button-outline underline-offset-8">ahora</span>}
                     </div>
-                  )}
-                </Button>
+                  </Button>
+                ) : (
+                  <Button
+                    name="_action"
+                    value="submitCart"
+                    type="submit"
+                    size="medium"
+                    disabled={isSubmitting || data.cartItems?.length === 0}
+                    className="w-full"
+                  >
+                    {isSubmitting ? (
+                      'Agregando platillos...'
+                    ) : (
+                      <div>
+                        <span className="font-light">Ordenar y </span>
+                        {<span className="font-bold button-outline underline-offset-8">pagar después</span>}
+                      </div>
+                    )}
+                  </Button>
+                )}
+
                 <Spacer spaceY="1" />
-                <Button
-                  onClick={() => setShowPaymentOptions(true)}
-                  className="w-full text-white"
-                  type="button"
-                  size="medium"
-                  variant="custom"
-                  custom="bg-success border-button-successOutline"
-                >
-                  ¡ Quiero pagar ahora 👍🏼 !
-                </Button>
               </div>
             ) : (
               <CartPayment setShowPaymentOptions={setShowPaymentOptions} />
@@ -506,9 +544,9 @@ export function CartPayment({ setShowPaymentOptions }: { setShowPaymentOptions: 
             name="_action"
             value="submitCart"
             formMethod="PATCH"
-            variant="custom"
-            custom="bg-button-successOutline border-green-700"
-            className="text-button-successBg"
+            // variant="custom"
+            // custom="bg-button-successOutline border-green-700"
+            // className="text-button-successBg"
           >
             {isSubmitting ? 'Procesando...' : 'Pagar y ordenar'}
           </Button>

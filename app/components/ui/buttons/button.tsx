@@ -153,7 +153,7 @@ function QuantityButton({
               name={name}
               value={decreaseValue}
             >
-              <DeleteIcon className="w-5 h-5 fill-warning" />
+              <DeleteIcon className="w-4 h-4" />
             </button>
           ) : (
             <button

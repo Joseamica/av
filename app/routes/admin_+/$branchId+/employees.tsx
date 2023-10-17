@@ -5,6 +5,7 @@ import { type ActionArgs, type LoaderArgs, json, redirect } from '@remix-run/nod
 
 import { getFieldsetConstraint, parse } from '@conform-to/zod'
 import bcrypt from 'bcryptjs'
+import clsx from 'clsx'
 import { namedAction } from 'remix-utils'
 import { z } from 'zod'
 import { prisma } from '~/db.server'
@@ -163,17 +164,19 @@ export default function Employees() {
       <HeaderWithButton queryKey="addItem" queryValue="true" buttonLabel="Add" />
       <div className="flex flex-wrap gap-2 p-4">
         {data.employees.map(employee => (
-          <Square
-            itemId={employee.id}
-            name={
-              <>
-                <H5 boldVariant="bold">{employee.name}</H5>
-                <H5>{employee.role}</H5>
-              </>
-            }
-            to={employee.id}
-            key={employee.id}
-          />
+          <div key={employee.id} className={clsx({ 'border-2 rounded-2xl border-green-300': employee.active })}>
+            <Square
+              itemId={employee.id}
+              name={
+                <>
+                  <H5 boldVariant="bold">{employee.name}</H5>
+                  <H5>{employee.role}</H5>
+                </>
+              }
+              to={employee.id}
+            />
+            {employee.active ? <p>active</p> : <p>inactive</p>}
+          </div>
         ))}
       </div>
       <ScrollableQueryDialog title="Add Employee" description="Add to the fields you want to add" query={'addItem'}>
