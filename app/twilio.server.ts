@@ -24,11 +24,11 @@ export async function sendWaNotification({ from = '14155238886', to, body }: { f
     return client.messages
       .create({
         body,
-        from: `whatsapp:${from}`,
-        to: `whatsapp:+${phone}`,
+        // from: `whatsapp:${from}`,
+        // to: `whatsapp:+${phone}`,
         // body: 'Test',
-        // from: '+18149149288',
-        // to: '+525512956265',
+        from: '+18149149288',
+        to: '+' + phone,
       })
       .catch(error => {
         console.error(`Error sending WhatsApp message to +${phone}:`, error)
