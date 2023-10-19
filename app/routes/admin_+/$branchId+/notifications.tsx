@@ -34,6 +34,9 @@ export async function loader({ request, params }: LoaderArgs) {
         in: ['pending', 'rejected', 'received'],
       },
     },
+    orderBy: {
+      createdAt: 'desc',
+    },
     include: {
       table: true,
       user: true,

@@ -10,13 +10,15 @@ export function PayTotal() {
 
   const location = useLocation()
   const isFullBillRoute = location.pathname.includes('full-bill') // Check if it's the full-bill route
-
+  const avoqadoFee = (context.amountLeft + context.tip) * 0.02
   return (
     <>
       <H5>Vas a pagar:</H5>
       <div className="flex flex-col">
         {/* <H2>{formatCurrency(context.currency, context.amountLeft ? context.amountLeft : 0)}</H2> */}
-        <H3>{formatCurrency(context.currency, isFullBillRoute ? context.amountLeft + context.tip || 0 : context.total || 0)}</H3>
+        <H3>
+          {formatCurrency(context.currency, isFullBillRoute ? context.amountLeft + context.tip + avoqadoFee || 0 : context.total || 0)}
+        </H3>
 
         <svg viewBox="0 0 72 6" fill="none" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none" className="_6c0fqz5 r7kwpu12">
           <path

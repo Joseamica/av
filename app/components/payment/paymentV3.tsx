@@ -30,7 +30,9 @@ function Payment({
   const [tipRadio, setTipRadio] = React.useState(15)
   const tip = Number(state.amountToPayState) * (Number(tipRadio) / 100)
   const subtotal = Number(state.amountToPayState) + tip
-  const avoqadoFee = subtotal * 0.05
+
+  const avoqadoFee = subtotal * 0.02
+
   const total = subtotal + avoqadoFee
 
   const handleMethodChange = e => {

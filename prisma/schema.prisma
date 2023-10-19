@@ -185,6 +185,7 @@ model Order {
   active        Boolean?
   table         Table?         @relation(fields: [tableId], references: [id])
   tableId       String?        @unique
+  tableNumber   Int?
   users         User[]
   branch        Branch?        @relation(fields: [branchId], references: [id])
   branchId      String?

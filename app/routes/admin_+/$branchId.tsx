@@ -25,8 +25,12 @@ export async function loader({ request, params }: LoaderArgs) {
         feedbacks: true,
         tables: { include: { order: true, users: true } },
         orders: {
+          orderBy: {
+            createdAt: 'desc',
+          },
           include: {
             cartItems: true,
+            table: true,
           },
         },
 

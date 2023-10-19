@@ -42,7 +42,9 @@ export const getStripeSession = async (
 
   // const e = JSON.parse(decodeURIComponent(encodedExtraData))
   // console.log('e', extraData)
-
+  //2% of the amount
+  const avoqadoCommission = Math.floor(amount * 0.02)
+  console.log('avoqado comission', avoqadoCommission)
   const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
     apiVersion: '2022-11-15',
   })
@@ -60,15 +62,11 @@ export const getStripeSession = async (
             'https://firebasestorage.googleapis.com/v0/b/avoqado-d0a24.appspot.com/o/AVOQADO.png?alt=media&token=fae6250d-743c-4dbc-8432-19b4bbdcc35a',
           ],
         },
-        unit_amount: amount,
+        unit_amount: amount + avoqadoCommission,
       },
       quantity: 1,
     },
   ]
-
-  //5% of the amount
-  const avoqadoCommission = amount * 0.02
-  console.log('avoqado comission', avoqadoCommission)
 
   const params = {
     typeOfPayment: typeOfPayment,
@@ -122,8 +120,8 @@ export const getStripeSession = async (
     //   },
     // },
     payment_intent_data: {
-      application_fee_amount: avoqadoCommission,
-
+      // application_fee_amount: Math.floor(avoqadoCommission),
+      application_fee_amount: 1000,
       transfer_data: {
         destination: 'acct_1O2JglK0u0kbLQyR',
       },

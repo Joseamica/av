@@ -52,7 +52,9 @@ export function PaymentForm() {
 
   const location = useLocation()
   const isFullBillRoute = location.pathname.includes('full-bill') // Check if it's the full-bill route
-  const avoqadoService = context.total * 0.02
+  const avoqadoFee = context.total * 0.02
+  const fullBillAvoqadoFee = context.amountLeft * 0.02
+
   return (
     <>
       <div className="dark:bg-night-bg_principal dark:text-night-text_principal sticky inset-x-0 bottom-0 flex flex-col justify-center rounded-t-xl border-2 border-button-textNotSelected border-opacity-70 bg-day-bg_principal px-3">
@@ -90,7 +92,7 @@ export function PaymentForm() {
 
               <FlexRow justify="between">
                 <H5>Avoqado service</H5>
-                <H4>{formatCurrency(context.currency, avoqadoService)}</H4>
+                <H4>{formatCurrency(context.currency, avoqadoFee)}</H4>
               </FlexRow>
               <Spacer spaceY="1" />
               {/* <hr /> */}
@@ -103,7 +105,7 @@ export function PaymentForm() {
               <Spacer spaceY="2" />
               <Button fullWith={true} disabled={isSubmitting}>
                 {isSubmitting ? 'Procesando...' : 'Pagar'}{' '}
-                {formatCurrency(context.currency, isFullBillRoute ? context.amountLeft + context.tip : context.total)}
+                {formatCurrency(context.currency, isFullBillRoute ? context.amountLeft + context.tip + fullBillAvoqadoFee : context.total)}
               </Button>
             </motion.div>
           )}

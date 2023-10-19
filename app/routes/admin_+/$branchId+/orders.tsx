@@ -14,7 +14,7 @@ import { getOrder } from '~/models/admin/order/order.server'
 import { getSearchParams } from '~/utils'
 import { checkboxSchema } from '~/utils/zod-extensions'
 
-import { Spacer } from '~/components'
+import { H1, H2, H4, Spacer } from '~/components'
 import { HeaderSection } from '~/components/admin/headers'
 import { EditOrderDialog } from '~/components/admin/orders/dialogs/edit'
 import { Container } from '~/components/admin/ui/container'
@@ -46,8 +46,8 @@ export async function loader({ request, params }: LoaderArgs) {
     const order = await getOrder(orderId, {
       table: true,
       users: true,
-      cartItems: { include: { product: true } },
-      payments: true,
+      cartItems: { include: { product: true, productModifiers: true } },
+      payments: { include: { user: true } },
     })
 
     return json({ order })
@@ -123,7 +123,69 @@ export default function Orders() {
       <div>
         <HeaderSection backPath="" title="Orders" breadcrumb={itemId} showAdd={false} />
 
-        <ItemInfo title="Users" itemObject={data.order} />
+        <div className="border p-2">
+          <H1>Order</H1>
+          <p> Mesa: {data.order.tableNumber}</p>
+          <p>Fecha: {data.order.createdAt}</p>
+          <div>Monto: ${data.order.total - data.order.tip}</div>
+          <div>Tip: ${data.order.tip ? data.order.tip : 0}</div>
+          <div>Total:$ {data.order.total}</div>
+          <p>{data.order.active ? 'Activa' : 'No activa'}</p>
+          <Spacer size="sm" />
+
+          <div className="space-y-2 border-2 border-green-200">
+            <H2>Productos</H2>
+            {data.order.cartItems.map(cartItem => {
+              return (
+                <div key={cartItem.id} className="border-2 border-day-500">
+                  <p>Producto: {cartItem.name}</p>
+                  <div className="border border-blue-200">
+                    <H4>Modificadores</H4>
+                    {cartItem.productModifiers.map(pm => {
+                      return (
+                        <div key={pm.id} className="flex space-x-2">
+                          <p>{pm.name}</p>
+                          <p>${pm.extraPrice}</p>
+                        </div>
+                      )
+                    })}
+                  </div>
+                </div>
+              )
+            })}
+          </div>
+          <Spacer size="sm" />
+          {data.order.payments.length > 0 && (
+            <div className="space-y-2 border-2 border-purple-200">
+              <H2>Pagos</H2>
+              {data.order.payments.map(payment => {
+                return (
+                  <div key={payment.id} className="">
+                    <p>{payment.method}</p>
+                    <p>monto: ${payment.amount}</p>
+                    <p>tip: ${payment.tip}</p>
+                    <p>total:{payment.total}</p>
+                    <p>Pagado por: {payment.user.name}</p>
+                    <p>{payment.createdAt}</p>
+                  </div>
+                )
+              })}
+            </div>
+          )}
+          <Spacer size="sm" />
+          {data.order.users.length > 0 && (
+            <div className="space-y-2 border-2 border-slate-300">
+              <H2>Usuarios</H2>
+              {data.order.users.map(user => {
+                return (
+                  <div key={user.id} className="">
+                    <p>{user.name}</p>
+                  </div>
+                )
+              })}
+            </div>
+          )}
+        </div>
       </div>
     )
   }
@@ -136,7 +198,12 @@ export default function Orders() {
       <Spacer size="sm" />
       <div className="flex flex-wrap gap-2 ">
         {branch.orders.map((order: Order) => (
-          <Container editQuery={`?editItem=${order.id}`} name={order.id} itemIdQuery={`?itemId=${order.id}`} key={order.id} />
+          <Container
+            editQuery={`?editItem=${order.id}`}
+            name={`Mesa: ${order.tableNumber} total: ${order.total}, ${order.createdAt}`}
+            itemIdQuery={`?itemId=${order.id}`}
+            key={order.id}
+          />
         ))}
       </div>
     </div>

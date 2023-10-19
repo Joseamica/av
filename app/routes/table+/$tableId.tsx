@@ -124,6 +124,7 @@ export async function loader({ request, params }: LoaderArgs) {
           where: { id: order?.id },
           data: {
             users: { connect: { id: user.userId } },
+            tableNumber: table.number,
           },
         })
         EVENTS.ISSUE_CHANGED(tableId)
