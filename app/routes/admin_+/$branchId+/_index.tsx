@@ -55,6 +55,7 @@ export async function loader({ request, params }: LoaderArgs) {
         },
       },
       payments: {
+        where: { status: 'accepted' },
         select: {
           tip: true,
         },
@@ -64,7 +65,6 @@ export async function loader({ request, params }: LoaderArgs) {
 
   const totalTips = branch.payments.reduce((acc, order) => acc + Number(order.tip), 0)
 
-  console.log('totalTips', branch.orders)
   return json({ branch, totalTips })
 }
 

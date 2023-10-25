@@ -12,6 +12,8 @@ import { sendWaNotification } from '~/twilio.server'
 
 import { getTable } from '~/models/table.server'
 
+import { EVENTS } from '~/events'
+
 import { Button, FlexRow, ItemContainer, Modal } from '~/components'
 
 export async function action({ request, params }: ActionArgs) {
@@ -35,10 +37,11 @@ export async function action({ request, params }: ActionArgs) {
 
   await prisma.notification.create({
     data: {
+      type_temp: 'CALL',
       message: `El usuario ${username} de la mesa ${table?.number} llama al mesero`,
       type: 'informative',
       method: 'push',
-      status: 'received',
+      status: 'pending',
       branchId: table?.branchId,
       employees: {
         connect: ids.map(id => ({ id })),
@@ -47,6 +50,7 @@ export async function action({ request, params }: ActionArgs) {
       userId,
     },
   })
+  EVENTS.ISSUE_CHANGED()
   return redirect(redirectTo)
 }
 

@@ -26,6 +26,15 @@ export function CategoryForm({
   return (
     <>
       <Field
+        labelProps={{ children: 'Display Order' }}
+        inputProps={{
+          ...conform.input(fields.displayOrder, { type: 'number' }),
+          required: true,
+          defaultValue: isEditing ? categories.find(category => category.id === editSubItemId)?.displayOrder : '',
+        }}
+        errors={[fields?.displayOrder.errors]}
+      />
+      <Field
         labelProps={{ children: 'Name' }}
         inputProps={{
           ...conform.input(fields.name),

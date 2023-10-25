@@ -24,6 +24,7 @@ import { ButtonLink } from '~/components/ui/buttons/button'
 
 const productSchema = z.object({
   id: z.string(),
+
   plu: z
     .string()
     .min(5)
@@ -62,6 +63,16 @@ export async function loader({ request, params }: LoaderArgs) {
     where: {
       branchId: params.branchId,
     },
+    orderBy: [
+      {
+        available: 'asc', // Sort by createdAt field in the parent model
+      },
+      {
+        products: {
+          _count: 'desc', // Sort by name field in the related model
+        },
+      },
+    ],
     include: {
       modifiers: true,
     },
@@ -71,6 +82,16 @@ export async function loader({ request, params }: LoaderArgs) {
     where: {
       branchId: params.branchId,
     },
+    orderBy: [
+      {
+        available: 'asc', // Sort by createdAt field in the parent model
+      },
+      {
+        modifierGroups: {
+          available: 'asc', // Sort by createdAt field in the parent model
+        },
+      },
+    ],
   })
   invariant(products, 'categories must be defined')
   const searchParams = getSearchParams({ request })
@@ -91,6 +112,8 @@ export async function action({ request, params }: ActionArgs) {
   const searchParams = getSearchParams({ request })
   const { branchId } = params
   const available = formData.get('available') as string
+  const modifierGAvailable = formData.get('modifierGAvailable') as string
+  const modifierAvailable = formData.get('modifierAvailable') as string
   const id = formData.get('id') as string
 
   if (available === 'true') {
@@ -102,6 +125,37 @@ export async function action({ request, params }: ActionArgs) {
     })
   } else if (available === 'false') {
     await prisma.product.update({
+      where: { id, branchId },
+      data: {
+        available: true,
+      },
+    })
+  }
+  if (modifierGAvailable === 'true') {
+    await prisma.modifierGroup.update({
+      where: { id, branchId },
+      data: {
+        available: false,
+      },
+    })
+  } else if (modifierGAvailable === 'false') {
+    await prisma.modifierGroup.update({
+      where: { id, branchId },
+      data: {
+        available: true,
+      },
+    })
+  }
+
+  if (modifierAvailable === 'true') {
+    await prisma.modifiers.update({
+      where: { id, branchId },
+      data: {
+        available: false,
+      },
+    })
+  } else if (modifierAvailable === 'false') {
+    await prisma.modifiers.update({
       where: { id, branchId },
       data: {
         available: true,
@@ -259,10 +313,10 @@ export default function Products() {
               <fetcher.Form method="POST">
                 <button
                   className="icon-button w-10 flex items-center justify-center "
-                  onClick={() => {
-                    searchParams.set('available', product.available)
-                    setSearchParams(searchParams)
-                  }}
+                  // onClick={() => {
+                  //   searchParams.set('available', product.available)
+                  //   setSearchParams(searchParams)
+                  // }}
                 >
                   {product.available ? <FaPause /> : <FaPlay className="fill-green-300" />}
                 </button>
@@ -281,13 +335,20 @@ export default function Products() {
             {data.modifierGroups?.map(modifierG => {
               return (
                 <div className="flex flex-col" key={modifierG.id}>
-                  <Square
-                    itemId={modifierG.id}
-                    name={modifierG.name}
-                    to={`edit/${modifierG.id}?edit=modifierG`}
-                    key={modifierG.id}
-                    editIsRoute={true}
-                  />
+                  <Square itemId={modifierG.id} name={modifierG.name} to={modifierG.id} key={modifierG.id} />
+                  <fetcher.Form method="POST">
+                    <button
+                      className="icon-button w-10 flex items-center justify-center "
+                      // onClick={() => {
+                      //   searchParams.set('modifierGAvailable', modifierG.available)
+                      //   setSearchParams(searchParams)
+                      // }}
+                    >
+                      {modifierG.available ? <FaPause /> : <FaPlay className="fill-green-300" />}
+                    </button>
+                    <input type="hidden" name="id" value={modifierG.id} />
+                    <input type="hidden" name="modifierGAvailable" value={modifierG.available} />
+                  </fetcher.Form>
                 </div>
               )
             })}
@@ -303,13 +364,21 @@ export default function Products() {
             {data.modifiers?.map(modifier => {
               return (
                 <div className="flex flex-col" key={modifier.id}>
-                  <Square
-                    itemId={modifier.id}
-                    name={modifier.name}
-                    to={`edit/${modifier.id}?edit=modifier`}
-                    key={modifier.id}
-                    editIsRoute={true}
-                  />
+                  <H5 boldVariant="semibold">{modifier.name}</H5>
+                  <Square itemId={modifier.id} name={modifier.name} to={modifier.id} key={modifier.id} />
+                  <fetcher.Form method="POST">
+                    <button
+                      className="icon-button w-10 flex items-center justify-center "
+                      // onClick={() => {
+                      //   searchParams.set('modifierAvailable', modifier.available)
+                      //   setSearchParams(searchParams)
+                      // }}
+                    >
+                      {modifier.available ? <FaPause /> : <FaPlay className="fill-green-300" />}
+                    </button>
+                    <input type="hidden" name="id" value={modifier.id} />
+                    <input type="hidden" name="modifierAvailable" value={modifier.available} />
+                  </fetcher.Form>
                 </div>
               )
             })}

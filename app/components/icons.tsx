@@ -127,9 +127,9 @@ export function ClipboardIcon() {
     </svg>
   )
 }
-export function DollarIcon({ size = 24 }: { size?: number } = {}) {
+export function DollarIcon({ size = 24, className }: { size?: number; className: string }) {
   return (
-    <svg width={size} height={size} fill="none" viewBox="0 0 24 24">
+    <svg width={size} height={size} fill="none" viewBox="0 0 24 24" className={className}>
       <circle cx="12" cy="12" r="7.25" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" />
       <path
         stroke="currentColor"

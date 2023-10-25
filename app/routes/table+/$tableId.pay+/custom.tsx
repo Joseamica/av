@@ -88,6 +88,7 @@ export async function action({ request, params }: ActionArgs) {
 
   if (result.type === 'redirect') {
     session.flash('notification', 'Se ha enviado la solicitud de pago al mesero.')
+    session.set('paymentNotification', true)
 
     return redirect(result.url, {
       headers: { 'Set-Cookie': await sessionStorage.commitSession(session) },

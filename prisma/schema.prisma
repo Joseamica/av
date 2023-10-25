@@ -142,10 +142,10 @@ model Availabilities {
 }
 
 model Category {
-  id    String  @id @default(cuid())
-  name  String
-  image String?
-
+  id             String           @id @default(cuid())
+  name           String
+  image          String?
+  displayOrder   Int?
   description    String?
   pdf            Boolean?         @default(false)
   availabilities Availabilities[]
@@ -225,8 +225,10 @@ model CartItem {
 }
 
 model Modifiers {
-  id              String         @id @default(cuid())
-  name            String?
+  id        String   @id @default(cuid())
+  name      String?
+  available Boolean? @default(true)
+
   plu             String?        @unique
   max             Int?           @default(0)
   min             Int?           @default(0)
@@ -261,6 +263,7 @@ model ModifierGroup {
   id         String      @id @default(cuid())
   // type             String      @default("radio")
   name       String?
+  available  Boolean?    @default(true)
   plu        String?     @unique
   max        Int?        @default(0)
   min        Int?        @default(0)
@@ -389,6 +392,7 @@ model Session {
 model Payments {
   id        String        @id @default(cuid())
   method    PaymentMethod
+  status    StatusMethod? @default(pending)
   amount    Decimal
   tip       Decimal?
   total     Decimal?
@@ -408,6 +412,7 @@ enum PaymentMethod {
   debitCard
   paypal
   applePay
+  terminal
   other
 }
 
@@ -415,6 +420,7 @@ model Notification {
   id        String              @id @default(cuid())
   method    NotificationMethod?
   type      String?
+  type_temp NotificationType?
   status    StatusMethod?
   message   String?
   branchId  String?
@@ -431,6 +437,15 @@ model Notification {
   total     Decimal?
   orderId   String?
   order     Order?              @relation(fields: [orderId], references: [id])
+}
+
+enum NotificationType {
+  CALL
+  ORDER
+  PAYMENT
+  FEEDBACK
+  INFORMATIVE
+  OTHER
 }
 
 enum StatusMethod {

@@ -41,7 +41,6 @@ import {
   Underline,
 } from '~/components'
 import Payment, { usePayment } from '~/components/payment/paymentV3'
-import { CustomTabs, TabButton } from '~/components/tab-button'
 
 // ANCHOR LOADER
 export async function loader({ request, params }: LoaderArgs) {
@@ -122,12 +121,10 @@ export async function action({ request, params }: ActionArgs) {
   let cart = JSON.parse(session.get('cart') || '[]')
   const quantityStr = cart.find((item: { variantId: string }) => item.variantId === variantId)?.quantity
   const userId = session.get('userId')
-  const employeesNumbers = await prisma.employee
-    .findMany({
-      where: { branchId: branchId },
-      select: { phone: true },
-    })
-    .then(employees => employees.map(employee => employee.phone))
+  const employees = await prisma.employee.findMany({
+    where: { branchId: branchId },
+  })
+  const employeesNumbers = employees.map(employee => employee.phone)
 
   const cartItems = await getCartItems(cart)
 
@@ -266,6 +263,7 @@ export async function action({ request, params }: ActionArgs) {
             method: 'whatsapp',
             status: 'received',
             type: 'informative',
+            type_temp: 'INFORMATIVE',
           },
         })
         const result = await handlePaymentProcessing({
@@ -325,6 +323,21 @@ export async function action({ request, params }: ActionArgs) {
           method: 'whatsapp',
           status: 'received',
           type: 'informative',
+          type_temp: 'INFORMATIVE',
+        },
+      })
+      await prisma.notification.create({
+        data: {
+          message: `${username} de la mesa ${table.number} ha ordenado ${formattedItems}`,
+          branchId: branchId,
+          employees: {
+            connect: employees.map(employee => ({ id: employee.id })),
+          },
+          tableId: tableId,
+          method: 'whatsapp',
+          status: 'pending',
+          type: 'informative',
+          type_temp: 'ORDER',
         },
       })
       EVENTS.ISSUE_CHANGED(tableId, branchId)

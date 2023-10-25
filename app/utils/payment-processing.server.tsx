@@ -49,16 +49,29 @@ export async function handlePaymentProcessing({
 }: handlePaymentProcessingProps): Promise<{ type: 'redirect'; url: string } | { type: 'error'; message: string }> {
   const session = await getSession(request)
   const userId = session.get('userId')
-  const employeesNumbers = await prisma.employee
-    .findMany({ where: { branchId: extraData.branchId } })
-    .then(employees => employees.map(employee => employee?.phone))
+  const employees = await prisma.employee.findMany({ where: { branchId: extraData.branchId } })
 
   const username = await prisma.user.findUnique({ where: { id: userId } }).then(user => user?.name)
   const tableNumber = await prisma.table.findUnique({ where: { id: extraData.tableId } }).then(table => table?.number)
 
   switch (paymentMethod) {
     case 'terminal':
-      sendWaNotification({ body: `El cliente quiere pagar en terminal fisica la cantidad de ${total + tip} pesos`, to: employeesNumbers })
+      sendWaNotification({
+        body: `El cliente ${username} de la mesa ${tableNumber} quiere pagar en terminal fisica la cantidad de ${total + tip} pesos`,
+        to: employees.map(employee => employee.phone),
+      })
+      await prisma.payments.create({
+        data: {
+          method: 'terminal',
+          status: 'pending',
+          amount: total,
+          tip: tip,
+          total: total + tip,
+          branchId: extraData.branchId,
+          userId: userId,
+          orderId: extraData.order.id,
+        },
+      })
 
       await prisma.notification.create({
         data: {
@@ -73,6 +86,10 @@ export async function handlePaymentProcessing({
           tableId: extraData.tableId,
           userId: userId,
           orderId: extraData.order.id,
+          type_temp: 'PAYMENT',
+          employees: {
+            connect: employees.map(employee => ({ id: employee.id })),
+          },
         },
       })
       await prisma.notification.create({
@@ -85,7 +102,11 @@ export async function handlePaymentProcessing({
           tableId: extraData.tableId,
           userId: userId,
           orderId: extraData.order.id,
-          status: 'received',
+          status: 'pending',
+          type_temp: 'PAYMENT',
+          employees: {
+            connect: employees.map(employee => ({ id: employee.id })),
+          },
         },
       })
       EVENTS.ISSUE_CHANGED(extraData.tableId, extraData.branchId)
@@ -110,7 +131,22 @@ export async function handlePaymentProcessing({
         return { type: 'redirect', url: '/error' }
       }
     case 'cash':
-      sendWaNotification({ body: `El cliente quiere pagar en efectivo la cantidad de ${total + tip} pesos`, to: employeesNumbers })
+      sendWaNotification({
+        body: `El cliente ${username} de la mesa ${tableNumber} quiere pagar en efectivo la cantidad de ${total + tip} pesos`,
+        to: employees.map(employee => employee.phone),
+      })
+      await prisma.payments.create({
+        data: {
+          method: 'cash',
+          status: 'pending',
+          amount: total,
+          tip: tip,
+          total: total + tip,
+          branchId: extraData.branchId,
+          userId: userId,
+          orderId: extraData.order.id,
+        },
+      })
       await prisma.notification.create({
         data: {
           message: `Cash payment`,
@@ -124,6 +160,10 @@ export async function handlePaymentProcessing({
           tableId: extraData.tableId,
           userId: userId,
           orderId: extraData.order.id,
+          type_temp: 'PAYMENT',
+          employees: {
+            connect: employees.map(employee => ({ id: employee.id })),
+          },
         },
       })
       await prisma.notification.create({
@@ -136,7 +176,12 @@ export async function handlePaymentProcessing({
           tableId: extraData.tableId,
           userId: userId,
           orderId: extraData.order.id,
-          status: 'received',
+          status: 'pending',
+          type_temp: 'PAYMENT',
+
+          employees: {
+            connect: employees.map(employee => ({ id: employee.id })),
+          },
         },
       })
       EVENTS.ISSUE_CHANGED(extraData.tableId, extraData.branchId)

@@ -141,7 +141,7 @@ export async function getAmountLeftToPay(
   if (!order) return null
 
   const payments = await prisma.payments.aggregate({
-    where: { orderId: order.id },
+    where: { orderId: order.id, status: 'accepted' },
     _sum: { amount: true },
   })
 

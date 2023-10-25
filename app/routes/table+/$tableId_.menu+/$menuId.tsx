@@ -45,6 +45,9 @@ export async function loader({ request, params }: LoaderArgs) {
   const [categories, cartItems, currency] = await Promise.all([
     prisma.category.findMany({
       where: { menu: { some: { id: menuId } } },
+      orderBy: {
+        displayOrder: 'asc',
+      },
       include: {
         products: {
           where: {

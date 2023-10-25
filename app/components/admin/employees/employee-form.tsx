@@ -94,7 +94,7 @@ export function EmployeeForm({
       />
 
       {/* TODO add ability to add to multiple keyss */}
-      <Label htmlFor="selectItems">Choose a order:</Label>
+      <Label htmlFor="selectItems">Choose a table:</Label>
       <div>
         {addingData?.data.map(keys => {
           return (

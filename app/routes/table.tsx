@@ -159,6 +159,7 @@ export const action = async ({ request, params }: ActionArgs) => {
           status: 'received',
           userId: createdUser.id,
           type: 'informative',
+          type_temp: 'INFORMATIVE',
         },
       })
       console.log('\x1b[44m%s\x1b[0m', 'table.tsx line:147 SSE TRIGGER because tableId exists and user entered name')

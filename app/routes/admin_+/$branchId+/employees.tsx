@@ -25,9 +25,9 @@ export const handle = { active: 'Employees' }
 const employeesShema = z.object({
   id: z.string(),
   name: z.string().nonempty('Name is required'),
-  email: z.string().email('Invalid email'),
+  email: z.string().email('Invalid email').optional(),
   password: passwordSchema.optional(),
-  image: z.string().url(),
+  image: z.string().url().optional(),
   phone: z.string().nonempty('Phone is required'),
   role: z.enum(['manager', 'waiter']),
   selectItems: z.array(z.string()).nonempty('You must select at least one table'),

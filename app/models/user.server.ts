@@ -99,7 +99,7 @@ export async function getPaidUsers(orderId: Order['id']) {
       paid: true,
       tip: true,
       total: true,
-      payments: { where: { orderId } },
+      payments: { where: { orderId, status: 'accepted' } },
     },
   })
   return users.length > 0 ? users : null

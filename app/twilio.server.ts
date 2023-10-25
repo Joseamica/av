@@ -1,6 +1,6 @@
 import { Twilio } from 'twilio'
 
-export async function sendWaNotification({ from = '14155238886', to, body }: { from?: string; to: string[] | string; body: string }) {
+export async function sendWaNotification({ from = '+14155238886', to, body }: { from?: string; to: string[] | string; body: string }) {
   const accountSid = process.env.TWILIO_ACCOUNT_SID
   const authToken = process.env.TWILIO_AUTH_TOKEN
 
@@ -24,11 +24,11 @@ export async function sendWaNotification({ from = '14155238886', to, body }: { f
     return client.messages
       .create({
         body,
-        // from: `whatsapp:${from}`,
-        // to: `whatsapp:+${phone}`,
+        from: `whatsapp:${from}`,
+        to: `whatsapp:+${phone}`,
         // body: 'Test',
-        from: '+18149149288',
-        to: '+' + phone,
+        // from: '+18149149288',
+        // to: '+' + phone,
       })
       .catch(error => {
         console.error(`Error sending WhatsApp message to +${phone}:`, error)

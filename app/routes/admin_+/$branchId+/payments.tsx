@@ -30,6 +30,7 @@ export async function loader({ request, params }: LoaderArgs) {
   const payments = await prisma.payments.findMany({
     where: {
       branchId,
+      status: 'accepted',
     },
     include: {
       order: true,
@@ -69,13 +70,13 @@ export async function action({ request, params }: ActionArgs) {
   return namedAction(request, {
     async create() {
       for (const item of submission.value.selectItems) {
-        console.log('item', item)
         await prisma.payments.create({
           data: {
             method: submission.value.method,
             amount: submission.value.amount,
             tip: submission.value.tip,
             total: submission.value.total,
+            status: 'accepted',
             order: {
               connect: {
                 id: item,
@@ -91,6 +92,8 @@ export async function action({ request, params }: ActionArgs) {
       await prisma.payments.update({
         where: { id: submission.value.id },
         data: {
+          status: 'accepted',
+
           method: submission.value.method,
           amount: submission.value.amount,
           tip: submission.value.tip,

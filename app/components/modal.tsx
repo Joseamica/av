@@ -133,6 +133,7 @@ export function Modal({
                 onClick={onClose}
                 aria-label={`Close ${ariaLabel || 'dialog'}`}
                 className={`${' dark:bg-night-bg_principal dark:text-night-text_principal absolute right-5 top-5 flex  h-10 w-10 items-center justify-center rounded-full bg-day-bg_principal shadow-md focus:border-0 focus:ring-0 dark:shadow-sm  dark:shadow-black '}`}
+                type="button"
               >
                 <XIcon className="w-6 h-6" />
               </button>

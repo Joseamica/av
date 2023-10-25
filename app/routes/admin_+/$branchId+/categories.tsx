@@ -24,6 +24,7 @@ export const handle = { active: 'Categories' }
 
 const categoriesFormSchema = z.object({
   id: z.string(),
+  displayOrder: z.number().int().min(1).max(100),
   name: z.string().min(1).max(20),
   image: z.string().trim().url().optional(),
   pdf: checkboxSchema(),
@@ -34,6 +35,9 @@ export async function loader({ request, params }: LoaderArgs) {
   const categories = await prisma.category.findMany({
     where: {
       branchId: params.branchId,
+    },
+    orderBy: {
+      displayOrder: 'asc',
     },
     include: {
       menu: true,
@@ -67,6 +71,7 @@ export async function action({ request, params }: ActionArgs) {
       await prisma.category.create({
         data: {
           name: capitalizeFirstLetter(submission.value.name),
+          displayOrder: submission.value.displayOrder,
           image: submission.value.image,
           pdf: submission.value.pdf,
           menu: {
@@ -95,6 +100,7 @@ export async function action({ request, params }: ActionArgs) {
           where: { id: submission.value.id },
           data: {
             name: capitalizeFirstLetter(submission.value.name),
+            displayOrder: submission.value.displayOrder,
             image: submission.value.image,
             pdf: submission.value.pdf,
             menu: {
@@ -148,7 +154,16 @@ export default function Name() {
       </ButtonLink>
       <div className="flex flex-wrap gap-2 p-4">
         {data.categories.map(category => (
-          <Square itemId={category.id} name={category.name} to={category.id} key={category.id} />
+          <Square
+            itemId={category.id}
+            name={
+              <>
+                {category.name} #{category.displayOrder}
+              </>
+            }
+            to={category.id}
+            key={category.id}
+          />
         ))}
       </div>
       <QueryDialog query="addItem" title="Add Category" description="Add to the fields you want to add">

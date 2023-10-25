@@ -39,8 +39,8 @@ export async function loader({ request, params }: LoaderArgs) {
       },
     }),
     prisma.modifierGroup.findMany({
-      where: { products: { some: { id: productId } } },
-      include: { modifiers: true },
+      where: { products: { some: { id: productId } }, available: true },
+      include: { modifiers: { where: { available: true } } },
     }),
     prisma.user.findMany({
       where: { tableId, id: { not: session.get('userId') } },

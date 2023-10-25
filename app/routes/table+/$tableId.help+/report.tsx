@@ -51,6 +51,8 @@ export async function action({ request, params }: ActionArgs) {
         await prisma.notification.create({
           data: {
             type: 'informative',
+            type_temp: 'FEEDBACK',
+
             table: { connect: { id: tableId } },
             user: { connect: { id: userId } },
             employees: { connect: selected.map(id => ({ id })) },

@@ -33,6 +33,7 @@ export async function action({ request, params }: ActionArgs) {
   sendWaNotification({ to: phones, body: `Llamada de la mesa ${table?.number}` })
   await prisma.notification.create({
     data: {
+      type_temp: 'CALL',
       message: `Llamada de la mesa ${table?.number}`,
       type: 'call',
       method: 'push',

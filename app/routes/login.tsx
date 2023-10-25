@@ -30,7 +30,9 @@ export const loader = async ({ request }: LoaderArgs) => {
   const session = await getSession(request)
   const tableId = session.get('tableId')
   const employeeId = session.get('employeeId')
+
   const userId = session.get('userId')
+  if (employeeId) return redirect('/dashboard')
 
   if (!userId) {
     return json({ status: 'idle' })
@@ -46,8 +48,6 @@ export const loader = async ({ request }: LoaderArgs) => {
   if (superUser) {
     return redirect('/admin')
   }
-
-  if (employeeId) return redirect('/dashboard')
 
   if (tableId) return redirect(`/table/${tableId}`)
 
@@ -103,7 +103,7 @@ export const action = async ({ request }: ActionArgs) => {
           }
 
           const isValid = await bcrypt.compare(data.password, employeeWithPassword.password.hash)
-          console.log('isValid', isValid)
+
           if (!isValid) {
             ctx.addIssue({
               path: ['password'],

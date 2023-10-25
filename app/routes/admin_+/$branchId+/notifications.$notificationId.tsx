@@ -85,8 +85,18 @@ export async function action({ request, params }: ActionArgs) {
         branchId: params.branchId,
         orderId: submission.value.orderId,
         userId: submission.value.userId,
+        status: 'accepted',
       },
     })
+    await prisma.user.update({
+      where: { id: submission.value.userId },
+      data: {
+        paid: submission.value.amount,
+        tip: submission.value.tip,
+        total: submission.value.total,
+      },
+    })
+
     const order = await getOrder(submission.value.orderId)
     const amountLeft = await getAmountLeftToPay(order?.tableId)
 
@@ -140,7 +150,6 @@ export default function Name() {
     },
     shouldRevalidate: 'onBlur',
   })
-  console.log('data.notification', data.notification)
 
   return (
     <Dialog.Root open={true} onOpenChange={() => navigate(`/admin/${params.branchId}/notifications`)}>

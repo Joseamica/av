@@ -70,10 +70,14 @@ export async function loader({ request, params }: LoaderArgs) {
   const table = await getTable(tableId)
 
   //TESTING - FUNCTION TO GET ORDER DYNAMICALLY
-  const order = await getOrder(tableId, {
-    cartItems: { include: { user: true } },
-    users: { include: { cartItems: true } },
-    payments: true,
+
+  const order = await prisma.order.findFirst({
+    where: { tableId, active: true },
+    include: {
+      cartItems: { include: { user: true } },
+      users: { include: { cartItems: true } },
+      payments: { where: { status: 'accepted' } },
+    },
   })
 
   const total = Number(order?.total)
@@ -153,6 +157,18 @@ export async function loader({ request, params }: LoaderArgs) {
 
   const currency = await getCurrency(tableId)
 
+  const pendingPayment = await prisma.payments.findFirst({
+    where: {
+      status: 'pending',
+      userId: user.userId,
+    },
+  })
+
+  let paymentNotification = session.get('paymentNotification')
+  if (!pendingPayment) {
+    session.set('paymentNotification', false)
+  }
+
   return json({
     table,
     branch,
@@ -165,6 +181,7 @@ export async function loader({ request, params }: LoaderArgs) {
     error,
     usersInTable,
     orderExpired,
+    paymentNotification,
   })
 }
 
@@ -225,6 +242,7 @@ export default function Table() {
   if (data.order) {
     return (
       <motion.main className="pb-4 no-scrollbar">
+        {/* {data.paymentNotification && <p>hola</p>} */}
         <RestaurantInfoCard branch={data.branch} menu={data.menu} error={data.error} />
         <Spacer spaceY="4" />
         <h3 className="flex justify-center text-sm text-secondaryTextDark shrink-0">{`Mesa ${data.table.number}`}</h3>

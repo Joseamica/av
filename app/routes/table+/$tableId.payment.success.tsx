@@ -44,6 +44,7 @@ export const loader = async ({ params, request }: LoaderArgs) => {
       total: amount + tip,
       branchId: branchId,
       userId: userId,
+      status: 'accepted',
     },
   })
 
@@ -58,12 +59,19 @@ export const loader = async ({ params, request }: LoaderArgs) => {
     })
   }
   const username = user?.name
-  const employeesNumbers = await prisma.employee
-    .findMany({
-      where: { branchId: branchId },
-      select: { phone: true },
-    })
-    .then(employees => employees.map(employee => employee.phone))
+  const employees = await prisma.employee.findMany({
+    where: { branchId: branchId },
+  })
+  const employeesNumbers = employees.map(employee => employee.phone)
+
+  await prisma.user.update({
+    where: { id: userId },
+    data: {
+      paid: amount,
+      tip: tip,
+      total: total,
+    },
+  })
 
   if (paymentMethod === 'cash') {
     console.log(
@@ -73,6 +81,7 @@ export const loader = async ({ params, request }: LoaderArgs) => {
     )
     await prisma.notification.create({
       data: {
+        type_temp: 'PAYMENT',
         message: `El usuario ${username} de la mesa ${table.number} quiere pagar en efectivo: ${amount} propina: ${tip} dando un total ${
           amount + tip
         }`,

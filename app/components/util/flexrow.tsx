@@ -1,8 +1,8 @@
 const justifyContent = {
-  between: "justify-between",
-  center: "justify-center ",
-  start: "justify-start",
-};
+  between: 'justify-between',
+  center: 'justify-center ',
+  start: 'justify-start',
+}
 
 /**
  *
@@ -21,24 +21,21 @@ const justifyContent = {
  */
 
 export function FlexRow({
-  justify = "start",
+  justify = 'start',
   className,
   children,
-  spaceX = "2",
+  spaceX = '2',
   ...rest
 }: {
-  justify?: "between" | "center" | "start";
-  children: React.ReactNode | React.ReactNode[];
-  space?: string;
-  className?: string;
-  [x: string]: any;
+  justify?: 'between' | 'center' | 'start'
+  children: React.ReactNode | React.ReactNode[]
+  spaceX?: string
+  className?: string
+  [x: string]: any
 }) {
   return (
-    <div
-      {...rest}
-      className={`flex flex-row items-center space-x-${spaceX} ${justifyContent[justify]} ${className}`}
-    >
+    <div {...rest} className={`flex flex-row items-center space-x-${spaceX} ${justifyContent[justify]} ${className}`}>
       {children}
     </div>
-  );
+  )
 }

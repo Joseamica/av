@@ -69,6 +69,7 @@ export const action = async ({ request, params }: ActionArgs) => {
         active: false,
         table: { disconnect: true },
         users: { set: [] },
+        // paid: true,
       },
     })
     session.unset('cart')
