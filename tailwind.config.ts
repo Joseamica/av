@@ -71,6 +71,11 @@ export default {
           DEFAULT: 'hsl(var(--card))',
           foreground: 'hsl(var(--card-foreground))',
         },
+        dashb: {
+          divider: '#F4F5FA',
+          bg: '#F6F7F9',
+          text: '#28293D',
+        },
         night: {
           100: '#81819C',
           200: '#707089',

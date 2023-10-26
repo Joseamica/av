@@ -1,8 +1,6 @@
-import * as Dialog from '@radix-ui/react-dialog'
 import * as DropdownMenu from '@radix-ui/react-dropdown-menu'
-import { Form, Link, Outlet, useLoaderData, useLocation, useMatches, useNavigate, useSubmit } from '@remix-run/react'
-import React, { useEffect } from 'react'
-import { FaBell, FaHome, FaTable, FaTablets } from 'react-icons/fa'
+import { Form, Link, Outlet, useLocation, useMatches, useNavigate, useSubmit } from '@remix-run/react'
+import { IoNotifications, IoNotificationsOutline, IoPerson } from 'react-icons/io5'
 
 import { type ActionArgs, type LoaderArgs, json, redirect } from '@remix-run/node'
 
@@ -12,20 +10,6 @@ import { getSession, sessionStorage } from '~/session.server'
 import { useLiveLoader } from '~/use-live-loader'
 
 import { dashboardGetBranchAndEmployee } from '~/models/dashboard/utils'
-
-import {
-  CashIcon,
-  ChevronLeftIcon,
-  FlexRow,
-  H1,
-  H2,
-  Modal,
-  Notification,
-  OrderIcon,
-  OutlineUsersIcon,
-  UserCircleIcon,
-  UsersIcon,
-} from '~/components'
 
 export async function loader({ request, params }: LoaderArgs) {
   const session = await getSession(request)
@@ -86,11 +70,11 @@ export default function Dashboard() {
   // }, [data.newOrderNotifications.length > 0])
 
   return (
-    <main className="flex flex-col  h-screen mx-0">
+    <main className="flex flex-col  h-screen mx-0 bg-dashb-bg">
       <div className="sticky top-0 inset-x-0  bg-white">
         <Header employee={data.employee} checkedNotifications={data.checkedNotifications} />
       </div>
-      <div>
+      <div className="bg-dashb-bg">
         <Outlet />
       </div>
       <div
@@ -139,19 +123,40 @@ export function Header({ employee, checkedNotifications }: { employee: any; chec
   const navigate = useNavigate()
 
   return (
-    <div className="flex w-full justify-between p-4 border rounded-b-md items-center">
-      {sub ? (
-        <button onClick={() => navigate(-1)} className=" border h-10 w-10 rounded-full flex justify-center items-center">
-          <ChevronLeftIcon className="h-7 w-7" />
-        </button>
-      ) : (
-        <Link to="notifications" className="relative border h-10 w-10 rounded-full flex justify-center items-center">
-          {!checkedNotifications ? <div className="h-4 w-4 bg-warning absolute -top-1 -right-1 rounded-full animate-pulse" /> : null}
-          <FaBell />
-        </Link>
-      )}
+    // <div className="flex w-full justify-between p-4 border rounded-b-md items-center">
+    //   {sub ? (
+    //     <button onClick={() => navigate(-1)} className=" border h-10 w-10 rounded-full flex justify-center items-center">
+    //       <ChevronLeftIcon className="h-7 w-7" />
+    //     </button>
+    //   ) : (
+    //     <Link to="notifications" className="relative border h-10 w-10 rounded-full flex justify-center items-center">
+    //       {!checkedNotifications ? <div className="h-4 w-4 bg-warning absolute -top-1 -right-1 rounded-full animate-pulse" /> : null}
+    //       <FaBell />
+    //     </Link>
+    //   )}
+    //   <UserDropdown employee={employee} />
+    // </div>
+    <nav className="px-[10px] flex justify-between items-center h-[70px] rounded-b-xl shadow-sm">
       <UserDropdown employee={employee} />
-    </div>
+      {/* <button onClick={() => navigate(-1)} className=" border h-10 w-10 rounded-full flex justify-center items-center">
+        <ChevronLeftIcon className="h-7 w-7" />
+      </button> */}
+      <NotificationButton />
+    </nav>
+  )
+}
+
+export function NotificationButton() {
+  const location = useLocation()
+  const { pathname } = location
+  const active = pathname.includes('notifications')
+  return (
+    <Link to="notifications" className="h-[40px] w-[40px] flex justify-center items-center bg-dashb-bg rounded-md">
+      <div className="relative">
+        {true ? <div className="h-2 w-2 bg-warning absolute -top-1 -right-1 rounded-full animate-pulse" /> : null}
+        {active ? <IoNotifications className="h-5 w-5" /> : <IoNotificationsOutline className="h-5 w-5" />}
+      </div>
+    </Link>
   )
 }
 
@@ -160,40 +165,43 @@ export function TabBar({ active }: { active: string }) {
     <div className="flex flex-row justify-between w-full items-center">
       <Link
         to="/dashboard"
-        className={clsx('flex space-x-1 items-center justify-center w-1/4 p-2 rounded-lg', !active ? 'bg-day-principal text-white' : '')}
+        className={clsx(
+          'flex space-x-1 items-center justify-center w-1/4 p-2 rounded-lg',
+          !active ? 'bg-dashb-bg text-dashb-text font-bold' : '',
+        )}
       >
-        <FaHome className="h-5 w-5 " />
-        <span>Home</span>
+        {/* <FaHome className="h-5 w-5 " /> */}
+        <span className="text-[15px]">Home</span>
       </Link>
       <Link
         to="orders?active=true"
         className={clsx(
           'flex items-center justify-center w-1/4 p-2 rounded-lg space-x-1',
-          active === 'orders' ? 'bg-day-principal text-white' : '',
+          active === 'orders' ? 'bg-dashb-bg text-dashb-text font-bold' : '',
         )}
       >
-        <OrderIcon className="h-5 w-5 " />
-        <span>Ordenes</span>
+        {/* <OrderIcon className="h-5 w-5 " /> */}
+        <span className="text-[15px]">Ordenes</span>
       </Link>
       <Link
         to="payments?status=pending"
         className={clsx(
           'flex items-center justify-center w-1/4 p-2 rounded-lg space-x-1',
-          active === 'payments' ? 'bg-day-principal text-white' : '',
+          active === 'payments' ? 'bg-dashb-bg text-dashb-text font-bold' : '',
         )}
       >
-        <CashIcon className="h-5 w-5 " />
-        <span>Pagos</span>
+        {/* <CashIcon className="h-5 w-5 " /> */}
+        <span className="text-[15px]">Pagos</span>
       </Link>
       <Link
         to="tables"
         className={clsx(
           'flex items-center justify-center w-1/4 p-2 rounded-lg space-x-1',
-          active === 'tables' ? 'bg-day-principal text-white' : '',
+          active === 'tables' ? 'bg-dashb-bg text-dashb-text font-bold' : '',
         )}
       >
-        <FaTablets className="h-5 w-5 " />
-        <span>Mesas</span>
+        {/* <FaTablets className="h-5 w-5 " /> */}
+        <span className="text-[15px]">Mesas</span>
       </Link>
     </div>
   )
@@ -210,7 +218,7 @@ function UserDropdown({ employee }: { employee: any }) {
           // to={`/users/${employee.name}`}
           // this is for progressive enhancement
           onClick={e => e.preventDefault()}
-          className="flex items-center gap-2 rounded-full border py-1 px-3 outline-none   hover:bg-day-600 focus:bg-night-400 radix-state-open:bg-night-400 text-day-principal "
+          className="flex items-center gap-2 rounded-md bg-dashb-bg py-1 px-3 h-[40px] outline-none   hover:bg-day-600 focus:bg-night-400 radix-state-open:bg-night-400 text-day-principal "
         >
           {/* <img
             className="h-8 w-8 rounded-full object-cover"
@@ -218,7 +226,7 @@ function UserDropdown({ employee }: { employee: any }) {
             // src={getUserImgSrc(data.user.imageId)}
             src={data.user.image}
           /> */}
-          <OutlineUsersIcon />
+          <IoPerson />
           <span className="text-body-sm  ">{employee.name}</span>
         </div>
       </DropdownMenu.Trigger>

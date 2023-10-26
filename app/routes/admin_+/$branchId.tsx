@@ -1,10 +1,11 @@
-import { Link, Outlet, useMatches } from '@remix-run/react'
+import { Form, Link, Outlet, useMatches } from '@remix-run/react'
 import { useState } from 'react'
 
-import { type LoaderArgs, type V2_MetaFunction, json } from '@remix-run/node'
+import { ActionArgs, type LoaderArgs, type V2_MetaFunction, json } from '@remix-run/node'
 
 import clsx from 'clsx'
 import { prisma } from '~/db.server'
+import { sendWaNotification } from '~/twilio.server'
 
 import { requireAdmin } from '~/utils/permissions.server'
 
@@ -83,6 +84,25 @@ export async function loader({ request, params }: LoaderArgs) {
   throw json({ error: 'Unauthorized', requiredRole: 'admin' }, { status: 403 })
 }
 
+export async function action({ request, params }: ActionArgs) {
+  const formData = await request.formData()
+  const { branchId } = params
+  const test = formData.get('test')
+
+  if (test === 'notification') {
+    const employees = await prisma.employee.findMany({
+      where: { branchId: branchId },
+    })
+    const employeesNumbers = employees.map(employee => employee.phone)
+    console.log('employeesNumbers', employeesNumbers)
+    sendWaNotification({
+      to: employeesNumbers,
+      body: 'TEST NOTIFICATION',
+    })
+  }
+  return json({ success: true })
+}
+
 export const meta: V2_MetaFunction = () => {
   return [
     { title: 'Admin' },
@@ -151,6 +171,11 @@ export default function AdminBranch() {
             Select other branch
           </Link>
         </div>
+        <Form method="POST">
+          <button name="test" value="notification">
+            test notification
+          </button>
+        </Form>
       </div>
 
       <div className="col-start-3 col-end-10 bg-white">

@@ -6,11 +6,13 @@ import { IoFastFoodOutline } from 'react-icons/io5'
 import { type ActionArgs, type LoaderArgs, json } from '@remix-run/node'
 
 import clsx from 'clsx'
+import { truncate } from 'fs'
 import { prisma } from '~/db.server'
 
 import { formatCurrency, getCurrency } from '~/utils'
 
 import { ChevronDownIcon, FlexRow, H3, Modal, Spacer } from '~/components'
+import { NavMenu } from '~/components/dashboard/navmenu'
 
 export async function loader({ request, params }: LoaderArgs) {
   const { tableId } = params
@@ -43,164 +45,86 @@ export async function action({ request, params }: ActionArgs) {
 export default function Name() {
   const data = useLoaderData()
   const navigate = useNavigate()
-  const [show, setShow] = React.useState({ products: true })
 
-  const onHandleShow = (name: string) => {
-    setShow(prevState => ({
-      ...prevState,
-      [name]: !prevState[name],
-    }))
-  }
+  const [activeNavMenu, setActiveNavMenu] = React.useState<string>('Orden')
+
+  const totalProductQuantity: number = data.table.order.cartItems.reduce(
+    (acc: number, item: { quantity: number }) => acc + item.quantity,
+    0,
+  )
+
+  const orderTotal = data.table.order.cartItems.reduce(
+    (acc: number, item: { quantity: number; price: number }) => acc + item.quantity * item.price,
+    0,
+  )
 
   return (
-    <>
-      <Modal fullScreen={true} title={`Mesa ${data.table?.number}`} onClose={() => navigate('/dashboard/tables')}>
-        <div className="h-full bg-white">
-          <div className="bg-[#F7F8FA] p-4 space-y-5">
-            {/* <FlexRow justify="between">
-              <FlexRow>
-                <IoFastFoodOutline className="fill-black rounded-full h-5 w-5" />
-                <span>Platillos</span>
-              </FlexRow>
-              <p>{data.table.order?.cartItems.length}</p>
-            </FlexRow>
-            <FlexRow justify="between">
-              <FlexRow>
-                <FaUsers className="rounded-full h-5 w-5" />
-                <span>Clientes</span>
-              </FlexRow>
-              <span>{data.table.users?.length}</span>
-            </FlexRow>
-            <FlexRow justify="between">
-              <FlexRow>
-                <FaRegCreditCard className="  h-5 w-5 " />
-                <span>Pagos</span>
-              </FlexRow>
-              <span>{data.table.order?.payments?.length}</span>
-            </FlexRow> */}
-            <FlexRow justify="between">
-              <FlexRow>
-                <FaDollarSign className=" rounded-full h-4 w-4 " />
-                <span className="text-sm">Total de orden</span>
-              </FlexRow>
-              <span className="text-sm">{formatCurrency(data.currency, data.table.order?.total)}</span>
-            </FlexRow>
-          </div>
+    <Modal fullScreen={true} title={`Mesa ${data.table.number}`} onClose={() => navigate(-1)}>
+      <div className="h-full">
+        <NavMenu activeNavMenu={activeNavMenu} setActiveNavMenu={setActiveNavMenu} categories={['Orden', 'Clientes', 'Pagos']} />
+        {activeNavMenu === 'Orden' ? (
+          <OrderDetails
+            currency={data.currency}
+            totalProductQuantity={totalProductQuantity}
+            orderTotal={orderTotal}
+            cartItems={data.table.order?.cartItems}
+          />
+        ) : null}
+      </div>
+    </Modal>
+  )
+}
 
-          {/* <hr /> */}
-          <div className="p-4 ">
+function OrderDetails({ currency, totalProductQuantity, orderTotal, cartItems }) {
+  return (
+    <div className="p-3">
+      <div className="bg-white rounded-lg px-[10px]">
+        <FlexRow justify="between" className="text-[18px] font-semibold p-3">
+          <span>
+            {totalProductQuantity} {totalProductQuantity > 1 ? 'Productos' : 'Producto'}
+          </span>
+          <span>{formatCurrency(currency, orderTotal)}</span>
+        </FlexRow>
+        <hr />
+        <div className="space-y-2 divide-y px-3 py-1">
+          {cartItems?.map(cartItem => {
+            const modifiersTotal = cartItem.productModifiers.reduce((acc, item) => acc + item.quantity * item.extraPrice, 0)
+            // const productTotal = cartItem.quantity * cartItem.price
+            return (
+              <div key={cartItem.id} className="py-3 ">
+                <FlexRow justify="between">
+                  <FlexRow>
+                    <span>{cartItem.quantity}</span>
+                    <span>{cartItem.name}</span>
+                  </FlexRow>
+                  <span>{formatCurrency(currency, cartItem.price - modifiersTotal)}</span>
+                </FlexRow>
+                <div className="pl-[15px]">
+                  {cartItem.productModifiers.map(pm => {
+                    return (
+                      <div key={pm.id} className="text-xs">
+                        <FlexRow justify="between">
+                          <FlexRow>
+                            <span>{pm.quantity}</span>
+                            <span>{pm.name}</span>
+                          </FlexRow>
+                          <span>{formatCurrency(currency, pm.extraPrice)}</span>
+                        </FlexRow>
+                      </div>
+                    )
+                  })}
+                </div>
+                {/* <Spacer className="h-1" />
             <FlexRow justify="between">
-              <FlexRow>
-                <IoFastFoodOutline className="fill-black rounded-full h-5 w-5" />
-                <span>Productos</span>
-                {/* <span className="text-xs">({data.table.order.cartItems.reduce((acc, item) => acc + item.price, 0)})</span> */}
-              </FlexRow>
-              <FlexRow>
-                <p>{data.table.order?.cartItems.length}</p>
-                <button onClick={() => onHandleShow('products')}>
-                  {show.name === 'products' ? (
-                    <ChevronDownIcon className="border rounded-full bg-white rotate-180" />
-                  ) : (
-                    <ChevronDownIcon className="border rounded-full bg-white transform " />
-                  )}
-                </button>
-              </FlexRow>
-            </FlexRow>
-          </div>
-          <hr />
-          {/* <Spacer spaceY="1" /> */}
-          {show['products'] && (
-            <div>
-              <div>
-                {data.table.order?.cartItems.map(cartItem => {
-                  const totalPriceModifiers = cartItem.productModifiers.reduce((acc, pm) => Number(acc) + Number(pm.extraPrice), 0)
-                  return (
-                    <div key={cartItem.id} className="px-4 py-1">
-                      <div className="flex flex-row justify-between items-center ">
-                        <div className="flex flex-row items-center space-x-2">
-                          <p>{cartItem.quantity}</p>
-                          <div>
-                            <p>{cartItem.name}</p>
-                            <p>{cartItem.description}</p>
-                          </div>
-                        </div>
-                        <div className="flex flex-row items-center space-x-2">
-                          <p>{formatCurrency(data.currency, Number(cartItem.price) - Number(totalPriceModifiers))}</p>
-                        </div>
-                      </div>
-                      <div className="pl-4 py-1">
-                        {cartItem.productModifiers.map(pm => {
-                          return (
-                            <div key={pm.id} className="text-xs flex space-x-2 justify-between py-1">
-                              <FlexRow>
-                                <p>{pm.quantity}</p>
-                                <p>{pm.name}</p>
-                              </FlexRow>
-                              <p>{formatCurrency(data.currency, pm.extraPrice)}</p>
-                            </div>
-                          )
-                        })}
-                      </div>
-                    </div>
-                  )
-                })}
+              <span></span>
+              <span className="font-bold">{formatCurrency(currency, productTotal)}</span>
+            </FlexRow> */}
+                {/* <span className="self-end">{productTotal}</span> */}
               </div>
-            </div>
-          )}
-          <div className="p-4 ">
-            <FlexRow justify="between">
-              <FlexRow>
-                <FaUsers className="rounded-full h-5 w-5" />
-                <span>Clientes</span>
-              </FlexRow>
-              <FlexRow>
-                <p>{data.table.users?.length}</p>
-                <button onClick={() => onHandleShow('clients')}>
-                  {show.name === 'clients' ? (
-                    <ChevronDownIcon className="border rounded-full bg-white rotate-180" />
-                  ) : (
-                    <ChevronDownIcon className="border rounded-full bg-white transform " />
-                  )}
-                </button>
-              </FlexRow>
-            </FlexRow>
-          </div>
-          {show['clients'] && (
-            <div className="p-4">
-              {data.table.users.map(user => {
-                return (
-                  <div key={user.id} className="flex flex-row space-x-2 items-center justify-between">
-                    {/* <div className={`h-4 w-4 rounded-full bg-[${user.color}] `} /> */}
-                    <p>{user.name}</p>
-                    <FlexRow>
-                      {/* <p>{formatCurrency(data.currency, user.total)}</p> */}
-                      <p>ToDo</p>
-                    </FlexRow>
-                  </div>
-                )
-              })}
-            </div>
-          )}
-          {/* <div className="p-4 bg-[#F7F8FA]">
-            <FlexRow justify="between">
-              <FlexRow>
-                <FaDollarSign className=" rounded-full h-5 w-5 " />
-                <span>Pagos</span>
-              </FlexRow>
-              <span>{data.table.order?.payments?.length}</span>
-            </FlexRow>
-          </div> */}
+            )
+          })}
         </div>
-        <div className="px-4 sticky bottom-0 pb-5 bg-white flex justify-center">
-          <Link to="payments?status=pending" className={clsx(' relative border rounded-xl px-4 py-2', {})}>
-            {data.table.order?.payments?.length > 0 && (
-              <div className=" rounded-full absolute -top-1 -right-1 h-3 w-3 bg-red-600 animate-pulse" />
-            )}
-            <span>Pagos ( {data.table.order?.payments?.length} )</span>
-          </Link>
-        </div>
-      </Modal>
-      <Outlet />
-    </>
+      </div>
+    </div>
   )
 }
