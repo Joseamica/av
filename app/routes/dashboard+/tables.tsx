@@ -139,7 +139,7 @@ export function Table({ to, clients, products, tableNumber }: { to: string; clie
   }, 0)
 
   return (
-    <Link to={to} className="w-full  relative flex items-center justify-between space-x-4" preventScrollReset>
+    <Link to={products ? to : ''} className="w-full  relative flex items-center justify-between space-x-4" preventScrollReset>
       <div className="border rounded-lg flex justify-around w-full">
         <div className="flex justify-center items-center  bg-dashb-bg w-14 rounded-lg">
           <p className="text-3xl">{tableNumber}</p>
