@@ -76,6 +76,13 @@ export async function action({ request, params }: ActionArgs) {
   }
 
   if (submission.intent === 'accept') {
+    const activeEmployees = await prisma.employee.findMany({
+      where: {
+        branchId: params.branchId,
+        active: true,
+      },
+    })
+
     await prisma.payments.create({
       data: {
         method: 'cash',
@@ -86,6 +93,9 @@ export async function action({ request, params }: ActionArgs) {
         orderId: submission.value.orderId,
         userId: submission.value.userId,
         status: 'accepted',
+        employeesIds: {
+          set: activeEmployees.map(employee => employee.id),
+        },
       },
     })
     await prisma.user.update({

@@ -9,12 +9,14 @@ export function Square({
   name,
   itemId,
   editIsRoute = false,
+  type,
   ...rest
 }: {
   to: string
   name: string | JSX.Element
   itemId: string
   editIsRoute?: boolean
+  type?: string
 }) {
   const [searchParams, setSearchParams] = useSearchParams()
   const navigate = useNavigate()
@@ -23,6 +25,9 @@ export function Square({
     if (editIsRoute) {
       navigate(to)
     } else {
+      if (type) {
+        searchParams.set('type', type)
+      }
       searchParams.set('editItem', itemId)
       setSearchParams(searchParams)
     }

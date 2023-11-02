@@ -1,5 +1,6 @@
 import * as DropdownMenu from '@radix-ui/react-dropdown-menu'
 import { Form, Link, Outlet, useLocation, useMatches, useNavigate, useSubmit } from '@remix-run/react'
+import { FaDizzy } from 'react-icons/fa'
 import { IoNotifications, IoNotificationsOutline, IoPerson } from 'react-icons/io5'
 
 import { type ActionArgs, type LoaderArgs, json, redirect } from '@remix-run/node'
@@ -70,8 +71,8 @@ export default function Dashboard() {
   // }, [data.newOrderNotifications.length > 0])
 
   return (
-    <main className="flex flex-col  h-screen mx-0 bg-dashb-bg">
-      <div className="sticky top-0 inset-x-0  bg-white">
+    <main className="flex flex-col h-screen mx-0 bg-dashb-bg">
+      <div className="sticky inset-x-0 top-0 bg-white">
         <Header employee={data.employee} checkedNotifications={data.checkedNotifications} />
       </div>
       <div className="bg-dashb-bg">
@@ -123,14 +124,14 @@ export function Header({ employee, checkedNotifications }: { employee: any; chec
   const navigate = useNavigate()
 
   return (
-    // <div className="flex w-full justify-between p-4 border rounded-b-md items-center">
+    // <div className="flex items-center justify-between w-full p-4 border rounded-b-md">
     //   {sub ? (
-    //     <button onClick={() => navigate(-1)} className=" border h-10 w-10 rounded-full flex justify-center items-center">
+    //     <button onClick={() => navigate(-1)} className="flex items-center justify-center w-10 h-10 border rounded-full ">
     //       <ChevronLeftIcon className="h-7 w-7" />
     //     </button>
     //   ) : (
-    //     <Link to="notifications" className="relative border h-10 w-10 rounded-full flex justify-center items-center">
-    //       {!checkedNotifications ? <div className="h-4 w-4 bg-warning absolute -top-1 -right-1 rounded-full animate-pulse" /> : null}
+    //     <Link to="notifications" className="relative flex items-center justify-center w-10 h-10 border rounded-full">
+    //       {!checkedNotifications ? <div className="absolute w-4 h-4 rounded-full bg-warning -top-1 -right-1 animate-pulse" /> : null}
     //       <FaBell />
     //     </Link>
     //   )}
@@ -138,7 +139,7 @@ export function Header({ employee, checkedNotifications }: { employee: any; chec
     // </div>
     <nav className="px-[10px] flex justify-between items-center h-[70px] rounded-b-xl shadow-sm">
       <UserDropdown employee={employee} />
-      {/* <button onClick={() => navigate(-1)} className=" border h-10 w-10 rounded-full flex justify-center items-center">
+      {/* <button onClick={() => navigate(-1)} className="flex items-center justify-center w-10 h-10 border rounded-full ">
         <ChevronLeftIcon className="h-7 w-7" />
       </button> */}
       <NotificationButton />
@@ -153,8 +154,8 @@ export function NotificationButton() {
   return (
     <Link to="notifications" className="h-[40px] w-[40px] flex justify-center items-center bg-dashb-bg rounded-md">
       <div className="relative">
-        {true ? <div className="h-2 w-2 bg-warning absolute -top-1 -right-1 rounded-full animate-pulse" /> : null}
-        {active ? <IoNotifications className="h-5 w-5" /> : <IoNotificationsOutline className="h-5 w-5" />}
+        {true ? <div className="absolute w-2 h-2 rounded-full bg-warning -top-1 -right-1 animate-pulse" /> : null}
+        {active ? <IoNotifications className="w-5 h-5" /> : <IoNotificationsOutline className="w-5 h-5" />}
       </div>
     </Link>
   )
@@ -162,7 +163,7 @@ export function NotificationButton() {
 
 export function TabBar({ active }: { active: string }) {
   return (
-    <div className="flex flex-row justify-between w-full items-center">
+    <div className="flex flex-row items-center justify-between w-full">
       <Link
         to="/dashboard"
         className={clsx(
@@ -170,29 +171,28 @@ export function TabBar({ active }: { active: string }) {
           !active ? 'bg-dashb-bg text-dashb-text font-bold' : '',
         )}
       >
-        {/* <FaHome className="h-5 w-5 " /> */}
+        {/* <FaHome className="w-5 h-5 " /> */}
         <span className="text-[15px]">Home</span>
       </Link>
       <Link
-        to="orders?active=true"
+        to="products"
         className={clsx(
           'flex items-center justify-center w-1/4 p-2 rounded-lg space-x-1',
-          active === 'orders' ? 'bg-dashb-bg text-dashb-text font-bold' : '',
+          active === 'products' ? 'bg-dashb-bg text-dashb-text font-bold' : '',
         )}
       >
-        {/* <OrderIcon className="h-5 w-5 " /> */}
-        <span className="text-[15px]">Ordenes</span>
+        <span className="text-[15px]">Productos</span>
       </Link>
-      <Link
+      {/*  <Link
         to="payments?status=pending"
         className={clsx(
           'flex items-center justify-center w-1/4 p-2 rounded-lg space-x-1',
           active === 'payments' ? 'bg-dashb-bg text-dashb-text font-bold' : '',
         )}
       >
-        {/* <CashIcon className="h-5 w-5 " /> */}
+
         <span className="text-[15px]">Pagos</span>
-      </Link>
+      </Link> */}
       <Link
         to="tables"
         className={clsx(
@@ -200,7 +200,7 @@ export function TabBar({ active }: { active: string }) {
           active === 'tables' ? 'bg-dashb-bg text-dashb-text font-bold' : '',
         )}
       >
-        {/* <FaTablets className="h-5 w-5 " /> */}
+        {/* <FaTablets className="w-5 h-5 " /> */}
         <span className="text-[15px]">Mesas</span>
       </Link>
     </div>
@@ -221,34 +221,34 @@ function UserDropdown({ employee }: { employee: any }) {
           className="flex items-center gap-2 rounded-md bg-dashb-bg py-1 px-3 h-[40px] outline-none   hover:bg-day-600 focus:bg-night-400 radix-state-open:bg-night-400 text-day-principal "
         >
           {/* <img
-            className="h-8 w-8 rounded-full object-cover"
+            className="object-cover w-8 h-8 rounded-full"
             alt={data.user.name ?? data.user.username}
             // src={getUserImgSrc(data.user.imageId)}
             src={data.user.image}
           /> */}
           <IoPerson />
-          <span className="text-body-sm  ">{employee.name}</span>
+          <span className="text-body-sm ">{employee.name}</span>
         </div>
       </DropdownMenu.Trigger>
       <DropdownMenu.Portal>
-        <DropdownMenu.Content sideOffset={8} align="start" className="flex flex-col rounded-3xl border bg-white ">
+        <DropdownMenu.Content sideOffset={8} align="start" className="flex flex-col bg-white border rounded-3xl ">
           {/* bg-[#323232] */}
           <DropdownMenu.Item asChild>
             <Link
               prefetch="intent"
               to={`/users/${employee.id}`}
-              className="rounded-t-3xl px-7 py-5 outline-none hover:bg-day-300 radix-highlighted:bg-night-500"
+              className="py-5 outline-none rounded-t-3xl px-7 hover:bg-day-300 radix-highlighted:bg-night-500"
             >
               👤 Profile
             </Link>
           </DropdownMenu.Item>
           <DropdownMenu.Item asChild>
-            <Link prefetch="intent" to="notifications" className="px-7 py-5 outline-none hover:bg-night-500 radix-highlighted:bg-night-500">
+            <Link prefetch="intent" to="notifications" className="py-5 outline-none px-7 hover:bg-night-500 radix-highlighted:bg-night-500">
               🔔 Notificaciones
             </Link>
             {/* </DropdownMenu.Item>
           <DropdownMenu.Item asChild>
-            <Link prefetch="intent" to="/bookings" className="px-7 py-5 outline-none hover:bg-night-500 radix-highlighted:bg-night-500">
+            <Link prefetch="intent" to="/bookings" className="py-5 outline-none px-7 hover:bg-night-500 radix-highlighted:bg-night-500">
               🚀 Bookings
             </Link>*/}
           </DropdownMenu.Item>
@@ -256,7 +256,7 @@ function UserDropdown({ employee }: { employee: any }) {
             <Form
               action="/logout"
               method="POST"
-              className="rounded-b-3xl px-7 py-5 outline-none radix-highlighted:bg-night-500 hover:bg-day-300"
+              className="py-5 outline-none rounded-b-3xl px-7 radix-highlighted:bg-night-500 hover:bg-day-300"
               onClick={e => submit(e.currentTarget)}
             >
               <button type="submit">🚪 Logout</button>

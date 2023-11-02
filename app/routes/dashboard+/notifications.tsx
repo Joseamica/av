@@ -84,11 +84,11 @@ export default function Notifications() {
       <table>
         <thead>
           <tr>
-            <th className="p-1 border text-center text-xs">Fecha</th>
-            <th className="p-1 border text-center text-xs">Tipo de solicitud</th>
-            {/* <th className="p-1 border text-center text-xs">Estado</th> */}
-            <th className="p-1 border text-center text-xs">Mensaje</th>
-            <th className="p-1 border text-center text-xs"></th>
+            <th className="p-1 text-xs text-center border">Fecha</th>
+            <th className="p-1 text-xs text-center border">Tipo de solicitud</th>
+            {/* <th className="p-1 text-xs text-center border">Estado</th> */}
+            <th className="p-1 text-xs text-center border">Mensaje</th>
+            <th className="p-1 text-xs text-center border"></th>
           </tr>
         </thead>
         <tbody>
@@ -99,14 +99,14 @@ export default function Notifications() {
             return (
               <tr
                 key={notification.id}
-                onClick={() => navigate(payment ? '/dashboard/payments' : order ? '/dashboard/orders?active=true' : '')}
+                // onClick={() => navigate(payment ? '/dashboard/payments' : order ? '/dashboard/orders?active=true' : '')}
                 className=""
               >
-                <td className="p-1 border text-center text-xs">{formattedDate}</td>
-                <td className="p-1 border text-center text-xs">{translate(notification.type_temp)}</td>
-                {/* <td className="p-1 border text-center text-xs">{notification.status}</td> */}
-                <td className="p-1 border text-center text-xs">{notification.message}</td>
-                <td className="p-1 flex justify-center items-center">
+                <td className="p-1 text-xs text-center border">{formattedDate}</td>
+                <td className="p-1 text-xs text-center border">{translate(notification.type_temp)}</td>
+                {/* <td className="p-1 text-xs text-center border">{notification.status}</td> */}
+                <td className="p-1 text-xs text-center border">{notification.message}</td>
+                <td className="flex items-center justify-center p-1">
                   <fetcher.Form method="POST">
                     <button disabled={isSubmitting}>
                       <DeleteIcon />

@@ -390,20 +390,22 @@ model Session {
 }
 
 model Payments {
-  id        String        @id @default(cuid())
-  method    PaymentMethod
-  status    StatusMethod? @default(pending)
-  amount    Decimal
-  tip       Decimal?
-  total     Decimal?
-  branchId  String?
-  branch    Branch?       @relation(fields: [branchId], references: [id])
-  orderId   String?
-  order     Order?        @relation(fields: [orderId], references: [id])
-  userId    String?
-  user      User?         @relation(fields: [userId], references: [id])
-  updatedAt DateTime?     @updatedAt
-  createdAt DateTime      @default(now())
+  id           String        @id @default(cuid())
+  method       PaymentMethod
+  status       StatusMethod? @default(pending)
+  amount       Decimal
+  tip          Decimal?
+  total        Decimal?
+  branchId     String?
+  branch       Branch?       @relation(fields: [branchId], references: [id])
+  orderId      String?
+  order        Order?        @relation(fields: [orderId], references: [id])
+  userId       String?
+  user         User?         @relation(fields: [userId], references: [id])
+  employeesIds String[]
+
+  updatedAt DateTime? @updatedAt
+  createdAt DateTime  @default(now())
 }
 
 enum PaymentMethod {
@@ -454,6 +456,7 @@ enum StatusMethod {
   rejected
   received
   completed
+  disputed
 }
 
 enum NotificationMethod {

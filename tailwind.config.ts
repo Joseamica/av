@@ -1,5 +1,7 @@
 import type { Config } from 'tailwindcss'
 
+const { blackA } = require('@radix-ui/colors')
+
 const defaultTheme = require('tailwindcss/defaultTheme')
 
 export default {
@@ -29,6 +31,7 @@ export default {
     },
     extend: {
       colors: {
+        ...blackA,
         border: 'hsl(var(--border))',
         input: {
           DEFAULT: 'hsl(var(--input))',

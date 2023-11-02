@@ -11,18 +11,14 @@ export function NavMenu({
 }) {
   return (
     <div className="w-full flex bg-white h-11 items-center pl-3 space-x-10">
-      <div className="flex flex-row space-x-5">
+      <div className="flex flex-row space-x-3">
         {categories?.map((category, index) => {
           return (
             <button onClick={() => setActiveNavMenu(category)} key={index} className="flex flex-row items-center space-x-1">
-              <div
-                className={clsx('w-3 h-3 bg-dashb-bg rounded-full', {
-                  'bg-indigo-500': activeNavMenu === category,
-                })}
-              ></div>
+              <div className="w-3 h-3 bg-dashb-bg rounded-full"></div>
               <p
                 className={clsx({
-                  'text-indigo-500 ': activeNavMenu === category,
+                  'text-indigo-500 underline underline-offset-8': activeNavMenu === category,
                 })}
               >
                 {category}

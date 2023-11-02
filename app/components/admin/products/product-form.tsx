@@ -25,6 +25,7 @@ export function ProductForm({
 }) {
   const isEditing = intent === 'edit'
   // console.log('addingData', addingData.data)
+
   const [addModifierGroup, setAddModifierGroup] = React.useState(false)
 
   return (

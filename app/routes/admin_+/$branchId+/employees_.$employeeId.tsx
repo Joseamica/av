@@ -38,7 +38,7 @@ export default function Name() {
   const { employeeId, branchId } = useParams()
   const fetcher = useFetcher()
   const [searchParams, setSearchParams] = useSearchParams()
-  console.log('data', data)
+
   return (
     <div className="space-y-7">
       <H1>Link de QR</H1>

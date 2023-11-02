@@ -65,6 +65,9 @@ export function ScrollableQueryDialog({
 
   const handleOnOpenChange = param => {
     searchParams.delete(param)
+    if (searchParams.get('type')) {
+      searchParams.delete('type')
+    }
     setSearchParams(searchParams)
   }
 

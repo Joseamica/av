@@ -335,7 +335,7 @@ export default function Products() {
             {data.modifierGroups?.map(modifierG => {
               return (
                 <div className="flex flex-col" key={modifierG.id}>
-                  <Square itemId={modifierG.id} name={modifierG.name} to={modifierG.id} key={modifierG.id} />
+                  <Square itemId={modifierG.id} name={modifierG.name} to={`modifierGroup/${modifierG.id}`} key={modifierG.id} />
                   <fetcher.Form method="POST">
                     <button
                       className="icon-button w-10 flex items-center justify-center "
@@ -365,7 +365,7 @@ export default function Products() {
               return (
                 <div className="flex flex-col" key={modifier.id}>
                   <H5 boldVariant="semibold">{modifier.name}</H5>
-                  <Square itemId={modifier.id} name={modifier.name} to={modifier.id} key={modifier.id} />
+                  <Square itemId={modifier.id} name={modifier.name} to={`modifier/${modifier.id}`} key={modifier.id} />
                   <fetcher.Form method="POST">
                     <button
                       className="icon-button w-10 flex items-center justify-center "
