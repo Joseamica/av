@@ -121,25 +121,6 @@ export function TabBar({ active }: { active: string }) {
         <span className="text-[15px]">Home</span>
       </Link>
       <Link
-        to="products"
-        className={clsx(
-          'flex items-center justify-center w-1/4 p-2 rounded-lg space-x-1',
-          active === 'products' ? 'bg-dashb-bg text-dashb-text font-bold' : '',
-        )}
-      >
-        <span className="text-[15px]">Productos</span>
-      </Link>
-      {/*  <Link
-        to="payments?status=pending"
-        className={clsx(
-          'flex items-center justify-center w-1/4 p-2 rounded-lg space-x-1',
-          active === 'payments' ? 'bg-dashb-bg text-dashb-text font-bold' : '',
-        )}
-      >
-
-        <span className="text-[15px]">Pagos</span>
-      </Link> */}
-      <Link
         to="tables"
         className={clsx(
           'flex items-center justify-center w-1/4 p-2 rounded-lg space-x-1',
@@ -148,6 +129,24 @@ export function TabBar({ active }: { active: string }) {
       >
         {/* <FaTablets className="w-5 h-5 " /> */}
         <span className="text-[15px]">Mesas</span>
+      </Link>
+      <Link
+        to="products"
+        className={clsx(
+          'flex items-center justify-center w-1/4 p-2 rounded-lg space-x-1',
+          active === 'products' ? 'bg-dashb-bg text-dashb-text font-bold' : '',
+        )}
+      >
+        <span className="text-[15px]">Productos</span>
+      </Link>
+      <Link
+        to="reports"
+        className={clsx(
+          'flex items-center justify-center w-1/4 p-2 rounded-lg space-x-1',
+          active === 'reports' ? 'bg-dashb-bg text-dashb-text font-bold' : '',
+        )}
+      >
+        <span className="text-[15px]">Reportes</span>
       </Link>
     </div>
   )

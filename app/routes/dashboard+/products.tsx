@@ -8,6 +8,7 @@ import { prisma } from '~/db.server'
 import { getSession } from '~/session.server'
 
 import { FlexRow, Spacer } from '~/components'
+import { NavMenu } from '~/components/dashboard/navmenu'
 import { SearchBar } from '~/components/dashboard/searchbar'
 
 export async function loader({ request, params }: LoaderArgs) {
@@ -113,18 +114,15 @@ export default function Products() {
   const data = useLoaderData()
   const [search, setSearch] = React.useState<string>('')
   const fetcher = useFetcher()
-  const [active, setActive] = React.useState<string>('Productos')
-  const onHandleActive = (name: string) => {
-    setActive(name)
-  }
-
+  const [activeNavMenu, setActiveNavMenu] = React.useState<string>('Productos')
   return (
     <div className="p-4">
-      <FlexRow>
-        <button onClick={() => onHandleActive('Productos')}>Productos</button>
-        <button onClick={() => onHandleActive('GModificadores')}>Grupos Modificadores</button>
-        <button onClick={() => onHandleActive('Modificadores')}>Modificadores</button>
-      </FlexRow>
+      <NavMenu
+        categories={['Productos', 'Grupos Modificadores', 'Modificadores']}
+        activeNavMenu={activeNavMenu}
+        setActiveNavMenu={setActiveNavMenu}
+      />
+
       <SearchBar placeholder="Buscar productos" setSearch={setSearch} />
       <Spacer spaceY="2" />
       <div className="flex flex-col space-y-2">
@@ -164,7 +162,7 @@ export default function Products() {
           </>
         ) : (
           <>
-            {active === 'Productos' ? (
+            {activeNavMenu === 'Productos' ? (
               <>
                 {data.products.map(product => {
                   return (
@@ -198,7 +196,7 @@ export default function Products() {
                 })}
               </>
             ) : null}
-            {active === 'GModificadores' ? (
+            {activeNavMenu === 'Grupos Modificadores' ? (
               <>
                 {data.modifierGroups.map(mg => {
                   return (
@@ -231,7 +229,7 @@ export default function Products() {
                 })}
               </>
             ) : null}
-            {active === 'Modificadores' ? (
+            {activeNavMenu === 'Modificadores' ? (
               <>
                 {data.modifiers.map(modifier => {
                   return (
