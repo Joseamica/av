@@ -143,10 +143,14 @@ export default function MenuId() {
     <>
       <Modal
         title={`${data.branch.name} Menu `}
-        onClose={() => navigate(`/table/${params.tableId}`)}
+        onClose={() => navigate(`/table/${params.tableId}`, { preventScrollReset: true })}
         showCart={
           data.cartItems?.length > 0 && (
-            <Link to={`/table/${params.tableId}/menu/${params.menuId}/cart`} className="flex space-x-2 border rounded-xl px-2 py-1">
+            <Link
+              to={`/table/${params.tableId}/menu/${params.menuId}/cart`}
+              className="flex space-x-2 border rounded-xl px-2 py-1"
+              preventScrollReset
+            >
               <ShoppingCartIcon className="h-5 w-5" />
               <span className="text-sm">{cartItemsAdded}</span>
             </Link>
@@ -165,6 +169,7 @@ export default function MenuId() {
               ref={el => (categoryRefs.current[category.id] = el)}
               to={`#${category.id}`}
               key={category.id}
+              preventScrollReset
               className={clsx('text-xs', {
                 'underline text-small font-medium text-day-principal underline-offset-4 decoration-day-principal':
                   category.id === activeCategoryId,
@@ -192,7 +197,7 @@ export default function MenuId() {
                     return (
                       <Link
                         key={product.id}
-                        preventScrollReset
+                        preventScrollReset={true}
                         // to={`?productId=${product.id}`}
                         to={product.id}
                         className="flex flex-row items-center justify-between py-2 space-x-2"

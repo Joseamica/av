@@ -4,7 +4,7 @@ import { ChevronLeftIcon } from '../../icons'
 
 export function BackButton({ url }: { url: string }) {
   return (
-    <Link to={url} className="rounded-full border">
+    <Link to={url} className="rounded-full border" preventScrollReset>
       <ChevronLeftIcon className="h-8 w-8" />
     </Link>
   )

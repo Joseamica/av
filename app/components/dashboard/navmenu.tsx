@@ -10,14 +10,14 @@ export function NavMenu({
   setActiveNavMenu: (category: string) => void
 }) {
   return (
-    <div className="w-full flex bg-white h-11 items-center pl-3 space-x-10">
-      <div className="flex flex-row space-x-3">
+    <div className="w-full flex bg-white h-11 items-center pl-4 space-x-3">
+      <div className="flex flex-row space-x-5">
         {categories?.map((category, index) => {
           return (
             <button onClick={() => setActiveNavMenu(category)} key={index} className="flex flex-row items-center space-x-1">
-              <div className="w-3 h-3 bg-dashb-bg rounded-full"></div>
+              {/* <div className="w-3 h-3 bg-dashb-bg rounded-full"></div> */}
               <p
-                className={clsx({
+                className={clsx('', {
                   'text-indigo-500 underline underline-offset-8': activeNavMenu === category,
                 })}
               >

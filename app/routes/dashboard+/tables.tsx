@@ -9,7 +9,7 @@ import { getSession } from '~/session.server'
 
 import { formatCurrency } from '~/utils'
 
-import { Spacer } from '~/components'
+import { ChevronRightIcon, H4, Spacer, XIcon } from '~/components'
 import { NavMenu } from '~/components/dashboard/navmenu'
 import { SearchBar } from '~/components/dashboard/searchbar'
 
@@ -45,7 +45,7 @@ export async function loader({ request, params }: LoaderArgs) {
 export default function Tables() {
   const data = useLoaderData()
   const [search, setSearch] = React.useState<string>('')
-  const [activeNavMenu, setActiveNavMenu] = React.useState<string>('Todas')
+  const [activeNavMenu, setActiveNavMenu] = React.useState<string>('Activas')
 
   return (
     <div className=" flex flex-col ">
@@ -93,6 +93,7 @@ export default function Tables() {
             ) : null}
             {activeNavMenu === 'Activas' ? (
               <>
+                {data.tables.filter(table => table.order).length === 0 ? <H4 variant="secondary">Aun no hay mesas activas</H4> : null}
                 {data.tables
                   .filter(table => table.order)
                   .map(table => {
@@ -158,9 +159,14 @@ export function Table({ to, clients, products, tableNumber }: { to: string; clie
           />
         </div>
       </div>
-      <div className=" right-2">
-        <IoShieldCheckmarkOutline />
-      </div>
+      {products ? (
+        <div className=" border rounded-full flex justify-center items-center bg-white">
+          <ChevronRightIcon />
+        </div>
+      ) : // <div className=" border rounded-full flex justify-center items-center bg-white">
+      //   <XIcon />
+      // </div>
+      null}
     </Link>
   )
 }

@@ -1,4 +1,5 @@
 import { Link, useLoaderData } from '@remix-run/react'
+import { FaExclamation } from 'react-icons/fa'
 import { IoCard, IoList, IoPerson, IoShieldCheckmarkOutline } from 'react-icons/io5'
 
 import { type ActionArgs, type LoaderArgs, json, redirect } from '@remix-run/node'
@@ -32,42 +33,57 @@ export async function action({ request, params }: ActionArgs) {
 
 export default function Reports() {
   const data = useLoaderData()
-  return <div>Reports</div>
+  return (
+    <div>
+      <div className="px-[10px]">
+        {data.feedbacks.map(feedback => {
+          return (
+            // <div key={feedback.id}>
+            //   <span>{feedback.type}</span>
+            //   <span>{feedback.report}</span>
+            //   <span>{feedback.comments}</span>
+            // </div>
+            <Feedback to={feedback.id} feedback={feedback} key={feedback.id} />
+          )
+        })}
+      </div>
+    </div>
+  )
 }
 
-export function Table({ to, clients, products, tableNumber }: { to: string; clients: string; products: any; tableNumber: string }) {
-  const total = products?.reduce((acc, curr) => {
-    return Number(acc) + Number(curr.price)
-  }, 0)
-
+export function Feedback({ to, feedback }: { to: string; feedback: any }) {
   return (
-    <Link to={products ? to : ''} className="w-full  relative flex items-center justify-between space-x-4" preventScrollReset>
+    <Link to={to} className="w-full  relative flex items-center justify-between space-x-4" preventScrollReset>
       <div className="border rounded-lg flex justify-around w-full">
         <div className="flex justify-center items-center  bg-dashb-bg w-14 rounded-lg">
-          <p className="text-3xl">{tableNumber}</p>
+          <p className="text-3xl">{feedback.id.slice(-4)}</p>
         </div>
         <div className="flex flex-row  divide-x divide-gray-300 items-center w-full h-full  bg-white rounded-lg  ">
-          <TableContainer title="Clientes" value={clients} icon={<IoPerson className="bg-indigo-500 rounded-sm p-1 fill-white" />} />
-          <TableContainer
+          <FeedbackContainer
+            title="Report"
+            value={feedback.type}
+            icon={<FaExclamation className="bg-indigo-500 rounded-sm p-1 fill-white" />}
+          />
+          {/* <FeedbackContainer
             title="Productos"
             value={products?.length}
             icon={<IoList className="bg-[#F19F82] rounded-sm p-1 fill-white text-white" />}
-          />
-          <TableContainer
-            title="Total"
-            value={total ? formatCurrency('$', total || 0) : null}
+          />*/}
+          <FeedbackContainer
+            title="Comments"
+            value={feedback.comments}
             icon={<IoCard className="bg-[#548AF7] rounded-sm p-1 fill-white" />}
           />
         </div>
       </div>
-      <div className=" right-2">
+      <div className="right-2">
         <IoShieldCheckmarkOutline />
       </div>
     </Link>
   )
 }
 
-export function TableContainer({ title, value, icon }: { title: string; value: string | number; icon: JSX.Element }) {
+export function FeedbackContainer({ title, value, icon }: { title: string; value: string | number; icon: JSX.Element }) {
   return (
     <div className="flex flex-col space-y-1  px-3 py-2 w-full">
       <div />

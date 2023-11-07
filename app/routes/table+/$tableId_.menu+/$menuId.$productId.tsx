@@ -1,5 +1,5 @@
 import * as Separator from '@radix-ui/react-separator'
-import { useFetcher, useLoaderData, useNavigate } from '@remix-run/react'
+import { useFetcher, useLoaderData, useNavigate, useParams } from '@remix-run/react'
 import React from 'react'
 
 import { type ActionArgs, type LoaderArgs, json, redirect } from '@remix-run/node'
@@ -86,6 +86,7 @@ export default function ProductId() {
 
   const fetcher = useFetcher()
   const navigate = useNavigate()
+  const params = useParams()
   // const params = useParams()
   const [productQuantity, setProductQuantity] = React.useState<number>(1)
 
@@ -125,7 +126,7 @@ export default function ProductId() {
 
   return (
     <Modal
-      onClose={() => navigate(-1)}
+      onClose={() => navigate(`/table/${params.tableId}/menu/${params.menuId}`)}
       title={data.product?.name}
       imgHeader={data.product?.image}
       // fullScreen={true}
@@ -319,7 +320,7 @@ export default function ProductId() {
           <Spacer spaceY="1" />
 
           <Button name="_action" value="proceed" fullWith={true} disabled={isSubmitting} className="sticky bottom-5">
-            Agregar {data.product.name}{' '}
+            Agregar {data.product.name.length > 14 ? data.product.name.slice(0, 14) : data.product.name}{' '}
             {formatCurrency(
               data.currency,
               data.product.price * productQuantity +

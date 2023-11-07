@@ -56,7 +56,7 @@ export function EmptyOrder({
         <SectionContainer
           className="dark:bg-DARK_1 dark:bg-night-bg_principal dark:text-night-text_principal flex flex-col justify-start rounded-lg bg-day-bg_principal p-2 drop-shadow-md dark:drop-shadow-none"
           data-intro="Aquí puedes ver quién está en la mesa"
-          data-step="2"
+          data-step="3"
           data-title="Usuarios"
         >
           <p className="text-DARK_3">Usuarios en la mesa</p>

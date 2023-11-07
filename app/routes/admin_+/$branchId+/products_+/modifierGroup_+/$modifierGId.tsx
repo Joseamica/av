@@ -20,12 +20,13 @@ export async function loader({ request, params }: LoaderArgs) {
       modifiers: true,
     },
   })
-  const products = await prisma.product.findMany({
-    where: {
-      branchId,
-    },
-  })
-  return json({ modifierGroup, products })
+  const categories = await prisma.category.findMany({ where: { branchId }, include: { products: true } })
+  // const products = await prisma.product.findMany({
+  //   where: {
+  //     branchId,
+  //   },
+  // })
+  return json({ modifierGroup, categories })
 }
 export async function action({ request, params }: ActionArgs) {
   const formData = await request.formData()
@@ -129,20 +130,35 @@ export default function ModifierId() {
           <fetcher.Form method="POST" className="p-1 border rounded-lg">
             <H2>Productos</H2>
             <div className="p-2 overflow-scroll h-96">
-              {data.products?.map(product => {
+              {data.categories?.map(category => {
                 return (
-                  <div key={product.id} className="flex items-center space-x-2">
-                    <label htmlFor="product">
-                      <input
-                        id="product"
-                        className="w-5 h-5"
-                        type="checkbox"
-                        name="products"
-                        value={product.id}
-                        defaultChecked={data.modifierGroup.products?.some(p => p.id === product.id)}
-                      />
-                    </label>
-                    <span> {product.name}</span>
+                  <div key={category.id}>
+                    {category.products.length > 0 ? (
+                      <>
+                        <H2 className="underline">{category.name}</H2>
+                        <Spacer spaceY="1" />
+                      </>
+                    ) : null}
+
+                    <div>
+                      {category.products.map(product => {
+                        return (
+                          <div key={product.id} className="flex items-center space-x-2">
+                            <label htmlFor="product">
+                              <input
+                                id="product"
+                                className="w-5 h-5"
+                                type="checkbox"
+                                name="products"
+                                value={product.id}
+                                defaultChecked={data.modifierGroup.products?.some(p => p.id === product.id)}
+                              />
+                            </label>
+                            <span> {product.name}</span>
+                          </div>
+                        )
+                      })}
+                    </div>
                   </div>
                 )
               })}

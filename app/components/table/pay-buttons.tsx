@@ -55,7 +55,7 @@ export function PayButtons({ setShowPaymentOptions }: { setShowPaymentOptions?: 
               <span className="">
                 <OutlineUsersIcon />
               </span>
-              <span className="text-base"> Pagar por alguien mas</span>
+              <span className="text-base"> Pagar por usuario</span>
               <span />
             </div>
           </LinkButton>

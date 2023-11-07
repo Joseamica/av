@@ -52,7 +52,7 @@ export async function action({ request, params }: ActionArgs) {
   return json({ success: true })
 }
 
-export default function Name() {
+export default function TableId() {
   const data = useLoaderData()
   const navigate = useNavigate()
   const [search, setSearch] = React.useState<string>('')
@@ -66,15 +66,15 @@ export default function Name() {
   const [showAcceptedPayments, setShowAcceptedPayments] = React.useState<boolean>(false)
   const [totalPaymentsQuantity, setTotalPaymentsQuantity] = React.useState<number>(0)
 
-  // const totalProductQuantity: number = data.table.order.cartItems?.reduce(
-  //   (acc: number, item: { quantity: number }) => acc + item.quantity,
-  //   0,
-  // )
+  const totalProductQuantity: number = data.table.order.cartItems?.reduce(
+    (acc: number, item: { quantity: number }) => acc + item.quantity,
+    0,
+  )
 
-  // const orderTotal = data.table.order.cartItems?.reduce(
-  //   (acc: number, item: { quantity: number; price: number }) => acc + item.quantity * item.price,
-  //   0,
-  // )
+  const orderTotal = data.table.order.cartItems?.reduce(
+    (acc: number, item: { quantity: number; price: number }) => acc + item.quantity * item.price,
+    0,
+  )
 
   React.useEffect(() => {
     const filteredPayments = data.payments.filter(
@@ -86,15 +86,15 @@ export default function Name() {
   return (
     <Modal fullScreen={true} title={`Mesa ${data.table.number}`} onClose={() => navigate(-1)}>
       <div className="h-full">
-        <NavMenu activeNavMenu={activeNavMenu} setActiveNavMenu={setActiveNavMenu} categories={['Orden', 'Clientes', 'Pagos']} />
-        {/* {activeNavMenu === 'Orden' ? (
+        <NavMenu activeNavMenu={activeNavMenu} setActiveNavMenu={setActiveNavMenu} categories={['Orden', 'Pagos']} />
+        {activeNavMenu === 'Orden' ? (
           <OrderDetails
             currency={data.currency}
             totalProductQuantity={totalProductQuantity}
             orderTotal={orderTotal}
             cartItems={data.table.order?.cartItems ? data.table.order?.cartItems : ''}
           />
-        ) : null} */}
+        ) : null}
         {activeNavMenu === 'Pagos' ? (
           <div>
             <SearchBar placeholder={'Buscar por id, propina o total'} setSearch={setSearch} />

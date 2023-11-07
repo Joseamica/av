@@ -25,7 +25,7 @@ export function PayModal() {
               <label
                 key={paymentMethod}
                 className={clsx(
-                  ' cursor-pointer flex w-full flex-row items-center justify-center space-x-2 rounded-lg border border-button-outline border-opacity-40 px-3 py-2 shadow-lg',
+                  ' cursor-pointer flex w-full flex-row items-center justify-between space-x-2 rounded-lg border border-button-outline border-opacity-40 px-3 py-2 shadow-lg',
                   {
                     'text-2 rounded-full bg-button-primary px-2 py-3  text-white  ring-4   ring-button-outline':
                       paymentRadio === paymentMethod,
@@ -33,21 +33,20 @@ export function PayModal() {
                 )}
               >
                 {translate.includes('Tarjeta') ? (
-                  <FaStripe className="self-start h-9 w-9" />
+                  <>
+                    <FlexRow>
+                      <FaStripe className="self-start h-9 w-9" />
+                      <FaGooglePay className="h-9 w-9" />
+                      <FaApplePay className="h-9 w-9" />
+                    </FlexRow>
+                  </>
                 ) : translate.includes('Efectivo') ? (
                   <CashIcon className="self-start h-7 w-7" />
                 ) : translate.includes('terminal') ? (
                   <FaCreditCard className="self-start h-5 w-5" />
                 ) : null}
                 <span> {translate}</span>
-                <span>
-                  {translate.includes('Tarjeta') ? (
-                    <FlexRow>
-                      <FaGooglePay className="h-9 w-9" />
-                      <FaApplePay className="h-9 w-9" />
-                    </FlexRow>
-                  ) : null}
-                </span>
+                <div />
 
                 <input
                   type="radio"

@@ -63,7 +63,7 @@ export const getStripeSession = async (
             'https://firebasestorage.googleapis.com/v0/b/avoqado-d0a24.appspot.com/o/AVOQADO.png?alt=media&token=fae6250d-743c-4dbc-8432-19b4bbdcc35a',
           ],
         },
-        unit_amount: amount + avocadoFee,
+        unit_amount: amount + Math.floor(avocadoFee),
       },
       quantity: 1,
     },
@@ -122,7 +122,7 @@ export const getStripeSession = async (
     // },
     payment_intent_data: {
       // application_fee_amount: Math.floor(avocadoFee),
-      application_fee_amount: amount * 0.05,
+      application_fee_amount: Math.floor(amount * 0.05),
       transfer_data: {
         destination: 'acct_1O2JglK0u0kbLQyR',
       },

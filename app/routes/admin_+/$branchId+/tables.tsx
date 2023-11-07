@@ -24,6 +24,8 @@ import { useLiveLoader } from '~/use-live-loader'
 
 import { getTable, handleAddAction, handleDeleteAction, handleEditAction } from '~/models/admin/table/table.server'
 
+import { EVENTS } from '~/events'
+
 import { getSearchParams } from '~/utils'
 
 import { Button, FlexRow, H1, H2, H3, H4, Spacer } from '~/components'
@@ -88,7 +90,6 @@ export async function action({ request, params }: ActionArgs) {
   const { branchId } = params
   const formData = await request.formData()
   const formValues = Object.fromEntries(formData.entries())
-  const _action = formValues._action
 
   const searchParams = getSearchParams({ request })
   const searchParamsValues = Object.fromEntries(searchParams)
@@ -99,6 +100,28 @@ export async function action({ request, params }: ActionArgs) {
   // if(_action === 'clean') {
 
   // }
+  const model = formData.get('model') as string
+  const id = formData.get('id') as string
+
+  if (model === 'cartItem') {
+    const cartItem = await prisma.cartItem.findUnique({ where: { id } })
+    console.log('cartItem', cartItem)
+    const orderId = formData.get('orderId') as string
+    const price = cartItem.price
+    const order = await prisma.order.findUnique({ where: { id: orderId } })
+    await prisma.order.update({
+      where: { id: orderId },
+      data: {
+        total: Number(order.total) - Number(price),
+      },
+    })
+    await prisma.cartItem.delete({
+      where: {
+        id: id,
+      },
+    })
+    EVENTS.ISSUE_CHANGED(tableId)
+  }
 
   switch (formValues._action) {
     case ACTIONS.ADD:
@@ -227,11 +250,12 @@ export default function Tables() {
                         })}
                       </div>
                     </div>
-                    <fetcher.Form method="POST" action="/admin/deleteItem" name="DELETE">
+                    <fetcher.Form method="POST">
                       <Button type="submit" size="small" variant="danger">
                         Delete
                       </Button>
                       <input type="hidden" name="id" value={cartItem.id} />
+                      <input type="hidden" name="orderId" value={data.table?.order.id} />
                       <input type="hidden" name="model" value="cartItem" />
                       <input type="hidden" name="redirect" value={`/admin/${branchId}/tables?itemId=${itemId}`} />
                     </fetcher.Form>
