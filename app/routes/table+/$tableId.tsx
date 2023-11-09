@@ -289,7 +289,7 @@ export default function Table() {
         {/* <Help /> */}
 
         <RestaurantInfoCard branch={data.branch} menu={data.menu} error={data.error} />
-        <Spacer spaceY="4" />
+        <Spacer spaceY="2" />
         <h3 className="flex justify-center text-sm text-secondaryTextDark shrink-0">{`Mesa ${data.table.number}`}</h3>
         <Spacer spaceY="2" />
         <BillAmount
@@ -301,7 +301,7 @@ export default function Table() {
         />
         <Spacer spaceY="2" />
         {/* NOTE: SWITCH BUTTON */}
-        <div className="flex justify-end w-full">
+        {/* <div className="flex justify-end w-full">
           <SwitchButton
             state={filterPerUser}
             setToggle={handleToggle}
@@ -313,7 +313,7 @@ export default function Table() {
             height="medium"
             allCornersRounded={false}
           />
-        </div>
+        </div> */}
         {/* NOTE: FILTER */}
         {filterPerUser ? (
           <FilterUserView order={data.order} currency={data.currency} handleToggleUser={handleToggleUser} selectedUsers={selectedUsers} />

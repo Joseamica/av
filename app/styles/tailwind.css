@@ -16,6 +16,18 @@
   display: none;
 }
 
+@keyframes pulseColor {
+  0% {
+    background-color: hsl(var(--foreground));
+  }
+  50% {
+    background-color: hsl(var(--muted));
+  }
+  100% {
+    background-color: hsl(var(--foreground));
+  }
+}
+
 @layer components {
   .basic-flex-col {
     @apply flex flex-col items-center justify-center space-y-2;

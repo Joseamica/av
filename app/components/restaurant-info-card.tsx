@@ -3,6 +3,7 @@ import { Link } from '@remix-run/react'
 import 'intro.js/introjs.css'
 
 import { PlusIcon, RestMenuIcon } from './icons'
+import { Spacer } from './util/spacer'
 
 export function RestaurantInfoCard({
   branch,
@@ -22,7 +23,7 @@ export function RestaurantInfoCard({
           src={branch.image}
           alt=""
           loading="lazy"
-          className="dark:bg-secondaryDark dark:bg-night-bg_principal dark:text-night-text_principal relative max-h-40 w-full rounded-t-3xl bg-day-bg_principal object-cover brightness-50"
+          className="dark:bg-secondaryDark dark:bg-night-bg_principal dark:text-night-text_principal relative max-h-40 w-full rounded-3xl bg-day-bg_principal object-cover brightness-50"
         />
         <div className="absolute bottom-5 left-5">
           <p className="text-sm tracking-widest text-white">{branch.cuisine.toUpperCase()}</p>
@@ -31,7 +32,7 @@ export function RestaurantInfoCard({
           <p className="text-white">{branch.city}</p>
         </div>
       </div>
-      {/* <Spacer size="md" /> */}
+      <Spacer size="md" />
       {menu?.id ? (
         <div>
           {/* {!isOrderActive && <div className="">a</div>} */}
@@ -40,10 +41,10 @@ export function RestaurantInfoCard({
             data-intro="Aquí puedes ver la carta de productos y ordenar"
             data-step="1"
             data-title="Carta"
-            className="dark:bg-mainDark dark:text-mainTextDark dark:bg-night-bg_principal animate-pulse  dark:text-night-text_principal flex items-center justify-between rounded-b-3xl bg-day-bg_principal px-6 py-4 text-lg drop-shadow-xl"
+            className="dark:bg-mainDark dark:text-mainTextDark dark:bg-night-bg_principal border-2  dark:text-night-text_principal flex items-center justify-between rounded-3xl bg-day-bg_principal px-6 py-4 text-lg"
           >
             <RestMenuIcon className="h-6 w-6" />
-            <span>Ordena aquí</span>
+            <span className=" animate-pulse-color font-bold">Ordena aquí</span>
             <div />
           </Link>
         </div>

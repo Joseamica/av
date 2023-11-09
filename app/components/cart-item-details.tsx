@@ -1,10 +1,13 @@
-import type { User } from '@prisma/client'
 import { Link, useLoaderData } from '@remix-run/react'
+
+import type { User } from '@prisma/client'
 import { motion } from 'framer-motion'
-import { formatCurrency } from '~/utils'
+
+import { UserCircleIcon } from './icons'
 import { FlexRow } from './util/flexrow'
 import { H5, H6 } from './util/typography'
-import { UserCircleIcon } from './icons'
+
+import { formatCurrency } from '~/utils'
 
 const MotionLink = motion(Link)
 
@@ -31,10 +34,14 @@ export function CartItemDetails({ cartItem }: { cartItem: any }) {
       // }}
     >
       <FlexRow>
-        <H6 className="flex h-4 w-4 items-center justify-center rounded-md bg-button-notSelected text-center">{cartItem.quantity}</H6>
+        <H5 className="flex h-4 w-4 items-center justify-center rounded-sm bg-[#F6F6F9] text-center">{cartItem.quantity}</H5>
         <img alt="" loading="lazy" src={cartItem?.image || ''} className="dark:bg-secondaryDark h-10 w-10 rounded-lg" />
         <div className="space-y-[2px]">
-          {cartItem.quantity > 1 ? <H5 className="text-md">{cartItem.name}</H5> : <H5>{cartItem.name}</H5>}
+          {cartItem.quantity > 1 ? (
+            <H5 className="text-md">{cartItem.name.length > 25 ? cartItem.name.slice(0, 25) + '...' : cartItem.name}</H5>
+          ) : (
+            <H5>{cartItem.name.length > 25 ? cartItem.name.slice(0, 25) + '...' : cartItem.name}</H5>
+          )}
           {cartItem.user?.length > 0 && (
             <FlexRow className="w-full">
               {cartItem.user.map((user: User) => (
@@ -54,7 +61,7 @@ export function CartItemDetails({ cartItem }: { cartItem: any }) {
           </H6>
         )}
 
-        <H5 boldVariant="medium">{formatCurrency(data.currency, cartTotalPrice)}</H5>
+        <H5 boldVariant="bold">{formatCurrency(data.currency, cartTotalPrice)}</H5>
       </FlexRow>
     </MotionLink>
   )
