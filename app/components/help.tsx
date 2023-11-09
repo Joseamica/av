@@ -1,4 +1,4 @@
-import { Link } from '@remix-run/react'
+import { Link, useParams } from '@remix-run/react'
 
 import { FeedBackIcon, ManagerIcon, WaiterIcon, WifiIcon } from './icons'
 import { FlexRow } from './util/flexrow'
@@ -10,6 +10,11 @@ const REPORT_TYPES = {
     name: 'waiter',
     icon: <WaiterIcon className="h-4 w-4 text-white fill-white  " />,
     es: 'Llamar Mesero',
+  },
+  wifi: {
+    name: 'wifi',
+    icon: <WifiIcon className="h-5 w-5 text-white fill-white   " />,
+    es: 'Wifi',
   },
   manager: {
     name: 'manager',
@@ -31,14 +36,61 @@ const REPORT_TYPES = {
   //   ),
   //   es: 'Coche',
   // },
-  wifi: {
-    name: 'wifi',
-    icon: <WifiIcon className="h-5 w-5 text-white fill-white   " />,
-    es: 'Wifi',
-  },
 }
 
 export function Help({ exclude }: { exclude?: string }) {
+  const params = useParams()
+  return (
+    <Spacer spaceY="2">
+      <FlexRow
+        className="w-full justify-around relative"
+        // data-intro="Aquí puedes interactuar con el restaurante directamente, como llamar al mesero, o reportar algun suceso"
+        // data-step="2"
+        // data-title="Acciones"
+      >
+        {Object.values(REPORT_TYPES).map((type, index) => {
+          if (type.name === exclude) {
+            return null
+          }
+          if (type.name === 'report' || type.name === 'wifi') {
+            return null
+          }
+          return (
+            <Link
+              key={index}
+              to={`${params.tableId}/help/${type?.name}`}
+              className=" flex flex-col items-center space-y-1 w-1/4"
+              preventScrollReset
+              // className="flex items-center justify-center rounded-full bg-day-bg_principal dark:bg-night-bg_principal dark:bg-DARK_1 h-9 w-9 "
+              //   onClick={() => setShowModal(type?.name)}
+            >
+              <div className=" flex h-8 w-8 items-center justify-center rounded-full border-2  text-white shadow-sm bg-day-principal">
+                <span className="text-white fill-white">{type.icon}</span>
+              </div>
+              <H6 variant="secondary" className="text-[10px]">
+                {type?.es}
+              </H6>
+            </Link>
+          )
+        })}
+        <Link
+          to={`${params.tableId}/help/report`}
+          className="absolute mx-auto flex  flex-col -top-6 justify-center items-center "
+          preventScrollReset
+        >
+          <div className="rounded-full flex h-10 w-10 items-center justify-center bg-white border-2">
+            <FeedBackIcon className="h-4 w-4  fill-black " />
+          </div>
+          <H6 variant="secondary" className="text-[10px]">
+            Reportar
+          </H6>
+        </Link>
+      </FlexRow>
+    </Spacer>
+  )
+}
+
+export function HelpWithoutOrder({ exclude }: { exclude?: string }) {
   return (
     <Spacer spaceY="2">
       <FlexRow

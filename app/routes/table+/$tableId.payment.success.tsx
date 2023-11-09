@@ -35,7 +35,7 @@ export const loader = async ({ params, request }: LoaderArgs) => {
   const amount = Number(total) - Number(tip)
 
   await assignUserNewPayments(userId, amount, tip)
-  await prisma.payments.create({
+  const payment = await prisma.payments.create({
     data: {
       amount: amount,
       method: paymentMethod as PaymentMethod,
@@ -85,15 +85,13 @@ export const loader = async ({ params, request }: LoaderArgs) => {
         message: `El usuario ${username} de la mesa ${table.number} quiere pagar en efectivo: ${amount} propina: ${tip} dando un total ${
           amount + tip
         }`,
-        amount: amount,
-        tip: tip,
-        total: amount + tip,
         method: 'push',
         status: 'received',
         type: 'informative',
         branchId: branchId,
         tableId: tableId,
         userId: userId,
+        paymentId: payment.id,
         orderId: order.id,
       },
     })

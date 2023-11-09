@@ -136,7 +136,7 @@ export default function Tables() {
 
 export function Table({ to, clients, products, tableNumber }: { to: string; clients: string; products: any; tableNumber: string }) {
   const total = products?.reduce((acc, curr) => {
-    return Number(acc) + Number(curr.price)
+    return Number(acc) + Number(curr.price) * Number(curr.quantity)
   }, 0)
 
   return (

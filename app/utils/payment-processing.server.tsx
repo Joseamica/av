@@ -51,16 +51,18 @@ export async function handlePaymentProcessing({
   const userId = session.get('userId')
   const employees = await prisma.employee.findMany({ where: { branchId: extraData.branchId } })
 
-  const username = await prisma.user.findUnique({ where: { id: userId } }).then(user => user?.name)
-  const tableNumber = await prisma.table.findUnique({ where: { id: extraData.tableId } }).then(table => table?.number)
+  const user = await prisma.user.findUnique({ where: { id: userId } })
+  const username = user?.name
+  const table = await prisma.table.findUnique({ where: { id: extraData.tableId } })
+  const tableNumber = table?.number
 
   switch (paymentMethod) {
-    case 'terminal':
+    case 'terminal': {
       sendWaNotification({
         body: `El cliente ${username} de la mesa ${tableNumber} quiere pagar en terminal fisica la cantidad de ${total + tip} pesos`,
         to: employees.map(employee => employee.phone),
       })
-      await prisma.payments.create({
+      const payment = await prisma.payments.create({
         data: {
           method: 'terminal',
           status: 'pending',
@@ -75,25 +77,6 @@ export async function handlePaymentProcessing({
 
       await prisma.notification.create({
         data: {
-          message: `Terminal payment`,
-          amount: total,
-          tip: tip,
-          total: total + tip,
-          method: 'push',
-          status: 'pending',
-          type: 'terminal payment',
-          branchId: extraData.branchId,
-          tableId: extraData.tableId,
-          userId: userId,
-          orderId: extraData.order.id,
-          type_temp: 'PAYMENT',
-          employees: {
-            connect: employees.map(employee => ({ id: employee.id })),
-          },
-        },
-      })
-      await prisma.notification.create({
-        data: {
           message: `Usuario ${username} de la mesa ${tableNumber} quiere pagar con la terminal un monto: $${total}, propina: ${tip} un total de ${
             total + tip
           } pesos`,
@@ -102,6 +85,7 @@ export async function handlePaymentProcessing({
           tableId: extraData.tableId,
           userId: userId,
           orderId: extraData.order.id,
+          paymentId: payment.id,
           status: 'pending',
           type_temp: 'PAYMENT',
           employees: {
@@ -112,8 +96,8 @@ export async function handlePaymentProcessing({
       EVENTS.ISSUE_CHANGED(extraData.tableId, extraData.branchId)
 
       return { type: 'redirect', url: '..' }
-
-    case 'card':
+    }
+    case 'card': {
       try {
         const stripeRedirectUrl = await getStripeSession(
           total * 100 + tip * 100,
@@ -130,12 +114,13 @@ export async function handlePaymentProcessing({
         console.error('Failed to create payment session:', error)
         return { type: 'redirect', url: '/error' }
       }
-    case 'cash':
+    }
+    case 'cash': {
       sendWaNotification({
         body: `El cliente ${username} de la mesa ${tableNumber} quiere pagar en efectivo la cantidad de ${total + tip} pesos`,
         to: employees.map(employee => employee.phone),
       })
-      await prisma.payments.create({
+      const payment = await prisma.payments.create({
         data: {
           method: 'cash',
           status: 'pending',
@@ -147,31 +132,15 @@ export async function handlePaymentProcessing({
           orderId: extraData.order.id,
         },
       })
-      await prisma.notification.create({
-        data: {
-          message: `Cash payment`,
-          amount: total,
-          tip: tip,
-          total: total + tip,
-          method: 'push',
-          status: 'pending',
-          type: 'cash payment',
-          branchId: extraData.branchId,
-          tableId: extraData.tableId,
-          userId: userId,
-          orderId: extraData.order.id,
-          type_temp: 'PAYMENT',
-          employees: {
-            connect: employees.map(employee => ({ id: employee.id })),
-          },
-        },
-      })
+
       await prisma.notification.create({
         data: {
           message: `Usuario ${username} de la mesa ${tableNumber} quiere pagar en efectivo un monto: $${total}, propina: ${tip} un total de ${
             total + tip
           } pesos`,
-          type: 'informative',
+          type: 'PAYMENT',
+          paymentId: payment.id,
+
           branchId: extraData.branchId,
           tableId: extraData.tableId,
           userId: userId,
@@ -187,6 +156,7 @@ export async function handlePaymentProcessing({
       EVENTS.ISSUE_CHANGED(extraData.tableId, extraData.branchId)
 
       return { type: 'redirect', url: '..' }
+    }
     //NOTE: HABILITATE THIS WHEN WE WANT TO CREATE THE PAYMENT WITHOUT AUTORIZATION
     // const params = {
     //   typeOfPayment,

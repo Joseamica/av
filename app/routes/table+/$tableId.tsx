@@ -1,3 +1,5 @@
+import { PlusIcon } from '@radix-ui/react-icons'
+import * as Tooltip from '@radix-ui/react-tooltip'
 import { Outlet, isRouteErrorResponse, useFetcher, useRouteError, useSubmit } from '@remix-run/react'
 import { useEffect, useState } from 'react'
 
@@ -23,6 +25,8 @@ import { EVENTS } from '~/events'
 
 import { getAmountLeftToPay, getCurrency, isOrderExpired } from '~/utils'
 
+import { HelpWithoutOrder } from '~/components/help'
+// Hook para manejar la inactividad del usuario
 // TODO React icons or heroicons ? :angry
 // * CUSTOM COMPONENTS
 import {
@@ -32,6 +36,7 @@ import {
   FilterOrderView,
   FilterUserView,
   Help,
+  Modal,
   OrderIcon,
   RestaurantInfoCard,
   SinglePayButton,
@@ -205,6 +210,44 @@ export default function Table() {
   const data = useLiveLoader<LoaderData>()
   const submit = useSubmit()
   const fetcher = useFetcher()
+  const [isInactive, setIsInactive] = useState(false)
+  const [modalVisible, setModalVisible] = useState(false)
+  let inactivityTimer
+
+  const handleActivity = () => {
+    clearTimeout(inactivityTimer)
+    setIsInactive(false)
+    inactivityTimer = setTimeout(() => {
+      setIsInactive(true)
+    }, 180000) // 3 minutos = 180000 milisegundos
+  }
+
+  useEffect(() => {
+    // Eventos que reiniciarán el temporizador
+    window.addEventListener('mousemove', handleActivity)
+    window.addEventListener('keydown', handleActivity)
+    window.addEventListener('scroll', handleActivity)
+    window.addEventListener('touchstart', handleActivity)
+
+    // Iniciar el temporizador por primera vez
+    handleActivity()
+
+    // Limpieza al desmontar el componente
+    return () => {
+      clearTimeout(inactivityTimer)
+      window.removeEventListener('mousemove', handleActivity)
+      window.removeEventListener('keydown', handleActivity)
+      window.removeEventListener('scroll', handleActivity)
+      window.removeEventListener('touchstart', handleActivity)
+    }
+  }, [])
+
+  useEffect(() => {
+    // Controlar la visibilidad del modal en base al estado de inactividad
+    if (isInactive) {
+      setModalVisible(true)
+    }
+  }, [isInactive])
 
   //NOTE - Se obtiene del useDataLoader si la orden esta expirada, si si, se envia el request para terminar la orden
   //TESTING
@@ -243,11 +286,12 @@ export default function Table() {
     return (
       <motion.main className="pb-4 no-scrollbar">
         {/* {data.paymentNotification && <p>hola</p>} */}
+        {/* <Help /> */}
+
         <RestaurantInfoCard branch={data.branch} menu={data.menu} error={data.error} />
         <Spacer spaceY="4" />
         <h3 className="flex justify-center text-sm text-secondaryTextDark shrink-0">{`Mesa ${data.table.number}`}</h3>
         <Spacer spaceY="2" />
-        <Help />
         <BillAmount
           amountLeft={data.amountLeft}
           currency={data.currency}
@@ -286,6 +330,7 @@ export default function Table() {
             </Button>
           </fetcher.Form>
         )}
+        {modalVisible && <ActionsModal setModalVisible={setModalVisible} />}
         <Outlet />
       </motion.main>
     )
@@ -302,6 +347,41 @@ export default function Table() {
       />
     )
   }
+}
+
+export function useInactivityTimeout(timeout = 180000) {
+  // 180000ms = 3 minutos
+  const [isActive, setIsActive] = useState(true)
+
+  useEffect(() => {
+    let timer
+
+    const events = ['mousemove', 'touchstart', 'keydown']
+
+    const resetTimer = () => {
+      clearTimeout(timer)
+      setIsActive(true)
+      timer = setTimeout(() => setIsActive(false), timeout)
+    }
+
+    // Agregar listeners para eventos de actividad
+    events.forEach(event => {
+      window.addEventListener(event, resetTimer)
+    })
+
+    // Configurar el timer por primera vez
+    resetTimer()
+
+    // Limpiar listeners y timer en el desmontaje
+    return () => {
+      events.forEach(event => {
+        window.removeEventListener(event, resetTimer)
+      })
+      clearTimeout(timer)
+    }
+  }, [timeout])
+
+  return isActive
 }
 
 export const ErrorBoundary = () => {
@@ -333,4 +413,17 @@ export const ErrorBoundary = () => {
       </main>
     )
   }
+}
+
+export function ActionsModal({ setModalVisible }) {
+  return (
+    <Modal onClose={() => setModalVisible(false)} title="Interactúa con el restaurante">
+      <div className="p-4 flex flex-col space-y-4">
+        <HelpWithoutOrder />
+        <Button size="medium" onClick={() => setModalVisible(false)}>
+          Regresar a la mesa
+        </Button>
+      </div>
+    </Modal>
+  )
 }

@@ -34,16 +34,18 @@ export function PayModal() {
               >
                 {translate.includes('Tarjeta') ? (
                   <>
-                    <FlexRow>
+                    {/* <FlexRow>
                       <FaStripe className="self-start h-9 w-9" />
                       <FaGooglePay className="h-9 w-9" />
                       <FaApplePay className="h-9 w-9" />
-                    </FlexRow>
+                    </FlexRow> */}
                   </>
                 ) : translate.includes('Efectivo') ? (
-                  <CashIcon className="self-start h-7 w-7" />
+                  // <CashIcon className="self-start h-7 w-7" />
+                  <></>
                 ) : translate.includes('terminal') ? (
-                  <FaCreditCard className="self-start h-5 w-5" />
+                  // <FaCreditCard className="self-start h-5 w-5" />
+                  <></>
                 ) : null}
                 <span> {translate}</span>
                 <div />

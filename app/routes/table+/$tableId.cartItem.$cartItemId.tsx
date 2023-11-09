@@ -169,7 +169,7 @@ export default function CartItemId() {
             </div>
             <Spacer spaceY="2" />
             <Button fullWith={true} name="_action" value="proceed">
-              Pagar {data.cartItem.name}
+              Pagar {data.cartItem.name.length > 20 ? '' : data.cartItem.name}
             </Button>
             <Spacer spaceY="2" />
           </>

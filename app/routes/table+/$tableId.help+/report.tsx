@@ -169,7 +169,7 @@ export default function Report() {
   const mainPath = getUrl('main', pathname)
 
   const onClose = () => {
-    navigate(mainPath)
+    navigate(mainPath, { preventScrollReset: true })
   }
 
   const modalTitle = REPORT_TITLES[activeTab] || 'Reportar algún suceso'

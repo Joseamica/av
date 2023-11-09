@@ -6,6 +6,8 @@ import { type ActionArgs, type LoaderArgs, json, redirect } from '@remix-run/nod
 import clsx from 'clsx'
 import { prisma } from '~/db.server'
 
+import { EVENTS } from '~/events'
+
 import { formatCurrency, getCurrency } from '~/utils'
 
 import { CheckIcon, FlexRow, H3, Spacer } from '~/components'
@@ -32,7 +34,7 @@ export async function loader({ request, params }: LoaderArgs) {
 export async function action({ request, params }: ActionArgs) {
   const formData = await request.formData()
   const { tableId, paymentId } = params
-  const intent = formData.get('intent')
+  const intent = formData.get('intent') as string
   switch (intent) {
     case 'accept':
       await prisma.payments.update({
@@ -65,6 +67,7 @@ export async function action({ request, params }: ActionArgs) {
       })
       break
   }
+  EVENTS.ISSUE_CHANGED(tableId)
   return redirect(`/dashboard/tables/${tableId}?activeNavMenu=Pagos`)
 }
 

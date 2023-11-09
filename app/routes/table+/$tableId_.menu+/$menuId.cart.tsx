@@ -110,6 +110,9 @@ export async function action({ request, params }: ActionArgs) {
   const branchId = await getBranchId(tableId)
   invariant(branchId, 'No se encontró la sucursal')
 
+  const branch = await getBranch(tableId)
+  const branch_name = branch?.name
+
   const formData = await request.formData()
   const variantId = formData.get('variantId') as string
   const _action = formData.get('_action') as string
@@ -190,7 +193,7 @@ export async function action({ request, params }: ActionArgs) {
         })
         .join('; ')
 
-      console.log(`${username} de la mesa ${table.number} ha ordenado:`)
+      console.log(`${branch_name}: ${username} de la mesa ${table.number} ha ordenado:`)
       console.log(formattedItems)
 
       let order: (Order & { users?: User[] }) | null = await prisma.order.findFirst({
@@ -314,10 +317,13 @@ export async function action({ request, params }: ActionArgs) {
 
       session.unset('cart')
 
-      sendWaNotification({ to: employeesNumbers, body: `${username} de la mesa ${table.number} ha ordenado ${formattedItems}` })
+      sendWaNotification({
+        to: employeesNumbers,
+        body: `${branch_name}:${username} de la mesa ${table.number} ha ordenado ${formattedItems}`,
+      })
       await prisma.notification.create({
         data: {
-          message: `${username} de la mesa ${table.number} ha ordenado ${formattedItems}`,
+          message: `${branch_name}: ${username} de la mesa ${table.number} ha ordenado ${formattedItems}`,
           branchId: branchId,
           tableId: tableId,
           method: 'whatsapp',
@@ -328,7 +334,7 @@ export async function action({ request, params }: ActionArgs) {
       })
       await prisma.notification.create({
         data: {
-          message: `${username} de la mesa ${table.number} ha ordenado ${formattedItems}`,
+          message: `${branch_name}: ${username} de la mesa ${table.number} ha ordenado ${formattedItems}`,
           branchId: branchId,
           employees: {
             connect: employees.map(employee => ({ id: employee.id })),
@@ -354,7 +360,7 @@ export default function Cart() {
   const [item, setItem] = React.useState('')
   const fetcher = useFetcher()
   const params = useParams()
-  const [payNow, setPayNow] = useState(false)
+  const [payNow, setPayNow] = useState(true)
 
   // const cart = searchParams.get('cart')
   const navigate = useNavigate()

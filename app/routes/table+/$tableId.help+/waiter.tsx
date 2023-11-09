@@ -58,7 +58,7 @@ export async function loader({ request, params }: LoaderArgs) {
   const { tableId } = params
   invariant(tableId, 'tableId is required')
   const waiters = await prisma.employee.findMany({
-    where: { role: 'waiter', tables: { some: { id: tableId } } },
+    where: { role: 'waiter', tables: { some: { id: tableId } }, active: true },
   })
 
   return json({ waiters })
@@ -69,7 +69,7 @@ export default function Help() {
   const navigate = useNavigate()
 
   const onClose = () => {
-    navigate('..')
+    navigate('..', { preventScrollReset: true })
   }
 
   return (
@@ -78,7 +78,7 @@ export default function Help() {
         {data.waiters?.map((waiter: Employee) => (
           <ItemContainer key={waiter.id} className="flex flex-row items-center space-x-2">
             <FlexRow className="items-center space-x-4">
-              <img className="w-10 h-10 rounded-full" src={waiter.image} alt={waiter.name} />
+              {/* <img className="w-10 h-10 rounded-full" src={waiter.image} alt={waiter.name} /> */}
               <label className="text-base" htmlFor={waiter.id}>
                 {waiter.name}
               </label>

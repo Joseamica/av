@@ -8,7 +8,7 @@ import { prisma } from '~/db.server'
 import { validateRedirect } from '~/redirect.server'
 import { getSession, getUserId, getUsername, sessionStorage } from '~/session.server'
 
-import { getBranchId } from '~/models/branch.server'
+import { getBranch, getBranchId } from '~/models/branch.server'
 import { findOrCreateUser } from '~/models/user.server'
 
 import { EVENTS } from '~/events'
@@ -17,7 +17,7 @@ import { getSearchParams, getTableIdFromUrl } from '~/utils'
 
 // * COMPONENTS
 // * CUSTOM COMPONENTS
-import { HeaderV2, Notification, UserForm } from '~/components'
+import { FlexRow, HeaderV2, Help, Notification, UserForm } from '~/components'
 
 const SESSION_EXPIRATION_TIME = 1000 * 60 * 60 * 24 * 30 //30 days
 
@@ -128,7 +128,9 @@ export const action = async ({ request, params }: ActionArgs) => {
       },
       include: { sessions: true },
     })
-    console.log('\x1b[44m%s\x1b[0m', 'table.tsx line:125 ✅Created user from setName prompt')
+    const branch = await getBranch(branchId)
+    const branchName = branch?.name
+    console.log('\x1b[44m%s\x1b[0m', `${branchName}: table.tsx line:125 ✅Created user from setName prompt`)
     if (createdUser) {
       const sessionId = createdUser.sessions.find(session => session.id)?.id
       sessionId && session.set('sessionId', sessionId)
@@ -190,6 +192,10 @@ export default function TableLayoutPath() {
       <HeaderV2 user={data.user} />
       <Notification message={data.notification} />
       <Outlet />
+      <nav className="fixed inset-x-0 bottom-0 z-30   bg-white border rounded-t-2xl">
+        <Help />
+      </nav>
+      <div className="h-20" />
     </div>
   )
 }

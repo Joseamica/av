@@ -1,4 +1,4 @@
-import { Link, Outlet, useLoaderData, useNavigate, useSearchParams } from '@remix-run/react'
+import { Link, Outlet, useLoaderData, useNavigate, useParams, useSearchParams } from '@remix-run/react'
 import React from 'react'
 import { FaCheck, FaClock, FaCreditCard, FaDollarSign, FaRegCreditCard, FaTimesCircle, FaUsers } from 'react-icons/fa'
 import { IoCard, IoFastFoodOutline, IoList, IoPerson, IoShieldCheckmarkOutline } from 'react-icons/io5'
@@ -56,6 +56,7 @@ export default function TableId() {
   const data = useLoaderData()
   const navigate = useNavigate()
   const [search, setSearch] = React.useState<string>('')
+  const params = useParams()
 
   //ANCHOR SEARCH PARAMS
   const [searchParams] = useSearchParams()
@@ -84,7 +85,7 @@ export default function TableId() {
   }, [search, data.payments])
 
   return (
-    <Modal fullScreen={true} title={`Mesa ${data.table.number}`} onClose={() => navigate(-1)}>
+    <Modal fullScreen={true} title={`Mesa ${data.table.number}`} onClose={() => navigate(`/dashboard/tables`)}>
       <div className="h-full">
         <NavMenu activeNavMenu={activeNavMenu} setActiveNavMenu={setActiveNavMenu} categories={['Orden', 'Pagos']} />
         {activeNavMenu === 'Orden' ? (

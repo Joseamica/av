@@ -1,12 +1,14 @@
-import { Outlet } from '@remix-run/react'
+import { Link, Outlet } from '@remix-run/react'
 import { useEffect } from 'react'
 
 import introJs from 'intro.js'
 import 'intro.js/introjs.css'
 
+import { HelpWithoutOrder } from '../help'
+
 // * MODELS
 // * CUSTOM COMPONENTS
-import { FlexRow, H4, H5, Help, RestaurantInfoCard, SectionContainer, Spacer, UserButton } from '~/components/'
+import { FlexRow, H4, H5, H6, Help, RestaurantInfoCard, SectionContainer, Spacer, UserButton, WifiIcon } from '~/components/'
 
 export function EmptyOrder({
   branch,
@@ -49,9 +51,24 @@ export function EmptyOrder({
       <Spacer spaceY="2" />
       <H5 className="flex w-full justify-center ">Aún no existe una orden con platillos.</H5>
       <Spacer spaceY="3">
-        <h3 className="text-secondaryTextDark flex shrink-0 justify-center pr-2 text-sm">{`Mesa ${tableNumber}`}</h3>
+        {/* <h3 className="text-secondaryTextDark flex shrink-0 justify-center pr-2 text-sm">{`Mesa ${tableNumber}`}</h3> */}
+        <div className="flex flex-col items-center space-y-1 ">
+          <Link
+            to={`help/wifi`}
+            className="flex h-10 w-14 items-center justify-center rounded-full border-2  text-white shadow-sm"
+
+            // className="flex items-center justify-center rounded-full bg-day-bg_principal dark:bg-night-bg_principal dark:bg-DARK_1 h-9 w-9 "
+            //   onClick={() => setShowModal(type?.name)}
+          >
+            <span className="text-white fill-white">
+              <WifiIcon />
+            </span>
+          </Link>
+          <H6 variant="secondary">Wifi</H6>
+        </div>
       </Spacer>
-      <Help exclude={exclude} />
+      {/* <HelpWithoutOrder exclude={exclude} /> */}
+
       {usersInTable && (
         <SectionContainer
           className="dark:bg-DARK_1 dark:bg-night-bg_principal dark:text-night-text_principal flex flex-col justify-start rounded-lg bg-day-bg_principal p-2 drop-shadow-md dark:drop-shadow-none"

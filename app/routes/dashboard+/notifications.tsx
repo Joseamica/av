@@ -21,34 +21,7 @@ export async function loader({ request, params }: LoaderArgs) {
   const session = await getSession(request)
   const branchId = session.get('branchId')
   const employeeId = session.get('employeeId')
-  const pendingNotifications = await prisma.notification.findMany({
-    where: {
-      branchId: branchId,
-      status: 'pending',
-      employees: {
-        some: {
-          id: employeeId,
-        },
-      },
-    },
-  })
-  await prisma.notification.updateMany({
-    where: {
-      branchId: branchId,
-      status: 'pending',
-      employees: {
-        some: {
-          id: employeeId,
-        },
-      },
-    },
-    data: {
-      status: 'received',
-    },
-  })
-  if (pendingNotifications.length > 0) {
-    EVENTS.ISSUE_CHANGED()
-  }
+
   const notifications = await prisma.notification.findMany({
     where: {
       branchId: branchId,
@@ -65,6 +38,30 @@ export async function loader({ request, params }: LoaderArgs) {
       createdAt: 'desc',
     },
   })
+
+  const pendingNotifications = notifications.filter(notification => notification.status === 'pending')
+
+  if (pendingNotifications.length) {
+    await prisma.notification.updateMany({
+      where: {
+        branchId: branchId,
+        status: 'pending',
+        employees: {
+          some: {
+            id: employeeId,
+          },
+        },
+      },
+      data: {
+        status: 'received',
+      },
+    })
+  }
+
+  if (pendingNotifications.length) {
+    EVENTS.ISSUE_CHANGED()
+  }
+
   return json({ notifications })
 }
 export async function action({ request, params }: ActionArgs) {
@@ -95,7 +92,11 @@ export default function Notifications() {
           const order = notification.type_temp === 'ORDER'
 
           return (
-            <Link to={''} className="flex flex-row space-x-2 items-center border rounded-lg h-14 px-2" key={notification.id}>
+            <Link
+              to={`/dashboard/tables/${notification.table.id}/${notification.paymentId}`}
+              className="flex flex-row space-x-2 items-center border rounded-lg h-14 px-2"
+              key={notification.id}
+            >
               {/* <H6>{formattedDate}</H6> */}
               <div className="h-8 w-8 rounded-full bg-white border flex items-center justify-center">
                 {payment ? <FaMoneyBill className="fill-success" /> : null}

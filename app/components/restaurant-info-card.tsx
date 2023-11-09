@@ -37,7 +37,7 @@ export function RestaurantInfoCard({
           {/* {!isOrderActive && <div className="">a</div>} */}
           <Link
             to={`menu/${menu?.id}`}
-            data-intro="Aquí puedes ver la carta de platillos y bebidas que ofrece el restaurante."
+            data-intro="Aquí puedes ver la carta de productos y ordenar"
             data-step="1"
             data-title="Carta"
             className="dark:bg-mainDark dark:text-mainTextDark dark:bg-night-bg_principal animate-pulse  dark:text-night-text_principal flex items-center justify-between rounded-b-3xl bg-day-bg_principal px-6 py-4 text-lg drop-shadow-xl"
