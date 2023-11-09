@@ -52,7 +52,7 @@ export function EmployeeForm({
         </select>
       </div>
       <Spacer size="sm" />
-      <Field
+      {/* <Field
         labelProps={{ children: 'Email' }}
         inputProps={{
           ...conform.input(fields.email),
@@ -70,7 +70,18 @@ export function EmployeeForm({
           }}
           errors={fields.password.errors}
         />
-      )}
+      )} */}
+      <Field
+        labelProps={{ children: 'Codigo' }}
+        inputProps={{
+          ...conform.input(fields.code),
+          defaultValue: isEditing ? employees.find(employee => employee.id === editSubItemId)?.code : '',
+          maxLength: 6,
+
+          type: 'number',
+        }}
+        errors={fields.code.errors}
+      />
       <H6 variant="secondary">
         <Link to="https://www.twilio.com/docs/glossary/what-e164">Format: 5215512956265, Click here for more info.</Link>
       </H6>

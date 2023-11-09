@@ -1,4 +1,5 @@
 import { Link } from '@remix-run/react'
+import { IoBookOutline } from 'react-icons/io5'
 
 import 'intro.js/introjs.css'
 
@@ -43,8 +44,8 @@ export function RestaurantInfoCard({
             data-title="Carta"
             className="dark:bg-mainDark dark:text-mainTextDark dark:bg-night-bg_principal border-2  dark:text-night-text_principal flex items-center justify-between rounded-3xl bg-day-bg_principal px-6 py-4 text-lg"
           >
-            <RestMenuIcon className="h-6 w-6" />
-            <span className=" animate-pulse-color font-bold">Ordena aquí</span>
+            <RestMenuIcon className="h-5 w-5" />
+            <span className=" animate-pulse-color font-semibold">Ordena aquí</span>
             <div />
           </Link>
         </div>

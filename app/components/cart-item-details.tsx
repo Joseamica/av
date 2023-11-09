@@ -61,7 +61,7 @@ export function CartItemDetails({ cartItem }: { cartItem: any }) {
           </H6>
         )}
 
-        <H5 boldVariant="bold">{formatCurrency(data.currency, cartTotalPrice)}</H5>
+        <H5 boldVariant="semibold">{formatCurrency(data.currency, cartTotalPrice)}</H5>
       </FlexRow>
     </MotionLink>
   )

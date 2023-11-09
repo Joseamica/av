@@ -25,8 +25,9 @@ export const handle = { active: 'Employees' }
 const employeesShema = z.object({
   id: z.string(),
   name: z.string().nonempty('Name is required'),
-  email: z.string().email('Invalid email').optional(),
-  password: passwordSchema.optional(),
+  // email: z.string().email('Invalid email').optional(),
+  // password: passwordSchema.optional(),
+  code: z.string().nonempty('Code is required').min(6, 'Code must be at least 6 characters').max(6, 'Code must be at most 6 characters'),
   image: z.string().url().optional(),
   phone: z.string().nonempty('Phone is required'),
   role: z.enum(['manager', 'waiter']),
@@ -57,19 +58,22 @@ export async function action({ request, params }: ActionArgs) {
   const submission = await parse(formData, {
     schema: () => {
       return employeesShema.superRefine(async (data, ctx) => {
-        if (!searchParams.has('/update')) {
-          const existingEmployee = await prisma.employee.findUnique({
-            where: { email: data.email },
-            select: { id: true },
+        // const existingEmployee = await prisma.employee.findUnique({
+        //   where: { email: data.email },
+        //   select: { id: true },
+        // })
+        const existingEmployee = await prisma.employee.findFirst({
+          where: { code: data.code, branchId: params.branchId },
+          select: { code: true },
+        })
+        console.log('existingEmployee', existingEmployee)
+        if (existingEmployee) {
+          ctx.addIssue({
+            path: ['code'],
+            code: z.ZodIssueCode.custom,
+            message: 'A employee already exists with code',
           })
-          if (existingEmployee) {
-            ctx.addIssue({
-              path: ['email'],
-              code: z.ZodIssueCode.custom,
-              message: 'A employee already exists with this email',
-            })
-            return
-          }
+          return
         }
       })
     },
@@ -92,19 +96,20 @@ export async function action({ request, params }: ActionArgs) {
 
   return namedAction(request, {
     async create() {
-      const hashedPassword = await bcrypt.hash(submission.value?.password, 10)
+      // const hashedPassword = await bcrypt.hash(submission.value?.password, 10)
 
       await prisma.employee.create({
         data: {
           name: submission.value.name,
           role: submission.value.role,
-          email: submission.value.email,
+          code: submission.value.code,
+          // email: submission.value.email,
 
-          password: {
-            create: {
-              hash: hashedPassword,
-            },
-          },
+          // password: {
+          //   create: {
+          //     hash: hashedPassword,
+          //   },
+          // },
           tables: {
             connect: submission.value.selectItems.map(id => ({ id })),
           },
@@ -121,7 +126,8 @@ export async function action({ request, params }: ActionArgs) {
         data: {
           name: submission.value.name,
           role: submission.value.role,
-          email: submission.value.email,
+          code: submission.value.code,
+          // email: submission.value.email,
           tables: {
             connect: submission.value.selectItems.map(id => ({ id })),
           },

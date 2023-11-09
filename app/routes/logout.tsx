@@ -3,6 +3,12 @@ import { redirect } from '@remix-run/node'
 
 import { logout } from '~/session.server'
 
-export const action = async ({ request }: ActionArgs) => logout(request)
+import { getSearchParams } from '~/utils'
+
+export const action = async ({ request }: ActionArgs) => {
+  const searchParams = getSearchParams({ request })
+  const redirectTo = searchParams.get('redirectTo')
+  return logout(request, redirectTo)
+}
 
 export const loader = async () => redirect('/')

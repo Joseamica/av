@@ -2,6 +2,8 @@ import { Link, useLoaderData } from '@remix-run/react'
 
 import { type ActionArgs, type LoaderArgs, json, redirect } from '@remix-run/node'
 
+import { Button, LinkButton } from '~/components'
+
 export async function loader({ request, params }: LoaderArgs) {
   return json({ success: true })
 }
@@ -14,8 +16,9 @@ export default function Name() {
   const data = useLoaderData()
   return (
     <div className="bg-gray-100">
-      <header className="bg-blue-600 text-white p-6">
+      <header className="bg-blue-600 text-white p-6 flex flex-row justify-between">
         <h1 className="text-4xl">Avoqado</h1>
+        <LinkButton to="pos">Eres empleado?</LinkButton>
       </header>
 
       <main className="container mx-auto p-6">

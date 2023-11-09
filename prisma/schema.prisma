@@ -340,6 +340,7 @@ model Employee {
   id            String         @id @default(cuid())
   role          EmployeeRoles
   name          String
+  code          String?
   active        Boolean?       @default(true)
   image         String?
   phone         String?

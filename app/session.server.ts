@@ -151,7 +151,7 @@ export async function createEmployeeSession({
   })
 }
 
-export async function logout(request: Request, path = '/') {
+export async function logout(request: Request, redirectTo: string = '/login') {
   const session = await getSession(request)
 
   session.unset(USER_SESSION_KEY)
@@ -160,7 +160,7 @@ export async function logout(request: Request, path = '/') {
   session.unset('cart')
   session.unset('tableId')
   session.unset('employeeId')
-  return redirect(`/login`, {
+  return redirect(redirectTo ? redirectTo : `/login`, {
     headers: {
       // 'Set-Cookie': await sessionStorage.commitSession(session),
       'Set-Cookie': await sessionStorage.destroySession(session),

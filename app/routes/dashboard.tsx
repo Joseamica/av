@@ -18,7 +18,7 @@ export async function loader({ request, params }: LoaderArgs) {
 
   const data = (await dashboardGetBranchAndEmployee(employeeId)) as any
 
-  if (data.error) return redirect('/login')
+  if (data.error) return redirect('/pos')
 
   if (!session.get('branchId')) session.set('branchId', data.branch.id)
 
@@ -199,7 +199,7 @@ function UserDropdown({ employee }: { employee: any }) {
           </DropdownMenu.Item>
           <DropdownMenu.Item asChild className="">
             <Form
-              action="/logout"
+              action="/logout?redirectTo=/pos"
               method="POST"
               className="py-5 outline-none rounded-b-3xl px-7 radix-highlighted:bg-night-500 hover:bg-day-300"
               onClick={e => submit(e.currentTarget)}
