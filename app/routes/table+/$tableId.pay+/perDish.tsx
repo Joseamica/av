@@ -89,6 +89,15 @@ export default function PerDish() {
                   <FlexRow>
                     <H4>{item.quantity}</H4>
                     <H3>{item.name}</H3>
+                    <div className="flex flex-row space-x-2 items-center">
+                      {item?.user?.map(u => {
+                        return (
+                          <H5 variant="secondary" key={u.id}>
+                            {u.name}
+                          </H5>
+                        )
+                      })}
+                    </div>
                   </FlexRow>
 
                   <FlexRow>
@@ -187,6 +196,14 @@ export async function loader({ request, params }: LoaderArgs) {
     include: { product: true, user: true },
   })
 
+  const individualCartItems = cartItems.flatMap(item =>
+    Array.from({ length: item.quantity }, (_, index) => ({
+      ...item,
+      quantity: 1,
+      uniqueId: `${item.id}-${index}`, // Added a unique ID for each individual item
+    })),
+  )
+
   const paidCartItems = cartItems.filter(item => item.paid === true) || []
   const unpaidCartItems = cartItems.filter(item => item.paid === false) || []
   const currency = await getCurrency(tableId)
@@ -194,7 +211,7 @@ export async function loader({ request, params }: LoaderArgs) {
   const amountLeft = (await getAmountLeftToPay(tableId)) || 0
 
   return json({
-    cartItems,
+    cartItems: individualCartItems,
     paidCartItems,
     unpaidCartItems,
     tipsPercentages,

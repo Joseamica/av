@@ -1,32 +1,29 @@
-import { prisma } from "~/db.server";
+import { prisma } from '~/db.server'
 
 export function getHour() {
-  const now = new Date();
-  const hours = now.getHours();
-  const minutes = now.getMinutes();
+  const now = new Date()
+  const hours = now.getHours()
+  const minutes = now.getMinutes()
 
   // Returns a string in the "HH:MM" format
-  return `${String(hours).padStart(2, "0")}:${String(minutes).padStart(
-    2,
-    "0"
-  )}`;
+  return `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}`
 }
 
-function getDayOfWeek() {
-  const date = new Date();
-  let day = date.getDay();
+export function getDayOfWeek() {
+  const date = new Date()
+  let day = date.getDay()
 
   if (day === 0) {
     // if it's Sunday
-    day = 7; // make it 7
+    day = 7 // make it 7
   }
 
-  return day;
+  return day
 }
 
 export function getMenu(branchId: string | undefined) {
-  const timeNow = getHour();
-  const dayOfWeekNow = getDayOfWeek();
+  const timeNow = getHour()
+  const dayOfWeekNow = getDayOfWeek()
 
   return prisma.menu.findFirst({
     where: {
@@ -70,5 +67,5 @@ export function getMenu(branchId: string | undefined) {
     include: {
       availabilities: true,
     },
-  });
+  })
 }

@@ -55,7 +55,6 @@ export default function User() {
   const data = useLoaderData()
   const [searchParams] = useSearchParams()
   const changeName = searchParams.get('changeName')
-  console.log(data.user)
 
   return (
     <div>

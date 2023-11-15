@@ -78,6 +78,7 @@ export default {
           divider: '#F4F5FA',
           bg: '#F6F7F9',
           text: '#28293D',
+          buttonSelected: '#6A44FF',
         },
         night: {
           100: '#81819C',

@@ -35,22 +35,24 @@ export function CartItemDetails({ cartItem }: { cartItem: any }) {
     >
       <FlexRow>
         <H5 className="flex h-4 w-4 items-center justify-center rounded-sm bg-[#F6F6F9] text-center">{cartItem.quantity}</H5>
-        <img alt="" loading="lazy" src={cartItem?.image || ''} className="dark:bg-secondaryDark h-10 w-10 rounded-lg" />
+        <img alt="" loading="lazy" src={cartItem?.image || ''} className="w-10 h-10 rounded-lg dark:bg-secondaryDark" />
         <div className="space-y-[2px]">
           {cartItem.quantity > 1 ? (
             <H5 className="text-md">{cartItem.name.length > 25 ? cartItem.name.slice(0, 25) + '...' : cartItem.name}</H5>
           ) : (
             <H5>{cartItem.name.length > 25 ? cartItem.name.slice(0, 25) + '...' : cartItem.name}</H5>
           )}
-          {cartItem.user?.length > 0 && (
+          {cartItem.user?.length > 0 ? (
             <FlexRow className="w-full">
               {cartItem.user.map((user: User) => (
                 <div key={user.id} className="flex flex-row items-center space-x-1">
-                  <UserCircleIcon fill={user.color || '#000'} className="min-h-5  min-w-5 h-5" />
+                  <UserCircleIcon fill={user.color || '#000'} className="h-5 min-h-5 min-w-5" />
                   <H6 className="">{user.name}</H6>
                 </div>
               ))}
             </FlexRow>
+          ) : (
+            <H6 className="text-gray-400">Mesero</H6>
           )}
         </div>
       </FlexRow>

@@ -28,6 +28,8 @@ const branchSchema = z.object({
   id: z.string(),
   name: z.string().min(1).max(50),
   image: z.string().trim().url().optional(),
+  stripeAccountId: z.string().min(1).max(50).optional(),
+
   address: z.string().min(1).max(200),
   extraAddress: z.string().min(1).max(50),
   city: z.string().min(1).max(50),
@@ -96,6 +98,7 @@ export async function action({ request, params }: ActionArgs) {
     data: {
       name: submission.value.name,
       image: submission.value.image,
+      stripeAccountId: submission.value.stripeAccountId,
       address: submission.value.address,
       extraAddress: submission.value.extraAddress,
       city: submission.value.city,
@@ -158,6 +161,11 @@ export default function Index() {
                 <p>{data.branch.extraAddress}</p>
               </div>
               <div className="mb-4">
+                <h2 className="text-lg font-bold">Stripe</h2>
+
+                <p>{data.branch.stripeAccountId}</p>
+              </div>
+              <div className="mb-4">
                 <h2 className="text-lg font-bold">City</h2>
                 <p>{data.branch.city}</p>
               </div>
@@ -216,6 +224,15 @@ export default function Index() {
               defaultValue: data.branch ? data.branch.image : '',
             }}
             errors={[fields?.image.errors]}
+          />
+          <Field
+            labelProps={{ children: 'Stripe Account Id' }}
+            inputProps={{
+              ...conform.input(fields.stripeAccountId, { type: 'text' }),
+              required: true,
+              defaultValue: data.branch ? data.branch.stripeAccountId : '',
+            }}
+            errors={[fields?.stripeAccountId.errors]}
           />
           <Field
             labelProps={{ children: 'Address' }}

@@ -34,6 +34,11 @@ export const loader = async ({ params, request }: LoaderArgs) => {
   const isOrderAmountFullPaid = searchParams.get('isOrderAmountFullPaid')
   const amount = Number(total) - Number(tip)
 
+  const employees = await prisma.employee.findMany({
+    where: { branchId: branchId, active: true, role: 'waiter', phone: { startsWith: '521' } },
+  })
+  const employeesNumbers = employees.map(employee => employee.phone)
+
   await assignUserNewPayments(userId, amount, tip)
   const payment = await prisma.payments.create({
     data: {
@@ -44,6 +49,9 @@ export const loader = async ({ params, request }: LoaderArgs) => {
       total: amount + tip,
       branchId: branchId,
       userId: userId,
+      employees: {
+        connect: employees.map(employee => ({ id: employee.id })),
+      },
       status: 'accepted',
     },
   })
@@ -59,10 +67,6 @@ export const loader = async ({ params, request }: LoaderArgs) => {
     })
   }
   const username = user?.name
-  const employees = await prisma.employee.findMany({
-    where: { branchId: branchId },
-  })
-  const employeesNumbers = employees.map(employee => employee.phone)
 
   await prisma.user.update({
     where: { id: userId },

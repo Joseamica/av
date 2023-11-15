@@ -49,17 +49,26 @@ export async function handlePaymentProcessing({
 }: handlePaymentProcessingProps): Promise<{ type: 'redirect'; url: string } | { type: 'error'; message: string }> {
   const session = await getSession(request)
   const userId = session.get('userId')
-  const employees = await prisma.employee.findMany({ where: { branchId: extraData.branchId } })
+  const employees = await prisma.employee.findMany({
+    where: { branchId: extraData.branchId, active: true, role: 'waiter', phone: { startsWith: '521' } },
+  })
 
   const user = await prisma.user.findUnique({ where: { id: userId } })
   const username = user?.name
   const table = await prisma.table.findUnique({ where: { id: extraData.tableId } })
   const tableNumber = table?.number
+  const branch = await prisma.branch.findUnique({
+    where: { id: extraData.branchId },
+  })
 
+  console.log('total, tip', total, tip)
+  const branchName = branch?.name
   switch (paymentMethod) {
     case 'terminal': {
       sendWaNotification({
-        body: `El cliente ${username} de la mesa ${tableNumber} quiere pagar en terminal fisica la cantidad de ${total + tip} pesos`,
+        body: `${branchName}: El cliente ${username} de la mesa ${tableNumber} quiere pagar en terminal fisica la cantidad de ${
+          total + tip
+        } pesos`,
         to: employees.map(employee => employee.phone),
       })
       const payment = await prisma.payments.create({
@@ -72,12 +81,15 @@ export async function handlePaymentProcessing({
           branchId: extraData.branchId,
           userId: userId,
           orderId: extraData.order.id,
+          employees: {
+            connect: employees.map(employee => ({ id: employee.id })),
+          },
         },
       })
 
       await prisma.notification.create({
         data: {
-          message: `Usuario ${username} de la mesa ${tableNumber} quiere pagar con la terminal un monto: $${total}, propina: ${tip} un total de ${
+          message: `${branchName}: El cliente ${username} de la mesa ${tableNumber} quiere pagar con la terminal un monto: $${total}, propina: ${tip} un total de ${
             total + tip
           } pesos`,
           type: 'informative',
@@ -117,7 +129,9 @@ export async function handlePaymentProcessing({
     }
     case 'cash': {
       sendWaNotification({
-        body: `El cliente ${username} de la mesa ${tableNumber} quiere pagar en efectivo la cantidad de ${total + tip} pesos`,
+        body: `${branchName}: El cliente  ${username} de la mesa ${tableNumber} quiere pagar en efectivo la cantidad de ${
+          total + tip
+        } pesos`,
         to: employees.map(employee => employee.phone),
       })
       const payment = await prisma.payments.create({
@@ -130,12 +144,15 @@ export async function handlePaymentProcessing({
           branchId: extraData.branchId,
           userId: userId,
           orderId: extraData.order.id,
+          employees: {
+            connect: employees.map(employee => ({ id: employee.id })),
+          },
         },
       })
 
       await prisma.notification.create({
         data: {
-          message: `Usuario ${username} de la mesa ${tableNumber} quiere pagar en efectivo un monto: $${total}, propina: ${tip} un total de ${
+          message: `${branchName}: El cliente  ${username} de la mesa ${tableNumber} quiere pagar en efectivo un monto: $${total}, propina: ${tip} un total de ${
             total + tip
           } pesos`,
           type: 'PAYMENT',

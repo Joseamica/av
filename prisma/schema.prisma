@@ -89,6 +89,7 @@ model Branch {
   updatedAt        DateTime?         @updatedAt
   createdAt        DateTime          @default(now())
   productModifiers ProductModifier[]
+  stripeAccountId  String?
 }
 
 model Table {
@@ -354,6 +355,8 @@ model Employee {
   sessions      Session[]
   updatedAt     DateTime?      @updatedAt
   createdAt     DateTime       @default(now())
+  payments      Payments?      @relation(fields: [paymentsId], references: [id])
+  paymentsId    String?
 }
 
 enum EmployeeRoles {
@@ -405,6 +408,7 @@ model Payments {
   user         User?          @relation(fields: [userId], references: [id])
   employeesIds String[]
   notification Notification[]
+  employees    Employee[]
   updatedAt    DateTime?      @updatedAt
   createdAt    DateTime       @default(now())
 }

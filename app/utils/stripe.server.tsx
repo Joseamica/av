@@ -1,5 +1,6 @@
 import type { PaymentMethod } from '@prisma/client'
 import Stripe from 'stripe'
+import { prisma } from '~/db.server'
 
 import { createQueryString } from '~/utils'
 
@@ -38,19 +39,25 @@ export const getStripeSession = async (
   typeOfPayment?: string,
   extraData?: any,
 ): Promise<string> => {
-  // const encodedExtraData = encodeURIComponent(JSON.stringify(extraData))
+  const avocadoFee = Math.floor(amount * 0.05)
 
-  // const e = JSON.parse(decodeURIComponent(encodedExtraData))
-  // console.log('e', extraData)
-  //2% of the amount
-  const avocadoFee = Math.floor(amount * 0.02)
-  console.log('avoqado comission', avocadoFee)
-  console.log('amount', amount)
   const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
     apiVersion: '2022-11-15',
   })
-  // const account = await stripe.accounts.retrieve('acct_1NuRFGBAuNoVK1pM')
-  // console.log('account' , account)
+
+  const branch = await prisma.branch.findUnique({
+    where: {
+      id: extraData?.branchId,
+    },
+  })
+  const stripeAccountId = branch?.stripeAccountId
+  console.log('amount', amount / 100)
+  console.log(avocadoFee)
+
+  if (!stripeAccountId) {
+    throw new Error(`No Stripe account found for branch ID: ${extraData.branchId}`)
+  }
+
   const lineItems = [
     {
       price_data: {
@@ -78,59 +85,24 @@ export const getStripeSession = async (
     isOrderAmountFullPaid: isOrderAmountFullPaid,
   }
   const queryString = createQueryString(params)
-  // const paymentIntent = await stripe.paymentIntents.create(
-  //   {
-  //     amount: amount,
-  //     currency: currency,
-  //     automatic_payment_methods: {
-  //       enabled: true,
-  //     },
-  //     application_fee_amount: 123,
-  //   },
-  //   {
-  //     stripeAccount: 'acct_1O2JglK0u0kbLQyR',
-  //   },
-  // )
 
-  const session = await stripe.checkout.sessions.create({
-    mode: 'payment',
+  const session = await stripe.checkout.sessions.create(
+    {
+      mode: 'payment',
 
-    payment_method_types: ['card'],
-    line_items: lineItems,
-    metadata: {
-      isOrderAmountFullPaid,
-      tip,
-      paymentMethod,
-      typeOfPayment,
-      extraData: extraData ? JSON.stringify(extraData) : undefined,
-    },
-    // FIXME - add dynamic destination depending of the branch
-    // invoice_creation:true,
-    // invoice_creation: {
+      payment_method_types: ['card'],
+      line_items: lineItems,
 
-    // },
-    // invoice_creation: {
-    //   enabled: true,
-    //   invoice_data: {
-    //     custom_fields: [
-    //       {
-    //         name: 'productos',
-    //         value: 'TEST',
-    //       },
-    //     ],
-    //   },
-    // },
-    payment_intent_data: {
-      // application_fee_amount: Math.floor(avocadoFee),
-      application_fee_amount: Math.floor(amount * 0.05),
-      transfer_data: {
-        destination: 'acct_1O2JglK0u0kbLQyR',
+      payment_intent_data: {
+        application_fee_amount: Math.floor(amount * 0.05),
       },
-      on_behalf_of: 'acct_1O2JglK0u0kbLQyR', // The account you are acting on behalf of
+      success_url: `${domainUrl}/payment/success?${queryString}`,
+      cancel_url: `${domainUrl}`,
     },
-    success_url: `${domainUrl}/payment/success?${queryString}`,
-    cancel_url: `${domainUrl}`,
-  })
+    {
+      stripeAccount: stripeAccountId,
+    },
+  )
 
   return session.url
 }

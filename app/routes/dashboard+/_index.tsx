@@ -1,13 +1,10 @@
-import { useLoaderData } from '@remix-run/react'
-import { FaMoneyBill } from 'react-icons/fa'
-import { IoPerson } from 'react-icons/io5'
+import { Link, useLoaderData } from '@remix-run/react'
+import { IoCashOutline, IoPerson } from 'react-icons/io5'
 
-import { type ActionArgs, type LoaderArgs, json, redirect } from '@remix-run/node'
+import { type ActionArgs, type LoaderArgs, json } from '@remix-run/node'
 
 import { prisma } from '~/db.server'
 import { getSession } from '~/session.server'
-
-import { H2, OrderIcon } from '~/components'
 
 export async function loader({ request, params }: LoaderArgs) {
   const session = await getSession(request)
@@ -17,14 +14,21 @@ export async function loader({ request, params }: LoaderArgs) {
     where: {
       branchId: branchId,
       status: 'accepted',
+      employees: {
+        some: {
+          id: employeeId,
+        },
+      },
       // createdAt: {
       //   gte: new Date()
       // }
     },
+    include: {
+      employees: true,
+    },
   })
-  const tips = payments
-    .filter(payment => payment.employeesIds.includes(employeeId))
-    .reduce((acc, curr) => Number(acc) + Number(curr.tip), 0)
+
+  const tips = payments.reduce((acc, curr) => Number(acc) + Number(curr.tip), 0)
 
   const tables = await prisma.table.findMany({
     where: {
@@ -52,14 +56,23 @@ export default function Name() {
   const activeTables = data.tables.filter(table => table.order !== null)
   return (
     <div className="flex flex-wrap gap-1 p-4">
-      <Container title="Propinas" icon={<FaMoneyBill />} value={`MX$${data.tips}`} desc={'en propinas'} bg={'bg-green-100'} />
       <Container
         title="Mesas activas"
         icon={<IoPerson />}
         value={activeTables.length}
         desc={activeTables.length === 1 ? 'mesa' : 'mesas'}
+        to="/dashboard/tables"
       />
-      <Container title="Total de ordenes" bg={'bg-orange-300'} icon={<OrderIcon />} value={'45'} desc={'ordenes atendidas'} />
+      <Container
+        title="Propinas acumuladas"
+        icon={<IoCashOutline />}
+        value={`$${data.tips}`}
+        desc={'en propinas acumuladas'}
+        to=""
+        bg="bg-green-100"
+      />
+      {/*    <Container title="Propinas" icon={<FaMoneyBill />} value={`MX$${data.tips}`} desc={'en propinas'} bg={'bg-green-100'} />
+      <Container title="Total de ordenes" bg={'bg-orange-300'} icon={<OrderIcon />} value={'45'} desc={'ordenes atendidas'} /> */}
     </div>
   )
 }
@@ -70,24 +83,26 @@ function Container({
   value,
   desc,
   bg,
+  to,
 }: {
   title: string
   icon?: React.ReactNode
   value?: string
   desc?: string
   bg?: string
+  to: string
 }) {
   return (
-    <div className={`relative w-40 h-32 flex justify-center items-center border rounded-lg ${bg}`}>
+    <Link className={`relative w-40 h-32 flex justify-center items-center border rounded-lg ${bg}`} to={to}>
       <div className="absolute top-0 inset-x-0 pl-[10px] border-b-2 bg-white">
-        <p className="overflow-hidden">{title}</p>
+        <p className="overflow-hidden truncate">{title}</p>
       </div>
 
       <div className="flex flex-col items-center justify-center pt-4 text-center ">
         {icon}
         <p className="text-lg font-bold">{value}</p>
-        <p>{desc}</p>
+        <p className="text-sm">{desc}</p>
       </div>
-    </div>
+    </Link>
   )
 }

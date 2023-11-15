@@ -76,7 +76,7 @@ export function EmployeeForm({
         inputProps={{
           ...conform.input(fields.code),
           defaultValue: isEditing ? employees.find(employee => employee.id === editSubItemId)?.code : '',
-          maxLength: 6,
+          maxLength: 4,
 
           type: 'number',
         }}

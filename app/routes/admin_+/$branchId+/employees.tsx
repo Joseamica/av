@@ -27,7 +27,7 @@ const employeesShema = z.object({
   name: z.string().nonempty('Name is required'),
   // email: z.string().email('Invalid email').optional(),
   // password: passwordSchema.optional(),
-  code: z.string().nonempty('Code is required').min(6, 'Code must be at least 6 characters').max(6, 'Code must be at most 6 characters'),
+  code: z.string().nonempty('Code is required').min(4, 'Code must be at least 4 characters').max(4, 'Code must be at most 4 characters'),
   image: z.string().url().optional(),
   phone: z.string().nonempty('Phone is required'),
   role: z.enum(['manager', 'waiter']),

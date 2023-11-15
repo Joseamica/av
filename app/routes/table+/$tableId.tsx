@@ -153,7 +153,21 @@ export async function loader({ request, params }: LoaderArgs) {
   let orderExpired = null
 
   if (order) {
-    paidUsers = await getPaidUsers(order.id)
+    paidUsers = await prisma.payments.findMany({
+      where: { orderId: order.id, status: 'accepted' },
+      include: {
+        user: {
+          where: {
+            paid: {
+              not: null,
+              //BEFORE gt: -1
+              gt: 0,
+            },
+          },
+        },
+      },
+    })
+
     amountLeft = await getAmountLeftToPay(tableId)
     orderExpired = isOrderExpired(order.paidDate, 2)
   }
@@ -418,7 +432,7 @@ export const ErrorBoundary = () => {
 export function ActionsModal({ setModalVisible }) {
   return (
     <Modal onClose={() => setModalVisible(false)} title="Interactúa con el restaurante">
-      <div className="p-4 flex flex-col space-y-4">
+      <div className="flex flex-col p-4 space-y-4">
         <HelpWithoutOrder />
         <Button size="medium" onClick={() => setModalVisible(false)}>
           Regresar a la mesa

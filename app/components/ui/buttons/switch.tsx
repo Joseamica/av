@@ -14,6 +14,13 @@ const heights = {
   large: 'h-14',
 }
 
+const corners = {
+  all: 'rounded-xl',
+  top: 'rounded-t-xl',
+  bottom: 'rounded-b-xl',
+  none: '',
+}
+
 export function SwitchButton({
   state,
   setToggle,
@@ -24,6 +31,7 @@ export function SwitchButton({
   stretch,
   size = 'large',
   height = 'large',
+  corner = 'all',
   allCornersRounded = true,
 }: {
   state: boolean
@@ -35,6 +43,7 @@ export function SwitchButton({
   stretch?: boolean
   size?: 'small' | 'medium' | 'large'
   height?: 'small' | 'medium' | 'large'
+  corner?: 'all' | 'top' | 'bottom' | 'none'
   allCornersRounded?: boolean
 }) {
   const toggleSwitch = () => {
@@ -46,7 +55,7 @@ export function SwitchButton({
   }
   return (
     // prettier-ignore
-    <motion.button type="button" className={`flex  ${sizes[size]} ${heights[height]}  cursor-pointer items-center ${allCornersRounded ? 'rounded-xl' : ' rounded-t-xl'} bg-button-notSelected ${allCornersRounded && 'p-1'}  shadow-inner hover:cursor-pointer ${state && 'place-content-end'}`}
+    <motion.button type="button" className={`flex  ${sizes[size]} ${heights[height]}  cursor-pointer items-center  ${corners[corner]} bg-button-notSelected rounded-lg shadow-inner hover:cursor-pointer ${state && 'place-content-end'}`}
       onClick={toggleSwitch}
     >
       {state ? (

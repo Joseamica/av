@@ -126,7 +126,6 @@ export async function action({ request, params }: ActionArgs) {
 export default function FullPay() {
   const data = useLiveLoader<LoaderData>()
   const navigate = useNavigate()
-  const avoqadoFee = data.total * 0.02
 
   return (
     <Modal onClose={() => navigate('..')} title="Pagar cuenta completa">

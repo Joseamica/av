@@ -1,3 +1,5 @@
+import { useLocation } from '@remix-run/react'
+
 import { ChevronRightIcon } from '../icons'
 import { FlexRow } from '../util/flexrow'
 import { H4, H5 } from '../util/typography'
@@ -6,7 +8,7 @@ import { usePayment } from './paymentV3'
 import { formatCurrency } from '~/utils'
 
 function TipButton() {
-  const { setShowModal, tipRadio, currency, tip, showModalTip } = usePayment()
+  const { setShowModal, tipRadio, currency, tip } = usePayment()
 
   const handleModal = () => {
     setShowModal(currentState => ({ ...currentState, tip: true }))

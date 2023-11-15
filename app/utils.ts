@@ -83,11 +83,11 @@ export function getTotal(order: Order) {
 export function formatCurrency(currency: string, amount: number | Decimal) {
   switch (currency) {
     case '$':
-      return `$${Number(amount).toFixed(1)}`
+      return `$${Number(amount).toFixed(2)}`
     case '€':
-      return `${Number(amount).toFixed(1)} €`
+      return `${Number(amount).toFixed(2)} €`
     default:
-      return `${Number(amount).toFixed(1)}`
+      return `${Number(amount).toFixed(2)}`
   }
 }
 
@@ -227,7 +227,7 @@ const TRANSLATIONS = {
     card: 'Tarjeta',
     cash: 'Efectivo',
     paypal: 'Paypal',
-    terminal: 'Pagar con tarjeta en terminal fisica',
+    terminal: 'Terminal física',
   },
 }
 
@@ -314,4 +314,8 @@ export const generateRandomChars = length => {
     result += chars.charAt(Math.floor(Math.random() * chars.length))
   }
   return result
+}
+
+export const getAvoqadoFee = (amount: number) => {
+  return amount * 0.05
 }

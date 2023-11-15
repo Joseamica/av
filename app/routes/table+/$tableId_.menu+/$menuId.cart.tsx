@@ -12,6 +12,7 @@ import { prisma } from '~/db.server'
 import { validateRedirect } from '~/redirect.server'
 import { getSession, sessionStorage, updateCartItem } from '~/session.server'
 import { sendWaNotification } from '~/twilio.server'
+import { useLiveLoader } from '~/use-live-loader'
 
 import { getBranch, getBranchId, getPaymentMethods, getTipsPercentages } from '~/models/branch.server'
 import { createCartItems, getCartItems } from '~/models/cart.server'
@@ -189,7 +190,7 @@ export async function action({ request, params }: ActionArgs) {
             })
             .join(', ')
 
-          return `${item.name} >>Precio: ${item.price}, Cantidad: ${item.quantity}, Modificadores: ${modifiers}<<`
+          return `${item.name} >>Precio: ${item.price}, Cantidad: ${item.quantity}, Modificadores: ${modifiers}<< COMENTARIOS: ${item.comments}}`
         })
         .join('; ')
 
@@ -207,6 +208,7 @@ export async function action({ request, params }: ActionArgs) {
           },
         },
       })
+
       if (!order) {
         order = await prisma.order.create({
           data: {
@@ -265,6 +267,8 @@ export async function action({ request, params }: ActionArgs) {
             tableId: tableId,
             method: 'whatsapp',
             status: 'received',
+            userId: userId,
+            orderId: order.id,
             type: 'informative',
             type_temp: 'INFORMATIVE',
           },
@@ -330,6 +334,8 @@ export async function action({ request, params }: ActionArgs) {
           status: 'received',
           type: 'informative',
           type_temp: 'INFORMATIVE',
+          userId: userId,
+          orderId: order.id,
         },
       })
       await prisma.notification.create({
@@ -344,6 +350,8 @@ export async function action({ request, params }: ActionArgs) {
           status: 'pending',
           type: 'informative',
           type_temp: 'ORDER',
+          userId: userId,
+          orderId: order.id,
         },
       })
       EVENTS.ISSUE_CHANGED(tableId, branchId)
@@ -356,7 +364,7 @@ export async function action({ request, params }: ActionArgs) {
 }
 
 export default function Cart() {
-  const data = useLoaderData()
+  const data = useLiveLoader<any>()
   const [item, setItem] = React.useState('')
   const fetcher = useFetcher()
   const params = useParams()
@@ -394,12 +402,28 @@ export default function Cart() {
             tipsPercentages: data.tipsPercentages,
           }}
         >
+          {!showPaymentOptions ? (
+            <div className="p-2">
+              <SwitchButton
+                state={payNow}
+                setToggle={setPayNow}
+                leftText="Pagar después"
+                rightText="Pagar ahora"
+                rightIcon={<CashIcon />}
+                leftIcon={<FaHourglassHalf />}
+                stretch
+                height="medium"
+                corner="none"
+              />
+            </div>
+          ) : null}
+
           <fetcher.Form method="POST" preventScrollReset>
             <div className="p-2">
               <div className="space-y-2">
                 {data.cartItems?.map((items: CartItem, index: number) => {
                   return (
-                    <ItemContainer key={index} className="flex flex-row items-center justify-between space-x-2 ">
+                    <ItemContainer key={index} className="flex flex-row items-center justify-between space-x-2 rounded-full ">
                       <input type="hidden" name="variantId" value={item} />
                       <FlexRow justify="between" className="w-full pr-2">
                         <H4>{items.name}</H4>
@@ -420,20 +444,6 @@ export default function Cart() {
               </div>
             </div>
             <Spacer spaceY="2" />
-            {!showPaymentOptions ? (
-              <SwitchButton
-                state={payNow}
-                setToggle={setPayNow}
-                leftText="Pagar después"
-                rightText="Pagar ahora"
-                rightIcon={<CashIcon />}
-                leftIcon={<FaHourglassHalf />}
-                stretch
-                height="medium"
-                allCornersRounded={false}
-              />
-            ) : null}
-
             {!showPaymentOptions ? (
               <div className="sticky bottom-0 p-2 border-t rounded-t-lg border-x bg-day-bg_principal">
                 <FlexRow justify="between" className="px-2">

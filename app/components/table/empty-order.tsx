@@ -49,13 +49,15 @@ export function EmptyOrder({
     <main>
       <RestaurantInfoCard branch={branch} menu={menu} error={error} isOrderActive={isOrderActive} />
       <Spacer spaceY="2" />
-      <H5 className="flex w-full justify-center ">Aún no existe una orden con platillos.</H5>
+      <h3 className="flex justify-center pr-2 text-sm text-secondaryTextDark shrink-0">{`Mesa ${tableNumber}`}</h3>
+      <Spacer spaceY="1" />
+
+      <H5 className="flex justify-center w-full ">Aún no existe una orden con platillos.</H5>
       <Spacer spaceY="3">
-        {/* <h3 className="text-secondaryTextDark flex shrink-0 justify-center pr-2 text-sm">{`Mesa ${tableNumber}`}</h3> */}
         <div className="flex flex-col items-center space-y-1 ">
           <Link
             to={`help/wifi`}
-            className="flex h-10 w-14 items-center justify-center rounded-full border-2  text-white shadow-sm"
+            className="flex items-center justify-center h-10 text-white border-2 rounded-full shadow-sm w-14"
 
             // className="flex items-center justify-center rounded-full bg-day-bg_principal dark:bg-night-bg_principal dark:bg-DARK_1 h-9 w-9 "
             //   onClick={() => setShowModal(type?.name)}
@@ -71,7 +73,7 @@ export function EmptyOrder({
 
       {usersInTable && (
         <SectionContainer
-          className="dark:bg-DARK_1 dark:bg-night-bg_principal dark:text-night-text_principal flex flex-col justify-start rounded-lg bg-day-bg_principal p-2 drop-shadow-md dark:drop-shadow-none"
+          className="flex flex-col justify-start p-2 rounded-lg dark:bg-DARK_1 dark:bg-night-bg_principal dark:text-night-text_principal bg-day-bg_principal drop-shadow-md dark:drop-shadow-none"
           data-intro="Aquí puedes ver quién está en la mesa"
           data-step="3"
           data-title="Usuarios"
@@ -81,7 +83,7 @@ export function EmptyOrder({
             <hr className="dark:border-DARK_OUTLINE border-LIGHT_DIVIDER" />
           </Spacer>
           {usersInTable.map((user, index: number) => (
-            <FlexRow className="w-full items-center justify-between space-x-2 space-y-2" key={user.id}>
+            <FlexRow className="items-center justify-between w-full space-x-2 space-y-2" key={user.id}>
               <FlexRow className="items-center space-x-2">
                 <UserButton userColor={user?.color} path={`user/${user?.id}`} />
                 {user?.name ? <H4>{user.name}</H4> : <H4>Desconectado</H4>}

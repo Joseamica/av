@@ -1,5 +1,5 @@
 import { FaApplePay, FaCashRegister, FaCreditCard, FaGoogle, FaGooglePay, FaMoneyBillWave, FaStripe, FaTerminal } from 'react-icons/fa'
-import { IoCard } from 'react-icons/io5'
+import { IoCard, IoCardOutline, IoCash, IoCashOutline } from 'react-icons/io5'
 
 import clsx from 'clsx'
 
@@ -32,23 +32,22 @@ export function PayModal() {
                   },
                 )}
               >
-                {translate.includes('Tarjeta') ? (
-                  <>
-                    {/* <FlexRow>
-                      <FaStripe className="self-start h-9 w-9" />
-                      <FaGooglePay className="h-9 w-9" />
-                      <FaApplePay className="h-9 w-9" />
-                    </FlexRow> */}
-                  </>
-                ) : translate.includes('Efectivo') ? (
-                  // <CashIcon className="self-start h-7 w-7" />
-                  <></>
-                ) : translate.includes('terminal') ? (
-                  // <FaCreditCard className="self-start h-5 w-5" />
-                  <></>
-                ) : null}
                 <span> {translate}</span>
-                <div />
+                <div className="w-28 flex justify-end">
+                  {translate.includes('Tarjeta') ? (
+                    <>
+                      <FlexRow>
+                        <FaStripe className="self-start h-9 w-9" />
+                        <FaGooglePay className="h-9 w-9" />
+                        <FaApplePay className="h-9 w-9" />
+                      </FlexRow>
+                    </>
+                  ) : translate.includes('Efectivo') ? (
+                    <IoCashOutline className=" h-7 w-7" />
+                  ) : translate.includes('Terminal') ? (
+                    <IoCardOutline className="h-7 w-7" />
+                  ) : null}
+                </div>
 
                 <input
                   type="radio"

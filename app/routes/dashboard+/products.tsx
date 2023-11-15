@@ -136,7 +136,7 @@ export default function Products() {
                     <fetcher.Form className="flex flex-row items-center gap-2" method="POST">
                       {product.available ? (
                         <button
-                          className="flex flex-row items-center gap-2 px-2 py-1 border rounded-lg bg-yellow-500 text-white"
+                          className="flex flex-row items-center gap-2 px-2 py-1 text-white bg-yellow-500 border rounded-lg"
                           name="status"
                           value={'false'}
                         >
@@ -144,7 +144,7 @@ export default function Products() {
                         </button>
                       ) : (
                         <button
-                          className="flex flex-row items-center gap-2 px-2 py-1 border rounded-lg bg-success text-white"
+                          className="flex flex-row items-center gap-2 px-2 py-1 text-white border rounded-lg bg-success"
                           name="status"
                           value={'true'}
                         >
@@ -170,7 +170,7 @@ export default function Products() {
                       <fetcher.Form className="flex flex-row items-center gap-2" method="POST">
                         {product.available ? (
                           <button
-                            className="flex flex-row items-center gap-2 px-2 py-1 border rounded-lg bg-yellow-500 text-white"
+                            className="flex flex-row items-center gap-2 px-2 py-1 text-white bg-yellow-500 border rounded-lg"
                             name="status"
                             value={'false'}
                           >
@@ -178,7 +178,7 @@ export default function Products() {
                           </button>
                         ) : (
                           <button
-                            className="flex flex-row items-center gap-2 px-2 py-1 border  bg-success text-white rounded-lg"
+                            className="flex flex-row items-center gap-2 px-2 py-1 text-white border rounded-lg bg-success"
                             name="status"
                             value={'true'}
                           >
@@ -204,7 +204,7 @@ export default function Products() {
                       <fetcher.Form className="flex flex-row items-center gap-2" method="POST">
                         {mg.available ? (
                           <button
-                            className="flex flex-row items-center gap-2 px-2 py-1 border rounded-lg bg-yellow-500 text-white"
+                            className="flex flex-row items-center gap-2 px-2 py-1 text-white bg-yellow-500 border rounded-lg"
                             name="status"
                             value={'false'}
                           >
@@ -212,7 +212,7 @@ export default function Products() {
                           </button>
                         ) : (
                           <button
-                            className="flex flex-row items-center gap-2 px-2 py-1 border  bg-success text-white rounded-lg"
+                            className="flex flex-row items-center gap-2 px-2 py-1 text-white border rounded-lg bg-success"
                             name="status"
                             value={'true'}
                           >
@@ -237,7 +237,7 @@ export default function Products() {
                       <fetcher.Form className="flex flex-row items-center gap-2" method="POST">
                         {modifier.available ? (
                           <button
-                            className="flex flex-row items-center gap-2 px-2 py-1 border rounded-lg bg-yellow-500 text-white"
+                            className="flex flex-row items-center gap-2 px-2 py-1 text-white bg-yellow-500 border rounded-lg"
                             name="status"
                             value={'false'}
                           >
@@ -245,7 +245,7 @@ export default function Products() {
                           </button>
                         ) : (
                           <button
-                            className="flex flex-row items-center gap-2 px-2 py-1 border  bg-success text-white rounded-lg"
+                            className="flex flex-row items-center gap-2 px-2 py-1 text-white border rounded-lg bg-success"
                             name="status"
                             value={'true'}
                           >

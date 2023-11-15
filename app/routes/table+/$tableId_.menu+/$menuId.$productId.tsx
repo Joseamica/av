@@ -16,7 +16,7 @@ import { getMenu } from '~/models/menu.server'
 
 import { formatCurrency, getCurrency } from '~/utils'
 
-import { Button, CheckIcon, FlexRow, H3, H4, H5, H6, Modal, QuantityButton, SendComments, Spacer } from '~/components'
+import { Button, CheckIcon, FlexRow, H2, H3, H4, H5, H6, Modal, QuantityButton, SendComments, Spacer } from '~/components'
 import { ErrorList } from '~/components/forms'
 
 export async function loader({ request, params }: LoaderArgs) {
@@ -70,7 +70,7 @@ export async function action({ request, params }: ActionArgs) {
   const productQuantity = Number(formData.get('productQuantity'))
   const modifiers = JSON.parse(formData.get('modifiers') as string)
   const sendComments = formData.get('sendComments') as string
-
+  console.log('sendComments', sendComments)
   const session = await getSession(request)
   const cart = JSON.parse(session.get('cart') || '[]')
   addToCart(cart, productId, productQuantity, modifiers, sendComments)
@@ -132,16 +132,10 @@ export default function ProductId() {
       // fullScreen={true}
     >
       <div className="w-full  p-4  bg-white">
-        <div className="space-y-3">
-          <H3 boldVariant="semibold">{data.product.name}</H3>
-          <H4> {formatCurrency(data.currency, data.product?.price)}</H4>
+        <div className="space-y-1">
+          <H2 boldVariant="bold">{data.product.name}</H2>
+          <H4 boldVariant="semibold"> {formatCurrency(data.currency, data.product?.price)}</H4>
           <H5 variant="secondary">{data.product.description}</H5>
-          <QuantityButton
-            onDecrease={() => setProductQuantity(productQuantity - 1)}
-            onIncrease={() => setProductQuantity(productQuantity + 1)}
-            quantity={productQuantity}
-            disabled={productQuantity <= 1}
-          />
         </div>
         {data.modifierGroup.length > 0 ? (
           <>
@@ -316,11 +310,19 @@ export default function ProductId() {
             </>
           ) : null}
           <Spacer spaceY="2" />
+          <H3 boldVariant="semibold">Instrucciones especiales</H3>
+          <Spacer spaceY="1" />
           <SendComments />
           <Spacer spaceY="1" />
-
+          <QuantityButton
+            onDecrease={() => setProductQuantity(productQuantity - 1)}
+            onIncrease={() => setProductQuantity(productQuantity + 1)}
+            quantity={productQuantity}
+            disabled={productQuantity <= 1}
+          />
+          <Spacer spaceY="3" />
           <Button name="_action" value="proceed" fullWith={true} disabled={isSubmitting} className="sticky bottom-5">
-            Agregar {data.product.name.length > 14 ? data.product.name.slice(0, 14) : data.product.name}{' '}
+            Agrega {productQuantity} al carrito •{' '}
             {formatCurrency(
               data.currency,
               data.product.price * productQuantity +

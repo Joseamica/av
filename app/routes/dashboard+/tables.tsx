@@ -29,6 +29,7 @@ export async function loader({ request, params }: LoaderArgs) {
       order: {
         include: {
           cartItems: true,
+          payments: true,
         },
       },
     },
@@ -48,7 +49,7 @@ export default function Tables() {
   const [activeNavMenu, setActiveNavMenu] = React.useState<string>('Activas')
 
   return (
-    <div className=" flex flex-col ">
+    <div className="flex flex-col ">
       <NavMenu categories={['Todas', 'Activas', 'Inactivas']} activeNavMenu={activeNavMenu} setActiveNavMenu={setActiveNavMenu} />
 
       <div className="px-[10px]">
@@ -69,6 +70,7 @@ export default function Tables() {
                       tableNumber={table.number}
                       clients={table.users?.length}
                       products={table.order?.cartItems ?? []}
+                      notify={table.order?.payments?.find(payment => payment.status === 'pending') ? true : false}
                     />
                   )
                 })
@@ -86,6 +88,7 @@ export default function Tables() {
                       tableNumber={table.number}
                       clients={table.users?.length}
                       products={table.order?.cartItems}
+                      notify={table.order?.payments?.find(payment => payment.status === 'pending') ? true : false}
                     />
                   )
                 })}
@@ -104,6 +107,7 @@ export default function Tables() {
                         tableNumber={table.number}
                         clients={table.users?.length}
                         products={table.order?.cartItems}
+                        notify={table.order?.payments?.find(payment => payment.status === 'pending') ? true : false}
                       />
                     )
                   })}
@@ -121,6 +125,7 @@ export default function Tables() {
                         tableNumber={table.number}
                         clients={table.users?.length}
                         products={table.order?.cartItems}
+                        notify={table.order?.payments?.find(payment => payment.status === 'pending') ? true : false}
                       />
                     )
                   })}
@@ -134,19 +139,33 @@ export default function Tables() {
   )
 }
 
-export function Table({ to, clients, products, tableNumber }: { to: string; clients: string; products: any; tableNumber: string }) {
+export function Table({
+  to,
+  clients,
+  products,
+  tableNumber,
+  notify,
+}: {
+  to: string
+  clients: string
+  products: any
+  tableNumber: string
+  notify?: boolean
+}) {
   const total = products?.reduce((acc, curr) => {
     return Number(acc) + Number(curr.price) * Number(curr.quantity)
   }, 0)
 
   return (
-    <Link to={products ? to : ''} className="w-full  relative flex items-center justify-between space-x-4" preventScrollReset>
-      <div className="border rounded-lg flex justify-around w-full">
-        <div className="flex justify-center items-center  bg-dashb-bg w-14 rounded-lg">
+    <Link to={products ? to : ''} className="relative flex items-center justify-between w-full space-x-4" preventScrollReset>
+      <div className="relative flex justify-around w-full border rounded-lg">
+        {notify ? <div className="absolute w-3 h-3 bg-red-200 rounded-full -top-1 -right-1" /> : null}
+
+        <div className="flex items-center justify-center rounded-lg bg-dashb-bg w-14">
           <p className="text-3xl">{tableNumber}</p>
         </div>
-        <div className="flex flex-row  divide-x divide-gray-300 items-center w-full h-full  bg-white rounded-lg  ">
-          <TableContainer title="Clientes" value={clients} icon={<IoPerson className="bg-indigo-500 rounded-sm p-1 fill-white" />} />
+        <div className="flex flex-row items-center w-full h-full bg-white divide-x divide-gray-300 rounded-lg ">
+          <TableContainer title="Clientes" value={clients} icon={<IoPerson className="p-1 bg-indigo-500 rounded-sm fill-white" />} />
           <TableContainer
             title="Productos"
             value={products?.length}
@@ -160,10 +179,10 @@ export function Table({ to, clients, products, tableNumber }: { to: string; clie
         </div>
       </div>
       {products ? (
-        <div className=" border rounded-full flex justify-center items-center bg-white">
+        <div className="flex items-center justify-center bg-white border rounded-full ">
           <ChevronRightIcon />
         </div>
-      ) : // <div className=" border rounded-full flex justify-center items-center bg-white">
+      ) : // <div className="flex items-center justify-center bg-white border rounded-full ">
       //   <XIcon />
       // </div>
       null}
@@ -173,9 +192,9 @@ export function Table({ to, clients, products, tableNumber }: { to: string; clie
 
 export function TableContainer({ title, value, icon }: { title: string; value: string | number; icon: JSX.Element }) {
   return (
-    <div className="flex flex-col space-y-1  px-3 py-2 w-full">
+    <div className="flex flex-col w-full px-3 py-2 space-y-1">
       <div />
-      <div className="flex flex-row space-x-2 items-center ">
+      <div className="flex flex-row items-center space-x-2 ">
         {icon}
         <span className="text-xs font-medium">{title}</span>
       </div>

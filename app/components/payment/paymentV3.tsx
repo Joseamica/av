@@ -1,3 +1,4 @@
+import { useLocation } from '@remix-run/react'
 import * as React from 'react'
 
 import { PayButton } from './payButton'
@@ -7,13 +8,15 @@ import { PaymentForm } from './paymentForm'
 import { TipButton } from './tipButton'
 import { TipModal } from './tipModal'
 
+import { getAvoqadoFee } from '~/utils'
+
 const PaymentContext = React.createContext(null)
 
 function Payment({
   children,
   state,
 }: {
-  children: any
+  children: React.ReactNode
   state: {
     amountLeft: number
     amountToPayState: number
@@ -27,19 +30,43 @@ function Payment({
     payment: false,
   })
   const [paymentRadio, setPaymentRadio] = React.useState('card')
-  const [tipRadio, setTipRadio] = React.useState(15)
-  const tip = Number(state.amountToPayState) * (Number(tipRadio) / 100)
-  const subtotal = Number(state.amountToPayState) + tip
-
-  const avoqadoFee = subtotal * 0.02
-
-  const total = subtotal + avoqadoFee
-
   const handleMethodChange = e => {
     setPaymentRadio(e.target.value)
   }
+  const [tipRadio, setTipRadio] = React.useState(15)
+  const location = useLocation()
+  const isFullBillRoute = location.pathname.includes('full-bill')
 
-  const value = { ...state, tipRadio, setTipRadio, tip, total, showModal, setShowModal, paymentRadio, handleMethodChange }
+  let tip = 0
+  let subtotal = 0
+  let avoqadoFee = 0
+  let total = 0
+
+  if (isFullBillRoute) {
+    tip = (Number(state.amountLeft) * Number(tipRadio)) / 100
+    subtotal = Number(state.amountLeft) + tip
+    avoqadoFee = getAvoqadoFee(subtotal)
+    total = state.amountLeft + avoqadoFee + tip
+  } else {
+    tip = (Number(state.amountToPayState) * Number(tipRadio)) / 100
+    subtotal = Number(state.amountToPayState) + tip
+    avoqadoFee = getAvoqadoFee(subtotal)
+    total = subtotal + avoqadoFee
+  }
+
+  const value = {
+    ...state,
+    tipRadio,
+    setTipRadio,
+    tip,
+    total,
+    showModal,
+    setShowModal,
+    paymentRadio,
+    handleMethodChange,
+    subtotal,
+    avoqadoFee,
+  }
 
   return <PaymentContext.Provider value={value}>{children}</PaymentContext.Provider>
 }

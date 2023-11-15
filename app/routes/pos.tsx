@@ -1,4 +1,4 @@
-import { useFetcher, useLoaderData } from '@remix-run/react'
+import { useFetcher } from '@remix-run/react'
 import { useState } from 'react'
 
 import { json, redirect } from '@remix-run/node'
@@ -43,11 +43,11 @@ export default function POS() {
   const [code, setCode] = useState('')
 
   const handleCode = c => {
-    if (code.length <= 5) {
+    if (code.length <= 3) {
       setCode(code.toString() + c)
     }
   }
-  console.log('code', code)
+
   return (
     <div className="overflow-y-hidden">
       <input
@@ -56,7 +56,7 @@ export default function POS() {
         className="flex items-center justify-center w-full h-40 text-4xl text-center border disabled:opacity-100"
         value={code}
         disabled={true}
-        maxLength={6}
+        maxLength={4}
         // You could also use onKeyDown or onInput to enforce the max length
       />
       <Spacer spaceY="2" />
@@ -131,7 +131,7 @@ export default function POS() {
           <button
             className="w-[80px] h-[80px] border bg-day-principal text-white disabled:opacity-40"
             type="submit"
-            disabled={code.length <= 5}
+            disabled={code.length <= 3}
           >
             Enter
           </button>
