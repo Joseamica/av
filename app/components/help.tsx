@@ -1,5 +1,7 @@
 import { Link, useParams } from '@remix-run/react'
 
+import clsx from 'clsx'
+
 import { FeedBackIcon, ManagerIcon, WaiterIcon, WifiIcon } from './icons'
 import { FlexRow } from './util/flexrow'
 import { Spacer } from './util/spacer'
@@ -16,16 +18,17 @@ const REPORT_TYPES = {
     icon: <WifiIcon className="h-5 w-5 text-white fill-white   " />,
     es: 'Wifi',
   },
-  manager: {
-    name: 'manager',
-    icon: <ManagerIcon className="h-4 w-4   text-white fill-white " />,
-    es: ' Llamar Gerente',
-  },
   report: {
     name: 'report',
     icon: <FeedBackIcon className="h-4 w-4  text-white fill-white " />,
     es: 'Reportar Suceso',
   },
+  manager: {
+    name: 'manager',
+    icon: <ManagerIcon className="h-4 w-4   text-white fill-white " />,
+    es: ' Llamar Gerente',
+  },
+
   // car: {
   //   name: 'car',
   //   icon: (
@@ -52,7 +55,7 @@ export function Help({ exclude }: { exclude?: string }) {
           if (type.name === exclude) {
             return null
           }
-          if (type.name === 'report' || type.name === 'wifi') {
+          if (type.name === 'wifi') {
             return null
           }
           return (
@@ -64,7 +67,11 @@ export function Help({ exclude }: { exclude?: string }) {
               // className="flex items-center justify-center rounded-full bg-day-bg_principal dark:bg-night-bg_principal dark:bg-DARK_1 h-9 w-9 "
               //   onClick={() => setShowModal(type?.name)}
             >
-              <div className=" flex h-8 w-8 items-center justify-center rounded-full border-2  text-white shadow-sm bg-day-principal">
+              <div
+                className={clsx(' flex h-8 w-8 items-center justify-center rounded-full border-2  text-white shadow-sm bg-day-principal', {
+                  // 'bg-warning': type.name === 'report',
+                })}
+              >
                 <span className="text-white fill-white">{type.icon}</span>
               </div>
               <H6 variant="secondary" className="text-[9px]">
@@ -73,18 +80,18 @@ export function Help({ exclude }: { exclude?: string }) {
             </Link>
           )
         })}
-        <Link
+        {/* <Link
           to={`${params.tableId}/help/report`}
           className="absolute mx-auto flex  flex-col -top-4 justify-center items-center "
           preventScrollReset
         >
-          <div className="rounded-full flex h-10 w-10 items-center justify-center bg-day-principal border-2 ">
+          <div className="rounded-full flex h-8 w-8 items-center justify-center bg-day-principal border-2 ">
             <FeedBackIcon className="h-4 w-4  fill-white " />
           </div>
           <H6 variant="secondary" className="text-[9px]">
             Reportar
           </H6>
-        </Link>
+        </Link> */}
       </FlexRow>
     </Spacer>
   )

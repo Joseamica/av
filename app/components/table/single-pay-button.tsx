@@ -11,9 +11,9 @@ export function SinglePayButton({
   setShowPaymentOptions: (value: boolean) => void
 }) {
   return (
-    <div className="sticky bottom-20">
+    <div className="sticky bottom-5">
       <Button size="medium" variant="primary" fullWith={true} className="sticky" onClick={() => setShowPaymentOptions(true)}>
-        Pagar o dividir la cuenta
+        <span className="font-bold"> Pagar o dividir la cuenta</span>
       </Button>
       <ModalPortal title="Pagar o dividir la cuenta" isOpen={showPaymentOptions} handleClose={() => setShowPaymentOptions(false)}>
         <div className="bg-white px-2 pt-4">

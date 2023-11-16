@@ -43,15 +43,15 @@ export default function Help() {
       <fetcher.Form className="flex flex-col p-5 space-y-4 text-xl text js-copy-to-clip" method="POST">
         <div className="flex flex-col items-center justify-between space-y-1">
           <H4>Nombre de red:</H4>
-          <H2 className="px-4 py-2 border rounded-full">{data.wifiDetails.wifiName}</H2>
+          <H2 className="px-4 py-2 border rounded-xl">{data.wifiDetails.wifiName}</H2>
         </div>
         <div className="flex flex-col items-center justify-between space-y-1 ">
           <H4>Clave:</H4>
-          <FlexRow className="items-center p-2 space-x-2 border rounded-full">
+          <FlexRow className="items-center p-2 space-x-2 border rounded-xl">
             <H2>{data.wifiDetails.wifiPwd}</H2>
             <button
               onClick={() => navigator.clipboard.writeText(data.wifiDetails.wifiPwd)}
-              className="flex flex-row items-center px-2 py-1 space-x-2 text-sm text-white rounded-full bg-principal border-button-outline dark:bg-button-primary"
+              className="flex flex-row items-center px-2 py-1 space-x-2 text-sm text-white rounded-xl bg-principal border-button-outline bg-button-primary"
             >
               Copiar
             </button>

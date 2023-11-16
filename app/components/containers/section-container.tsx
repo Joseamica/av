@@ -1,6 +1,8 @@
+import React from 'react'
+
 import clsx from 'clsx'
 import { motion } from 'framer-motion'
-import React from 'react'
+
 import { ChevronDownIcon, ChevronUpIcon, Spacer } from '..'
 import { H1 } from '../util/typography'
 
@@ -19,9 +21,9 @@ interface SectionContainerProps {
 }
 
 const roundedPositions = {
-  top: 'rounded-t-lg',
-  bottom: 'rounded-b-lg',
-  both: 'rounded-lg',
+  top: 'rounded-t-xl',
+  bottom: 'rounded-b-xl',
+  both: 'rounded-xl',
 }
 
 function getClassName({
@@ -34,13 +36,26 @@ function getClassName({
 }) {
   return clsx(
     roundedPositions[roundedPosition],
-    'no-scrollbar container  bg-day-bg_principal dark:text-night-text_principal dark:bg-night-bg_principal p-2 font-sans shadow-lg border border-gray_light ',
+    'no-scrollbar container  bg-day-bg_principal dark:text-night-text_principal dark:bg-night-bg_principal p-2 font-sans  border-2 ',
     className,
   )
 }
 
 const SectionContainer = React.forwardRef<HTMLElement, SectionContainerProps>(function SectionContainer(
-  { id, children, className, title, as: Tag = 'main', divider = false, collapse, handleCollapse, collapseTitle, showCollapse = false, roundedPosition = 'both', ...rest },
+  {
+    id,
+    children,
+    className,
+    title,
+    as: Tag = 'main',
+    divider = false,
+    collapse,
+    handleCollapse,
+    collapseTitle,
+    showCollapse = false,
+    roundedPosition = 'both',
+    ...rest
+  },
   ref,
 ) {
   return (

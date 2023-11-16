@@ -1,10 +1,12 @@
 import { Link } from '@remix-run/react'
-import { IoBookOutline } from 'react-icons/io5'
+import { FaThumbsDown } from 'react-icons/fa'
+import { IoBookOutline, IoPerson, IoPersonOutline } from 'react-icons/io5'
 
 import 'intro.js/introjs.css'
 
-import { PlusIcon, RestMenuIcon } from './icons'
+import { FeedBackIcon, PlusIcon, RestMenuIcon, WaiterIcon, WifiIcon } from './icons'
 import { Spacer } from './util/spacer'
+import { H6 } from './util/typography'
 
 export function RestaurantInfoCard({
   branch,
@@ -18,18 +20,51 @@ export function RestaurantInfoCard({
   isOrderActive?: boolean
 }) {
   return (
-    <main className="px-1 pt-4">
+    <main className="">
       <div className="relative " id="container">
         <img
           src={branch.image}
           alt=""
           loading="lazy"
-          className="dark:bg-secondaryDark dark:bg-night-bg_principal dark:text-night-text_principal relative max-h-40 w-full rounded-3xl bg-day-bg_principal object-cover brightness-50"
+          className=" relative max-h-48 w-full rounded-b-3xl bg-day-bg_principal object-cover brightness-50"
         />
+        <div className="absolute top-7 right-7 flex flex-row space-x-4 items-center">
+          <Link to={`help/report`} className="flex flex-col items-center space-y-1">
+            <div className="flex items-center justify-center h-10 border-2 rounded-full shadow-sm w-10 bg-white">
+              <span>
+                <FaThumbsDown className="h-4 w-4" />
+              </span>
+            </div>
+            <H6 className="text-white" boldVariant="semibold">
+              Reportar
+            </H6>
+          </Link>
+          <Link to={`help/waiter`} className="flex flex-col items-center space-y-1 text-white">
+            <div className="flex items-center justify-center h-10 text-white border-2 rounded-full shadow-sm w-10 bg-white">
+              <span>
+                <WaiterIcon className="h-4 w-4" />
+              </span>
+            </div>
+            <H6 className="text-white" boldVariant="semibold">
+              Llamar
+            </H6>
+          </Link>
+          <Link to={`help/wifi`} className="flex flex-col items-center space-y-1">
+            <div className="flex items-center justify-center h-10 text-white border-2 rounded-full shadow-sm w-10 bg-white">
+              <span>
+                <WifiIcon className="h-5 w-5" />
+              </span>
+            </div>
+            <H6 className="text-white" boldVariant="semibold">
+              Wifi
+            </H6>
+          </Link>
+        </div>
+
         <div className="absolute bottom-5 left-5">
           <p className="text-sm tracking-widest text-white">{branch.cuisine.toUpperCase()}</p>
-          <p className="text-2xl font-normal tracking-wider text-white">{branch.name}</p>
-          <p className="text-white">{branch.address.length > 40 ? branch.address.substring(0, 40) + '...' : branch.address}</p>
+          <p className="text-xl font-semibold tracking-wider text-white">{branch.name}</p>
+          <p className="text-white font-thin">{branch.address.length > 40 ? branch.address.substring(0, 40) + '...' : branch.address}</p>
           <p className="text-white">{branch.city}</p>
         </div>
       </div>

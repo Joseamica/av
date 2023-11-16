@@ -27,7 +27,7 @@ function TipModal() {
   return (
     <>
       <SubModal onClose={handleModal} title="Asignar propina">
-        <div className="flex flex-col space-y-3 h-full">
+        <div className="flex flex-col space-y-3 h-96">
           {tipsPercentages &&
             tipsPercentages.map((tipPercentage: any) => (
               <label
@@ -86,7 +86,7 @@ function TipModal() {
         <Spacer spaceY="4" />
         <H3 className="flex w-full flex-row justify-center">Tu propina: {formatCurrency(currency, tip)}</H3>
         <Spacer spaceY="2" />
-        <Button fullWith={true} onClick={handleModal} className="sticky bottom-0">
+        <Button fullWith={true} onClick={handleModal} className="sticky bottom-0" size="medium">
           Asignar
         </Button>
       </SubModal>

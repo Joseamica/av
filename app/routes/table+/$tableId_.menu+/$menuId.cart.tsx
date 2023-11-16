@@ -409,7 +409,7 @@ export default function Cart() {
                 setToggle={setPayNow}
                 leftText="Pagar después"
                 rightText="Pagar ahora"
-                rightIcon={<CashIcon />}
+                rightIcon={<CashIcon className="fill-white" />}
                 leftIcon={<FaHourglassHalf />}
                 stretch
                 height="medium"
@@ -574,6 +574,7 @@ export function CartPayment({ setShowPaymentOptions }: { setShowPaymentOptions: 
             name="_action"
             value="submitCart"
             formMethod="PATCH"
+            size="medium"
             // variant="custom"
             // custom="bg-button-successOutline border-green-700"
             // className="text-button-successBg"
@@ -581,7 +582,7 @@ export function CartPayment({ setShowPaymentOptions }: { setShowPaymentOptions: 
             {isSubmitting ? 'Procesando...' : 'Pagar y ordenar'}
           </Button>
           <Spacer spaceY="1" />
-          <Button onClick={() => setShowPaymentOptions(false)} to="" variant={'danger'}>
+          <Button onClick={() => setShowPaymentOptions(false)} to="" variant={'danger'} size="medium">
             Volver
           </Button>
         </motion.div>

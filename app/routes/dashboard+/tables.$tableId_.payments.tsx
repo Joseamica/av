@@ -1,7 +1,7 @@
-import { Form, Link, useFetcher, useLoaderData, useNavigate, useParams, useSearchParams } from '@remix-run/react'
-import { FaHourglass, FaHourglassHalf } from 'react-icons/fa'
+import { Link, useFetcher, useLoaderData, useNavigate, useParams, useSearchParams } from '@remix-run/react'
+import { FaHourglassHalf } from 'react-icons/fa'
 
-import { type ActionArgs, type LoaderArgs, json, redirect } from '@remix-run/node'
+import { type ActionArgs, type LoaderArgs, json } from '@remix-run/node'
 
 import clsx from 'clsx'
 import { prisma } from '~/db.server'
@@ -11,7 +11,7 @@ import { EVENTS } from '~/events'
 
 import { getSearchParams } from '~/utils'
 
-import { Button, CheckIcon, LinkButton, Modal, XIcon } from '~/components'
+import { CheckIcon, Modal, XIcon } from '~/components'
 
 export async function loader({ request, params }: LoaderArgs) {
   const session = await getSession(request)

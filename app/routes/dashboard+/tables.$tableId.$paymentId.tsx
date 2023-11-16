@@ -35,6 +35,7 @@ export async function action({ request, params }: ActionArgs) {
   const formData = await request.formData()
   const { tableId, paymentId } = params
   const intent = formData.get('intent') as string
+  const userId = formData.get('userId') as string
   switch (intent) {
     case 'accept':
       await prisma.payments.update({
@@ -43,6 +44,7 @@ export async function action({ request, params }: ActionArgs) {
         },
         data: {
           status: 'accepted',
+          userId,
         },
       })
       break
@@ -53,6 +55,7 @@ export async function action({ request, params }: ActionArgs) {
         },
         data: {
           status: 'pending',
+          userId,
         },
       })
       break
@@ -63,6 +66,7 @@ export async function action({ request, params }: ActionArgs) {
         },
         data: {
           status: 'disputed',
+          userId,
         },
       })
       break
@@ -138,6 +142,7 @@ export default function TablePaymentId() {
             Atender después
           </button>
         ) : null} */}
+        <input type="hidden" name="userId" value={data.payment?.user?.id} />
       </fetcher.Form>
     </SubModal>
   )

@@ -115,6 +115,7 @@ model Menu {
   name            String?
   type            String?
   currency        String?
+  pdfImage        String?
   branchId        String
   branch          Branch           @relation(fields: [branchId], references: [id], onDelete: Cascade, onUpdate: Cascade)
   categories      Category[]

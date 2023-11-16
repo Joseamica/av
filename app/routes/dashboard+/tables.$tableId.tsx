@@ -48,12 +48,23 @@ export async function loader({ request, params }: LoaderArgs) {
     },
   })
 
+  const inactiveOrders = await prisma.order.findMany({
+    where: {
+      tableNumber: table?.number,
+      active: false,
+    },
+    include: {
+      cartItems: { include: { productModifiers: true } },
+      payments: { where: { status: 'pending' } },
+    },
+  })
+
   const currency = await getCurrency(tableId)
 
   const manager = table?.employees.find(employee => employee.id === employeeId && employee.role === 'manager')
   const isManager = manager ? true : false
 
-  return json({ table, payments, currency, isManager })
+  return json({ table, payments, currency, isManager, inactiveOrders })
 }
 export async function action({ request, params }: ActionArgs) {
   const formData = await request.formData()
@@ -95,16 +106,16 @@ export default function TableId() {
   const IsSearchParamActiveMenu = searchParams.get('activeNavMenu')
 
   // ANCHOR STATES
-  const [activeNavMenu, setActiveNavMenu] = React.useState<string>(IsSearchParamActiveMenu || 'Orden')
+  const [activeNavMenu, setActiveNavMenu] = React.useState<string>(IsSearchParamActiveMenu || 'Orden Activa')
   const [showAcceptedPayments, setShowAcceptedPayments] = React.useState<boolean>(false)
   const [totalPaymentsQuantity, setTotalPaymentsQuantity] = React.useState<number>(0)
 
-  const totalProductQuantity: number = data.table.order.cartItems?.reduce(
+  const totalProductQuantity: number = data.table.order?.cartItems?.reduce(
     (acc: number, item: { quantity: number }) => acc + item.quantity,
     0,
   )
 
-  const orderTotal = data.table.order.cartItems?.reduce(
+  const orderTotal = data.table.order?.cartItems?.reduce(
     (acc: number, item: { quantity: number; price: number }) => acc + item.quantity * item.price,
     0,
   )
@@ -120,38 +131,48 @@ export default function TableId() {
 
   return (
     <Modal fullScreen={true} title={`Mesa ${data.table.number}`} onClose={() => navigate(`/dashboard/tables`)}>
-      <div className="h-full">
+      <div className="h-full bg-dashb-bg">
         <NavMenu
           activeNavMenu={activeNavMenu}
           setActiveNavMenu={setActiveNavMenu}
-          categories={['Orden', 'Pagos']}
+          categories={['Orden Activa', 'Pagos', 'Ordenes Pasadas']}
           notify={data.payments.find(payment => payment.status === 'pending') ? true : false}
         />
-        <div className="flex flex-col p-3 my-1 space-y-1 bg-white rounded-lg">
-          <FlexRow justify="between">
-            <FlexRow>
-              <IoCardOutline />
-              <H5>Total pagado: </H5>
+        {data.table.order && activeNavMenu !== 'Ordenes Pasadas' ? (
+          <div className="flex flex-col p-3 my-1 space-y-1 bg-white rounded-lg">
+            <FlexRow justify="between">
+              <FlexRow>
+                <IoCardOutline />
+                <H5>Total pagado: </H5>
+              </FlexRow>
+              <H4 boldVariant="semibold">{formatCurrency(data.currency, paidTotal)}</H4>
             </FlexRow>
-            <H4 boldVariant="semibold">{formatCurrency(data.currency, paidTotal)}</H4>
-          </FlexRow>
-          <hr />
-          <FlexRow justify="between">
-            <FlexRow>
-              <FaRegClock />
-              <H5>Queda por pagar: </H5>
+            <hr />
+            <FlexRow justify="between">
+              <FlexRow>
+                <FaRegClock />
+                <H5>Queda por pagar: </H5>
+              </FlexRow>
+              <H4 boldVariant="semibold">{formatCurrency(data.currency, orderTotal - paidTotal)}</H4>
             </FlexRow>
-            <H4 boldVariant="semibold">{formatCurrency(data.currency, orderTotal - paidTotal)}</H4>
-          </FlexRow>
-        </div>
-        {activeNavMenu === 'Orden' ? (
-          <OrderDetails
-            currency={data.currency}
-            totalProductQuantity={totalProductQuantity}
-            orderTotal={orderTotal}
-            cartItems={data.table.order?.cartItems ? data.table.order?.cartItems : ''}
-            isManager={data.isManager}
-          />
+          </div>
+        ) : null}
+        {activeNavMenu === 'Ordenes Activa' ? (
+          <>
+            {data.table.order ? (
+              <OrderDetails
+                currency={data.currency}
+                totalProductQuantity={totalProductQuantity}
+                orderTotal={orderTotal}
+                cartItems={data.table.order?.cartItems.length > 0 ? data.table.order?.cartItems : ''}
+                isManager={data.isManager}
+              />
+            ) : (
+              <H5 variant="secondary" className="p-4">
+                Esta mesa no cuenta con una orden activa
+              </H5>
+            )}
+          </>
         ) : null}
         {activeNavMenu === 'Pagos' ? (
           <div>
@@ -259,7 +280,45 @@ export default function TableId() {
             </div>
           </div>
         ) : null}
-        <div className="fixed flex justify-center w-full bottom-10 space-x-2">
+        {activeNavMenu === 'Ordenes Pasadas' ? (
+          <div>
+            {data.inactiveOrders.map(inactiveOrder => {
+              return (
+                <div key={inactiveOrder.id}>
+                  <Link to={''} className="relative flex items-center justify-between w-full space-x-4" preventScrollReset>
+                    <div className="flex justify-around w-full border rounded-lg">
+                      <div className="flex items-center justify-center w-20 rounded-lg bg-dashb-bg">
+                        <p className="text-xl">{inactiveOrder.total}</p>
+                      </div>
+                      <div className="flex flex-row items-center w-full h-full bg-white divide-x divide-gray-300 rounded-lg ">
+                        {/* <PaymentContainer title="Hora" value={""} icon={<IoPerson className="p-1 bg-indigo-500 rounded-sm fill-white" />} />
+                  <PaymentContainer
+                    title="Método"
+                    value={method}
+                    icon={<IoList className="bg-[#548AF7] rounded-sm p-1 fill-white text-white" />}
+                  />
+                  <PaymentContainer
+                    title="Propina"
+                    value={tip ? formatCurrency(currency, tip || 0) : null}
+                    icon={<IoList className="bg-[#40b47e] rounded-sm p-1 fill-white text-white" />}
+                  />
+                  <PaymentContainer
+                    title="Total"
+                    value={total ? formatCurrency(currency, total || 0) : null}
+                    icon={<IoCard className="bg-[#548AF7] rounded-sm p-1 fill-white" />}
+                  /> */}
+                      </div>
+                    </div>
+                    {/* <div className=" right-2">
+                <IoShieldCheckmarkOutline />
+              </div> */}
+                  </Link>
+                </div>
+              )
+            })}
+          </div>
+        ) : null}
+        <div className=" flex justify-center w-full pt-10 space-x-2">
           <LinkButton to={`/dashboard/actions/${params.tableId}`} className="" size="small">
             Agregar productos
           </LinkButton>
@@ -305,9 +364,9 @@ function OrderDetails({ currency, totalProductQuantity, orderTotal, cartItems, i
                       <span>
                         {isManager ? (
                           <Form method="POST">
-                            <Button size="small" variant="danger">
-                              Eliminar
-                            </Button>
+                            <button className=" flex justify-center items-center h-5 w-5 border rounded-full bg-warning text-white">
+                              x
+                            </button>
                             <input type="hidden" name="id" value={cartItem.id} />
                           </Form>
                         ) : null}

@@ -1,3 +1,4 @@
+import { CheckCircledIcon } from '@radix-ui/react-icons'
 import { Link, Outlet, isRouteErrorResponse, useLoaderData, useRouteError } from '@remix-run/react'
 
 import type { ActionArgs, LoaderArgs, V2_MetaFunction } from '@remix-run/node'
@@ -188,14 +189,15 @@ export default function TableLayoutPath() {
   }
 
   return (
-    <div className="hide-scrollbar no-scrollbar  mx-auto h-full max-w-md bg-[#F3F4F6] px-2 pt-16">
-      <HeaderV2 user={data.user} />
+    <div className="hide-scrollbar no-scrollbar  mx-auto h-full max-w-md bg-[#F3F4F6] px-2">
+      {/* <HeaderV2 user={data.user} /> */}
       <Notification message={data.notification} />
       <Outlet />
-      <nav className="fixed inset-x-0 bottom-0 z-30   bg-white border rounded-t-2xl">
+
+      {/* <nav className="fixed inset-x-0 bottom-0 z-30   bg-white border rounded-t-2xl">
         <Help />
       </nav>
-      <div className="h-20" />
+      <div className="h-20" /> */}
     </div>
   )
 }

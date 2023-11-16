@@ -1,3 +1,4 @@
+import * as Switch from '@radix-ui/react-switch'
 import { Link, Outlet, useFetcher, useLoaderData, useNavigate, useParams } from '@remix-run/react'
 import { useEffect, useRef, useState } from 'react'
 
@@ -16,7 +17,7 @@ import { getCartItems } from '~/models/cart.server'
 
 import { formatCurrency, getCurrency } from '~/utils'
 
-import { H4, H5, H6, LinkButton, Modal, ShoppingCartIcon, Spacer } from '~/components'
+import { H2, H3, H4, H5, H6, LinkButton, Modal, ShoppingCartIcon, Spacer } from '~/components'
 
 type Category = {
   id: string
@@ -42,7 +43,7 @@ export async function loader({ request, params }: LoaderArgs) {
 
   const cart = JSON.parse(session.get('cart') || '[]') as CartItem[]
 
-  const [categories, cartItems, currency] = await Promise.all([
+  const [categories, cartItems, currency, menu] = await Promise.all([
     prisma.category.findMany({
       where: { menu: { some: { id: menuId } } },
       orderBy: {
@@ -58,6 +59,11 @@ export async function loader({ request, params }: LoaderArgs) {
     }),
     getCartItems(cart),
     getCurrency(tableId),
+    prisma.menu.findUnique({
+      where: {
+        id: menuId,
+      },
+    }),
   ])
 
   return json({
@@ -65,6 +71,7 @@ export async function loader({ request, params }: LoaderArgs) {
     cartItems,
     currency,
     branch,
+    menu,
   })
 }
 
@@ -72,6 +79,7 @@ export default function MenuId() {
   const data = useLoaderData()
   const [activeCategoryId, setActiveCategoryId] = useState<string | null>(null)
   const productCategoryRefs = useRef<{ [key: string]: HTMLElement | null }>({})
+  const [showMenuPdf, setShowMenuPdf] = useState(false)
   const categoryRefs = useRef<{ [key: string]: any }>({})
   const categoryBarRef = useRef(null)
 
@@ -161,7 +169,7 @@ export default function MenuId() {
           id="categoryBar"
           ref={categoryBarRef}
           className={clsx(
-            'no-scrollbar dark:bg-night-bg_principal sticky top-[62px] flex items-center space-x-4 overflow-x-scroll whitespace-nowrap rounded-xl bg-day-bg_principal px-5 py-6 shadow-lg overflow-y-hidden',
+            'no-scrollbar dark:bg-night-bg_principal sticky top-[62px] flex items-center space-x-4 overflow-x-scroll whitespace-nowrap rounded-xl bg-day-bg_principal px-5 py-6 shadow-lg overflow-y-hidden z-10',
           )}
         >
           {data.categories.map((category: Category) => (
@@ -179,72 +187,95 @@ export default function MenuId() {
             </Link>
           ))}
         </motion.div>
-        <div className="p-2 space-y-2">
-          {data.categories.map((categories: Category) => {
-            const products = categories.products
-
-            return (
-              <div
-                key={categories.id}
-                className="p-3 bg-white rounded-lg scroll-mt-32"
-                id={categories.id}
-                ref={el => (productCategoryRefs.current[categories.id] = el)}
-              >
-                <h3>{categories.name}</h3>
-                <Spacer spaceY="1" />
-                <div className="flex flex-col divide-y">
-                  {products.map((product: Product) => {
-                    return (
-                      <Link
-                        key={product.id}
-                        preventScrollReset={true}
-                        // to={`?productId=${product.id}`}
-                        to={product.id}
-                        className="flex flex-row items-center justify-between py-2 space-x-2"
-                      >
-                        <div className="flex flex-col ">
-                          <H4 boldVariant="semibold">{product.name}</H4>
-                          <H6 variant="secondary">{product.description}</H6>
-                          <Spacer spaceY="1" />
-                          <H5 variant="price" className="tracking-tighter">
-                            {formatCurrency(data.currency, product.price)}
-                          </H5>
-                        </div>
-
-                        <motion.img
-                          whileHover={{ scale: 1 }}
-                          whileTap={{ scale: 0.8 }}
-                          src={product.image ? product.image : data.branch.image}
-                          // onError={() => console.log('image error')}
-                          className="object-cover w-24 bg-white rounded-lg dark:bg-secondaryDark h-28 max-h-24 shrink-0"
-                          loading="lazy"
-                          width="112"
-                          height="112"
-                        />
-                      </Link>
-                    )
-                  })}
-                </div>
-              </div>
-            )
-          })}
-          {data.cartItems?.length > 0 ? (
-            <LinkButton
-              to={`/table/${params.tableId}/menu/${params.menuId}/cart`}
-              disabled={isSubmitting}
-              className="sticky inset-x-0 w-full mb-2 bottom-4"
+        <div className="flex w-full justify-end py-3 px-4">
+          <div className="flex items-center">
+            <label className=" text-[15px] leading-none pr-[15px]" htmlFor="airplane-mode">
+              Ver menu en pdf
+            </label>
+            <Switch.Root
+              className="w-[42px] h-[25px] bg-blackA6 rounded-full relative shadow-[0_2px_10px] shadow-blackA4 focus:shadow-[0_0_0_2px] focus:shadow-black data-[state=checked]:bg-black outline-none cursor-default"
+              id="pdf"
+              onClick={() => setShowMenuPdf(!showMenuPdf)}
+              checked={showMenuPdf}
             >
-              {isSubmitting ? (
-                `Agregando platillos... (${cartItemsAdded})`
-              ) : (
-                <div className="flex space-x-2 items-center">
-                  <ShoppingCartIcon className="fill-white h-5 w-5" />
-                  <span> Ir al carrito {cartItemsAdded}</span>
-                </div>
-              )}
-            </LinkButton>
-          ) : null}
+              <Switch.Thumb className="block w-[21px] h-[21px] bg-white rounded-full shadow-[0_2px_2px] shadow-blackA4 transition-transform duration-100 translate-x-0.5 will-change-transform data-[state=checked]:translate-x-[19px]" />
+            </Switch.Root>
+          </div>
         </div>
+        {!showMenuPdf ? (
+          <div className="p-2 space-y-2">
+            {data.categories.map((categories: Category) => {
+              const products = categories.products
+
+              return (
+                <div
+                  key={categories.id}
+                  className="p-3 bg-white rounded-lg scroll-mt-32"
+                  id={categories.id}
+                  ref={el => (productCategoryRefs.current[categories.id] = el)}
+                >
+                  <H2 boldVariant="bold">{categories.name}</H2>
+                  <Spacer spaceY="1" />
+                  <div className="flex flex-col divide-y">
+                    {products.map((product: Product) => {
+                      return (
+                        <Link
+                          key={product.id}
+                          preventScrollReset={true}
+                          // to={`?productId=${product.id}`}
+                          to={product.id}
+                          className="flex flex-row items-center justify-between py-2 space-x-2"
+                        >
+                          <div className="flex flex-col ">
+                            <H4 boldVariant="semibold">{product.name}</H4>
+                            <H6 variant="secondary">{product.description}</H6>
+                            <Spacer spaceY="1" />
+                            <H5 variant="price" className="tracking-tighter">
+                              {formatCurrency(data.currency, product.price)}
+                            </H5>
+                          </div>
+                          <div className="relative w-24 shrink-0">
+                            <motion.img
+                              whileHover={{ scale: 1 }}
+                              whileTap={{ scale: 0.8 }}
+                              src={product.image ? product.image : data.branch.image}
+                              // onError={() => console.log('image error')}
+                              className="object-cover w-24 bg-white rounded-lg dark:bg-secondaryDark h-28 max-h-24 shrink-0 relative"
+                              loading="lazy"
+                              width="112"
+                              height="112"
+                            />
+                            <p className="text-black flex justify-center items-center rounded-full absolute bottom-1 right-1 h-7 w-7 font-bold bg-white">
+                              +
+                            </p>
+                          </div>
+                        </Link>
+                      )
+                    })}
+                  </div>
+                </div>
+              )
+            })}
+            {data.cartItems?.length > 0 ? (
+              <LinkButton
+                to={`/table/${params.tableId}/menu/${params.menuId}/cart`}
+                disabled={isSubmitting}
+                className="sticky inset-x-0 w-full mb-2 bottom-4"
+              >
+                {isSubmitting ? (
+                  `Agregando platillos... (${cartItemsAdded})`
+                ) : (
+                  <div className="flex space-x-2 items-center">
+                    <ShoppingCartIcon className="fill-white h-5 w-5" />
+                    <span> Ir al carrito {cartItemsAdded}</span>
+                  </div>
+                )}
+              </LinkButton>
+            ) : null}
+          </div>
+        ) : (
+          <img alt="menu" src={data.menu.pdfImage} />
+        )}
       </Modal>
       <Outlet />
     </>

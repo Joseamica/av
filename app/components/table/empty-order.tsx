@@ -1,3 +1,4 @@
+import { DividerHorizontalIcon } from '@radix-ui/react-icons'
 import { Link, Outlet } from '@remix-run/react'
 import { useEffect } from 'react'
 
@@ -49,31 +50,36 @@ export function EmptyOrder({
     <main>
       <RestaurantInfoCard branch={branch} menu={menu} error={error} isOrderActive={isOrderActive} />
       <Spacer spaceY="2" />
-      <h3 className="flex justify-center pr-2 text-sm text-secondaryTextDark shrink-0">{`Mesa ${tableNumber}`}</h3>
+
+      <div className="w-full flex flex-row items-center justify-center space-x-2">
+        <div className="h-[0.4px] w-full bg-zinc-200" />
+        <h3 className="flex justify-center pr-2 text-sm text-secondaryTextDark shrink-0">{`Mesa ${tableNumber}`}</h3>
+        <div className="h-[0.4px] w-full bg-zinc-200" />
+      </div>
       <Spacer spaceY="1" />
 
-      <H5 className="flex justify-center w-full ">Aún no existe una orden con platillos.</H5>
-      <Spacer spaceY="3">
+      {/* <H5 className="flex justify-center w-full ">Aún no existe una orden con platillos.</H5> */}
+      {/* <Spacer spaceY="3">
         <div className="flex flex-col items-center space-y-1 ">
           <Link
             to={`help/wifi`}
-            className="flex items-center justify-center h-10 text-white border-2 rounded-full shadow-sm w-14"
+            className="flex items-center justify-center h-7 text-white border-2 rounded-full shadow-sm w-10"
 
             // className="flex items-center justify-center rounded-full bg-day-bg_principal dark:bg-night-bg_principal dark:bg-DARK_1 h-9 w-9 "
             //   onClick={() => setShowModal(type?.name)}
           >
             <span className="text-white fill-white">
-              <WifiIcon />
+              <WifiIcon className="h-5 w-5" />
             </span>
           </Link>
           <H6 variant="secondary">Wifi</H6>
         </div>
-      </Spacer>
+      </Spacer> */}
       {/* <HelpWithoutOrder exclude={exclude} /> */}
 
       {usersInTable && (
         <SectionContainer
-          className="flex flex-col justify-start p-2 rounded-lg dark:bg-DARK_1 dark:bg-night-bg_principal dark:text-night-text_principal bg-day-bg_principal drop-shadow-md dark:drop-shadow-none"
+          className="flex flex-col justify-start p-2 rounded-lg dark:bg-DARK_1 dark:bg-night-bg_principal dark:text-night-text_principal bg-day-bg_principal"
           data-intro="Aquí puedes ver quién está en la mesa"
           data-step="3"
           data-title="Usuarios"

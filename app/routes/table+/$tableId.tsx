@@ -156,15 +156,16 @@ export async function loader({ request, params }: LoaderArgs) {
     paidUsers = await prisma.payments.findMany({
       where: { orderId: order.id, status: 'accepted' },
       include: {
-        user: {
-          where: {
-            paid: {
-              not: null,
-              //BEFORE gt: -1
-              gt: 0,
-            },
-          },
-        },
+        user: true,
+        // {
+        //   where: {
+        //     paid: {
+        //       not: null,
+        //       //BEFORE gt: -1
+        //       gt: 0,
+        //     },
+        //   },
+        // },
       },
     })
 
@@ -201,6 +202,7 @@ export async function loader({ request, params }: LoaderArgs) {
     usersInTable,
     orderExpired,
     paymentNotification,
+    userId: user.userId,
   })
 }
 
@@ -298,7 +300,7 @@ export default function Table() {
 
   if (data.order) {
     return (
-      <motion.main className="pb-4 no-scrollbar">
+      <motion.main className="pb-4 no-scrollbar h-full">
         {/* {data.paymentNotification && <p>hola</p>} */}
         {/* <Help /> */}
 
@@ -344,6 +346,11 @@ export default function Table() {
             </Button>
           </fetcher.Form>
         )}
+        {/* <div className="w-full flex justify-center py-2">
+          <p className="text-xs">
+            Pay securely with <span className="font-bold">Avoqado</span>
+          </p>
+        </div> */}
         {modalVisible && <ActionsModal setModalVisible={setModalVisible} />}
         <Outlet />
       </motion.main>

@@ -98,7 +98,7 @@ export function PaymentForm() {
               </FlexRow>
 
               <Spacer spaceY="2" />
-              <Button fullWith={true} disabled={isSubmitting}>
+              <Button fullWith={true} disabled={isSubmitting} size="medium">
                 {isSubmitting ? 'Procesando...' : 'Pagar'} {formatCurrency(context.currency, context.total)}
               </Button>
             </motion.div>

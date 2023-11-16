@@ -1,6 +1,8 @@
+import { CheckCircledIcon } from '@radix-ui/react-icons'
 import * as Separator from '@radix-ui/react-separator'
 import { useFetcher, useLoaderData, useNavigate, useParams } from '@remix-run/react'
 import React from 'react'
+import { FaCheck, FaExclamationCircle } from 'react-icons/fa'
 
 import { type ActionArgs, type LoaderArgs, json, redirect } from '@remix-run/node'
 
@@ -131,8 +133,8 @@ export default function ProductId() {
       imgHeader={data.product?.image}
       // fullScreen={true}
     >
-      <div className="w-full  p-4  bg-white">
-        <div className="space-y-1">
+      <div className="w-full   bg-white">
+        <div className="space-y-1  px-4 pt-4">
           <H2 boldVariant="bold">{data.product.name}</H2>
           <H4 boldVariant="semibold"> {formatCurrency(data.currency, data.product?.price)}</H4>
           <H5 variant="secondary">{data.product.description}</H5>
@@ -140,7 +142,7 @@ export default function ProductId() {
         {data.modifierGroup.length > 0 ? (
           <>
             <Spacer spaceY="2" />
-            <Separator.Root className="bg-zinc-200 data-[orientation=horizontal]:h-px data-[orientation=horizontal]:w-full data-[orientation=vertical]:h-full data-[orientation=vertical]:w-px " />
+            <div className="w-full h-2 bg-bgDivider" />
           </>
         ) : null}
 
@@ -152,16 +154,17 @@ export default function ProductId() {
             }
           }}
         >
-          <div className="space-y-2">
+          <div className="space-y-2  divide-y-8 divide-bgDivider">
             {data.modifierGroup.length > 0
               ? data.modifierGroup?.map((modifierGroup: any) => {
                   const isRequired = modifierGroup.min > 0
+                  const isRequiredAndSelected = isRequired && getTotalModifierQuantityForGroup(modifierGroup.id) > 0
                   return (
                     <div key={modifierGroup.id}>
-                      <FlexRow justify="between" className="py-2">
+                      <FlexRow justify="between" className="py-2 px-4 pt-2">
                         <div className="block justify-center items-center">
-                          <H3> {modifierGroup.name}</H3>
-                          <div>
+                          <H3 boldVariant="semibold"> {modifierGroup.name}</H3>
+                          <div className="pb-1">
                             <H6 variant="secondary">
                               {(modifierGroup.min === 1 && modifierGroup.max === 0) || (modifierGroup.min === 1 && modifierGroup.max === 1)
                                 ? ''
@@ -180,14 +183,23 @@ export default function ProductId() {
 
                         <div
                           className={clsx('px-3  border rounded-full', {
-                            'bg-warning text-white fill-white animate-bounce z-0': modifierGroup.id === errors.id,
+                            'bg-bgError text-error animate-bounce z-0': modifierGroup.id === errors.id,
+                            'bg-bgApproved text-approved': isRequiredAndSelected,
                           })}
                         >
-                          {isRequired ? <H6>Obligatorio</H6> : <H6>Opcional</H6>}
+                          {isRequired ? (
+                            <FlexRow>
+                              {isRequiredAndSelected ? <FaCheck className="h-4 w-4" /> : null}
+                              {modifierGroup.id === errors.id ? <FaExclamationCircle /> : null}
+                              <H5>Obligatorio</H5>
+                            </FlexRow>
+                          ) : (
+                            <H5>Opcional</H5>
+                          )}
                         </div>
                       </FlexRow>
 
-                      <div className="flex flex-col space-y-2">
+                      <div className="flex flex-col  px-4 pb-2 space-y-2">
                         {modifierGroup.modifiers.map((modifier: Modifiers) => {
                           return (
                             <button
@@ -306,32 +318,54 @@ export default function ProductId() {
           {data.modifierGroup.length > 0 ? (
             <>
               <Spacer spaceY="2" />
-              <Separator.Root className="bg-zinc-200 data-[orientation=horizontal]:h-px data-[orientation=horizontal]:w-full data-[orientation=vertical]:h-full data-[orientation=vertical]:w-px " />
+              <div className="w-full h-2 bg-bgDivider" />
             </>
           ) : null}
-          <Spacer spaceY="2" />
-          <H3 boldVariant="semibold">Instrucciones especiales</H3>
-          <Spacer spaceY="1" />
-          <SendComments />
-          <Spacer spaceY="1" />
-          <QuantityButton
-            onDecrease={() => setProductQuantity(productQuantity - 1)}
-            onIncrease={() => setProductQuantity(productQuantity + 1)}
-            quantity={productQuantity}
-            disabled={productQuantity <= 1}
-          />
-          <Spacer spaceY="3" />
-          <Button name="_action" value="proceed" fullWith={true} disabled={isSubmitting} className="sticky bottom-5">
-            Agrega {productQuantity} al carrito •{' '}
-            {formatCurrency(
-              data.currency,
-              data.product.price * productQuantity +
-                tmodifiers.reduce((acc, tmodifier) => {
-                  return acc + tmodifier.extraPrice * tmodifier.quantity
-                }, 0) *
-                  productQuantity,
-            )}
-          </Button>
+          <div className="px-4">
+            <Spacer spaceY="2" />
+            <H3 boldVariant="semibold">Instrucciones especiales</H3>
+            <Spacer spaceY="1" />
+            <SendComments />
+            <Spacer spaceY="1" />
+            <QuantityButton
+              onDecrease={() => setProductQuantity(productQuantity - 1)}
+              onIncrease={() => setProductQuantity(productQuantity + 1)}
+              quantity={productQuantity}
+              disabled={productQuantity <= 1}
+            />
+            <Spacer spaceY="3" />
+          </div>
+          <div className="sticky bottom-0 bg-white py-4 px-4">
+            <Button
+              name="_action"
+              value="proceed"
+              size="medium"
+              variant={errors?.message ? 'custom' : 'primary'}
+              fullWith={true}
+              disabled={isSubmitting}
+              className={clsx('', {
+                'text-error  border-4  rounded-full bg-white text-sm': errors?.message,
+              })}
+            >
+              {errors?.message ? (
+                errors?.message
+              ) : (
+                <>
+                  Agrega {productQuantity} al carrito •{' '}
+                  {formatCurrency(
+                    data.currency,
+                    data.product.price * productQuantity +
+                      tmodifiers.reduce((acc, tmodifier) => {
+                        return acc + tmodifier.extraPrice * tmodifier.quantity
+                      }, 0) *
+                        productQuantity,
+                  )}
+                </>
+              )}
+            </Button>
+          </div>
+          {/* <Spacer spaceY="2" /> */}
+
           <input type="hidden" name="productId" value={data.product.id} />
           <input type="hidden" name="productQuantity" value={productQuantity} />
           <input type="hidden" name="modifiers" value={JSON.stringify(tmodifiers)} />

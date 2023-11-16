@@ -157,7 +157,7 @@ export function Table({
   }, 0)
 
   return (
-    <Link to={products ? to : ''} className="relative flex items-center justify-between w-full space-x-4" preventScrollReset>
+    <Link to={to} className="relative flex items-center justify-between w-full space-x-4" preventScrollReset>
       <div className="relative flex justify-around w-full border rounded-lg">
         {notify ? <div className="absolute w-3 h-3 bg-red-200 rounded-full -top-1 -right-1" /> : null}
 

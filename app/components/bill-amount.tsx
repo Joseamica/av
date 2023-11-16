@@ -84,14 +84,15 @@ export function BillAmount({
                       ease: [0.04, 0.62, 0.23, 0.98],
                     }}
                   >
-                    <Link className="flex flex-row items-center space-x-1" to={`./user/${user.id}`}>
+                    <div className="flex flex-row items-center space-x-1">
+                      {/* to={`./user/${user?.id}`}> */}
                       <UserCircleIcon
                         // userColor={user.color}
-                        fill={user.color}
+                        fill={user?.color || '#000'}
                       />
-                      <H4>{user?.name}</H4>
-                      {userId === user.id ? <H4>Has pagado</H4> : <H4>Ha pagado </H4>}
-                    </Link>
+
+                      {userId === user?.id ? <H4>has pagado</H4> : <H4>{user?.name} ha pagado</H4>}
+                    </div>
                     <H4>{formatCurrency(currency, Number(payment.amount))}</H4>
                   </motion.div>
                 )
