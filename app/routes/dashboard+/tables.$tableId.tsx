@@ -120,6 +120,7 @@ export default function TableId() {
   )
 
   const paidTotal = data.payments.filter(payment => payment.status === 'accepted').reduce((acc, item) => acc + Number(item.total), 0)
+  const tipTotal = data.payments.filter(payment => payment.status === 'accepted').reduce((acc, item) => acc + Number(item.tip), 0)
 
   React.useEffect(() => {
     const filteredPayments = data.payments.filter(
@@ -145,6 +146,14 @@ export default function TableId() {
                 <H5>Total pagado: </H5>
               </FlexRow>
               <H4 boldVariant="semibold">{formatCurrency(data.currency, paidTotal)}</H4>
+            </FlexRow>
+            <hr />
+            <FlexRow justify="between">
+              <FlexRow>
+                <IoCardOutline />
+                <H5>Total propina: </H5>
+              </FlexRow>
+              <H4 boldVariant="semibold">{formatCurrency(data.currency, tipTotal)}</H4>
             </FlexRow>
             <hr />
             <FlexRow justify="between">
