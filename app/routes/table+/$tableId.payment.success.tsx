@@ -47,6 +47,7 @@ export const loader = async ({ params, request }: LoaderArgs) => {
       orderId: order.id,
       tip: tip,
       total: amount + tip,
+      avoFee: paymentMethod === 'card' ? (amount + tip) * 0.05 : paymentMethod === 'cash' ? 2.5 : paymentMethod === 'terminal' ? 2.5 : 0,
       branchId: branchId,
       userId: userId,
       employees: {

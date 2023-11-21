@@ -13,7 +13,7 @@ import { getSearchParams } from '~/utils'
 
 export const action = async ({ request, params }: ActionArgs) => {
   const formData = await request.formData()
-  const redirectTo = formData.get('redirectTo') as string
+  const redirectTo = (formData.get('redirectTo') as string) ?? '/thankyou'
   const { tableId } = params
   invariant(tableId, 'Mesa no encontrada!')
   const session = await getSession(request)

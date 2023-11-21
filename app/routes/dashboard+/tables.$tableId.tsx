@@ -1,7 +1,7 @@
 import { Form, Link, Outlet, useLoaderData, useNavigate, useParams, useSearchParams } from '@remix-run/react'
 import React from 'react'
 import { FaCheck, FaClock, FaRegClock } from 'react-icons/fa'
-import { IoCard, IoCardOutline, IoList, IoPerson } from 'react-icons/io5'
+import { IoCard, IoCardOutline, IoList, IoPerson, IoShieldCheckmarkOutline } from 'react-icons/io5'
 
 import { type ActionArgs, type LoaderArgs, json } from '@remix-run/node'
 
@@ -55,7 +55,7 @@ export async function loader({ request, params }: LoaderArgs) {
     },
     include: {
       cartItems: { include: { productModifiers: true } },
-      payments: { where: { status: 'pending' } },
+      payments: { where: { status: 'accepted' } },
     },
   })
 
@@ -104,7 +104,6 @@ export default function TableId() {
   //ANCHOR SEARCH PARAMS
   const [searchParams] = useSearchParams()
   const IsSearchParamActiveMenu = searchParams.get('activeNavMenu')
-
   // ANCHOR STATES
   const [activeNavMenu, setActiveNavMenu] = React.useState<string>(IsSearchParamActiveMenu || 'Orden Activa')
   const [showAcceptedPayments, setShowAcceptedPayments] = React.useState<boolean>(false)
@@ -157,7 +156,7 @@ export default function TableId() {
             </FlexRow>
           </div>
         ) : null}
-        {activeNavMenu === 'Ordenes Activa' ? (
+        {activeNavMenu.includes('Activa') ? (
           <>
             {data.table.order ? (
               <OrderDetails
@@ -282,40 +281,109 @@ export default function TableId() {
         ) : null}
         {activeNavMenu === 'Ordenes Pasadas' ? (
           <div>
-            {data.inactiveOrders.map(inactiveOrder => {
-              return (
-                <div key={inactiveOrder.id}>
-                  <Link to={''} className="relative flex items-center justify-between w-full space-x-4" preventScrollReset>
-                    <div className="flex justify-around w-full border rounded-lg">
-                      <div className="flex items-center justify-center w-20 rounded-lg bg-dashb-bg">
-                        <p className="text-xl">{inactiveOrder.total}</p>
+            <SearchBar placeholder={'Buscar por id, propina o total'} setSearch={setSearch} />
+
+            {!search ? (
+              data.inactiveOrders.map(inactiveOrder => {
+                const day = new Date(inactiveOrder.createdAt).getDate() // Use getDate() instead of getDay()
+                const month = new Date(inactiveOrder.createdAt).getMonth() + 1 // Add 1 since getMonth() returns 0-11
+                const year = new Date(inactiveOrder.createdAt).getFullYear().toString().slice(-2)
+                const createdAtDate = `${day}/${month}/${year}`
+                const tip = inactiveOrder.payments.reduce((acc, item) => acc + Number(item.tip), 0)
+                const total = inactiveOrder.payments.reduce((acc, item) => acc + Number(item.total), 0)
+
+                return (
+                  <div key={inactiveOrder.id}>
+                    <div className="relative flex items-center justify-between w-full space-x-4">
+                      <div className="flex justify-around w-full border rounded-lg">
+                        <div className="flex items-center justify-center w-16 rounded-lg bg-dashb-bg">
+                          <p className="text-xl">{inactiveOrder.id.slice(-3).toUpperCase()}</p>
+                        </div>
+                        <div className="flex flex-row items-center w-full h-full bg-white divide-x divide-gray-300 rounded-lg ">
+                          <OrderContainer
+                            title="Fecha"
+                            value={createdAtDate}
+                            icon={<IoPerson className="p-1 bg-indigo-500 rounded-sm fill-white" />}
+                          />
+                          <OrderContainer
+                            title="Propina"
+                            value={tip ? formatCurrency('$', tip || 0) : null}
+                            icon={<IoList className="bg-[#548AF7] rounded-sm p-1 fill-white text-white" />}
+                          />
+                          <OrderContainer
+                            title="Pagado"
+                            value={total ? formatCurrency('$', total || 0) : null}
+                            icon={<IoList className="bg-[#40b47e] rounded-sm p-1 fill-white text-white" />}
+                          />
+                          <OrderContainer
+                            title="Total"
+                            value={inactiveOrder.total ? formatCurrency('$', inactiveOrder.total || 0) : null}
+                            icon={<IoCard className="bg-[#548AF7] rounded-sm p-1 fill-white" />}
+                          />
+                        </div>
                       </div>
-                      <div className="flex flex-row items-center w-full h-full bg-white divide-x divide-gray-300 rounded-lg ">
-                        {/* <PaymentContainer title="Hora" value={""} icon={<IoPerson className="p-1 bg-indigo-500 rounded-sm fill-white" />} />
-                  <PaymentContainer
-                    title="Método"
-                    value={method}
-                    icon={<IoList className="bg-[#548AF7] rounded-sm p-1 fill-white text-white" />}
-                  />
-                  <PaymentContainer
-                    title="Propina"
-                    value={tip ? formatCurrency(currency, tip || 0) : null}
-                    icon={<IoList className="bg-[#40b47e] rounded-sm p-1 fill-white text-white" />}
-                  />
-                  <PaymentContainer
-                    title="Total"
-                    value={total ? formatCurrency(currency, total || 0) : null}
-                    icon={<IoCard className="bg-[#548AF7] rounded-sm p-1 fill-white" />}
-                  /> */}
+                      <div className=" right-2">
+                        <IoShieldCheckmarkOutline />
                       </div>
                     </div>
-                    {/* <div className=" right-2">
-                <IoShieldCheckmarkOutline />
-              </div> */}
-                  </Link>
-                </div>
-              )
-            })}
+                  </div>
+                )
+              })
+            ) : (
+              <>
+                {data.inactiveOrders
+                  .filter(
+                    inactive =>
+                      inactive.id.includes(search) ||
+                      inactive.total?.toString().includes(search) ||
+                      inactive.tip?.toString().includes(search),
+                  )
+                  .map(inactiveOrder => {
+                    const day = new Date(inactiveOrder.createdAt).getDay()
+                    const month = new Date(inactiveOrder.createdAt).getMonth() + 1
+                    const year = new Date(inactiveOrder.createdAt).getFullYear().toString().slice(-2)
+                    const createdAtDate = `${day}/${month}/${year}`
+                    const tip = inactiveOrder.payments.reduce((acc, item) => acc + Number(item.tip), 0)
+                    const total = inactiveOrder.payments.reduce((acc, item) => acc + Number(item.total), 0)
+                    return (
+                      <div key={inactiveOrder.id}>
+                        <div className="relative flex items-center justify-between w-full space-x-4">
+                          <div className="flex justify-around w-full border rounded-lg">
+                            <div className="flex items-center justify-center w-16 rounded-lg bg-dashb-bg">
+                              <p className="text-xl">{inactiveOrder.id.slice(-3).toUpperCase()}</p>
+                            </div>
+                            <div className="flex flex-row items-center w-full h-full bg-white divide-x divide-gray-300 rounded-lg ">
+                              <OrderContainer
+                                title="Fecha"
+                                value={createdAtDate}
+                                icon={<IoPerson className="p-1 bg-indigo-500 rounded-sm fill-white" />}
+                              />
+                              <OrderContainer
+                                title="Propina"
+                                value={tip ? formatCurrency('$', tip || 0) : null}
+                                icon={<IoList className="bg-[#548AF7] rounded-sm p-1 fill-white text-white" />}
+                              />
+                              <OrderContainer
+                                title="Pagado"
+                                value={total ? formatCurrency('$', total || 0) : null}
+                                icon={<IoList className="bg-[#40b47e] rounded-sm p-1 fill-white text-white" />}
+                              />
+                              <OrderContainer
+                                title="Total"
+                                value={inactiveOrder.total ? formatCurrency('$', inactiveOrder.total || 0) : null}
+                                icon={<IoCard className="bg-[#548AF7] rounded-sm p-1 fill-white" />}
+                              />
+                            </div>
+                          </div>
+                          <div className=" right-2">
+                            <IoShieldCheckmarkOutline />
+                          </div>
+                        </div>
+                      </div>
+                    )
+                  })}
+              </>
+            )}
           </div>
         ) : null}
         <div className=" flex justify-center w-full pt-10 space-x-2">
@@ -480,7 +548,20 @@ export function Payment({
 
 export function PaymentContainer({ title, value, icon }: { title: string; value: string | number; icon: JSX.Element }) {
   return (
-    <div className="flex flex-col w-full px-3 py-2 space-y-1">
+    <div className="flex flex-col w-full px-3 py-2 space-y-1 max-w">
+      <div />
+      <div className="flex flex-row items-center space-x-1 ">
+        {icon}
+        <span className="text-xs font-medium">{title}</span>
+      </div>
+      <p className="text-sm font-bold">{value ? value : '-'}</p>
+    </div>
+  )
+}
+
+export function OrderContainer({ title, value, icon }: { title: string; value: string | number; icon: JSX.Element }) {
+  return (
+    <div className="flex flex-col w-full px-3 py-2 space-y-1 max-w">
       <div />
       <div className="flex flex-row items-center space-x-1 ">
         {icon}

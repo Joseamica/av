@@ -227,15 +227,26 @@ export default function Table() {
   const submit = useSubmit()
   const fetcher = useFetcher()
   const [isInactive, setIsInactive] = useState(false)
+  const [closeOrder, setCloseOrder] = useState(false)
+
   const [modalVisible, setModalVisible] = useState(false)
   let inactivityTimer
+  let orderCloseTimer
 
   const handleActivity = () => {
     clearTimeout(inactivityTimer)
+    clearTimeout(orderCloseTimer)
     setIsInactive(false)
+    setCloseOrder(false)
     inactivityTimer = setTimeout(() => {
       setIsInactive(true)
     }, 180000) // 3 minutos = 180000 milisegundos
+
+    orderCloseTimer = setTimeout(() => {
+      // Logic to close the order
+      setCloseOrder(true)
+      // Example: setModalVisible(true);
+    }, 3600000) // 5 minutes = 300000 milliseconds
   }
 
   useEffect(() => {
@@ -251,6 +262,7 @@ export default function Table() {
     // Limpieza al desmontar el componente
     return () => {
       clearTimeout(inactivityTimer)
+      clearTimeout(orderCloseTimer)
       window.removeEventListener('mousemove', handleActivity)
       window.removeEventListener('keydown', handleActivity)
       window.removeEventListener('scroll', handleActivity)
@@ -274,6 +286,12 @@ export default function Table() {
       submit('', { method: 'POST', action: 'processes/endOrder' })
     }
   }, [submit, data.orderExpired])
+
+  useEffect(() => {
+    if (closeOrder) {
+      submit('', { method: 'POST', action: 'processes/endOrder' })
+    }
+  }, [closeOrder, submit])
 
   useSessionTimeout()
 

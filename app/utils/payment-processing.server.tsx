@@ -61,7 +61,6 @@ export async function handlePaymentProcessing({
     where: { id: extraData.branchId },
   })
 
-  console.log('total, tip', total, tip)
   const branchName = branch?.name
   switch (paymentMethod) {
     case 'terminal': {
@@ -76,6 +75,7 @@ export async function handlePaymentProcessing({
           method: 'terminal',
           status: 'pending',
           amount: total,
+          avoFee: 2.5,
           tip: tip,
           total: total + tip,
           branchId: extraData.branchId,
@@ -140,6 +140,7 @@ export async function handlePaymentProcessing({
           status: 'pending',
           amount: total,
           tip: tip,
+          avoFee: 2.5,
           total: total + tip,
           branchId: extraData.branchId,
           userId: userId,

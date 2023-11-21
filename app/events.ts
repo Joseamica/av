@@ -22,6 +22,7 @@ export const EVENTS = {
     emitter.emit(`/dashboard`, data)
     emitter.emit(`/dashboard/notifications`, data)
     emitter.emit(`/dashboard/tables`, data)
+    emitter.emit(`/dashboard/tables/${tableId}`, data)
 
     emitter.emit(`/table/${tableId}`, data)
   },

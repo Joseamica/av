@@ -8,6 +8,6 @@ swapon /swapfile
 echo 1 >/proc/sys/vm/overcommit_memory
 # npx prisma migrate reset --force
 # npx prisma migrate deploy
-# npx prisma db push
+npx prisma db push
 
 # npm run setup

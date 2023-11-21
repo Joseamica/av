@@ -187,22 +187,38 @@ export default function MenuId() {
             </Link>
           ))}
         </motion.div>
-        <div className="flex w-full justify-end py-3 px-4">
-          <div className="flex items-center">
-            <label className=" text-[15px] leading-none pr-[15px]" htmlFor="airplane-mode">
-              Ver menu en pdf
-            </label>
-            <Switch.Root
-              className="w-[42px] h-[25px] bg-blackA6 rounded-full relative shadow-[0_2px_10px] shadow-blackA4 focus:shadow-[0_0_0_2px] focus:shadow-black data-[state=checked]:bg-black outline-none cursor-default"
-              id="pdf"
-              onClick={() => setShowMenuPdf(!showMenuPdf)}
-              checked={showMenuPdf}
-            >
-              <Switch.Thumb className="block w-[21px] h-[21px] bg-white rounded-full shadow-[0_2px_2px] shadow-blackA4 transition-transform duration-100 translate-x-0.5 will-change-transform data-[state=checked]:translate-x-[19px]" />
-            </Switch.Root>
+        {data.menu.pdfImage.length > 0 ? (
+          <div className="flex w-full justify-end py-3 px-4">
+            <div className="flex items-center">
+              <label className=" text-[15px] leading-none pr-[15px]" htmlFor="airplane-mode">
+                Ver menu en pdf
+              </label>
+              <Switch.Root
+                className="w-[42px] h-[25px] bg-blackA6 rounded-full relative shadow-[0_2px_10px] shadow-blackA4 focus:shadow-[0_0_0_2px] focus:shadow-black data-[state=checked]:bg-black outline-none cursor-default"
+                id="pdf"
+                onClick={() => setShowMenuPdf(!showMenuPdf)}
+                checked={showMenuPdf}
+              >
+                <Switch.Thumb className="block w-[21px] h-[21px] bg-white rounded-full shadow-[0_2px_2px] shadow-blackA4 transition-transform duration-100 translate-x-0.5 will-change-transform data-[state=checked]:translate-x-[19px]" />
+              </Switch.Root>
+            </div>
           </div>
-        </div>
-        {!showMenuPdf ? (
+        ) : null}
+        {showMenuPdf && data.menu.pdfImage.length > 0 ? (
+          <div className="space-y-1 p-2 flex-grow">
+            {data.menu.pdfImage.map((pdf, index) => {
+              return (
+                <img
+                  key={index}
+                  alt={'img'}
+                  src={pdf}
+                  className="object-cover w-full bg-white rounded-lg dark:bg-secondaryDark shrink-0 relative block overflow-clip"
+                  loading="lazy"
+                />
+              )
+            })}
+          </div>
+        ) : (
           <div className="p-2 space-y-2">
             {data.categories.map((categories: Category) => {
               const products = categories.products
@@ -273,8 +289,6 @@ export default function MenuId() {
               </LinkButton>
             ) : null}
           </div>
-        ) : (
-          <img alt="menu" src={data.menu.pdfImage} />
         )}
       </Modal>
       <Outlet />

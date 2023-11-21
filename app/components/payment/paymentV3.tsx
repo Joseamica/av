@@ -45,12 +45,12 @@ function Payment({
   if (isFullBillRoute) {
     tip = (Number(state.amountLeft) * Number(tipRadio)) / 100
     subtotal = Number(state.amountLeft) + tip
-    avoqadoFee = getAvoqadoFee(subtotal)
+    avoqadoFee = getAvoqadoFee(subtotal, paymentRadio)
     total = state.amountLeft + avoqadoFee + tip
   } else {
     tip = (Number(state.amountToPayState) * Number(tipRadio)) / 100
     subtotal = Number(state.amountToPayState) + tip
-    avoqadoFee = getAvoqadoFee(subtotal)
+    avoqadoFee = getAvoqadoFee(subtotal, paymentRadio)
     total = subtotal + avoqadoFee
   }
 

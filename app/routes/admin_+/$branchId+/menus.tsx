@@ -21,7 +21,7 @@ const menuSchema = z.object({
   name: z.string().min(1).max(20).optional(),
   type: z.string().min(1).max(20).optional(),
   currency: z.string().min(3).max(3).optional(),
-  image: z.string().trim().url().optional(),
+  pdfImages: z.array(z.string()).optional(),
   selectItems: z.array(z.string()).optional(),
 })
 
@@ -84,7 +84,7 @@ export async function action({ request, params }: ActionArgs) {
           name: submission.value.name,
           type: submission.value.type,
           currency: submission.value.currency,
-          image: submission.value.image,
+          pdfImage: submission.value.pdfImages.map(img => img),
           branch: {
             connect: { id: branchId },
           },
@@ -112,7 +112,7 @@ export async function action({ request, params }: ActionArgs) {
           name: submission.value.name,
           type: submission.value.type,
           currency: submission.value.currency,
-          image: submission.value.image,
+          pdfImage: submission.value.pdfImages.map(img => img),
           availabilities: {
             connect: submission.value.selectItems ? submission.value.selectItems.map(id => ({ id })) : [],
           },

@@ -316,6 +316,15 @@ export const generateRandomChars = length => {
   return result
 }
 
-export const getAvoqadoFee = (amount: number) => {
-  return amount * 0.05
+export const getAvoqadoFee = (amount: number, paymentRadio?: string) => {
+  switch (paymentRadio) {
+    case 'cash':
+      return 2.5
+    case 'card':
+      return amount * 0.05
+    case 'terminal':
+      return 2.5
+    default:
+      return amount * 0.05
+  }
 }

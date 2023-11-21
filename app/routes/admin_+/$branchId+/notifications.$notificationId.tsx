@@ -92,6 +92,7 @@ export async function action({ request, params }: ActionArgs) {
         branchId: params.branchId,
         orderId: submission.value.orderId,
         userId: submission.value.userId,
+        avoFee: 2.5,
         status: 'accepted',
         employeesIds: {
           set: activeEmployees.map(employee => employee.id),
