@@ -1,7 +1,7 @@
 import { Form, Link, useFetcher, useLoaderData, useSearchParams } from '@remix-run/react'
 import { FaHourglass, FaHourglassHalf } from 'react-icons/fa'
 
-import { type ActionArgs, type LoaderArgs, json, redirect } from '@remix-run/node'
+import { type ActionFunctionArgs, type LoaderFunctionArgs, json, redirect } from '@remix-run/node'
 
 import clsx from 'clsx'
 import { prisma } from '~/db.server'
@@ -13,7 +13,7 @@ import { getSearchParams } from '~/utils'
 
 import { Button, CheckIcon, LinkButton, XIcon } from '~/components'
 
-export async function loader({ request, params }: LoaderArgs) {
+export async function loader({ request, params }: LoaderFunctionArgs) {
   const session = await getSession(request)
   const branchId = session.get('branchId')
   const searchParams = getSearchParams({ request })
@@ -34,7 +34,7 @@ export async function loader({ request, params }: LoaderArgs) {
   })
   return json({ payments })
 }
-export async function action({ request, params }: ActionArgs) {
+export async function action({ request, params }: ActionFunctionArgs) {
   const formData = await request.formData()
   const intent = formData.get('intent') as string
   const id = formData.get('id') as string

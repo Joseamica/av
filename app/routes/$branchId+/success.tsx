@@ -1,6 +1,6 @@
 import { Link, useLoaderData, useSearchParams } from '@remix-run/react'
 
-import { type LoaderArgs, json, redirect } from '@remix-run/node'
+import { type LoaderFunctionArgs, json, redirect } from '@remix-run/node'
 
 import { prisma } from '~/db.server'
 
@@ -8,7 +8,7 @@ import { getSearchParams } from '~/utils'
 
 import { FlexRow, H2, H3, H4, H6, Spacer } from '~/components'
 
-export async function loader({ request, params }: LoaderArgs) {
+export async function loader({ request, params }: LoaderFunctionArgs) {
   const searchParams = getSearchParams({ request })
   const employeeId = searchParams.get('employeeId')
   const employee = await prisma.employee.findUnique({

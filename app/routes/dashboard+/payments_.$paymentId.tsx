@@ -1,10 +1,10 @@
 import { useLoaderData } from '@remix-run/react'
 
-import { type ActionArgs, type LoaderArgs, json, redirect } from '@remix-run/node'
+import { type ActionFunctionArgs, type LoaderFunctionArgs, json, redirect } from '@remix-run/node'
 
 import { prisma } from '~/db.server'
 
-export async function loader({ request, params }: LoaderArgs) {
+export async function loader({ request, params }: LoaderFunctionArgs) {
   const { paymentId } = params
   const payment = await prisma.payments.findUnique({
     where: {
@@ -14,7 +14,7 @@ export async function loader({ request, params }: LoaderArgs) {
   })
   return json({ success: true })
 }
-export async function action({ request, params }: ActionArgs) {
+export async function action({ request, params }: ActionFunctionArgs) {
   const formData = await request.formData()
   return json({ success: true })
 }

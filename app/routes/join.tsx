@@ -1,7 +1,7 @@
 import { conform, useForm } from '@conform-to/react'
 import { Form, Link, useActionData, useFormAction, useNavigation } from '@remix-run/react'
 
-import { type DataFunctionArgs, type LoaderArgs, type V2_MetaFunction, json } from '@remix-run/node'
+import { type DataFunctionArgs, type LoaderFunctionArgs, type MetaFunction, json } from '@remix-run/node'
 
 import { getFieldsetConstraint, parse } from '@conform-to/zod'
 import { z } from 'zod'
@@ -23,11 +23,11 @@ const signupSchema = z.object({
   color: z.string().optional(),
 })
 
-export const meta: V2_MetaFunction = () => {
+export const meta: MetaFunction = () => {
   return [{ title: 'Sign Up | Epic Notes' }]
 }
 
-export async function loader({ request, params }: LoaderArgs) {
+export async function loader({ request, params }: LoaderFunctionArgs) {
   return json({ success: true })
 }
 export async function action({ request }: DataFunctionArgs) {

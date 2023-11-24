@@ -1,4 +1,4 @@
-import { type ActionArgs, json, redirect } from '@remix-run/node'
+import { type ActionFunctionArgs, json, redirect } from '@remix-run/node'
 
 import invariant from 'tiny-invariant'
 import { prisma } from '~/db.server'
@@ -11,7 +11,7 @@ import { EVENTS } from '~/events'
 
 import { getSearchParams } from '~/utils'
 
-export const action = async ({ request, params }: ActionArgs) => {
+export const action = async ({ request, params }: ActionFunctionArgs) => {
   const formData = await request.formData()
   const redirectTo = (formData.get('redirectTo') as string) ?? '/thankyou'
   const { tableId } = params
@@ -83,7 +83,7 @@ export const action = async ({ request, params }: ActionArgs) => {
     return redirect(redirectTo)
   }
 }
-// export async function loader({ request, params }: LoaderArgs) {
+// export async function loader({ request, params }: LoaderFunctionArgs) {
 //   const { tableId } = params;
 //   invariant(tableId, "Mesa no encontrada!");
 //   const session = await getSession(request);

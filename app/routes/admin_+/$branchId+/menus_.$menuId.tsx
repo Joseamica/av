@@ -3,10 +3,10 @@ import * as Dialog from '@radix-ui/react-dialog'
 import * as Separator from '@radix-ui/react-separator'
 import { Link, useFetcher, useLoaderData, useSearchParams } from '@remix-run/react'
 
-import { type ActionArgs, type LoaderArgs, json, redirect } from '@remix-run/node'
+import { type ActionFunctionArgs, type LoaderFunctionArgs, json, redirect } from '@remix-run/node'
 
 import { getFieldsetConstraint, parse } from '@conform-to/zod'
-import { namedAction } from 'remix-utils'
+import { namedAction } from 'remix-utils/named-action'
 import invariant from 'tiny-invariant'
 import { z } from 'zod'
 import { prisma } from '~/db.server'
@@ -34,7 +34,7 @@ const menuIdSchema = z.object({
     .optional(),
 })
 
-export async function loader({ request, params }: LoaderArgs) {
+export async function loader({ request, params }: LoaderFunctionArgs) {
   const { menuId } = params
   invariant(menuId, 'menuId is required')
   const menu = await prisma.menu.findFirst({
@@ -43,7 +43,7 @@ export async function loader({ request, params }: LoaderArgs) {
   })
   return json({ menu })
 }
-export async function action({ request, params }: ActionArgs) {
+export async function action({ request, params }: ActionFunctionArgs) {
   const { menuId } = params
   const formData = await request.formData()
 

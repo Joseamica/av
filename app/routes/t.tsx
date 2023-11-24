@@ -1,6 +1,6 @@
 import { useLoaderData } from '@remix-run/react'
 
-import { type LoaderArgs, json, redirect } from '@remix-run/node'
+import { type LoaderFunctionArgs, json, redirect } from '@remix-run/node'
 
 import type { Table } from '@prisma/client'
 import { prisma } from '~/db.server'
@@ -8,7 +8,7 @@ import { getSession } from '~/session.server'
 
 import { LinkButton } from '~/components'
 
-export const loader = async ({ request }: LoaderArgs) => {
+export const loader = async ({ request }: LoaderFunctionArgs) => {
   const tables = await prisma.table.findMany({
     include: {
       branch: true,

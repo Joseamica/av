@@ -1,10 +1,10 @@
-import { type ActionArgs, redirect } from '@remix-run/node'
+import { type ActionFunctionArgs, redirect } from '@remix-run/node'
 
 import { prisma } from '~/db.server'
 
 import { getSearchParams } from '~/utils'
 
-export async function action({ request, params }: ActionArgs) {
+export async function action({ request, params }: ActionFunctionArgs) {
   const formData = await request.formData()
   const data = Object.fromEntries(formData.entries())
   const id = data.id as string

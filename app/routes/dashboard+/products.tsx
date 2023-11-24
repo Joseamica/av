@@ -2,7 +2,7 @@ import { useFetcher, useLoaderData } from '@remix-run/react'
 import React from 'react'
 import { FaPause, FaPlay } from 'react-icons/fa'
 
-import { type ActionArgs, type LoaderArgs, json } from '@remix-run/node'
+import { type ActionFunctionArgs, type LoaderFunctionArgs, json } from '@remix-run/node'
 
 import { prisma } from '~/db.server'
 import { getSession } from '~/session.server'
@@ -11,7 +11,7 @@ import { FlexRow, Spacer } from '~/components'
 import { NavMenu } from '~/components/dashboard/navmenu'
 import { SearchBar } from '~/components/dashboard/searchbar'
 
-export async function loader({ request, params }: LoaderArgs) {
+export async function loader({ request, params }: LoaderFunctionArgs) {
   const session = await getSession(request)
   const branchId = session.get('branchId')
 
@@ -35,7 +35,7 @@ export async function loader({ request, params }: LoaderArgs) {
   })
   return json({ products, modifierGroups, modifiers })
 }
-export async function action({ request, params }: ActionArgs) {
+export async function action({ request, params }: ActionFunctionArgs) {
   const formData = await request.formData()
   const status = formData.get('status') as string
   const id = formData.get('id') as string

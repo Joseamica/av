@@ -2,7 +2,7 @@ import * as Dialog from '@radix-ui/react-dialog'
 import * as Separator from '@radix-ui/react-separator'
 import { Link, useFetcher, useLoaderData, useSearchParams } from '@remix-run/react'
 
-import { type ActionArgs, type LoaderArgs, json, redirect } from '@remix-run/node'
+import { type ActionFunctionArgs, type LoaderFunctionArgs, json, redirect } from '@remix-run/node'
 
 import invariant from 'tiny-invariant'
 import { prisma } from '~/db.server'
@@ -10,7 +10,7 @@ import { prisma } from '~/db.server'
 import { ChevronLeftIcon, FlexRow, H1, H3 } from '~/components'
 import { DataTable } from '~/components/admin/table'
 
-export async function loader({ request, params }: LoaderArgs) {
+export async function loader({ request, params }: LoaderFunctionArgs) {
   const { categoryId } = params
   invariant(categoryId, 'categoryId is required')
   const category = await prisma.category.findFirst({
@@ -19,7 +19,7 @@ export async function loader({ request, params }: LoaderArgs) {
   })
   return json({ category })
 }
-export async function action({ request, params }: ActionArgs) {
+export async function action({ request, params }: ActionFunctionArgs) {
   const formData = await request.formData()
   return json({ success: true })
 }

@@ -1,6 +1,6 @@
 import { Form, useLoaderData, useNavigate } from '@remix-run/react'
 
-import type { ActionArgs, LoaderArgs } from '@remix-run/node'
+import type { ActionFunctionArgs, LoaderFunctionArgs } from '@remix-run/node'
 import { json, redirect } from '@remix-run/node'
 
 import type { Employee } from '@prisma/client'
@@ -16,7 +16,7 @@ import { EVENTS } from '~/events'
 
 import { Button, FlexRow, ItemContainer, Modal } from '~/components'
 
-export async function action({ request, params }: ActionArgs) {
+export async function action({ request, params }: ActionFunctionArgs) {
   const { tableId } = params
   invariant(tableId, 'tableId is required')
   const session = await getSession(request)
@@ -54,7 +54,7 @@ export async function action({ request, params }: ActionArgs) {
   return redirect(redirectTo)
 }
 
-export async function loader({ request, params }: LoaderArgs) {
+export async function loader({ request, params }: LoaderFunctionArgs) {
   const { tableId } = params
   invariant(tableId, 'tableId is required')
   const waiters = await prisma.employee.findMany({

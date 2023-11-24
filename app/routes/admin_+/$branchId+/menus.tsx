@@ -2,10 +2,10 @@ import { conform, useForm } from '@conform-to/react'
 import * as Dialog from '@radix-ui/react-dialog'
 import { Outlet, useFetcher, useLoaderData, useSearchParams } from '@remix-run/react'
 
-import { type ActionArgs, type LoaderArgs, json, redirect } from '@remix-run/node'
+import { type ActionFunctionArgs, type LoaderFunctionArgs, json, redirect } from '@remix-run/node'
 
 import { getFieldsetConstraint, parse } from '@conform-to/zod'
-import { namedAction } from 'remix-utils'
+import { namedAction } from 'remix-utils/named-action'
 import { z } from 'zod'
 import { prisma } from '~/db.server'
 
@@ -27,7 +27,7 @@ const menuSchema = z.object({
 
 export const handle = { active: 'Menus' }
 
-export async function loader({ request, params }: LoaderArgs) {
+export async function loader({ request, params }: LoaderFunctionArgs) {
   const { branchId } = params
   const menus = await prisma.menu.findMany({
     where: {
@@ -55,7 +55,7 @@ export async function loader({ request, params }: LoaderArgs) {
   return json({ menus, availabilities })
 }
 
-export async function action({ request, params }: ActionArgs) {
+export async function action({ request, params }: ActionFunctionArgs) {
   const { branchId } = params
   const formData = await request.formData()
 

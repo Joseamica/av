@@ -2,7 +2,7 @@ import { conform, useForm } from '@conform-to/react'
 import { useFetcher, useLoaderData, useNavigate } from '@remix-run/react'
 import React from 'react'
 
-import { type ActionArgs, type LoaderArgs, json, redirect } from '@remix-run/node'
+import { type ActionFunctionArgs, type LoaderFunctionArgs, json, redirect } from '@remix-run/node'
 
 import { getFieldsetConstraint, parse } from '@conform-to/zod'
 import { z } from 'zod'
@@ -35,7 +35,7 @@ const modifierGroupSchema = z.object({
   //   )
   //   .optional(),
 })
-export async function loader({ request, params }: LoaderArgs) {
+export async function loader({ request, params }: LoaderFunctionArgs) {
   const { branchId, modifierGId } = params
   const modifierGroup = await prisma.modifierGroup.findFirst({
     where: {
@@ -53,7 +53,7 @@ export async function loader({ request, params }: LoaderArgs) {
   })
   return json({ modifierGroup, products })
 }
-export async function action({ request, params }: ActionArgs) {
+export async function action({ request, params }: ActionFunctionArgs) {
   const formData = await request.formData()
   const submission = parse(formData, {
     schema: modifierGroupSchema,

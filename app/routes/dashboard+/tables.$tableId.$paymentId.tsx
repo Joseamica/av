@@ -1,7 +1,7 @@
 import { useFetcher, useLoaderData, useNavigate } from '@remix-run/react'
 import { FaCheckCircle, FaExclamation } from 'react-icons/fa'
 
-import { type ActionArgs, type LoaderArgs, json, redirect } from '@remix-run/node'
+import { type ActionFunctionArgs, type LoaderFunctionArgs, json, redirect } from '@remix-run/node'
 
 import clsx from 'clsx'
 import { prisma } from '~/db.server'
@@ -13,7 +13,7 @@ import { formatCurrency, getCurrency } from '~/utils'
 import { CheckIcon, FlexRow, H3, Spacer } from '~/components'
 import { SubModal } from '~/components/modal'
 
-export async function loader({ request, params }: LoaderArgs) {
+export async function loader({ request, params }: LoaderFunctionArgs) {
   const { tableId, paymentId } = params
   const payment = await prisma.payments.findUnique({
     where: {
@@ -31,7 +31,7 @@ export async function loader({ request, params }: LoaderArgs) {
   const currency = await getCurrency(tableId)
   return json({ payment, currency })
 }
-export async function action({ request, params }: ActionArgs) {
+export async function action({ request, params }: ActionFunctionArgs) {
   const formData = await request.formData()
   const { tableId, paymentId } = params
   const intent = formData.get('intent') as string

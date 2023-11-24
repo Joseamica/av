@@ -6,14 +6,26 @@ const { flatRoutes } = require('remix-flat-routes')
 module.exports = {
   tailwind: true,
   cacheDirectory: './node_modules/.cache/remix',
-  future: {
-    v2_errorBoundary: true,
-    v2_meta: true,
-    v2_normalizeFormMethod: true,
-    v2_routeConvention: true,
-    v2_headers: true,
+  dev: { port: 4004 },
+  browserNodeBuiltinsPolyfill: {
+    modules: {
+      crypto: true,
+    },
   },
+  serverModuleFormat: 'cjs',
   ignoredRouteFiles: ['**/*'],
+  serverDependenciesToBundle: [
+    /^remix-utils.*/,
+    // If you installed is-ip optional dependency you will need these too
+    'is-ip',
+    'ip-regex',
+    'super-regex',
+    'clone-regexp',
+    'function-timeout',
+    'time-span',
+    'convert-hrtime',
+    'is-regexp',
+  ],
   routes: async defineRoutes => {
     return flatRoutes('routes', defineRoutes)
   },

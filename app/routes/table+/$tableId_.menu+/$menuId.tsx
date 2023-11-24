@@ -3,7 +3,7 @@ import { Link, Outlet, useFetcher, useLoaderData, useNavigate, useParams } from 
 import { useEffect, useRef, useState } from 'react'
 
 import { json } from '@remix-run/node'
-import type { LoaderArgs } from '@remix-run/server-runtime'
+import type { LoaderFunctionArgs } from '@remix-run/server-runtime'
 
 import type { CartItem, Product } from '@prisma/client'
 import clsx from 'clsx'
@@ -30,7 +30,7 @@ type Category = {
 
 export const handle = { backButton: true, searchButton: true, path: 'menu' }
 
-export async function loader({ request, params }: LoaderArgs) {
+export async function loader({ request, params }: LoaderFunctionArgs) {
   const { tableId, menuId } = params
   invariant(tableId, 'No se encontró la mesa')
 

@@ -1,7 +1,7 @@
 import { CheckCircledIcon } from '@radix-ui/react-icons'
 import { Link, Outlet, isRouteErrorResponse, useLoaderData, useRouteError } from '@remix-run/react'
 
-import type { ActionArgs, LoaderArgs, V2_MetaFunction } from '@remix-run/node'
+import type { ActionFunctionArgs, LoaderFunctionArgs, MetaFunction } from '@remix-run/node'
 import { json, redirect } from '@remix-run/node'
 
 // * UTILS, DB, EVENTS
@@ -22,7 +22,7 @@ import { FlexRow, HeaderV2, Help, Notification, UserForm } from '~/components'
 
 const SESSION_EXPIRATION_TIME = 1000 * 60 * 60 * 24 * 30 //30 days
 
-export const meta: V2_MetaFunction = () => {
+export const meta: MetaFunction = () => {
   return [
     { title: 'Table' },
     {
@@ -37,7 +37,7 @@ export const meta: V2_MetaFunction = () => {
 }
 
 //ANCHOR LOADER
-export const loader = async ({ request }: LoaderArgs) => {
+export const loader = async ({ request }: LoaderFunctionArgs) => {
   const session = await getSession(request)
   // const sessionId = session.get('sessionId')
   // if (!sessionId) {
@@ -87,7 +87,7 @@ export const loader = async ({ request }: LoaderArgs) => {
 }
 
 //ANCHOR ACTION
-export const action = async ({ request, params }: ActionArgs) => {
+export const action = async ({ request, params }: ActionFunctionArgs) => {
   let [body, session] = await Promise.all([request.text(), getSession(request)])
   let formData = new URLSearchParams(body)
 

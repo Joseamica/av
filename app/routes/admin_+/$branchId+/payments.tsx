@@ -1,10 +1,10 @@
 import { conform, useForm } from '@conform-to/react'
 import { Form, useFetcher, useLoaderData, useParams, useRouteLoaderData, useSearchParams } from '@remix-run/react'
 
-import { type ActionArgs, type LoaderArgs, json, redirect } from '@remix-run/node'
+import { type ActionFunctionArgs, type LoaderFunctionArgs, json, redirect } from '@remix-run/node'
 
 import { getFieldsetConstraint, parse } from '@conform-to/zod'
-import { namedAction } from 'remix-utils'
+import { namedAction } from 'remix-utils/named-action'
 import { z } from 'zod'
 import { prisma } from '~/db.server'
 
@@ -25,7 +25,7 @@ const paymentsFormSchema = z.object({
   total: z.number().min(0),
   selectItems: z.string().nonempty('You must select at least one order'),
 })
-export async function loader({ request, params }: LoaderArgs) {
+export async function loader({ request, params }: LoaderFunctionArgs) {
   const { branchId } = params
   const payments = await prisma.payments.findMany({
     where: {
@@ -47,7 +47,7 @@ export async function loader({ request, params }: LoaderArgs) {
 
   return json({ payments, orders })
 }
-export async function action({ request, params }: ActionArgs) {
+export async function action({ request, params }: ActionFunctionArgs) {
   const formData = await request.formData()
 
   const submission = parse(formData, {

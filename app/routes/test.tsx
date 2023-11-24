@@ -2,21 +2,21 @@ import { Form, useLoaderData } from '@remix-run/react'
 import { Elements, PaymentElement, useElements, useStripe } from '@stripe/react-stripe-js'
 import { useState } from 'react'
 
-import { type ActionArgs, type LoaderArgs, json } from '@remix-run/node'
+import { type ActionFunctionArgs, type LoaderFunctionArgs, json } from '@remix-run/node'
 
 import { loadStripe } from '@stripe/stripe-js'
 
 import { getStripeSession } from '~/utils/stripe.server'
 import { getStripePayment } from '~/utils/stripeTest.server'
 
-export async function loader({ request, params }: LoaderArgs) {
+export async function loader({ request, params }: LoaderFunctionArgs) {
   const amount = 271
   const intent = await getStripePayment({ amount })
   const client_secret = intent.client_secret
 
   return json({ client_secret })
 }
-export async function action({ request, params }: ActionArgs) {
+export async function action({ request, params }: ActionFunctionArgs) {
   const formData = await request.formData()
   return json({ success: true })
 }

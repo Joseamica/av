@@ -1,6 +1,6 @@
 import { Form, useNavigate, useSearchParams } from '@remix-run/react'
 
-import type { ActionArgs, LoaderArgs } from '@remix-run/node'
+import type { ActionFunctionArgs, LoaderFunctionArgs } from '@remix-run/node'
 import { json, redirect } from '@remix-run/node'
 
 import type { PaymentMethod } from '@prisma/client'
@@ -21,7 +21,7 @@ import { getDomainUrl, getStripeSession } from '~/utils/stripe.server'
 import { BillAmount, Button, H1, H5, LinkButton, Spacer } from '~/components'
 import { Modal } from '~/components/modal'
 
-export async function action({ request, params }: ActionArgs) {
+export async function action({ request, params }: ActionFunctionArgs) {
   const { tableId } = params
   invariant(tableId, 'No se encontró mesa')
 
@@ -75,7 +75,7 @@ export async function action({ request, params }: ActionArgs) {
   return json({ success: true })
 }
 
-export async function loader({ request, params }: LoaderArgs) {
+export async function loader({ request, params }: LoaderFunctionArgs) {
   const { tableId } = params
   invariant(tableId, 'No se encontró mesa')
 

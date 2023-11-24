@@ -1,6 +1,6 @@
 import { useFetcher, useLoaderData, useNavigate } from '@remix-run/react'
 
-import type { ActionArgs, LoaderArgs } from '@remix-run/node'
+import type { ActionFunctionArgs, LoaderFunctionArgs } from '@remix-run/node'
 import { json } from '@remix-run/node'
 
 import invariant from 'tiny-invariant'
@@ -11,13 +11,13 @@ import { getBranchId } from '~/models/branch.server'
 
 import { FlexRow, H2, H4, Modal } from '~/components'
 
-export async function action({ request }: ActionArgs) {
+export async function action({ request }: ActionFunctionArgs) {
   const session = await getSession(request)
   session.flash('notification', '🎉 Se ha copiado la clave de la red wifi')
 
   return json({ success: true }, { headers: { 'Set-Cookie': await sessionStorage.commitSession(session) } })
 }
-export async function loader({ params }: LoaderArgs) {
+export async function loader({ params }: LoaderFunctionArgs) {
   const { tableId } = params
   invariant(tableId, 'tableId is required')
   const branchId = await getBranchId(tableId)

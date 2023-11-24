@@ -4,7 +4,7 @@ import React from 'react'
 import { FaCheck, FaCheckCircle, FaClock, FaMoneyBill, FaRegClock } from 'react-icons/fa'
 import { IoCard, IoCardOutline, IoList, IoPerson, IoShieldCheckmarkOutline } from 'react-icons/io5'
 
-import { type ActionArgs, type LoaderArgs, json } from '@remix-run/node'
+import { type ActionFunctionArgs, type LoaderFunctionArgs, json } from '@remix-run/node'
 
 import clsx from 'clsx'
 import { prisma } from '~/db.server'
@@ -21,7 +21,7 @@ import { SearchBar } from '~/components/dashboard/searchbar'
 import { SwitchDashboard } from '~/components/dashboard/switch'
 import { SubModal } from '~/components/modal'
 
-export async function loader({ request, params }: LoaderArgs) {
+export async function loader({ request, params }: LoaderFunctionArgs) {
   const { tableId } = params
   const session = await getSession(request)
   const employeeId = session.get('employeeId')
@@ -70,7 +70,7 @@ export async function loader({ request, params }: LoaderArgs) {
 
   return json({ table, payments, currency, isManager, inactiveOrders })
 }
-export async function action({ request, params }: ActionArgs) {
+export async function action({ request, params }: ActionFunctionArgs) {
   const formData = await request.formData()
   const id = formData.get('id') as string
   const amount = formData.get('amount') as string

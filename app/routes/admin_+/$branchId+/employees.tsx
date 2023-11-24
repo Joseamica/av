@@ -1,12 +1,12 @@
 import { conform, useForm } from '@conform-to/react'
 import { useFetcher, useLoaderData, useParams, useRouteLoaderData, useSearchParams } from '@remix-run/react'
 
-import { type ActionArgs, type LoaderArgs, json, redirect } from '@remix-run/node'
+import { type ActionFunctionArgs, type LoaderFunctionArgs, json, redirect } from '@remix-run/node'
 
 import { getFieldsetConstraint, parse } from '@conform-to/zod'
 import bcrypt from 'bcryptjs'
 import clsx from 'clsx'
-import { namedAction } from 'remix-utils'
+import { namedAction } from 'remix-utils/named-action'
 import { z } from 'zod'
 import { prisma } from '~/db.server'
 
@@ -34,7 +34,7 @@ const employeesShema = z.object({
   selectItems: z.array(z.string()).nonempty('You must select at least one table'),
 })
 
-export async function loader({ request, params }: LoaderArgs) {
+export async function loader({ request, params }: LoaderFunctionArgs) {
   const { branchId } = params
   const employees = await prisma.employee.findMany({
     where: {
@@ -52,7 +52,7 @@ export async function loader({ request, params }: LoaderArgs) {
   return json({ employees })
 }
 
-export async function action({ request, params }: ActionArgs) {
+export async function action({ request, params }: ActionFunctionArgs) {
   const formData = await request.formData()
   const searchParams = getSearchParams({ request })
   const submission = await parse(formData, {

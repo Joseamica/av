@@ -1,11 +1,11 @@
 import { Link, Outlet, useFetcher, useLoaderData, useParams, useRouteLoaderData, useSearchParams } from '@remix-run/react'
 
-import { type ActionArgs, type LoaderArgs, json, redirect } from '@remix-run/node'
+import { type ActionFunctionArgs, type LoaderFunctionArgs, json, redirect } from '@remix-run/node'
 
 import { parse } from '@conform-to/zod'
 import bcrypt from 'bcryptjs'
 import clsx from 'clsx'
-import { namedAction } from 'remix-utils'
+import { namedAction } from 'remix-utils/named-action'
 import { z } from 'zod'
 import { prisma } from '~/db.server'
 import { useLiveLoader } from '~/use-live-loader'
@@ -25,7 +25,7 @@ const notificationsSchema = z.object({
   role: z.enum(['manager', 'waiter']),
 })
 
-export async function loader({ request, params }: LoaderArgs) {
+export async function loader({ request, params }: LoaderFunctionArgs) {
   const { branchId } = params
   const notifications = await prisma.notification.findMany({
     where: {

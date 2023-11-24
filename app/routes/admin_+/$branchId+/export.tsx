@@ -1,10 +1,10 @@
-import { type ActionArgs } from '@remix-run/node'
+import { type ActionFunctionArgs } from '@remix-run/node'
 
 import { prisma } from '~/db.server'
 
 import { getSearchParams } from '~/utils'
 
-export async function loader({ request, params }: ActionArgs) {
+export async function loader({ request, params }: ActionFunctionArgs) {
   const { branchId } = params
   const searchParams = getSearchParams({ request })
   const dataType = searchParams.get('dataType')

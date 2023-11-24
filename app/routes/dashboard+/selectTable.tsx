@@ -1,6 +1,6 @@
 import { useFetcher, useLoaderData, useNavigate } from '@remix-run/react'
 
-import { type ActionArgs, type LoaderArgs, json, redirect } from '@remix-run/node'
+import { type ActionFunctionArgs, type LoaderFunctionArgs, json, redirect } from '@remix-run/node'
 
 import { prisma } from '~/db.server'
 import { getSession } from '~/session.server'
@@ -10,10 +10,10 @@ import table from '../table'
 import { Button, H3, Modal } from '~/components'
 import { ErrorList } from '~/components/forms'
 
-export async function loader({ request, params }: LoaderArgs) {
+export async function loader({ request, params }: LoaderFunctionArgs) {
   return json({ success: true })
 }
-export async function action({ request, params }: ActionArgs) {
+export async function action({ request, params }: ActionFunctionArgs) {
   const session = await getSession(request)
   const branchId = session.get('branchId')
   const formData = await request.formData()

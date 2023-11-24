@@ -3,7 +3,7 @@ import * as Separator from '@radix-ui/react-separator'
 import { useFetcher, useLoaderData, useNavigate, useParams } from '@remix-run/react'
 import React from 'react'
 
-import { type ActionArgs, type LoaderArgs, json, redirect } from '@remix-run/node'
+import { type ActionFunctionArgs, type LoaderFunctionArgs, json, redirect } from '@remix-run/node'
 
 import { getFieldsetConstraint, parse } from '@conform-to/zod'
 import type { CartItem, Modifiers, User } from '@prisma/client'
@@ -47,7 +47,7 @@ const createDynamicSchema = modifierGroups => {
   })
 }
 
-export async function loader({ request, params }: LoaderArgs) {
+export async function loader({ request, params }: LoaderFunctionArgs) {
   const { tableId, menuId, productId } = params
   invariant(tableId, 'No se encontró la mesa')
 
@@ -92,7 +92,7 @@ export async function loader({ request, params }: LoaderArgs) {
     branch,
   })
 }
-export async function action({ request, params }: ActionArgs) {
+export async function action({ request, params }: ActionFunctionArgs) {
   const { tableId, productId } = params
   invariant(tableId, 'No se encontró la mesa')
 

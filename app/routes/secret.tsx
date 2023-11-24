@@ -1,6 +1,6 @@
 import { Form, useLoaderData } from '@remix-run/react'
 
-import type { ActionArgs, LoaderArgs } from '@remix-run/node'
+import type { ActionFunctionArgs, LoaderFunctionArgs } from '@remix-run/node'
 import { json, redirect } from '@remix-run/node'
 
 import type { Table } from '@prisma/client'
@@ -9,7 +9,7 @@ import { getSession, sessionStorage } from '~/session.server'
 
 import { Button, H2, LinkButton } from '~/components'
 
-export async function loader({ request, params }: LoaderArgs) {
+export async function loader({ request, params }: LoaderFunctionArgs) {
   const session = await getSession(request)
 
   const isName = session.has('username')
@@ -26,7 +26,7 @@ export async function loader({ request, params }: LoaderArgs) {
   return json({ tables })
 }
 
-export async function action({ request, params }: ActionArgs) {
+export async function action({ request, params }: ActionFunctionArgs) {
   const session = await getSession(request)
   const userId = session.get('userId')
 

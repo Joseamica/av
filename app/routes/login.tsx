@@ -1,7 +1,7 @@
 import { conform, useForm } from '@conform-to/react'
 import { Link, useFetcher, useLoaderData, useSearchParams } from '@remix-run/react'
 
-import type { ActionArgs, LoaderArgs, V2_MetaFunction } from '@remix-run/node'
+import type { ActionFunctionArgs, LoaderFunctionArgs, MetaFunction } from '@remix-run/node'
 import { json, redirect } from '@remix-run/node'
 
 import { getFieldsetConstraint, parse } from '@conform-to/zod'
@@ -26,7 +26,7 @@ export const loginFormSchema = z.object({
   isEmployee: checkboxSchema(),
 })
 
-export const loader = async ({ request }: LoaderArgs) => {
+export const loader = async ({ request }: LoaderFunctionArgs) => {
   const session = await getSession(request)
   const tableId = session.get('tableId')
   const employeeId = session.get('employeeId')
@@ -54,7 +54,7 @@ export const loader = async ({ request }: LoaderArgs) => {
   return json({ status: 'idle' })
 }
 
-export const action = async ({ request }: ActionArgs) => {
+export const action = async ({ request }: ActionFunctionArgs) => {
   const formData = await request.formData()
   const redirectTo = safeRedirect(formData.get('redirectTo'), '/')
 
@@ -164,7 +164,7 @@ export const action = async ({ request }: ActionArgs) => {
   })
 }
 
-export const meta: V2_MetaFunction = () => [{ title: 'Login' }]
+export const meta: MetaFunction = () => [{ title: 'Login' }]
 
 export default function LoginPage() {
   const data = useLoaderData()

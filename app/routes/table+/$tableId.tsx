@@ -3,7 +3,7 @@ import * as Tooltip from '@radix-ui/react-tooltip'
 import { Outlet, isRouteErrorResponse, useFetcher, useRouteError, useSubmit } from '@remix-run/react'
 import { useEffect, useState } from 'react'
 
-import { type ActionArgs, type LoaderArgs, json } from '@remix-run/node'
+import { type ActionFunctionArgs, type LoaderFunctionArgs, json } from '@remix-run/node'
 
 import type { Branch, Menu, Order, Table as TableProps, User } from '@prisma/client'
 // * COMPONENTS
@@ -63,7 +63,7 @@ type LoaderData = {
   orderExpired: boolean
 }
 
-export async function loader({ request, params }: LoaderArgs) {
+export async function loader({ request, params }: LoaderFunctionArgs) {
   const session = await getSession(request)
   const user = await getUserDetails(session)
 
@@ -208,7 +208,7 @@ export async function loader({ request, params }: LoaderArgs) {
   })
 }
 
-export async function action({ request, params }: ActionArgs) {
+export async function action({ request, params }: ActionFunctionArgs) {
   const { tableId } = params
   invariant(tableId, 'Mesa no encontrada!')
   const formData = await request.formData()

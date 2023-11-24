@@ -2,7 +2,7 @@ import { Link, Outlet, useFetcher, useNavigate } from '@remix-run/react'
 import { FaMoneyBill } from 'react-icons/fa'
 import { IoCall, IoFastFood, IoPersonCircle } from 'react-icons/io5'
 
-import { type ActionArgs, type LoaderArgs, json } from '@remix-run/node'
+import { type ActionFunctionArgs, type LoaderFunctionArgs, json } from '@remix-run/node'
 
 import { prisma } from '~/db.server'
 import { getSession } from '~/session.server'
@@ -18,7 +18,7 @@ export const handle = {
   sub: true,
 }
 
-export async function loader({ request, params }: LoaderArgs) {
+export async function loader({ request, params }: LoaderFunctionArgs) {
   const session = await getSession(request)
   const branchId = session.get('branchId')
   const employeeId = session.get('employeeId')
@@ -68,7 +68,7 @@ export async function loader({ request, params }: LoaderArgs) {
 
   return json({ notifications })
 }
-export async function action({ request, params }: ActionArgs) {
+export async function action({ request, params }: ActionFunctionArgs) {
   const formData = await request.formData()
   const notificationId = formData.get('notificationId') as string
   await prisma.notification.delete({

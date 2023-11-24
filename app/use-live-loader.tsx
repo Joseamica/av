@@ -1,7 +1,6 @@
 import { useLoaderData, useLocation, useNavigate, useRevalidator, useSubmit } from '@remix-run/react'
 import { useEffect } from 'react'
-
-import { useEventSource } from 'remix-utils'
+import { useEventSource } from 'remix-utils/sse/react'
 
 export function useLiveLoader<T>() {
   const eventName = useLocation().pathname

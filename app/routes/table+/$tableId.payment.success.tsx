@@ -1,4 +1,4 @@
-import { type LoaderArgs, redirect } from '@remix-run/node'
+import { type LoaderFunctionArgs, redirect } from '@remix-run/node'
 
 import { type PaymentMethod } from '@prisma/client'
 import { prisma } from '~/db.server'
@@ -14,7 +14,7 @@ import { EVENTS } from '~/events'
 
 import { getAmountLeftToPay } from '~/utils'
 
-export const loader = async ({ params, request }: LoaderArgs) => {
+export const loader = async ({ params, request }: LoaderFunctionArgs) => {
   const { tableId } = params
 
   const session = await getSession(request)

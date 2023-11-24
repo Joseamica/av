@@ -2,7 +2,7 @@ import * as DropdownMenu from '@radix-ui/react-dropdown-menu'
 import { Form, Link, useLoaderData, useSubmit } from '@remix-run/react'
 import { FaEdit } from 'react-icons/fa'
 
-import { type ActionArgs, type LoaderArgs, json, redirect } from '@remix-run/node'
+import { type ActionFunctionArgs, type LoaderFunctionArgs, json, redirect } from '@remix-run/node'
 
 import type { Chain } from '@prisma/client'
 import invariant from 'tiny-invariant'
@@ -28,7 +28,7 @@ export const meta = () => {
     },
   ]
 }
-export const loader = async ({ request }: LoaderArgs) => {
+export const loader = async ({ request }: LoaderFunctionArgs) => {
   // const admin = await requireAdmin(request)
   const user = await requireAdmin(request)
 
@@ -71,7 +71,7 @@ export const loader = async ({ request }: LoaderArgs) => {
   return json({ chains, selectedChain, user })
 }
 
-export async function action({ request, params }: ActionArgs) {
+export async function action({ request, params }: ActionFunctionArgs) {
   const formData = await request.formData()
   const branchId = formData.get('branchId')
   invariant(branchId, 'branchId is required')

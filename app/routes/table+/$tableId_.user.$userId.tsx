@@ -1,6 +1,6 @@
-import { Form, Link, useLoaderData, useSearchParams } from '@remix-run/react'
+import { Form, useLoaderData, useSearchParams } from '@remix-run/react'
 
-import type { LoaderArgs } from '@remix-run/node'
+import type { LoaderFunctionArgs } from '@remix-run/node'
 import { json } from '@remix-run/node'
 
 import type { CartItem } from '@prisma/client'
@@ -9,11 +9,11 @@ import { prisma } from '~/db.server'
 
 import { formatCurrency, getCurrency } from '~/utils'
 
-import { Button, FlexRow, H1, H2, H3, H4, SectionContainer, Spacer } from '~/components'
+import { FlexRow, H1, H2, H3, H4, SectionContainer, Spacer } from '~/components'
 
 export const handle = { backButton: true }
 
-export async function loader({ params, request }: LoaderArgs) {
+export async function loader({ params, request }: LoaderFunctionArgs) {
   const { branchId, tableId, userId } = params
   invariant(tableId, 'No existe ninguna mesa con este id')
 
@@ -75,7 +75,7 @@ export default function User() {
         </div> */}
         <Spacer spaceY="2" />
         <div>
-          <H2>Tus platillos ordenados</H2>
+          {data.cartItems.length > 0 ? <H2>Orden</H2> : <H4 variant="secondary">No haz ordenado ningún producto</H4>}
           <Spacer spaceY="1" />
           <hr />
           <Spacer spaceY="1" />

@@ -1,7 +1,7 @@
 import { Form, useLoaderData, useNavigate } from '@remix-run/react'
 import React, { useState } from 'react'
 
-import type { ActionArgs, LoaderArgs } from '@remix-run/node'
+import type { ActionFunctionArgs, LoaderFunctionArgs } from '@remix-run/node'
 import { json, redirect } from '@remix-run/node'
 
 import type { CartItem } from '@prisma/client'
@@ -129,7 +129,7 @@ const CartItemComponent = ({ item, data }) => (
 )
 
 // ANCHOR LOADER
-export async function loader({ request, params }: LoaderArgs) {
+export async function loader({ request, params }: LoaderFunctionArgs) {
   const { tableId } = params
   invariant(tableId, 'No se encontró mesa')
   const currency = await getCurrency(tableId)
@@ -195,7 +195,7 @@ export async function loader({ request, params }: LoaderArgs) {
 }
 
 // ANCHOR ACTION
-export async function action({ request, params }: ActionArgs) {
+export async function action({ request, params }: ActionFunctionArgs) {
   const { tableId } = params
   invariant(tableId, 'No se encontró mesa')
 

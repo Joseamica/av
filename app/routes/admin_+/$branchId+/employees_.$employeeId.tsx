@@ -1,13 +1,13 @@
 import { Link, useFetcher, useLoaderData, useLocation, useParams, useSearchParams } from '@remix-run/react'
 import { FaPause, FaPlay } from 'react-icons/fa'
 
-import { type ActionArgs, type LoaderArgs, json, redirect } from '@remix-run/node'
+import { type ActionFunctionArgs, type LoaderFunctionArgs, json, redirect } from '@remix-run/node'
 
 import { prisma } from '~/db.server'
 
 import { H1 } from '~/components'
 
-export async function loader({ request, params }: LoaderArgs) {
+export async function loader({ request, params }: LoaderFunctionArgs) {
   const { branchId, employeeId } = params
   const employee = await prisma.employee.findUnique({
     where: {
@@ -16,7 +16,7 @@ export async function loader({ request, params }: LoaderArgs) {
   })
   return json({ employee })
 }
-export async function action({ request, params }: ActionArgs) {
+export async function action({ request, params }: ActionFunctionArgs) {
   const formData = await request.formData()
   const id = formData.get('id') as string
   const active = formData.get('active') === 'true'

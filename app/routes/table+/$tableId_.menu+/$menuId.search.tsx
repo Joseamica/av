@@ -1,7 +1,7 @@
 import { Link, useActionData, useLoaderData, useNavigate, useSearchParams } from '@remix-run/react'
 import React from 'react'
 
-import type { ActionArgs, LoaderArgs } from '@remix-run/node'
+import type { ActionFunctionArgs, LoaderFunctionArgs } from '@remix-run/node'
 import { json, redirect } from '@remix-run/node'
 
 import type { CartItem, ModifierGroup, Modifiers, Product, User } from '@prisma/client'
@@ -34,7 +34,7 @@ import {
   XIcon,
 } from '~/components'
 
-export async function loader({ request, params }: LoaderArgs) {
+export async function loader({ request, params }: LoaderFunctionArgs) {
   const { tableId, menuId } = params
   invariant(tableId, 'No se encontró la mesa')
 
@@ -89,7 +89,7 @@ export async function loader({ request, params }: LoaderArgs) {
   })
 }
 
-export async function action({ request, params }: ActionArgs) {
+export async function action({ request, params }: ActionFunctionArgs) {
   const { tableId } = params
   invariant(tableId, 'No se encontró la mesa')
 

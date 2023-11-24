@@ -2,10 +2,10 @@ import { conform, useForm } from '@conform-to/react'
 import * as Dialog from '@radix-ui/react-dialog'
 import { useFetcher, useLoaderData, useNavigate, useParams, useSearchParams } from '@remix-run/react'
 
-import { type ActionArgs, type LoaderArgs, json, redirect } from '@remix-run/node'
+import { type ActionFunctionArgs, type LoaderFunctionArgs, json, redirect } from '@remix-run/node'
 
 import { getFieldsetConstraint, parse } from '@conform-to/zod'
-import { namedAction } from 'remix-utils'
+import { namedAction } from 'remix-utils/named-action'
 import { z } from 'zod'
 import { prisma } from '~/db.server'
 
@@ -54,7 +54,7 @@ const modifierGroupSchema = z.object({
   //   .optional(),
 })
 
-export async function loader({ request, params }: LoaderArgs) {
+export async function loader({ request, params }: LoaderFunctionArgs) {
   const products = await prisma.product.findMany({
     where: {
       branchId: params.branchId,
@@ -98,7 +98,7 @@ export async function loader({ request, params }: LoaderArgs) {
   return json({ products, modifierGroups, modifierGroup, modifiers, modifier })
 }
 
-export async function action({ request, params }: ActionArgs) {
+export async function action({ request, params }: ActionFunctionArgs) {
   const formData = await request.formData()
   const submission = parse(formData, {
     schema: intent => {

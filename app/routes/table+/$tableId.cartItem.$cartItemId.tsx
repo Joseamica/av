@@ -1,6 +1,6 @@
 import { Form, Link, useLoaderData, useNavigate, useSearchParams } from '@remix-run/react'
 
-import { type ActionArgs, type LoaderArgs, json, redirect } from '@remix-run/node'
+import { type ActionFunctionArgs, type LoaderFunctionArgs, json, redirect } from '@remix-run/node'
 
 import type { User } from '@prisma/client'
 import invariant from 'tiny-invariant'
@@ -14,7 +14,7 @@ import { formatCurrency, getCurrency, getDateTime } from '~/utils'
 
 import { Button, FlexRow, H3, H4, H5, ItemContainer, LinkButton, Modal, SendComments, Spacer, StarIcon, UserCircleIcon } from '~/components'
 
-export async function loader({ request, params }: LoaderArgs) {
+export async function loader({ request, params }: LoaderFunctionArgs) {
   const { tableId, cartItemId } = params
   invariant(tableId, 'No se encontró la mesa')
   invariant(cartItemId, 'No se encontró el ID del item')
@@ -29,7 +29,7 @@ export async function loader({ request, params }: LoaderArgs) {
   return json({ cartItem, currency })
 }
 
-export async function action({ request, params }: ActionArgs) {
+export async function action({ request, params }: ActionFunctionArgs) {
   const formData = await request.formData()
   const _action = formData.get('_action') as string
   const url = new URL(request.url)

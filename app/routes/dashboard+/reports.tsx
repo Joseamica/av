@@ -2,14 +2,14 @@ import { Link, useLoaderData } from '@remix-run/react'
 import { FaExclamation } from 'react-icons/fa'
 import { IoCard, IoList, IoPerson, IoShieldCheckmarkOutline } from 'react-icons/io5'
 
-import { type ActionArgs, type LoaderArgs, json, redirect } from '@remix-run/node'
+import { type ActionFunctionArgs, type LoaderFunctionArgs, json, redirect } from '@remix-run/node'
 
 import { prisma } from '~/db.server'
 import { getSession } from '~/session.server'
 
 import { formatCurrency } from '~/utils'
 
-export async function loader({ request, params }: LoaderArgs) {
+export async function loader({ request, params }: LoaderFunctionArgs) {
   const session = await getSession(request)
   const branchId = session.get('branchId')
   const employeeId = session.get('employeeId')
@@ -26,7 +26,7 @@ export async function loader({ request, params }: LoaderArgs) {
 
   return json({ feedbacks })
 }
-export async function action({ request, params }: ActionArgs) {
+export async function action({ request, params }: ActionFunctionArgs) {
   const formData = await request.formData()
   return json({ success: true })
 }

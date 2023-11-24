@@ -1,10 +1,10 @@
-import type { LoaderArgs } from '@remix-run/node'
+import type { LoaderFunctionArgs } from '@remix-run/node'
 
-import { eventStream } from 'remix-utils'
+import { eventStream } from 'remix-utils/sse/server'
 
 import { emitter } from '~/events'
 
-export const loader = ({ request, params }: LoaderArgs) => {
+export const loader = ({ request, params }: LoaderFunctionArgs) => {
   const path = `/${params['*']}`
 
   return eventStream(request.signal, send => {

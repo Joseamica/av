@@ -1,7 +1,7 @@
 import { Form, useActionData, useLoaderData, useNavigate } from '@remix-run/react'
 import React from 'react'
 
-import { type ActionArgs, type LoaderArgs, json, redirect } from '@remix-run/node'
+import { type ActionFunctionArgs, type LoaderFunctionArgs, json, redirect } from '@remix-run/node'
 
 import clsx from 'clsx'
 import invariant from 'tiny-invariant'
@@ -22,7 +22,7 @@ import Payment from '~/components/payment/paymentV3'
 
 //ANCHOR Loader
 
-export async function loader({ request, params }: LoaderArgs) {
+export async function loader({ request, params }: LoaderFunctionArgs) {
   const { tableId } = params
   invariant(tableId, 'No se encontró mesa')
   const tipsPercentages = await getTipsPercentages(tableId)
@@ -34,7 +34,7 @@ export async function loader({ request, params }: LoaderArgs) {
 }
 
 //ANCHOR action
-export async function action({ request, params }: ActionArgs) {
+export async function action({ request, params }: ActionFunctionArgs) {
   const { tableId } = params
   invariant(tableId, 'No se encontró mesa')
   const redirectTo = validateRedirect(request.redirect, `/table/${tableId}`)

@@ -1,7 +1,7 @@
 import { useFetcher, useLoaderData, useLocation, useNavigate } from '@remix-run/react'
 import { useEffect, useState } from 'react'
 
-import type { ActionArgs, LoaderArgs } from '@remix-run/node'
+import type { ActionFunctionArgs, LoaderFunctionArgs } from '@remix-run/node'
 import { json, redirect } from '@remix-run/node'
 
 import invariant from 'tiny-invariant'
@@ -22,7 +22,7 @@ import { ReportPlace } from '~/components/help/report-place'
 import { ReportWaiter } from '~/components/help/report-waiter'
 import { Tab } from '~/components/help/ui/report-tab-buttons'
 
-export async function action({ request, params }: ActionArgs) {
+export async function action({ request, params }: ActionFunctionArgs) {
   const { tableId } = params
   invariant(tableId, 'tableId is required')
   const formData = await request.formData()
@@ -89,7 +89,7 @@ export async function action({ request, params }: ActionArgs) {
   return json({ success: false })
 }
 
-export async function loader({ request, params }: LoaderArgs) {
+export async function loader({ request, params }: LoaderFunctionArgs) {
   const { tableId } = params
   invariant(tableId, 'tableId is required')
   const session = await getSession(request)

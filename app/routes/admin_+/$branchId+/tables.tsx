@@ -1,28 +1,17 @@
 import { useForm } from '@conform-to/react'
-import {
-  Form,
-  Link,
-  useActionData,
-  useFetcher,
-  useLoaderData,
-  useLocation,
-  useParams,
-  useRouteLoaderData,
-  useSearchParams,
-} from '@remix-run/react'
+import { Form, Link, useActionData, useFetcher, useLocation, useParams, useRouteLoaderData, useSearchParams } from '@remix-run/react'
 import QRCode from 'qrcode.react'
 import { useState } from 'react'
 
-import { type ActionArgs, type LoaderArgs, json, redirect } from '@remix-run/node'
+import { type ActionFunctionArgs, type LoaderFunctionArgs, json, redirect } from '@remix-run/node'
 
 import { getFieldsetConstraint, parse } from '@conform-to/zod'
-import type { Table } from '@prisma/client'
-import { safeRedirect } from 'remix-utils'
+import { safeRedirect } from 'remix-utils/safe-redirect'
 import { z } from 'zod'
 import { prisma } from '~/db.server'
 import { useLiveLoader } from '~/use-live-loader'
 
-import { getTable, handleAddAction, handleDeleteAction, handleEditAction } from '~/models/admin/table/table.server'
+import { handleAddAction, handleDeleteAction, handleEditAction } from '~/models/admin/table/table.server'
 
 import { EVENTS } from '~/events'
 
@@ -48,7 +37,7 @@ const categoriesFormSchema = z.object({
   seats: z.number().min(1).max(100),
 })
 
-export async function loader({ request, params }: LoaderArgs) {
+export async function loader({ request, params }: LoaderFunctionArgs) {
   const searchParams = getSearchParams({ request })
   const searchParamsData = Object.fromEntries(searchParams)
 
@@ -86,7 +75,7 @@ export async function loader({ request, params }: LoaderArgs) {
   return json({ table: null })
 }
 
-export async function action({ request, params }: ActionArgs) {
+export async function action({ request, params }: ActionFunctionArgs) {
   const { branchId } = params
   const formData = await request.formData()
   const formValues = Object.fromEntries(formData.entries())

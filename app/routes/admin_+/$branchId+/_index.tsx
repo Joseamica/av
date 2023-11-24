@@ -2,7 +2,7 @@ import { conform, useForm } from '@conform-to/react'
 import { Link, useFetcher, useLoaderData, useSearchParams } from '@remix-run/react'
 import { useRouteLoaderData } from 'react-router'
 
-import { type ActionArgs, type LoaderArgs, json, redirect } from '@remix-run/node'
+import { type ActionFunctionArgs, type LoaderFunctionArgs, json, redirect } from '@remix-run/node'
 
 import { getFieldsetConstraint, parse } from '@conform-to/zod'
 import { z } from 'zod'
@@ -45,7 +45,7 @@ const branchSchema = z.object({
   paymentMethods: z.string(),
 })
 
-export async function loader({ request, params }: LoaderArgs) {
+export async function loader({ request, params }: LoaderFunctionArgs) {
   const { branchId } = params
   const branch = await prisma.branch.findUnique({
     where: {
@@ -71,7 +71,7 @@ export async function loader({ request, params }: LoaderArgs) {
   return json({ branch, totalTips })
 }
 
-export async function action({ request, params }: ActionArgs) {
+export async function action({ request, params }: ActionFunctionArgs) {
   const { branchId } = params
   const formData = await request.formData()
 

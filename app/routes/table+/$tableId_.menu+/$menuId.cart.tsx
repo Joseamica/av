@@ -3,7 +3,7 @@ import React, { useState } from 'react'
 import { FaHourglassHalf } from 'react-icons/fa'
 
 import { json, redirect } from '@remix-run/node'
-import type { ActionArgs, LoaderArgs } from '@remix-run/server-runtime'
+import type { ActionFunctionArgs, LoaderFunctionArgs } from '@remix-run/server-runtime'
 
 import type { CartItem, Order, PaymentMethod, User } from '@prisma/client'
 import { motion } from 'framer-motion'
@@ -44,7 +44,7 @@ import {
 import Payment, { usePayment } from '~/components/payment/paymentV3'
 
 // ANCHOR LOADER
-export async function loader({ request, params }: LoaderArgs) {
+export async function loader({ request, params }: LoaderFunctionArgs) {
   const { tableId, menuId } = params
   invariant(tableId, 'No se encontró la mesa')
 
@@ -104,7 +104,7 @@ export async function loader({ request, params }: LoaderArgs) {
 }
 
 // ANCHOR ACTION
-export async function action({ request, params }: ActionArgs) {
+export async function action({ request, params }: ActionFunctionArgs) {
   const { tableId } = params
   invariant(tableId, 'No se encontró la mesa')
 

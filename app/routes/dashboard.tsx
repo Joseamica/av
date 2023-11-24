@@ -4,7 +4,7 @@ import React, { useEffect } from 'react'
 import { FaChair, FaHome } from 'react-icons/fa'
 import { IoNotifications, IoNotificationsOutline, IoPerson, IoRestaurant } from 'react-icons/io5'
 
-import { type ActionArgs, type LoaderArgs, json, redirect } from '@remix-run/node'
+import { type ActionFunctionArgs, type LoaderFunctionArgs, json, redirect } from '@remix-run/node'
 
 import clsx from 'clsx'
 import { prisma } from '~/db.server'
@@ -15,7 +15,7 @@ import { dashboardGetBranchAndEmployee } from '~/models/dashboard/utils'
 
 import { Button, H3, Modal, PlusIcon } from '~/components'
 
-export async function loader({ request, params }: LoaderArgs) {
+export async function loader({ request, params }: LoaderFunctionArgs) {
   const session = await getSession(request)
   const employeeId = session.get('employeeId')
 
@@ -75,7 +75,7 @@ export async function loader({ request, params }: LoaderArgs) {
     { headers: { 'Set-Cookie': await sessionStorage.commitSession(session) } },
   )
 }
-export async function action({ request, params }: ActionArgs) {
+export async function action({ request, params }: ActionFunctionArgs) {
   const formData = await request.formData()
   const table = formData.get('table') as string
 

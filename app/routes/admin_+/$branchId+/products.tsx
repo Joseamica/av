@@ -4,10 +4,10 @@ import { Link, Outlet, useFetcher, useLoaderData, useParams, useRouteLoaderData,
 import React from 'react'
 import { FaPause, FaPlay } from 'react-icons/fa'
 
-import { type ActionArgs, type LoaderArgs, json, redirect } from '@remix-run/node'
+import { type ActionFunctionArgs, type LoaderFunctionArgs, json, redirect } from '@remix-run/node'
 
 import { getFieldsetConstraint, parse } from '@conform-to/zod'
-import { namedAction } from 'remix-utils'
+import { namedAction } from 'remix-utils/named-action'
 import invariant from 'tiny-invariant'
 import { z } from 'zod'
 import { prisma } from '~/db.server'
@@ -38,7 +38,7 @@ const productSchema = z.object({
 
 export const handle = { active: 'Products' }
 
-export async function loader({ request, params }: LoaderArgs) {
+export async function loader({ request, params }: LoaderFunctionArgs) {
   const products = await prisma.product.findMany({
     where: {
       branchId: params.branchId,
@@ -107,7 +107,7 @@ export async function loader({ request, params }: LoaderArgs) {
       return json({ products, modifierGroups, modifiers })
   }
 }
-export async function action({ request, params }: ActionArgs) {
+export async function action({ request, params }: ActionFunctionArgs) {
   const formData = await request.formData()
   const searchParams = getSearchParams({ request })
   const { branchId } = params

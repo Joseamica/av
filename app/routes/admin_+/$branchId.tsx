@@ -1,7 +1,7 @@
 import { Form, Link, Outlet, useMatches } from '@remix-run/react'
 import { useState } from 'react'
 
-import { ActionArgs, type LoaderArgs, type V2_MetaFunction, json } from '@remix-run/node'
+import { ActionFunctionArgs, type LoaderFunctionArgs, type MetaFunction, json } from '@remix-run/node'
 
 import clsx from 'clsx'
 import { prisma } from '~/db.server'
@@ -11,7 +11,7 @@ import { requireAdmin } from '~/utils/permissions.server'
 
 import MainAdminContainer from '~/components/admin/main-container'
 
-export async function loader({ request, params }: LoaderArgs) {
+export async function loader({ request, params }: LoaderFunctionArgs) {
   const { branchId } = params
   const user = await requireAdmin(request)
 
@@ -84,7 +84,7 @@ export async function loader({ request, params }: LoaderArgs) {
   throw json({ error: 'Unauthorized', requiredRole: 'admin' }, { status: 403 })
 }
 
-export async function action({ request, params }: ActionArgs) {
+export async function action({ request, params }: ActionFunctionArgs) {
   const formData = await request.formData()
   const { branchId } = params
   const test = formData.get('test')
@@ -103,7 +103,7 @@ export async function action({ request, params }: ActionArgs) {
   return json({ success: true })
 }
 
-export const meta: V2_MetaFunction = () => {
+export const meta: MetaFunction = () => {
   return [
     { title: 'Admin' },
     {

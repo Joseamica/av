@@ -2,7 +2,7 @@ import * as Separator from '@radix-ui/react-separator'
 import { useFetcher, useLoaderData, useNavigate, useParams } from '@remix-run/react'
 import React, { useEffect, useState } from 'react'
 
-import { type ActionArgs, type LoaderArgs, json, redirect } from '@remix-run/node'
+import { type ActionFunctionArgs, type LoaderFunctionArgs, json, redirect } from '@remix-run/node'
 
 import { Modifiers } from '@prisma/client'
 import clsx from 'clsx'
@@ -19,7 +19,7 @@ import { Button, CheckIcon, FlexRow, H1, H3, H4, H5, H6, Modal, SendComments, Sp
 import { SearchBar } from '~/components/dashboard/searchbar'
 import { ErrorList } from '~/components/forms'
 
-export async function loader({ request, params }: LoaderArgs) {
+export async function loader({ request, params }: LoaderFunctionArgs) {
   const { tableId } = params
   const branchId = await getBranchId(tableId)
   const timeNow = getHour()
@@ -148,7 +148,7 @@ export async function loader({ request, params }: LoaderArgs) {
 
   return json({ cartItems, table, categories })
 }
-export async function action({ request, params }: ActionArgs) {
+export async function action({ request, params }: ActionFunctionArgs) {
   const formData = await request.formData()
   const productId = formData.get('productId') as string
   const productQuantity = Number(formData.get('productQuantity'))

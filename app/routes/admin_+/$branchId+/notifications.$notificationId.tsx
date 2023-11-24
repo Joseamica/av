@@ -2,7 +2,7 @@ import { conform, useForm } from '@conform-to/react'
 import * as Dialog from '@radix-ui/react-dialog'
 import { useFetcher, useLoaderData, useNavigate, useParams, useSearchParams } from '@remix-run/react'
 
-import { type ActionArgs, type LoaderArgs, json, redirect } from '@remix-run/node'
+import { type ActionFunctionArgs, type LoaderFunctionArgs, json, redirect } from '@remix-run/node'
 
 import { getFieldsetConstraint, parse } from '@conform-to/zod'
 import { z } from 'zod'
@@ -28,7 +28,7 @@ const noficationsSchema = z.object({
   //   intent: z.enum(['accept', 'reject']),
 })
 
-export async function loader({ request, params }: LoaderArgs) {
+export async function loader({ request, params }: LoaderFunctionArgs) {
   const { branchId, notificationId } = params
   const notification = await prisma.notification.findUnique({
     where: {
@@ -43,7 +43,7 @@ export async function loader({ request, params }: LoaderArgs) {
 
   return json({ notification })
 }
-export async function action({ request, params }: ActionArgs) {
+export async function action({ request, params }: ActionFunctionArgs) {
   const { branchId, notificationId } = params
   const session = await getSession(request)
 

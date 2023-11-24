@@ -1,7 +1,7 @@
 import { Form, useNavigate } from '@remix-run/react'
 import React from 'react'
 
-import type { ActionArgs, LoaderArgs } from '@remix-run/node'
+import type { ActionFunctionArgs, LoaderFunctionArgs } from '@remix-run/node'
 import { json, redirect } from '@remix-run/node'
 
 import type { CartItem, PaymentMethod } from '@prisma/client'
@@ -126,7 +126,7 @@ export default function PerDish() {
 }
 
 // ANCHOR ACTION
-export async function action({ request, params }: ActionArgs) {
+export async function action({ request, params }: ActionFunctionArgs) {
   const { tableId } = params
   invariant(tableId, 'No se encontró mesa')
 
@@ -179,7 +179,7 @@ export async function action({ request, params }: ActionArgs) {
 }
 
 // ANCHOR LOADER
-export async function loader({ request, params }: LoaderArgs) {
+export async function loader({ request, params }: LoaderFunctionArgs) {
   const { tableId } = params
   invariant(tableId, 'No se encontró mesa')
   const tipsPercentages = await getTipsPercentages(tableId)

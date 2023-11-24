@@ -4,7 +4,7 @@ import { useFetcher, useLoaderData, useNavigate, useParams } from '@remix-run/re
 import React from 'react'
 import { FaCheck, FaExclamationCircle } from 'react-icons/fa'
 
-import { type ActionArgs, type LoaderArgs, json, redirect } from '@remix-run/node'
+import { type ActionFunctionArgs, type LoaderFunctionArgs, json, redirect } from '@remix-run/node'
 
 import { type CartItem, type Modifiers } from '@prisma/client'
 import clsx from 'clsx'
@@ -21,7 +21,7 @@ import { formatCurrency, getCurrency } from '~/utils'
 import { Button, CheckIcon, FlexRow, H2, H3, H4, H5, H6, Modal, QuantityButton, SendComments, Spacer } from '~/components'
 import { ErrorList } from '~/components/forms'
 
-export async function loader({ request, params }: LoaderArgs) {
+export async function loader({ request, params }: LoaderFunctionArgs) {
   const { tableId, menuId, productId } = params
   invariant(tableId, 'No se encontró la mesa')
 
@@ -66,7 +66,7 @@ export async function loader({ request, params }: LoaderArgs) {
     branch,
   })
 }
-export async function action({ request, params }: ActionArgs) {
+export async function action({ request, params }: ActionFunctionArgs) {
   const { tableId, productId } = params
   const formData = await request.formData()
   const productQuantity = Number(formData.get('productQuantity'))

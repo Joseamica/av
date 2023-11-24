@@ -1,11 +1,11 @@
 import { useForm } from '@conform-to/react'
 import { useActionData, useLoaderData, useRouteLoaderData, useSearchParams } from '@remix-run/react'
 
-import { type ActionArgs, type LoaderArgs, json, redirect } from '@remix-run/node'
+import { type ActionFunctionArgs, type LoaderFunctionArgs, json, redirect } from '@remix-run/node'
 
 import { getFieldsetConstraint, parse } from '@conform-to/zod'
 import type { Order } from '@prisma/client'
-import { safeRedirect } from 'remix-utils'
+import { safeRedirect } from 'remix-utils/safe-redirect'
 import { z } from 'zod'
 import { prisma } from '~/db.server'
 
@@ -36,7 +36,7 @@ const orderFormSchema = z.object({
   paidDate: z.string().optional(),
 })
 
-export async function loader({ request, params }: LoaderArgs) {
+export async function loader({ request, params }: LoaderFunctionArgs) {
   const searchParams = getSearchParams({ request })
   const searchParamsData = Object.fromEntries(searchParams)
 
@@ -55,7 +55,7 @@ export async function loader({ request, params }: LoaderArgs) {
   return json({ order: null })
 }
 
-export async function action({ request, params }: ActionArgs) {
+export async function action({ request, params }: ActionFunctionArgs) {
   const formData = await request.formData()
   const formValues = Object.fromEntries(formData.entries())
   console.log('formValues', formValues)

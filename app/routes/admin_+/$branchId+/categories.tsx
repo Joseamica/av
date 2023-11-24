@@ -1,10 +1,10 @@
 import { conform, useForm } from '@conform-to/react'
 import { Outlet, useFetcher, useLoaderData, useParams, useRouteLoaderData, useSearchParams } from '@remix-run/react'
 
-import { type ActionArgs, type LoaderArgs, json, redirect } from '@remix-run/node'
+import { type ActionFunctionArgs, type LoaderFunctionArgs, json, redirect } from '@remix-run/node'
 
 import { getFieldsetConstraint, parse } from '@conform-to/zod'
-import { namedAction } from 'remix-utils'
+import { namedAction } from 'remix-utils/named-action'
 import invariant from 'tiny-invariant'
 import { z } from 'zod'
 import { prisma } from '~/db.server'
@@ -31,7 +31,7 @@ const categoriesFormSchema = z.object({
   description: z.string().min(1).max(100).optional(),
   selectItems: z.array(z.string()).nonempty('You must select at least one category'),
 })
-export async function loader({ request, params }: LoaderArgs) {
+export async function loader({ request, params }: LoaderFunctionArgs) {
   const categories = await prisma.category.findMany({
     where: {
       branchId: params.branchId,
@@ -46,7 +46,7 @@ export async function loader({ request, params }: LoaderArgs) {
   invariant(categories, 'categories must be defined')
   return json({ categories })
 }
-export async function action({ request, params }: ActionArgs) {
+export async function action({ request, params }: ActionFunctionArgs) {
   const formData = await request.formData()
 
   const submission = parse(formData, {
