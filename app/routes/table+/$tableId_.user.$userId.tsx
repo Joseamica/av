@@ -59,7 +59,7 @@ export default function User() {
   return (
     <div>
       <SectionContainer className="">
-        <H1>{data.user.name}</H1>
+        <H1>{data.user?.name}</H1>
         {/* <img src="" alt="profile_pic" className="h-20 w-20 rounded-full" />
         <div className="flex flex-col items-center justify-center space-y-2">
       

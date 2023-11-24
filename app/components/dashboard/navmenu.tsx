@@ -1,5 +1,7 @@
 import clsx from 'clsx'
 
+import { H5 } from '../util/typography'
+
 export function NavMenu({
   categories,
   activeNavMenu,
@@ -21,13 +23,13 @@ export function NavMenu({
               {notify && category === 'Pagos' ? (
                 <div className="absolute top-0 w-2 h-2 bg-red-500 rounded-full animate-pulse -right-3" />
               ) : null}
-              <p
+              <H5
                 className={clsx('', {
                   'text-indigo-500 underline underline-offset-8': activeNavMenu === category,
                 })}
               >
                 {category}
-              </p>
+              </H5>
             </button>
           )
         })}

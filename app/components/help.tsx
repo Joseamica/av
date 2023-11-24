@@ -102,9 +102,9 @@ export function HelpWithoutOrder({ exclude }: { exclude?: string }) {
     <Spacer spaceY="2">
       <FlexRow
         className="w-full justify-around "
-        data-intro="Aquí puedes interactuar con el restaurante directamente, como llamar al mesero, o reportar algun suceso"
-        data-step="2"
-        data-title="Acciones"
+        // data-intro="Aquí puedes interactuar con el restaurante directamente, como llamar al mesero, o reportar algun suceso"
+        // data-step="2"
+        // data-title="Acciones"
       >
         {Object.values(REPORT_TYPES).map((type, index) => {
           if (type.name === exclude) {

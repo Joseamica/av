@@ -109,20 +109,6 @@ export async function loader({ request, params }: LoaderArgs) {
   //   },
   // })
 
-  const products = await prisma.product.findMany({
-    where: {
-      branchId,
-      available: true,
-    },
-    include: {
-      modifierGroups: {
-        include: {
-          modifiers: true,
-        },
-      },
-    },
-  })
-
   const categories = await prisma.category.findMany({
     where: { menu: { some: { id: menu.id } } },
     orderBy: {
@@ -135,8 +121,9 @@ export async function loader({ request, params }: LoaderArgs) {
         },
         include: {
           modifierGroups: {
+            where: { available: true },
             include: {
-              modifiers: true,
+              modifiers: { where: { available: true } },
             },
           },
         },
@@ -159,7 +146,7 @@ export async function loader({ request, params }: LoaderArgs) {
     include: { user: true },
   })
 
-  return json({ products, cartItems, table, categories })
+  return json({ cartItems, table, categories })
 }
 export async function action({ request, params }: ActionArgs) {
   const formData = await request.formData()
@@ -310,7 +297,6 @@ export default function ActionsTableId() {
     }
   }, [fetcher])
 
-  const navigate = useNavigate()
   return (
     <div>
       {/* //  title={`Agregar productos a la mesa ${data.table.number}`} onClose={() => navigate(-2)}> */}
@@ -369,6 +355,7 @@ export default function ActionsTableId() {
                                 product.name.toLowerCase().includes(search.toLowerCase()),
                             )
                             .map(product => {
+                              console.log('product', product)
                               return (
                                 <div onClick={() => setSearch(product.name)} key={product.id}>
                                   <div className="flex flex-row px-4 py-2 space-x-3 bg-white border">

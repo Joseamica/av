@@ -58,6 +58,7 @@ model Branch {
   email            String            @unique
   language         String?           @default("en")
   image            String
+  logo             String?
   // rating          Float?
   // rating_quantity Int?
   managerIds       String[]

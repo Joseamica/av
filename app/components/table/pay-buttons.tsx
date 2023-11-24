@@ -50,7 +50,7 @@ export function PayButtons({ setShowPaymentOptions }: { setShowPaymentOptions?: 
               <span />
             </div>
           </LinkButton>
-          <LinkButton to="pay/perPerson" onClick={handleSplitPay}>
+          {/* <LinkButton to="pay/perPerson" onClick={handleSplitPay}>
             <div className="flex justify-between  w-full items-center">
               <span className="">
                 <OutlineUsersIcon />
@@ -58,7 +58,7 @@ export function PayButtons({ setShowPaymentOptions }: { setShowPaymentOptions?: 
               <span className="text-base"> Pagar por usuario</span>
               <span />
             </div>
-          </LinkButton>
+          </LinkButton> */}
           <LinkButton to="pay/equal-parts" onClick={handleSplitPay}>
             <div className="flex justify-between  w-full items-center">
               <span className="">

@@ -6,6 +6,7 @@ import introJs from 'intro.js'
 import 'intro.js/introjs.css'
 
 import { HelpWithoutOrder } from '../help'
+import { RestaurantInfoCardV2 } from '../restaurant-info-card'
 
 // * MODELS
 // * CUSTOM COMPONENTS
@@ -19,6 +20,7 @@ export function EmptyOrder({
   usersInTable,
   isOrderActive,
   exclude,
+  user,
 }: {
   branch: any
   menu: any
@@ -27,36 +29,37 @@ export function EmptyOrder({
   usersInTable: any
   isOrderActive: boolean
   exclude: string
+  user?: any
 }) {
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      introJs()
-        .setOptions({
-          isActive: !isOrderActive ? true : false,
-          showProgress: true,
-          dontShowAgain: true,
-          dontShowAgainLabel: 'No volver a mostrar',
-          dontShowAgainCookieDays: 1,
-          buttonClass: 'bg-button-primary rounded-lg text-white px-4 py-2',
-        })
-        .start()
-    }, 1500) // 2 seconds delay
+  // useEffect(() => {
+  //   const timer = setTimeout(() => {
+  //     introJs()
+  //       .setOptions({
+  //         isActive: !isOrderActive ? true : false,
+  //         showProgress: true,
+  //         dontShowAgain: true,
+  //         dontShowAgainLabel: 'No volver a mostrar',
+  //         dontShowAgainCookieDays: 1,
+  //         buttonClass: 'bg-button-primary rounded-lg text-white px-4 py-2',
+  //       })
+  //       .start()
+  //   }, 1500) // 2 seconds delay
 
-    // Cleanup function to clear the timer when the component unmounts or when isOrderActive changes
-    return () => clearTimeout(timer)
-  }, [isOrderActive])
+  //   // Cleanup function to clear the timer when the component unmounts or when isOrderActive changes
+  //   return () => clearTimeout(timer)
+  // }, [isOrderActive])
 
   return (
     <main>
-      <RestaurantInfoCard branch={branch} menu={menu} error={error} isOrderActive={isOrderActive} />
-      <Spacer spaceY="2" />
+      <RestaurantInfoCardV2 branch={branch} menu={menu} error={error} isOrderActive={isOrderActive} user={user} tableNumber={tableNumber} />
+      {/* <Spacer spaceY="2" />
 
       <div className="w-full flex flex-row items-center justify-center space-x-2">
         <div className="h-[0.4px] w-full bg-zinc-200" />
         <h3 className="flex justify-center pr-2 text-sm text-secondaryTextDark shrink-0">{`Mesa ${tableNumber}`}</h3>
         <div className="h-[0.4px] w-full bg-zinc-200" />
-      </div>
-      <Spacer spaceY="1" />
+      </div> */}
+      <Spacer spaceY="2" />
 
       {/* <H5 className="flex justify-center w-full ">Aún no existe una orden con platillos.</H5> */}
       {/* <Spacer spaceY="3">
@@ -80,9 +83,9 @@ export function EmptyOrder({
       {usersInTable && (
         <SectionContainer
           className="flex flex-col justify-start p-2 rounded-lg dark:bg-DARK_1 dark:bg-night-bg_principal dark:text-night-text_principal bg-day-bg_principal"
-          data-intro="Aquí puedes ver quién está en la mesa"
-          data-step="3"
-          data-title="Usuarios"
+          // data-intro="Aquí puedes ver quién está en la mesa"
+          // data-step="3"
+          // data-title="Usuarios"
         >
           <p className="text-DARK_3">Usuarios en la mesa</p>
           <Spacer spaceY="2">

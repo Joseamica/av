@@ -28,6 +28,7 @@ const branchSchema = z.object({
   id: z.string(),
   name: z.string().min(1).max(50),
   image: z.string().trim().url().optional(),
+  logo: z.string().trim().url().optional(),
   stripeAccountId: z.string().min(1).max(50).optional(),
 
   address: z.string().min(1).max(200),
@@ -98,6 +99,7 @@ export async function action({ request, params }: ActionArgs) {
     data: {
       name: submission.value.name,
       image: submission.value.image,
+      logo: submission.value.logo,
       stripeAccountId: submission.value.stripeAccountId,
       address: submission.value.address,
       extraAddress: submission.value.extraAddress,
@@ -224,6 +226,15 @@ export default function Index() {
               defaultValue: data.branch ? data.branch.image : '',
             }}
             errors={[fields?.image.errors]}
+          />
+          <Field
+            labelProps={{ children: 'Logo' }}
+            inputProps={{
+              ...conform.input(fields.logo, { type: 'url' }),
+              required: true,
+              defaultValue: data.branch ? data.branch.logo : '',
+            }}
+            errors={[fields?.logo.errors]}
           />
           <Field
             labelProps={{ children: 'Stripe Account Id' }}

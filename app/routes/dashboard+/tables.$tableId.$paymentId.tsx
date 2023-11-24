@@ -100,6 +100,10 @@ export default function TablePaymentId() {
             <H3>{data.payment?.user?.name}</H3>
           </FlexRow>
           <FlexRow justify="between" className="py-2">
+            <H3>Metodo</H3>
+            <H3>{data.payment?.method}</H3>
+          </FlexRow>
+          <FlexRow justify="between" className="py-2">
             <H3>Monto</H3>
             <H3>{formatCurrency(data.currency, data.payment?.amount)}</H3>
           </FlexRow>

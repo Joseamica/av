@@ -44,6 +44,7 @@ import {
   SwitchButton,
   UsersIcon,
 } from '~/components/index'
+import { RestaurantInfoCardV2 } from '~/components/restaurant-info-card'
 
 type LoaderData = {
   order: Order & any
@@ -203,6 +204,7 @@ export async function loader({ request, params }: LoaderArgs) {
     orderExpired,
     paymentNotification,
     userId: user.userId,
+    user: user,
   })
 }
 
@@ -322,9 +324,9 @@ export default function Table() {
         {/* {data.paymentNotification && <p>hola</p>} */}
         {/* <Help /> */}
 
-        <RestaurantInfoCard branch={data.branch} menu={data.menu} error={data.error} />
-        <Spacer spaceY="2" />
-        <h3 className="flex justify-center text-sm text-secondaryTextDark shrink-0">{`Mesa ${data.table.number}`}</h3>
+        <RestaurantInfoCardV2 branch={data.branch} menu={data.menu} error={data.error} tableNumber={data.table.number} user={data.user} />
+        {/* <Spacer spaceY="2" />
+        <h3 className="flex justify-center text-sm text-secondaryTextDark shrink-0">{`Mesa ${data.table.number}`}</h3>*/}
         <Spacer spaceY="2" />
         <BillAmount
           amountLeft={data.amountLeft}
@@ -383,6 +385,7 @@ export default function Table() {
         usersInTable={data.usersInTable}
         isOrderActive={data.order?.active}
         exclude="report"
+        user={data.user}
       />
     )
   }

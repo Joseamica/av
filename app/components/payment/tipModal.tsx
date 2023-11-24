@@ -59,7 +59,7 @@ function TipModal() {
                 <input type="radio" name="tipPercentage" value={tipPercentage} onChange={handleTipChange} className="sr-only" />
               </label>
             ))}
-          <div>
+          {/* <div>
             <button
               type="button"
               className={clsx(
@@ -76,7 +76,7 @@ function TipModal() {
                 <H3>{!tipsPercentages.includes(tipRadio.toString()) ? tipRadio.toString() + '%' : 'Editar'}</H3>
               </FlexRow>
             </button>
-          </div>
+          </div> */}
         </div>
         {/* <Spacer spaceY="2" />
         <div className="cursor-pointer flex w-full flex-row items-center justify-center space-x-2 rounded-lg border border-button-outline border-opacity-40 px-3 py-2 shadow-lg">
