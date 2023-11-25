@@ -35,7 +35,7 @@ export const loader = async ({ params, request }: LoaderArgs) => {
   const amount = Number(total) - Number(tip)
 
   const employees = await prisma.employee.findMany({
-    where: { branchId: branchId, active: true, role: 'waiter', phone: { startsWith: '521' } },
+    where: { branchId: branchId, active: true, phone: { startsWith: '521' } },
   })
   const employeesNumbers = employees.map(employee => employee.phone)
 
