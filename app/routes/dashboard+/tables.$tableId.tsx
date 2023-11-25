@@ -1,7 +1,6 @@
-import { CheckCircledIcon, ClockIcon } from '@radix-ui/react-icons'
-import { Form, Link, Outlet, useLoaderData, useNavigate, useParams, useSearchParams } from '@remix-run/react'
+import { Form, Link, Outlet, useNavigate, useParams, useSearchParams } from '@remix-run/react'
 import React from 'react'
-import { FaCheck, FaCheckCircle, FaClock, FaMoneyBill, FaRegClock } from 'react-icons/fa'
+import { FaCheckCircle, FaClock, FaMoneyBill, FaRegClock } from 'react-icons/fa'
 import { IoCard, IoCardOutline, IoList, IoPerson, IoShieldCheckmarkOutline } from 'react-icons/io5'
 
 import { type ActionArgs, type LoaderArgs, json } from '@remix-run/node'
@@ -18,7 +17,6 @@ import { formatCurrency, getCurrency } from '~/utils'
 import { Button, FlexRow, H4, H5, H6, LinkButton, Modal, Spacer } from '~/components'
 import { NavMenu } from '~/components/dashboard/navmenu'
 import { SearchBar } from '~/components/dashboard/searchbar'
-import { SwitchDashboard } from '~/components/dashboard/switch'
 import { SubModal } from '~/components/modal'
 
 export async function loader({ request, params }: LoaderArgs) {
@@ -204,7 +202,7 @@ export default function TableId() {
             <FlexRow justify="between">
               <FlexRow>
                 <FaRegClock />
-                <H5>Queda por pagar: </H5>
+                <H5>Pendiente por pagar: </H5>
               </FlexRow>
               <H4 boldVariant="semibold">{formatCurrency(data.currency, orderTotal - paidTotal)}</H4>
             </FlexRow>
@@ -270,7 +268,7 @@ export default function TableId() {
                     <div key={payment.id}>
                       <Payment
                         to={payment.id}
-                        name={payment.user.name.slice(-3).toUpperCase()}
+                        name={payment.user?.name ? payment.user.name : 'Mesero'}
                         createdAt={payment.createdAt}
                         method={payment.method}
                         tip={payment.tip}
@@ -645,7 +643,7 @@ export function AddPaymentModal({ showAddPayment, setShowAddPayment }) {
       <Form method="POST" className="flex flex-col space-y-2" onSubmit={() => setShowAddPayment(false)}>
         <select name="method" className="flex flex-row items-center w-full px-4 py-2 bg-componentBg dark:bg-DARK_0 ">
           <option value="cash">Efectivo</option>
-          <option value="card">Tarjeta</option>
+          <option value="card">Tarjeta por terminal física</option>
         </select>
         <div className="flex flex-row items-center w-full px-4 py-2 bg-componentBg dark:bg-DARK_0 ">
           <label htmlFor="custom" className={clsx('bg-componentBg dark:bg-DARK_0 dark:text-mainTextDark text-6xl text-[#9CA3AF]')}>
