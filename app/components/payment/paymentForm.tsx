@@ -84,7 +84,7 @@ export function PaymentForm() {
               <Spacer spaceY="2" />
               <FlexRow justify="between" className="">
                 <H5>Avoqado service</H5>
-                <H5 className="border rounded-full px-3 bg-[#F7FAFC]">{formatCurrency(context.currency, context.avoqadoFee)}</H5>
+                <H4 className="border rounded-full px-3 bg-[#F7FAFC]">{formatCurrency(context.currency, context.avoqadoFee)}</H4>
               </FlexRow>
               <Spacer spaceY="1" />
               <hr />

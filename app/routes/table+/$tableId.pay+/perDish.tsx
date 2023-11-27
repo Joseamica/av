@@ -77,7 +77,9 @@ export default function PerDish() {
         }}
       >
         <Form method="POST" preventScrollReset>
-          <H5 className="px-2 text-end">Selecciona los platillos que deseas pagar</H5>
+          <H5 className="px-2 pt-1 text-end" variant="secondary">
+            Selecciona los platillos que deseas pagar
+          </H5>
           <div className="p-2 space-y-2">
             {data.cartItems?.map((item: CartItem, index: number) => {
               return (
@@ -87,9 +89,9 @@ export default function PerDish() {
                   // showCollapse={true}
                 >
                   <FlexRow>
-                    <H4>{item.quantity}</H4>
+                    {/* <H4>{item.quantity}</H4> */}
                     <H3>{item.name}</H3>
-                    <div className="flex flex-row space-x-2 items-center">
+                    <div className="flex flex-row space-x-2 items-center border rounded-full px-3  bg-[#F7FAFC]">
                       {item?.user?.map(u => {
                         return (
                           <H5 variant="secondary" key={u.id}>

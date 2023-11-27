@@ -1,4 +1,7 @@
 import { Form, useLoaderData, useNavigate } from '@remix-run/react'
+import { useState } from 'react'
+import { FaCheck } from 'react-icons/fa'
+import { IoCheckbox, IoCheckmark } from 'react-icons/io5'
 
 import type { ActionArgs, LoaderArgs } from '@remix-run/node'
 import { json, redirect } from '@remix-run/node'
@@ -14,7 +17,7 @@ import { getTable } from '~/models/table.server'
 
 import { EVENTS } from '~/events'
 
-import { Button, FlexRow, ItemContainer, Modal } from '~/components'
+import { Button, FlexRow, ItemContainer, Modal, Spacer } from '~/components'
 
 export async function action({ request, params }: ActionArgs) {
   const { tableId } = params
@@ -67,7 +70,10 @@ export async function loader({ request, params }: LoaderArgs) {
 export default function Help() {
   const data = useLoaderData()
   const navigate = useNavigate()
-
+  const [selectedWaiters, setSelectedWaiters] = useState({})
+  const handleCheckboxChange = waiterId => {
+    setSelectedWaiters(prev => ({ ...prev, [waiterId]: !prev[waiterId] }))
+  }
   const onClose = () => {
     navigate('..', { preventScrollReset: true })
   }
@@ -76,23 +82,38 @@ export default function Help() {
     <Modal title="Llama al mesero" onClose={onClose}>
       <Form method="POST" className="p-2 space-y-2">
         {data.waiters?.map((waiter: Employee) => (
-          <ItemContainer key={waiter.id} className="flex flex-row items-center space-x-2">
+          <ItemContainer key={waiter.id} className="flex flex-row items-center space-x-2 bg-white ">
             <FlexRow className="items-center space-x-4">
               {/* <img className="w-10 h-10 rounded-full" src={waiter.image} alt={waiter.name} /> */}
-              <label className="text-base" htmlFor={waiter.id}>
+              <label className="text-base font-semibold" htmlFor={waiter.id}>
                 {waiter.name}
               </label>
-              <span className="px-2 text-sm text-white rounded-full bg-button-primary ring ring-button-outline">
-                {waiter.role ? 'Mesero' : ''}
-              </span>
+              <span className="border rounded-full px-3  bg-[#F7FAFC]">{waiter.role ? 'Mesero' : ''}</span>
             </FlexRow>
-            <input type="checkbox" name="phones" id={waiter.id} value={waiter.phone} />
+            <input
+              type="checkbox"
+              name="phones"
+              id={`checkbox-${waiter.id}`}
+              value={waiter.phone}
+              className="sr-only"
+              onChange={() => handleCheckboxChange(waiter.id)}
+              checked={selectedWaiters[waiter.id] || false}
+            />
+            <label htmlFor={`checkbox-${waiter.id}`} className="flex items-center cursor-pointer">
+              <div
+                className={`w-7 h-7 border border-gray-400 rounded-full flex justify-center items-center ${
+                  selectedWaiters[waiter.id] ? 'bg-button-primary' : ''
+                }`}
+              >
+                {selectedWaiters[waiter.id] ? <IoCheckmark className="fill-white text-white" /> : null}
+              </div>
+            </label>
             <input type="hidden" name="ids" id={waiter.id} value={waiter.id} />
             <input type="hidden" name="names" id={waiter.name} value={waiter.name} />{' '}
           </ItemContainer>
         ))}
         {data.waiters?.length === 0 && <p className="text-center">Esta mesa no tiene meseros asignados</p>}
-        {/* <Spacer spaceY="2" /> */}
+
         <Button className="w-full" size="medium">
           Llamar al mesero
         </Button>

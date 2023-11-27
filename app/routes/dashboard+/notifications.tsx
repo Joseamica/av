@@ -1,9 +1,12 @@
+import { CheckCircledIcon, ClockIcon } from '@radix-ui/react-icons'
 import { Link, Outlet, useFetcher, useNavigate } from '@remix-run/react'
-import { FaMoneyBill } from 'react-icons/fa'
-import { IoCall, IoFastFood, IoPersonCircle } from 'react-icons/io5'
+import { useState } from 'react'
+import { FaCheck, FaCheckCircle, FaMoneyBill, FaStripe, FaStripeS } from 'react-icons/fa'
+import { IoCall, IoCard, IoFastFood, IoPersonCircle } from 'react-icons/io5'
 
 import { type ActionArgs, type LoaderArgs, json } from '@remix-run/node'
 
+import clsx from 'clsx'
 import { prisma } from '~/db.server'
 import { getSession } from '~/session.server'
 import { useLiveLoader } from '~/use-live-loader'
@@ -12,7 +15,7 @@ import { EVENTS } from '~/events'
 
 import { formatCurrency } from '~/utils'
 
-import { FlexRow, H2, H3, H5, H6 } from '~/components'
+import { FlexRow, H2, H3, H4, H5, H6, Modal, Spacer, Underline } from '~/components'
 
 export const handle = {
   sub: true,
@@ -36,7 +39,15 @@ export async function loader({ request, params }: LoaderArgs) {
       table: true,
       payment: true,
       user: true,
-      order: { include: { cartItems: true } },
+      order: {
+        include: {
+          cartItems: {
+            include: {
+              productModifiers: true,
+            },
+          },
+        },
+      },
     },
     orderBy: {
       createdAt: 'desc',
@@ -84,6 +95,7 @@ export default function Notifications() {
   // const navigate = useNavigate()
   // const fetcher = useFetcher()
   // const isSubmitting = fetcher.state !== 'idle'
+  const [showOrderModal, setShowOrderModal] = useState({ id: '' })
   const groupedNotifications = data.notifications.reduce((groups, notification) => {
     const age = getNotificationAge(notification.createdAt)
     if (!groups[age]) {
@@ -102,7 +114,7 @@ export default function Notifications() {
         {Object.entries(groupedNotifications).map(([age, notifications]) => (
           <div key={age} className="py-1">
             <H3>{age}</H3>
-            <div className="space-y-2 rounded-lg">
+            <div className="space-y-1 rounded-lg">
               {notifications.map(notification => {
                 const tableNumber = notification.table ? notification.table.number : ''
 
@@ -113,43 +125,82 @@ export default function Notifications() {
                 const tip = notification.payment ? notification.payment.tip : 0
                 const paymentTotal = notification.payment ? notification.payment.total : 0
 
+                const method = notification.payment
+                  ? notification.payment.method === 'cash'
+                    ? 'Efectivo'
+                    : notification.payment.method === 'terminal'
+                    ? 'Terminal'
+                    : notification.payment.method === 'card'
+                    ? 'Stripe'
+                    : null
+                  : null
+
                 return (
-                  <div className="flex flex-row items-center h-16 px-2 space-x-2 bg-white border rounded-lg" key={notification.id}>
+                  <div
+                    className={clsx('flex flex-row items-center h-[70px] px-2 space-x-2 bg-white border rounded-lg', {
+                      // 'bg-yellow-500 border-2': notification.payment?.status === 'pending',
+                    })}
+                    key={notification.id}
+                  >
                     {/* <H6>{formattedDate}</H6> */}
                     {payment ? (
                       <Link
                         to={`/dashboard/tables/${notification.table.id}/${notification.paymentId}`}
                         className="flex flex-row items-center justify-between w-full space-x-3"
                       >
-                        <FlexRow className="gap-2">
-                          <div className="flex flex-col items-center">
-                            <div className="flex items-center justify-center w-8 h-8 bg-white border rounded-full">
-                              <FaMoneyBill className="fill-success" />
+                        <FlexRow className="">
+                          <div className="flex flex-col items-center  w-14 ">
+                            <div className="flex items-center justify-center w-8 h-8 bg-green-700 border rounded-full">
+                              {notification.payment?.method === 'cash' ? (
+                                <FaMoneyBill className="fill-white" />
+                              ) : notification.payment?.method === 'terminal' ? (
+                                <IoCard className="fill-white" />
+                              ) : notification.payment?.method === 'card' ? (
+                                <FaStripeS className="fill-white" />
+                              ) : null}
                             </div>
-                            <H6 variant="secondary">Pago</H6>
+                            <H6 variant="secondary">{method}</H6>
+                          </div>
+                          <div className="p-1  rounded-xl shrink-0">
+                            <H6>Mesa {tableNumber}</H6>
+
+                            {/* <IoPersonCircle className="w-3 h-3" /> */}
+                            <H6 className="">{notification.user?.name}</H6>
+
+                            {/* {notification.payment?.status === 'pending' ? <ClockIcon className="w-3 h-3" /> : null} */}
+                          </div>
+                          <div className="flex flex-row items-center space-x-1 ">
+                            <H6 className="px-1">
+                              Monto <span className="font-bold text-xs">{formatCurrency('$', amount)}</span>
+                            </H6>
+                            •
+                            <H6 className="px-1">
+                              Propina <span className="font-bold text-xs">{formatCurrency('$', tip)}</span>
+                            </H6>
+                            •
+                            <H6 className="px-1">
+                              Total <span className="font-bold text-xs">{formatCurrency('$', paymentTotal)}</span>
+                            </H6>
                           </div>
                           <div>
-                            <H5>Mesa {tableNumber}</H5>
-                            <FlexRow>
-                              <IoPersonCircle className="w-3 h-3" />
-                              <H6 className="">{notification.user?.name}</H6>
-                            </FlexRow>
+                            {notification.payment?.status === 'pending' ? (
+                              <ClockIcon className="text-yellow-500" />
+                            ) : (
+                              <FaCheckCircle className="text-success" />
+                            )}
                           </div>
                         </FlexRow>
-                        <div>{notification.payment?.status === 'pending' ? <H6 variant="secondary">Aceptación pendiente</H6> : null}</div>
-                        <div className="flex flex-col justify-between px-1 ">
-                          <H6>Monto {formatCurrency('$', amount)}</H6>
-                          <H6>Propina {formatCurrency('$', tip)}</H6>
-                          <H6>Total {formatCurrency('$', paymentTotal)}</H6>
-                        </div>
                       </Link>
                     ) : null}
                     {order ? (
-                      <div className="flex flex-row items-center justify-between w-full space-x-2">
-                        <FlexRow className="gap-2">
-                          <div className="flex flex-col items-center">
-                            <div className="flex items-center justify-center w-8 h-8 bg-white border rounded-full">
-                              <IoFastFood className="fill-yellow-400" />
+                      <button
+                        onClick={() => setShowOrderModal({ id: notification.id })}
+                        className="flex flex-row items-center justify-between w-full space-x-3"
+                      >
+                        <FlexRow className="">
+                          <div className="flex flex-col items-center  w-14 ">
+                            <div className="flex items-center justify-center w-8 h-8 bg-purple-400 border rounded-full">
+                              <IoFastFood className="fill-white" />
                             </div>
                             <H6 variant="secondary">Orden</H6>
                           </div>
@@ -162,9 +213,11 @@ export default function Notifications() {
                           </div>
                         </FlexRow>
                         <div>
-                          <span>Ordeno: {notification.order?.cartItems.length} platillos</span>
+                          <span>
+                            Ordeno: {notification.order?.cartItems.reduce((acc, cartItem) => acc + cartItem.quantity, 0)} productos
+                          </span>
                         </div>
-                      </div>
+                      </button>
                     ) : null}
                     {call ? (
                       <Link
@@ -172,7 +225,7 @@ export default function Notifications() {
                         className="flex flex-row items-center justify-between w-full space-x-3"
                       >
                         <FlexRow className="gap-2">
-                          <div className="flex flex-col items-center">
+                          <div className="flex flex-col items-center w-14 ">
                             <div className="flex items-center justify-center w-8 h-8 bg-white border rounded-full">
                               <IoCall className="fill-warning" />
                             </div>
@@ -202,44 +255,64 @@ export default function Notifications() {
         ))}
       </div>
 
-      {/* <table>
-        <thead>
-          <tr>
-            <th className="p-1 text-xs text-center border">Fecha</th>
-            <th className="p-1 text-xs text-center border">Tipo de solicitud</th>
+      {showOrderModal.id && (
+        <Modal
+          title={data.notifications.find(notification => notification.id === showOrderModal.id).order?.cartItems?.length + ' productos'}
+          onClose={() =>
+            setShowOrderModal({
+              id: '',
+            })
+          }
+        >
+          <div className="p-4">
+            <H2>Orden</H2>
+            <div className="p-2 space-y-2 border rounded-xl bg-white">
+              {data.notifications
+                .find(notification => notification.id === showOrderModal.id)
+                .order?.cartItems?.map((cartItem: any) => {
+                  return (
+                    <div key={cartItem.id} className="flex flex-col ">
+                      <FlexRow>
+                        <H4>{cartItem.quantity}</H4>
+                        <H3>{cartItem.name}</H3>
+                        <H3>{formatCurrency('$', cartItem.price)}</H3>
+                      </FlexRow>
+                      <div>
+                        {cartItem.productModifiers.map(pm => {
+                          return (
+                            <div key={pm.id} className="flex flex-row space-x-2">
+                              <H6>{pm.name}</H6>
+                              <H6>{formatCurrency('$', pm.extraPrice)}</H6>
+                            </div>
+                          )
+                        })}
+                      </div>
+                    </div>
+                  )
+                })}
+            </div>
+            <Spacer size="md" />
+            <hr />
+            <Spacer size="md" />
 
-            <th className="p-1 text-xs text-center border">Mensaje</th>
-            <th className="p-1 text-xs text-center border"></th>
-          </tr>
-        </thead>
-        <tbody>
-          {data.notifications.map(notification => {
-            const formattedDate = new Date(notification.createdAt).toLocaleDateString('en-US')
-            const payment = notification.type_temp === 'PAYMENT'
-            const order = notification.type_temp === 'ORDER'
-            return (
-              <tr
-                key={notification.id}
-                // onClick={() => navigate(payment ? '/dashboard/payments' : order ? '/dashboard/orders?active=true' : '')}
-                className=""
-              >
-                <td className="p-1 text-xs text-center border">{formattedDate}</td>
-                <td className="p-1 text-xs text-center border">{translate(notification.type_temp)}</td>
-
-                <td className="p-1 text-xs text-center border">{notification.message}</td>
-                <td className="flex items-center justify-center p-1">
-                  <fetcher.Form method="POST">
-                    <button disabled={isSubmitting}>
-                      <DeleteIcon />
-                    </button>
-                    <input type="hidden" name="notificationId" value={notification.id} />
-                  </fetcher.Form>
-                </td>
-              </tr>
-            )
-          })}
-        </tbody>
-      </table> */}
+            <FlexRow>
+              <H2>Total</H2>
+              <H3>
+                <Underline>
+                  {formatCurrency(
+                    '$',
+                    data.notifications
+                      .find(notification => notification.id === showOrderModal.id)
+                      .order?.cartItems?.reduce((acc, cartItem) => {
+                        return acc + cartItem.price * cartItem.quantity
+                      }, 0),
+                  )}
+                </Underline>
+              </H3>
+            </FlexRow>
+          </div>
+        </Modal>
+      )}
       <Outlet />
     </div>
   )
@@ -273,12 +346,12 @@ const getNotificationAge = createdAt => {
   const oneDay = oneHour * 24
 
   if (diffMs < oneHour) {
-    return 'New'
+    return 'Nuevo'
   } else if (diffMs < oneDay) {
-    return 'Today'
+    return 'Hoy'
   } else if (diffMs < oneDay * 7) {
-    return 'Last 7 days'
+    return 'Ultimos 7 días'
   } else {
-    return 'Last 30 days'
+    return 'Ultimos 30 días'
   }
 }

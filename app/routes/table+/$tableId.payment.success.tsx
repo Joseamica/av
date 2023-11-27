@@ -107,6 +107,25 @@ export const loader = async ({ params, request }: LoaderArgs) => {
       }`,
     })
   } else if (paymentMethod === 'card') {
+    await prisma.notification.create({
+      data: {
+        message: ` El cliente ${username} de la mesa ${
+          table.number
+        } quiere pagar con la terminal un monto: $${total}, propina: ${tip} un total de ${total + tip} pesos`,
+        type: 'informative',
+        branchId: branchId,
+        tableId: tableId,
+        userId: userId,
+        orderId: order.id,
+        paymentId: payment.id,
+        status: 'pending',
+        type_temp: 'PAYMENT',
+        employees: {
+          connect: employees.map(employee => ({ id: employee.id })),
+        },
+      },
+    })
+
     console.log(
       `Usuario \x1b[34m${username}\x1b[0m de la mesa \x1b[32m${
         table.number
