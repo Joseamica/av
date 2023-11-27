@@ -18,7 +18,7 @@ import { getOrder } from '~/models/order.server'
 import { getAmountLeftToPay, getCurrency } from '~/utils'
 import { handlePaymentProcessing } from '~/utils/payment-processing.server'
 
-import { H5, QuantityManagerButton } from '~/components'
+import { H5, H6, QuantityManagerButton } from '~/components'
 import { Modal } from '~/components/modal'
 import Payment from '~/components/payment/paymentV3'
 
@@ -74,15 +74,13 @@ export default function EqualParts() {
           // onChange={handleChange}
           className=""
         >
-          <H5 variant="secondary" className="mr-2 text-end xs:text-sm">
-            Elige personas en mesa y cuántas pagarás.
-          </H5>
+          {/* <H5 variant="secondary" className="mr-2 text-end xs:text-sm"></H5> */}
           <div className="p-4  xs:flex xs:h-1/4 xs:flex-row xs:items-center xs:p-2">
             <div className="z-0 flex flex-row justify-center p-4 space-x-2 ">
               {/* Add more circles with decreasing radius and increasing stroke width */}
 
               <AnimatePresence>
-                <div className="relative h-52 w-52 md:h-32 md:w-32 xs:h-16 xs:w-16 ">
+                <div className="relative h-56 w-56 md:h-32 md:w-32 xs:h-16 xs:w-16 ">
                   <svg className="-rotate-90 fill-none" viewBox="0 0 36 36">
                     <motion.circle
                       initial={{ strokeDashoffset: 0, opacity: 0 }}
@@ -126,8 +124,8 @@ export default function EqualParts() {
             <div className="flex flex-col p-2 space-y-2 xs:space-y-1">
               <div className="flex flex-row items-center justify-between space-y-2 xs:space-x-2 ">
                 <div className="flex flex-col items-center">
-                  <p className="text-md shrink-0 xs:text-xs">Personas en</p>
-                  <p className="text-md shrink-0 xs:text-xs"> la mesa</p>
+                  <p className="text-sm shrink-0 xs:text-xs">Personas en la mesa</p>
+                  {/* <p className="text-xs shrink-0 xs:text-xs"> </p> */}
                 </div>
 
                 <QuantityManagerButton
@@ -141,7 +139,7 @@ export default function EqualParts() {
 
               {/* <Divider /> */}
               <div className="flex flex-row items-center justify-between space-y-2 ">
-                <p className="text-md xs:text-xs">Pagando por</p>
+                <p className="text-sm xs:text-xs">Pagando por</p>
                 <QuantityManagerButton quantity={payingFor} setQuantity={setPayingFor} disabledPlus={personQuantity === payingFor} />
               </div>
             </div>

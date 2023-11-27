@@ -1,6 +1,7 @@
 import { Outlet, useFetcher, useLoaderData, useNavigate, useNavigation, useParams } from '@remix-run/react'
 import React, { useState } from 'react'
-import { FaHourglassHalf } from 'react-icons/fa'
+import { FaClock, FaHourglassHalf } from 'react-icons/fa'
+import { IoCardOutline } from 'react-icons/io5'
 
 import { json, redirect } from '@remix-run/node'
 import type { ActionArgs, LoaderArgs } from '@remix-run/server-runtime'
@@ -403,14 +404,14 @@ export default function Cart() {
           }}
         >
           {!showPaymentOptions ? (
-            <div className="p-2">
+            <div className="py-2 px-4">
               <SwitchButton
                 state={payNow}
                 setToggle={setPayNow}
                 leftText="Pagar después"
                 rightText="Pagar ahora"
-                rightIcon={<CashIcon className="fill-white" />}
-                leftIcon={<FaHourglassHalf />}
+                rightIcon={<IoCardOutline />}
+                leftIcon={<FaClock />}
                 stretch
                 height="medium"
                 corner="none"
@@ -423,7 +424,10 @@ export default function Cart() {
               <div className="space-y-2">
                 {data.cartItems?.map((items: CartItem, index: number) => {
                   return (
-                    <ItemContainer key={index} className="flex flex-row items-center justify-between space-x-2 rounded-full ">
+                    <article
+                      key={index}
+                      className="flex flex-row items-center justify-between space-x-2 rounded-3xl bg-white h-16 container border-2 px-2 "
+                    >
                       <input type="hidden" name="variantId" value={item} />
                       <FlexRow justify="between" className="w-full pr-2">
                         <H4>{items.name}</H4>
@@ -438,7 +442,7 @@ export default function Cart() {
                         decreaseValue="decreaseQuantity"
                         increaseValue="increaseQuantity"
                       />
-                    </ItemContainer>
+                    </article>
                   )
                 })}
               </div>
@@ -448,12 +452,12 @@ export default function Cart() {
               <div className="sticky bottom-0 p-2 border-t rounded-t-lg border-x bg-day-bg_principal">
                 <FlexRow justify="between" className="px-2">
                   <H4>Numero de platillos: </H4>
-                  <H3>{cartItemsQuantity}</H3>
+                  <H4>{cartItemsQuantity}</H4>
                 </FlexRow>
                 <FlexRow justify="between" className="px-2">
                   <H4>Total: </H4>
                   <Underline>
-                    <H2>{formatCurrency(data.currency, data.cartItemsTotal)}</H2>
+                    <H4>{formatCurrency(data.currency, data.cartItemsTotal)}</H4>
                   </Underline>
                 </FlexRow>
                 <Spacer spaceY="3" />

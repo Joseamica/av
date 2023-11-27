@@ -171,7 +171,7 @@ export default function TableId() {
     0,
   )
 
-  const paidTotal = data.payments.filter(payment => payment.status === 'accepted').reduce((acc, item) => acc + Number(item.total), 0)
+  const paidTotal = data.payments.filter(payment => payment.status === 'accepted').reduce((acc, item) => acc + Number(item.amount), 0)
 
   React.useEffect(() => {
     const filteredPayments = data.payments.filter(
@@ -193,16 +193,24 @@ export default function TableId() {
           <div className="flex flex-col p-3 my-1 space-y-1 bg-white rounded-lg">
             <FlexRow justify="between">
               <FlexRow>
-                <IoCardOutline />
-                <H5>Total pagado: </H5>
+                <IoList />
+                <H5>Total de la orden: </H5>
+              </FlexRow>
+              <H4 boldVariant="semibold">{formatCurrency(data.currency, data.table.order.total)}</H4>
+            </FlexRow>
+            <hr />
+            <FlexRow justify="between">
+              <FlexRow>
+                <IoCardOutline className="text-green-700" />
+                <H5 className="text-green-700">Total pagado: </H5>
               </FlexRow>
               <H4 boldVariant="semibold">{formatCurrency(data.currency, paidTotal)}</H4>
             </FlexRow>
             <hr />
             <FlexRow justify="between">
               <FlexRow>
-                <FaRegClock />
-                <H5>Pendiente por pagar: </H5>
+                <FaRegClock className="text-yellow-500" />
+                <H5 className="text-yellow-500">Pendiente por pagar: </H5>
               </FlexRow>
               <H4 boldVariant="semibold">{formatCurrency(data.currency, orderTotal - paidTotal)}</H4>
             </FlexRow>

@@ -52,10 +52,10 @@ export function PaymentForm() {
 
   return (
     <>
-      <div className="dark:bg-night-bg_principal dark:text-night-text_principal sticky inset-x-0 bottom-0 flex flex-col justify-center rounded-t-xl border-2 border-button-textNotSelected border-opacity-70 bg-day-bg_principal px-3">
+      <div className="dark:bg-night-bg_principal dark:text-night-text_principal sticky inset-x-0 bottom-0 flex flex-col justify-center  border-button-textNotSelected border-opacity-70 bg-day-bg_principal px-3">
         <Spacer spaceY="2" />
         <FlexRow justify="between" className={clsx({ 'py-2': !showPayContent })}>
-          {showPayContent ? <H5>Queda por pagar en la mesa:</H5> : <H3>Queda por pagar:</H3>}
+          {showPayContent ? <H5>Pendiente por pagar en la mesa:</H5> : <H3>Pendiente por pagar:</H3>}
           {showPayContent ? (
             <H4>{formatCurrency(context.currency, context.amountLeft ? context.amountLeft : context.total)}</H4>
           ) : (
@@ -81,26 +81,28 @@ export function PaymentForm() {
 
               <Payment.TipButton />
 
+              <Spacer spaceY="2" />
+              <FlexRow justify="between" className="">
+                <H5>Avoqado service</H5>
+                <H5 className="border rounded-full px-3 bg-[#F7FAFC]">{formatCurrency(context.currency, context.avoqadoFee)}</H5>
+              </FlexRow>
               <Spacer spaceY="1" />
               <hr />
-              <Spacer spaceY="1" />
 
-              <FlexRow justify="between">
-                <H5>Avoqado service</H5>
-                <H4>{formatCurrency(context.currency, context.avoqadoFee)}</H4>
-              </FlexRow>
               <Spacer spaceY="1" />
               {/* <hr /> */}
 
-              {/* <Spacer spaceY="1" /> */}
+              <Spacer spaceY="1" />
               <FlexRow justify="between">
                 <Payment.PayTotal />
               </FlexRow>
 
               <Spacer spaceY="2" />
               <Button fullWith={true} disabled={isSubmitting} size="medium">
-                {isSubmitting ? 'Procesando...' : 'Pagar'} {formatCurrency(context.currency, context.total)}
+                {/* {isSubmitting ? 'Procesando...' : 'Pagar'} {formatCurrency(context.currency, context.total)} */}
+                {isSubmitting ? 'Procesando...' : 'Confirmar'}
               </Button>
+              <Spacer spaceY="2" />
             </motion.div>
           )}
         </AnimatePresence>

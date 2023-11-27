@@ -12,10 +12,10 @@ export function PayTotal() {
 
   return (
     <>
-      <H5>Vas a pagar:</H5>
+      <H3 boldVariant="semibold">Estás pagando</H3>
       <div className="flex flex-col">
         {/* <H2>{formatCurrency(context.currency, context.amountLeft ? context.amountLeft : 0)}</H2> */}
-        <H3>{formatCurrency(context.currency, context.total || 0)}</H3>
+        <H3 boldVariant="semibold">{formatCurrency(context.currency, context.total || 0)}</H3>
 
         <svg viewBox="0 0 72 6" fill="none" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none" className="_6c0fqz5 r7kwpu12">
           <path

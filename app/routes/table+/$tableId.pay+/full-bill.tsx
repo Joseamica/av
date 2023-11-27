@@ -139,14 +139,16 @@ export default function FullPay() {
         }}
       >
         <div>
-          <BillAmount
-            amountLeft={data.amountLeft}
-            currency={data.currency}
-            paidUsers={data.paidUsers}
-            total={data.total}
-            userId={data.userId}
-          />
-          <Spacer spaceY="2" />
+          <div className="p-2">
+            <BillAmount
+              amountLeft={data.amountLeft}
+              currency={data.currency}
+              paidUsers={data.paidUsers}
+              total={data.total}
+              userId={data.userId}
+            />
+          </div>
+          {/* <Spacer spaceY="2" /> */}
           <Form method="POST" preventScrollReset>
             <Payment.Form />
           </Form>

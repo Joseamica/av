@@ -59,30 +59,8 @@ function TipModal() {
                 <input type="radio" name="tipPercentage" value={tipPercentage} onChange={handleTipChange} className="sr-only" />
               </label>
             ))}
-          {/* <div>
-            <button
-              type="button"
-              className={clsx(
-                'flex w-full flex-row items-center justify-center space-x-2 rounded-full border border-button-outline border-opacity-40 px-3 py-1 text-center shadow-lg',
-                {
-                  'text-2 rounded-full bg-button-primary px-2 py-1  text-white  ring-4   ring-button-outline':
-                    tipRadio.toString() !== '0' && !tipsPercentages.includes(tipRadio.toString()),
-                },
-              )}
-              onClick={() => setShowEditTipModal(true)}
-            >
-              <FlexRow justify="between" className="w-full">
-                <H4>✍️ Otro</H4>
-                <H3>{!tipsPercentages.includes(tipRadio.toString()) ? tipRadio.toString() + '%' : 'Editar'}</H3>
-              </FlexRow>
-            </button>
-          </div> */}
         </div>
-        {/* <Spacer spaceY="2" />
-        <div className="cursor-pointer flex w-full flex-row items-center justify-center space-x-2 rounded-lg border border-button-outline border-opacity-40 px-3 py-2 shadow-lg">
-          <span>Otro</span>
-          <input type="text" onChange={handleTipChange} />
-        </div> */}
+
         <Spacer spaceY="4" />
         <H3 className="flex w-full flex-row justify-center">Tu propina: {formatCurrency(currency, tip)}</H3>
         <Spacer spaceY="2" />
