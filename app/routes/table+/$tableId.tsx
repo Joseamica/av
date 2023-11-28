@@ -1,7 +1,7 @@
-import { PlusIcon } from '@radix-ui/react-icons'
-import * as Tooltip from '@radix-ui/react-tooltip'
-import { Outlet, isRouteErrorResponse, useFetcher, useRouteError, useSubmit } from '@remix-run/react'
+import { Outlet, isRouteErrorResponse, useFetcher, useRouteError, useSearchParams, useSubmit } from '@remix-run/react'
 import { useEffect, useState } from 'react'
+import { FaStar } from 'react-icons/fa'
+import { IoHappy, IoHappyOutline } from 'react-icons/io5'
 
 import { type ActionArgs, type LoaderArgs, json } from '@remix-run/node'
 
@@ -17,14 +17,14 @@ import { useLiveLoader } from '~/use-live-loader'
 
 import { getBranch, getBranchId } from '~/models/branch.server'
 import { getMenu } from '~/models/menu.server'
-import { getOrder } from '~/models/order.server'
 import { getTable } from '~/models/table.server'
-import { getPaidUsers, getUsersOnTable } from '~/models/user.server'
+import { getUsersOnTable } from '~/models/user.server'
 
 import { EVENTS } from '~/events'
 
 import { getAmountLeftToPay, getCurrency, isOrderExpired } from '~/utils'
 
+import { FeedbackButton } from '~/components/feedback'
 import { HelpWithoutOrder } from '~/components/help'
 // Hook para manejar la inactividad del usuario
 // TODO React icons or heroicons ? :angry
@@ -35,14 +35,12 @@ import {
   EmptyOrder,
   FilterOrderView,
   FilterUserView,
-  Help,
+  FlexRow,
+  H2,
+  H4,
   Modal,
-  OrderIcon,
-  RestaurantInfoCard,
   SinglePayButton,
   Spacer,
-  SwitchButton,
-  UsersIcon,
 } from '~/components/index'
 import { RestaurantInfoCardV2 } from '~/components/restaurant-info-card'
 
@@ -228,6 +226,9 @@ export default function Table() {
   const data = useLiveLoader<LoaderData>()
   const submit = useSubmit()
   const fetcher = useFetcher()
+  const [searchParams] = useSearchParams()
+  const showFeedbackModal = searchParams.get('feedback') === 'true'
+
   const [isInactive, setIsInactive] = useState(false)
   const [closeOrder, setCloseOrder] = useState(false)
 
@@ -320,7 +321,7 @@ export default function Table() {
 
   if (data.order) {
     return (
-      <motion.main className="pb-4 no-scrollbar h-full">
+      <motion.main className="h-full pb-4 no-scrollbar">
         {/* {data.paymentNotification && <p>hola</p>} */}
         {/* <Help /> */}
 
@@ -366,12 +367,14 @@ export default function Table() {
             </Button>
           </fetcher.Form>
         )}
-        {/* <div className="w-full flex justify-center py-2">
+        {/* <div className="flex justify-center w-full py-2">
           <p className="text-xs">
             Pay securely with <span className="font-bold">Avoqado</span>
           </p>
         </div> */}
         {modalVisible && <ActionsModal setModalVisible={setModalVisible} />}
+        <FeedbackButton />
+        {/* {showFeedbackModal && <FeedbackModal branch={data.branch} />} */}
         <Outlet />
       </motion.main>
     )
@@ -466,6 +469,63 @@ export function ActionsModal({ setModalVisible }) {
           Regresar a la mesa
         </Button>
       </div>
+    </Modal>
+  )
+}
+
+export function FeedbackModal({ branch }) {
+  const [stars, setStars] = useState(0)
+  const [foodStars, setFoodStars] = useState(0)
+  const [searchParams, setSearchParams] = useSearchParams()
+  const onHandleClose = () => {
+    searchParams.delete('feedback')
+    setSearchParams(searchParams)
+  }
+
+  return (
+    <Modal onClose={onHandleClose} title="Feedback" fullScreen={stars > 0}>
+      <motion.div className={`flex flex-col items-center p-4 space-y-4 bg-white ${stars > 0 && 'h-full'}`}>
+        <div className="flex items-center justify-center w-24 h-24 bg-white border-4 rounded-full shadow-sm">
+          <img className="object-cover max-w-full" src={branch.logo ? branch.logo : 'https://i.ibb.co/7tBbLkT/avocado.png'} alt="src" />
+        </div>
+        <H2 className="text-center w-52">Comparta su experiencia con {branch.name}</H2>
+        <div className="flex flex-row items-center justify-center p-5 bg-white">
+          {Array.from({ length: 5 }).map((_, i) => (
+            <div
+              key={i}
+              onClick={() => {
+                setStars(i + 1)
+              }}
+            >
+              <FaStar className={`${stars > 0 ? 'h-14 w-14' : 'h-8 w-8'} ${i + 1 <= stars ? 'fill-yellow-500' : 'fill-gray-400'}`} />
+            </div>
+          ))}
+        </div>
+        {stars > 0 && (
+          <div className="text-center">
+            <H2>Evalúa..</H2>
+            <FlexRow>
+              <H4>Comida y bebidas</H4>
+              <div className="flex flex-row items-center justify-center p-4 bg-white">
+                {Array.from({ length: 5 }).map((_, i) => (
+                  <div
+                    key={i}
+                    onClick={() => {
+                      setFoodStars(i + 1)
+                    }}
+                  >
+                    <IoHappy
+                      className={`h-8 w-8 ${
+                        i + 1 <= foodStars ? 'fill-yellow-500' : foodStars >= 1 && foodStars <= 3 ? 'fill-red-400' : 'fill-gray-400'
+                      }`}
+                    />
+                  </div>
+                ))}
+              </div>
+            </FlexRow>
+          </div>
+        )}
+      </motion.div>
     </Modal>
   )
 }

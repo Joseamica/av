@@ -58,8 +58,6 @@ export async function loader({ request, params }: LoaderArgs) {
 
   const table = await getTable(tableId)
 
-  //TESTING - FUNCTION TO GET ORDER DYNAMICALLY
-
   const order = await prisma.order.findFirst({
     where: { tableId, active: true },
     include: {

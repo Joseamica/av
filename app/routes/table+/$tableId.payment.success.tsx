@@ -168,7 +168,7 @@ export const loader = async ({ params, request }: LoaderArgs) => {
   await assignExpirationAndValuesToOrder(amountLeft, tip, amount, order)
   EVENTS.ISSUE_CHANGED(tableId, branchId)
 
-  return redirect(`/table/${tableId}`, {
+  return redirect(`/table/${tableId}?feedback=true`, {
     headers: { 'Set-Cookie': await sessionStorage.commitSession(session) },
   })
 }
