@@ -30,16 +30,13 @@ export const getStripeSession = async (
   amount: number, // Amount in cents (or the smallest currency unit)
   isOrderAmountFullPaid: boolean,
   domainUrl: string,
-
   currency: string = 'usd', // Default to USD
   tip: number,
-
   paymentMethod: PaymentMethod,
-
   typeOfPayment?: string,
   extraData?: any,
 ): Promise<string> => {
-  const avocadoFee = Math.floor(amount * 0.05)
+  const avoqadoFee = Math.floor(amount * 0.05) + 300
 
   const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
     apiVersion: '2022-11-15',
@@ -52,7 +49,7 @@ export const getStripeSession = async (
   })
   const stripeAccountId = branch?.stripeAccountId
   console.log('amount', amount / 100)
-  console.log(avocadoFee)
+  console.log('avoqadoFee', avoqadoFee / 100)
 
   if (!stripeAccountId) {
     throw new Error(`No Stripe account found for branch ID: ${extraData.branchId}`)
@@ -70,7 +67,7 @@ export const getStripeSession = async (
             'https://firebasestorage.googleapis.com/v0/b/avoqado-d0a24.appspot.com/o/AVOQADO.png?alt=media&token=fae6250d-743c-4dbc-8432-19b4bbdcc35a',
           ],
         },
-        unit_amount: amount + Math.floor(avocadoFee) + 300,
+        unit_amount: amount + Math.floor(avoqadoFee),
       },
       quantity: 1,
     },
@@ -94,7 +91,7 @@ export const getStripeSession = async (
       line_items: lineItems,
 
       payment_intent_data: {
-        application_fee_amount: Math.floor(amount * 0.05) + 300,
+        application_fee_amount: Math.floor(avoqadoFee),
         transfer_data: {
           destination: stripeAccountId,
         },

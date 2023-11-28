@@ -121,6 +121,7 @@ export async function handlePaymentProcessing({
           'custom',
           extraData,
         )
+
         return { type: 'redirect', url: stripeRedirectUrl }
       } catch (error) {
         console.error('Failed to create payment session:', error)

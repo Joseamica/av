@@ -129,18 +129,3 @@ export const action = async ({ request }: ActionArgs) => {
   // }
   return new Response(null, { status: 200 })
 }
-
-const updatePaidItemsAndUserData = async (itemData: { itemId: string; price: string }[], userName: string) => {
-  // Loop through items and update price and paid
-  for (const { itemId } of itemData) {
-    const cartItem = await prisma.cartItem.findUnique({
-      where: { id: itemId },
-    })
-    if (cartItem) {
-      await prisma.cartItem.update({
-        where: { id: itemId },
-        data: { paid: true, paidBy: userName },
-      })
-    }
-  }
-}

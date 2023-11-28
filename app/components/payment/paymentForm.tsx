@@ -1,11 +1,11 @@
-import { useLocation, useNavigation } from '@remix-run/react'
+import { useNavigation } from '@remix-run/react'
 
 import clsx from 'clsx'
 import { AnimatePresence, motion } from 'framer-motion'
 
 import Payment, { usePayment } from './paymentV3'
 
-import { formatCurrency, getAvoqadoFee } from '~/utils'
+import { formatCurrency } from '~/utils'
 
 import { Button } from '~/components/ui/buttons/button'
 import { FlexRow } from '~/components/util/flexrow'
@@ -52,7 +52,7 @@ export function PaymentForm() {
 
   return (
     <>
-      <div className="dark:bg-night-bg_principal dark:text-night-text_principal sticky inset-x-0 bottom-0 flex flex-col justify-center  border-button-textNotSelected border-opacity-70 bg-day-bg_principal px-3">
+      <div className="sticky inset-x-0 bottom-0 flex flex-col justify-center px-3 dark:bg-night-bg_principal dark:text-night-text_principal border-button-textNotSelected border-opacity-70 bg-day-bg_principal">
         <Spacer spaceY="2" />
         <FlexRow justify="between" className={clsx({ 'py-2': !showPayContent })}>
           {showPayContent ? <H5>Pendiente por pagar en la mesa:</H5> : <H3>Pendiente por pagar:</H3>}

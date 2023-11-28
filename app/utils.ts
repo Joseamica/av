@@ -2,7 +2,7 @@ import { useMatches } from '@remix-run/react'
 import { useMemo } from 'react'
 
 import { faker } from '@faker-js/faker'
-import type { Order, Table } from '@prisma/client'
+import type { Table } from '@prisma/client'
 import type { Decimal } from '@prisma/client/runtime/library'
 import bcrypt from 'bcryptjs'
 import { format, utcToZonedTime } from 'date-fns-tz'
@@ -74,10 +74,6 @@ export async function getFundamentals() {
 
 export function validateEmail(email: unknown): email is string {
   return typeof email === 'string' && email.length > 3 && email.includes('@')
-}
-
-export function getTotal(order: Order) {
-  return null
 }
 
 export function formatCurrency(currency: string, amount: number | Decimal) {
@@ -161,6 +157,10 @@ export function getRandomColor() {
     color += value.toString(16)
   }
   return color
+}
+
+export function getTotal(cartItems: any) {
+  return cartItems.reduce((acc: any, item: any) => acc + Number(item.price) * Number(item.quantity), 0)
 }
 
 export async function getDateTimeTz(tableId: string) {
@@ -321,7 +321,7 @@ export const getAvoqadoFee = (amount: number, paymentRadio?: string) => {
     case 'cash':
       return 0
     case 'card':
-      return amount * 0.05
+      return amount * 0.05 + 3
     case 'terminal':
       return 0
     default:
