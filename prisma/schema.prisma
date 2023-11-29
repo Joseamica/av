@@ -16,35 +16,6 @@ model Chain {
   moderatorIds String[]
 }
 
-// model Venue {
-//    id        String    @id @default(cuid())
-//    chainId   String?
-//     chain     Chain?    @relation(fields: [chainId], references: [id])
-//     name      String
-//     image     String
-//     cuisine   String
-//       phone           String?
-//   email           String?        @unique
-//     city      String
-//     country   String
-//   street    String
-//   zipCode       Int
-//   timezone      String?
-//   wifiName     String?
-//   wifiPassword String?
-//     tipsPercentages Decimal[]      @default([10, 12, 15])
-//       paymentMethods  String[]       @default(["cash", "card"])
-//   menus           Menu[]
-//     tables          Table[]
-
-//   employees       Employee[]
-//   feedbacks       Feedback[]
-//   payments        Payments[]
-//     updatedAt       DateTime?      @updatedAt
-//   createdAt       DateTime       @default(now())
-
-// }
-
 model Branch {
   id               String            @id @default(cuid())
   name             String

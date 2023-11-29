@@ -5,8 +5,6 @@ import { type ActionArgs, type LoaderArgs, json, redirect } from '@remix-run/nod
 import { prisma } from '~/db.server'
 import { getSession } from '~/session.server'
 
-import table from '../table'
-
 import { Button, H3, Modal } from '~/components'
 import { ErrorList } from '~/components/forms'
 

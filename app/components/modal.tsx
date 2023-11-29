@@ -5,7 +5,7 @@ import React from 'react'
 import clsx from 'clsx'
 import { AnimatePresence, motion } from 'framer-motion'
 
-import { ChevronLeftIcon, ShoppingCartIcon, XIcon } from './icons'
+import { ChevronLeftIcon, XIcon } from './icons'
 import { BackButton } from './ui/buttons/back-button'
 import { Button } from './ui/buttons/button'
 
@@ -68,11 +68,6 @@ export function Modal({
   imgHeader?: string
   showCart?: JSX.Element
 } & { justify?: keyof typeof justifyItems }) {
-  const navigate = useNavigate()
-
-  const NavigateBack = () => {
-    navigate('')
-  }
   //NOTE - this is to prevent the background from scrolling when the modal is open maybe ! **fix?**
   React.useEffect(() => {
     document.body.style.overflow = 'hidden'
@@ -80,24 +75,6 @@ export function Modal({
       document.body.style.overflow = 'auto'
     }
   }, [])
-
-  // const handleKeyDown = (event: any) => {
-  //   if (event.key !== 'Escape') return
-
-  //   onClose()
-  // }
-
-  // React.useEffect(() => {
-  //   if (!isOpen) return
-
-  //   document.body.style.overflow = 'hidden'
-  //   document.addEventListener('keydown', handleKeyDown)
-
-  //   return () => {
-  //     document.body.style.overflow = 'auto'
-  //     document.removeEventListener('keydown', handleKeyDown)
-  //   }
-  // }, [])
 
   return (
     <motion.main
@@ -145,10 +122,10 @@ export function Modal({
               />
             </div>
           ) : (
-            <div className="sticky inset-x-0 top-0 z-10 flex gap-x-2 flex-row items-center justify-between w-full p-4 border-b-2 dark:bg-night-bg_principal dark:text-night-text_principal bg-day-bg_principal">
+            <div className="sticky inset-x-0 top-0 z-10 flex flex-row items-center justify-between w-full p-4 border-b-2 gap-x-2 dark:bg-night-bg_principal dark:text-night-text_principal bg-day-bg_principal">
               {showCart ? (
                 <>
-                  <XIcon className="p-1 rounded-full border h-7 w-7 dark:text-night-700" onClick={onClose} />
+                  <XIcon className="p-1 border rounded-full h-7 w-7 dark:text-night-700" onClick={onClose} />
                   <p className="font-bold">{title}</p>
                   {showCart}
                 </>
@@ -156,7 +133,7 @@ export function Modal({
                 <>
                   {goBack ? <BackButton url={''} /> : <div />}
                   <p>{title}</p>
-                  <XIcon className="p-1 rounded-full border h-7 w-7 dark:text-night-700" onClick={onClose} />
+                  <XIcon className="p-1 border rounded-full h-7 w-7 dark:text-night-700" onClick={onClose} />
                 </>
               )}
             </div>

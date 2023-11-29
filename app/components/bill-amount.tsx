@@ -1,4 +1,3 @@
-import { Link } from '@remix-run/react'
 import { useState } from 'react'
 
 import type { User } from '@prisma/client'
@@ -62,7 +61,7 @@ export function BillAmount({
               </svg>
             </div>
           </FlexRow>
-          <button className="mb-2 flex flex-row items-center space-x-1 text-sm" onClick={() => setShowDetails(!showDetails)}>
+          <button className="flex flex-row items-center mb-2 space-x-1 text-sm" onClick={() => setShowDetails(!showDetails)}>
             <H5>{showDetails ? 'Ocultar detalles' : 'Ver detalles'}</H5>
             {showDetails ? <ChevronUpIcon /> : <ChevronDownIcon />}
           </button>
@@ -75,7 +74,7 @@ export function BillAmount({
                 return (
                   <motion.div
                     key={index}
-                    className="flex w-full flex-row justify-between space-x-1"
+                    className="flex flex-row justify-between w-full space-x-1"
                     initial={{ height: 0 }}
                     animate={{ height: 'auto' }}
                     exit={{ opacity: 0, height: 0 }}

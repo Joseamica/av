@@ -1,4 +1,4 @@
-import { Outlet, isRouteErrorResponse, useFetcher, useRouteError, useSearchParams, useSubmit } from '@remix-run/react'
+import { Link, Outlet, isRouteErrorResponse, useFetcher, useRouteError, useSearchParams, useSubmit } from '@remix-run/react'
 import { useEffect, useState } from 'react'
 import { FaStar } from 'react-icons/fa'
 import { IoHappy, IoHappyOutline } from 'react-icons/io5'
@@ -22,7 +22,7 @@ import { getUsersOnTable } from '~/models/user.server'
 
 import { EVENTS } from '~/events'
 
-import { getAmountLeftToPay, getCurrency, isOrderExpired } from '~/utils'
+import { getAmountLeftToPay, getCurrency, getSearchParams, isOrderExpired } from '~/utils'
 
 import { FeedbackButton } from '~/components/feedback'
 import { HelpWithoutOrder } from '~/components/help'
@@ -38,6 +38,8 @@ import {
   FlexRow,
   H2,
   H4,
+  H6,
+  LinkButton,
   Modal,
   SinglePayButton,
   Spacer,
@@ -226,8 +228,9 @@ export default function Table() {
   const data = useLiveLoader<LoaderData>()
   const submit = useSubmit()
   const fetcher = useFetcher()
-  const [searchParams] = useSearchParams()
+  const [searchParams, setSearchParams] = useSearchParams()
   const showFeedbackModal = searchParams.get('feedback') === 'true'
+  const showCancelledPaymentModal = searchParams.get('cancelledPayment') === 'true'
 
   const [isInactive, setIsInactive] = useState(false)
   const [closeOrder, setCloseOrder] = useState(false)
@@ -373,8 +376,46 @@ export default function Table() {
           </p>
         </div> */}
         {modalVisible && <ActionsModal setModalVisible={setModalVisible} />}
-        <FeedbackButton />
-        {/* {showFeedbackModal && <FeedbackModal branch={data.branch} />} */}
+        {/* <FeedbackButton />
+        {showFeedbackModal && <FeedbackModal branch={data.branch} />} */}
+
+        {showCancelledPaymentModal && (
+          <Modal
+            onClose={() => {
+              searchParams.delete('cancelledPayment')
+              setSearchParams(searchParams)
+            }}
+            title="Pago de productos cancelado"
+          >
+            <div className="flex flex-col items-center justify-center p-4 space-y-4">
+              <p className="text-center w-72 ">
+                Haz cancelado el pago, <span className="font-semibold">pero tus productos ya fueron ordenados 👍🏼🎉</span>
+              </p>
+              {/* <H6>
+                Si quieres pagar tus productos ahora haz{' '}
+                <Link to="pay/perDish" className="underline">
+                  click aqui
+                </Link>
+              </H6> */}
+              <div className="flex flex-col space-y-2">
+                <LinkButton to="pay/perDish" className="w-full" size="medium">
+                  <H4> Quiero pagar mis productos</H4>
+                </LinkButton>
+                <Button
+                  size="medium"
+                  onClick={() => {
+                    searchParams.delete('cancelledPayment')
+                    setSearchParams(searchParams)
+                  }}
+                  className="w-full"
+                  variant="secondary"
+                >
+                  Regresar a la mesa y pagar después
+                </Button>
+              </div>
+            </div>
+          </Modal>
+        )}
         <Outlet />
       </motion.main>
     )

@@ -1,6 +1,6 @@
 import { Outlet, useFetcher, useLoaderData, useNavigate, useNavigation, useParams } from '@remix-run/react'
 import React, { useState } from 'react'
-import { FaClock, FaHourglassHalf } from 'react-icons/fa'
+import { FaClock } from 'react-icons/fa'
 import { IoCardOutline } from 'react-icons/io5'
 
 import { json, redirect } from '@remix-run/node'
@@ -26,22 +26,7 @@ import { EVENTS } from '~/events'
 import { formatCurrency, getAmountLeftToPay, getCurrency } from '~/utils'
 import { handlePaymentProcessing } from '~/utils/payment-processing.server'
 
-import {
-  Button,
-  CashIcon,
-  DollarIcon,
-  FlexRow,
-  H2,
-  H3,
-  H4,
-  H5,
-  ItemContainer,
-  Modal,
-  QuantityButton,
-  Spacer,
-  SwitchButton,
-  Underline,
-} from '~/components'
+import { Button, FlexRow, H3, H4, H5, Modal, QuantityButton, Spacer, SwitchButton, Underline } from '~/components'
 import Payment, { usePayment } from '~/components/payment/paymentV3'
 
 // ANCHOR LOADER
@@ -185,15 +170,16 @@ export async function action({ request, params }: ActionArgs) {
         .map(item => {
           const modifiers = item.modifiers
             .map(modifier => {
-              return `${modifier.name} **//Precio Extra: ${modifier.extraPrice}, Cantidad: ${modifier.quantity}, Total de modificadores: ${
-                Number(modifier.quantity) * Number(modifier.extraPrice)
-              }**//`
+              const totalModifierPrice = Number(modifier.quantity) * Number(modifier.extraPrice)
+              return `\t\t- Modificador: ${modifier.name}\n\t\t  Precio Extra: ${modifier.extraPrice || 'N/A'}\n\t\t  Cantidad: ${
+                modifier.quantity
+              }\n\t\t  Total Modificadores: ${totalModifierPrice}\n`
             })
-            .join(', ')
+            .join('\n')
 
-          return `${item.name} >>Precio: ${item.price}, Cantidad: ${item.quantity}, Modificadores: ${modifiers}<< COMENTARIOS: ${item.comments}}`
+          return `*${item.name}*\n\tPrecio: ${item.price}\n\tCantidad: ${item.quantity}\n\tModificadores:\n${modifiers}\tComentarios: ${item.comments}\n`
         })
-        .join('; ')
+        .join('\n----------------\n')
 
       console.log(`${branch_name}: ${username} de la mesa ${table.number} ha ordenado:`)
       console.log(formattedItems)
@@ -404,7 +390,7 @@ export default function Cart() {
           }}
         >
           {!showPaymentOptions ? (
-            <div className="py-2 px-4">
+            <div className="px-4 py-2">
               <SwitchButton
                 state={payNow}
                 setToggle={setPayNow}
@@ -426,7 +412,7 @@ export default function Cart() {
                   return (
                     <article
                       key={index}
-                      className="flex flex-row items-center justify-between space-x-2 rounded-3xl bg-white h-16 container border-2 px-2 "
+                      className="container flex flex-row items-center justify-between h-16 px-2 space-x-2 bg-white border-2 rounded-3xl "
                     >
                       <input type="hidden" name="variantId" value={item} />
                       <FlexRow justify="between" className="w-full pr-2">

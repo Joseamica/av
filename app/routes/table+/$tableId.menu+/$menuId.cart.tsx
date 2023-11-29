@@ -1,6 +1,6 @@
 import { Outlet, useFetcher, useLoaderData, useNavigate, useNavigation, useParams } from '@remix-run/react'
 import React, { useState } from 'react'
-import { FaClock, FaHourglassHalf } from 'react-icons/fa'
+import { FaClock } from 'react-icons/fa'
 import { IoCardOutline } from 'react-icons/io5'
 
 import { json, redirect } from '@remix-run/node'
@@ -26,22 +26,7 @@ import { EVENTS } from '~/events'
 import { formatCurrency, getAmountLeftToPay, getCurrency } from '~/utils'
 import { handlePaymentProcessing } from '~/utils/payment-processing.server'
 
-import {
-  Button,
-  CashIcon,
-  DollarIcon,
-  FlexRow,
-  H2,
-  H3,
-  H4,
-  H5,
-  ItemContainer,
-  Modal,
-  QuantityButton,
-  Spacer,
-  SwitchButton,
-  Underline,
-} from '~/components'
+import { Button, FlexRow, H3, H4, H5, Modal, QuantityButton, Spacer, SwitchButton, Underline } from '~/components'
 import Payment, { usePayment } from '~/components/payment/paymentV3'
 
 // ANCHOR LOADER
@@ -154,20 +139,6 @@ export async function action({ request, params }: ActionArgs) {
       session.set('cart', JSON.stringify(cart))
       break
     case 'submitCart':
-      // let adjustedItems = cartItems.map(item => {
-      //   return {
-      //     plu: item.id,
-      //     price: Number(item.price) * 100,
-      //     quantity: item.quantity,
-      //     remark: item.comments ?? 'No remarks',
-      //     name: item.name,
-      //   }
-      // })
-      // //NOTE - Se usa porque deliverect no recibe puntos decimales, por lo que se multiplica por 100
-      // const adjustedCartItemsTotal = cartItemsTotal * 100
-      // //TODO SI ESTA VENCIDO EL TOKEN, HACER UN REFRESH en donde???
-      // const token = await getDvctToken()
-      // const table = await getTable(tableId)
       const username = session.get('username')
       const table = await getTable(tableId)
 
@@ -185,15 +156,18 @@ export async function action({ request, params }: ActionArgs) {
         .map(item => {
           const modifiers = item.modifiers
             .map(modifier => {
-              return `${modifier.name} **//Precio Extra: ${modifier.extraPrice}, Cantidad: ${modifier.quantity}, Total de modificadores: ${
-                Number(modifier.quantity) * Number(modifier.extraPrice)
-              }**//`
+              const totalModifierPrice = Number(modifier.quantity) * Number(modifier.extraPrice)
+              return `\t\t- ${modifier.name}\n\t\t  Precio Extra: ${modifier.extraPrice || 'N/A'}\n\t\t  Cantidad: ${
+                modifier.quantity
+              }\n\t\t  Total de Modificadores: $${totalModifierPrice}\n`
             })
-            .join(', ')
+            .join('\n')
 
-          return `${item.name} >>Precio: ${item.price}, Cantidad: ${item.quantity}, Modificadores: ${modifiers}<< COMENTARIOS: ${item.comments}}`
+          return `*- ${item.name}*\n\tPrecio: ${item.price}\n\tCantidad: ${item.quantity}\n\t_Modificadores_:\n${modifiers}\n${
+            item.comments ? item.comments : ''
+          }\n`
         })
-        .join('; ')
+        .join('\n----------------\n')
 
       console.log(`${branch_name}: ${username} de la mesa ${table.number} ha ordenado:`)
       console.log(formattedItems)
@@ -286,9 +260,12 @@ export async function action({ request, params }: ActionArgs) {
           extraData: { branchId, tableId, order: order.id },
         })
         EVENTS.ISSUE_CHANGED(tableId, branchId)
+        session.unset('cart')
 
         if (result.type === 'redirect') {
-          return redirect(result.url)
+          return redirect(result.url, {
+            headers: { 'Set-Cookie': await sessionStorage.commitSession(session) },
+          })
         }
       }
 
@@ -324,11 +301,11 @@ export async function action({ request, params }: ActionArgs) {
 
       sendWaNotification({
         to: employeesNumbers,
-        body: `${branch_name}:${username} de la mesa ${table.number} ha ordenado ${formattedItems}`,
+        body: `\t${branch_name}: ${username} de la _mesa ${table.number}_ ha ordenado: \n----------------\n${formattedItems} \nLink: https://av.fly.dev/dashboard/table/${tableId}`,
       })
       await prisma.notification.create({
         data: {
-          message: `${branch_name}: ${username} de la mesa ${table.number} ha ordenado ${formattedItems}`,
+          message: `${branch_name}: ${username} de la mesa _${table.number}_ ha ordenado ${formattedItems}`,
           branchId: branchId,
           tableId: tableId,
           method: 'whatsapp',
@@ -404,7 +381,7 @@ export default function Cart() {
           }}
         >
           {!showPaymentOptions ? (
-            <div className="py-2 px-4">
+            <div className="px-4 py-2">
               <SwitchButton
                 state={payNow}
                 setToggle={setPayNow}
@@ -426,7 +403,7 @@ export default function Cart() {
                   return (
                     <article
                       key={index}
-                      className="flex flex-row items-center justify-between space-x-2 rounded-3xl bg-white h-16 container border-2 px-2 "
+                      className="container flex flex-row items-center justify-between h-16 px-2 space-x-2 bg-white border-2 rounded-3xl "
                     >
                       <input type="hidden" name="variantId" value={item} />
                       <FlexRow justify="between" className="w-full pr-2">
@@ -529,7 +506,7 @@ const variants = {
 export function CartPayment({ setShowPaymentOptions }: { setShowPaymentOptions: any }) {
   const data = useLoaderData()
   const navigation = useNavigation()
-  const { showModal, paymentRadio, tip, tipRadio } = usePayment()
+  const { showModal, paymentRadio, tip, tipRadio, avoqadoFee } = usePayment()
 
   const total = data.cartItemsTotal
 
@@ -554,9 +531,20 @@ export function CartPayment({ setShowPaymentOptions }: { setShowPaymentOptions: 
           <Spacer spaceY="2" />
 
           <Payment.PayButton />
+          <Spacer spaceY="2" />
+          <FlexRow justify="between">
+            <H5>Avoqado services:</H5>
 
+            <H5>
+              {formatCurrency(
+                data.currency,
+                avoqadoFee, // Update the total amount
+              )}
+            </H5>
+          </FlexRow>
           <Spacer spaceY="2" />
           <hr />
+
           <Spacer spaceY="2" />
           <FlexRow justify="between">
             <H5>Total:</H5>
@@ -564,7 +552,7 @@ export function CartPayment({ setShowPaymentOptions }: { setShowPaymentOptions: 
               <H3>
                 {formatCurrency(
                   data.currency,
-                  total + tip, // Update the total amount
+                  total + tip + avoqadoFee, // Update the total amount
                 )}
               </H3>
             </Underline>

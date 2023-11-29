@@ -321,10 +321,10 @@ export const getAvoqadoFee = (amount: number, paymentRadio?: string) => {
     case 'cash':
       return 0
     case 'card':
-      return amount * 0.05 + 3
+      return amount * 0.06 + 3
     case 'terminal':
       return 0
     default:
-      return amount * 0.05
+      return amount * 0.06
   }
 }

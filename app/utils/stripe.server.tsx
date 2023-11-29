@@ -2,6 +2,8 @@ import type { PaymentMethod } from '@prisma/client'
 import Stripe from 'stripe'
 import { prisma } from '~/db.server'
 
+import { getMenu } from '~/models/menu.server'
+
 import { createQueryString } from '~/utils'
 
 // copied from (https://github.com/kentcdodds/kentcdodds.com/blob/ebb36d82009685e14da3d4b5d0ce4d577ed09c63/app/utils/misc.tsx#L229-L237)
@@ -36,7 +38,7 @@ export const getStripeSession = async (
   typeOfPayment?: string,
   extraData?: any,
 ): Promise<string> => {
-  const avoqadoFee = Math.floor(amount * 0.05) + 300
+  const avoqadoFee = Math.floor(amount * 0.06) + 300
 
   const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
     apiVersion: '2022-11-15',
@@ -48,13 +50,14 @@ export const getStripeSession = async (
     },
   })
   const stripeAccountId = branch?.stripeAccountId
+  const menu = await getMenu(branch.id)
   console.log('amount', amount / 100)
   console.log('avoqadoFee', avoqadoFee / 100)
 
   if (!stripeAccountId) {
     throw new Error(`No Stripe account found for branch ID: ${extraData.branchId}`)
   }
-
+  console.log('domainUrl', domainUrl)
   const lineItems = [
     {
       price_data: {
@@ -98,7 +101,8 @@ export const getStripeSession = async (
         on_behalf_of: stripeAccountId, // The account you are acting on behalf of
       },
       success_url: `${domainUrl}/payment/success?${queryString}`,
-      cancel_url: `${domainUrl}`,
+      cancel_url: `${domainUrl}?cancelledPayment=true`,
+      ///menu/${menu.id}/cart?cancelPayment=true`,
     },
     // {
     //   stripeAccount: stripeAccountId,

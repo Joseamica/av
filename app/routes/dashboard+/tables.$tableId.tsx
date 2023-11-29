@@ -1,7 +1,6 @@
-import { QuestionMarkCircledIcon } from '@radix-ui/react-icons'
 import { Form, Link, Outlet, useNavigate, useParams, useSearchParams } from '@remix-run/react'
 import React from 'react'
-import { FaCheckCircle, FaClock, FaMoneyBill, FaRegClock } from 'react-icons/fa'
+import { FaCheckCircle, FaClock, FaFilter, FaMoneyBill, FaRegClock } from 'react-icons/fa'
 import { IoCard, IoCardOutline, IoCashOutline, IoList, IoPerson, IoShieldCheckmarkOutline } from 'react-icons/io5'
 
 import { type ActionArgs, type LoaderArgs, json } from '@remix-run/node'
@@ -13,9 +12,9 @@ import { useLiveLoader } from '~/use-live-loader'
 
 import { EVENTS } from '~/events'
 
-import { formatCurrency, getAmountLeftToPay, getCurrency } from '~/utils'
+import { formatCurrency, getCurrency } from '~/utils'
 
-import { Button, FlexRow, H3, H4, H5, H6, LinkButton, Modal, Spacer, Underline } from '~/components'
+import { Button, FlexRow, H4, H5, H6, LinkButton, Modal, Spacer } from '~/components'
 import { NavMenu } from '~/components/dashboard/navmenu'
 import { SearchBar } from '~/components/dashboard/searchbar'
 import { SubModal } from '~/components/modal'
@@ -163,11 +162,11 @@ export default function TableId() {
   const IsSearchParamActiveMenu = searchParams.get('activeNavMenu')
   // ANCHOR STATES
   const [activeNavMenu, setActiveNavMenu] = React.useState<string>(IsSearchParamActiveMenu || 'Orden Activa')
-  const [showAcceptedPayments, setShowAcceptedPayments] = React.useState<boolean>(false)
+
   const [showConfirmationModal, setShowConfirmationModal] = React.useState(false)
   const [totalPaymentsQuantity, setTotalPaymentsQuantity] = React.useState<number>(0)
   const [showAddPayment, setShowAddPayment] = React.useState(false)
-
+  const [filter, setFilter] = React.useState({ date: 'today' })
   const totalProductQuantity: number = data.table.order?.cartItems?.reduce(
     (acc: number, item: { quantity: number }) => acc + item.quantity,
     0,
@@ -184,10 +183,10 @@ export default function TableId() {
     )
     setTotalPaymentsQuantity(filteredPayments.length)
   }, [search, data.payments])
-
+  console.log('filter', filter)
   return (
     <Modal fullScreen={true} title={`Mesa ${data.table.number}`} onClose={() => navigate(`/dashboard/tables`)}>
-      <div className="flex flex-col justify-between h-full bg-dashb-bg ">
+      <div className={`flex flex-col justify-between h-full  bg-dashb-bg ${showConfirmationModal ? 'overflow-hidden' : ''}`}>
         <div>
           <NavMenu
             activeNavMenu={activeNavMenu}
@@ -250,6 +249,11 @@ export default function TableId() {
           {activeNavMenu === 'Pagos' ? (
             <div>
               <SearchBar placeholder={'Buscar por id, propina o total'} setSearch={setSearch} />
+              {totalPaymentsQuantity > 0 && (
+                <button className="p-2">
+                  <FaFilter onClick={() => setFilter({ date: 'today' })} />
+                </button>
+              )}
               <Spacer spaceY="2" />
               <p className="text-[18px] font-semibold px-4">
                 {totalPaymentsQuantity} {totalPaymentsQuantity > 1 ? 'Pagos' : 'Pago'}
@@ -287,23 +291,25 @@ export default function TableId() {
                   </>
                 ) : null}
                 <>
-                  {data.payments.map(payment => {
-                    return (
-                      <div key={payment.id}>
-                        <Payment
-                          to={payment.id}
-                          name={payment.user?.name ? payment.user.name : 'Mesero'}
-                          createdAt={payment.createdAt}
-                          method={payment.method}
-                          tip={payment.tip}
-                          total={payment.total}
-                          currency={data.currency}
-                          status={payment.status}
-                          amount={payment.amount}
-                        />
-                      </div>
-                    )
-                  })}
+                  {data.payments
+                    // .filter(payment => payment.createdAt === new Date())
+                    .map(payment => {
+                      return (
+                        <div key={payment.id}>
+                          <Payment
+                            to={payment.id}
+                            name={payment.user?.name ? payment.user.name : 'Mesero'}
+                            createdAt={payment.createdAt}
+                            method={payment.method}
+                            tip={payment.tip}
+                            total={payment.total}
+                            currency={data.currency}
+                            status={payment.status}
+                            amount={payment.amount}
+                          />
+                        </div>
+                      )
+                    })}
                 </>
               </div>
             </div>
@@ -322,7 +328,7 @@ export default function TableId() {
                   const total = inactiveOrder.payments.reduce((acc, item) => acc + Number(item.total), 0)
 
                   return (
-                    <div key={inactiveOrder.id}>
+                    <Link key={inactiveOrder.id} to={`inactiveOrders/${inactiveOrder.id}`}>
                       <div className="relative flex items-center justify-between w-full space-x-4">
                         <div className="flex justify-around w-full border rounded-lg">
                           <div className="flex items-center justify-center w-16 rounded-lg bg-dashb-bg">
@@ -355,7 +361,7 @@ export default function TableId() {
                           <IoShieldCheckmarkOutline />
                         </div>
                       </div>
-                    </div>
+                    </Link>
                   )
                 })
               ) : (
@@ -508,7 +514,7 @@ function OrderDetails({ currency, totalProductQuantity, orderTotal, cartItems, i
           <span>
             {totalProductQuantity} {totalProductQuantity > 1 ? 'Productos' : 'Producto'}
           </span>
-          <span>{formatCurrency(currency, orderTotal)}</span>
+          <span> {formatCurrency(currency, orderTotal)}</span>
         </FlexRow>
         <hr />
         <div className="px-3 py-1 space-y-2 divide-y">
