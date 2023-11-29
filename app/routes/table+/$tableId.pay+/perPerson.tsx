@@ -9,6 +9,7 @@ import { clsx } from 'clsx'
 import invariant from 'tiny-invariant'
 import { prisma } from '~/db.server'
 import { validateRedirect } from '~/redirect.server'
+import { getSession } from '~/session.server'
 
 // import { useLiveLoader } from '~/use-live-loader'
 import { getBranchId, getPaymentMethods, getTipsPercentages } from '~/models/branch.server'
@@ -61,6 +62,7 @@ export default function PerPerson() {
             currency: data.currency,
             paymentMethods: data.paymentMethods,
             tipsPercentages: data.tipsPercentages,
+            isPendingPayment: data.isPendingPayment,
           }}
         >
           {Object.values(data.userTotals).length > 0
@@ -184,13 +186,23 @@ export async function loader({ request, params }: LoaderArgs) {
     })
   })
   const amountLeft = await getAmountLeftToPay(tableId)
-
+  const session = await getSession(request)
+  const userId = session.get('userId')
+  const payment = await prisma.payments.findFirst({
+    where: {
+      status: 'pending',
+      method: 'cash' || 'card',
+      userId: userId,
+    },
+  })
+  const isPendingPayment = payment ? true : false
   return json({
     userTotals,
     tipsPercentages,
     paymentMethods,
     currency,
     amountLeft,
+    isPendingPayment,
   })
 }
 

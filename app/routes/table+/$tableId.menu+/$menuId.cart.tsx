@@ -257,11 +257,15 @@ export async function action({ request, params }: ActionArgs) {
           request,
           redirectTo,
           typeOfPayment: 'cartPay',
-          extraData: { branchId, tableId, order: order.id },
+          extraData: { branchId, tableId, order: order },
         })
         EVENTS.ISSUE_CHANGED(tableId, branchId)
         session.unset('cart')
-
+        // NOTE esto va aqui ya que si retorna un redirect no se ejecuta el codigo de abajo se agregan los productos, y no avisa pro whatsapp
+        sendWaNotification({
+          to: employeesNumbers,
+          body: `\t${branch_name}: ${username} de la _mesa ${table.number}_ ha ordenado: \n----------------\n${formattedItems} \nLink: https://av.fly.dev/dashboard/table/${tableId}`,
+        })
         if (result.type === 'redirect') {
           return redirect(result.url, {
             headers: { 'Set-Cookie': await sessionStorage.commitSession(session) },

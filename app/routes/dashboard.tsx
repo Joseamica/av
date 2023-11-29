@@ -133,7 +133,7 @@ export default function Dashboard() {
         <TabBar active={active} setAddModal={setAddModal} notify={notify} />
       </div>
       <div className="pb-[75px]" />
-      {addModal ? (
+      {/* {addModal ? (
         <Modal onClose={() => setAddModal(false)} title="Agregar">
           <div className="p-4">
             <H3>Ingresa la mesa</H3>
@@ -150,7 +150,7 @@ export default function Dashboard() {
             </fetcher.Form>
           </div>
         </Modal>
-      ) : null}
+      ) : null} */}
     </main>
   )
 }
@@ -215,7 +215,7 @@ export function TabBar({ active, setAddModal, notify }: { active: string; setAdd
         to="selectTable"
         prefetch="viewport"
         className={clsx(
-          'absolute inset-x-0 -top-14 border rounded-full flex items-center justify-center  p-2 space-x-1 bg-white h-12 w-12  z-30 m-auto',
+          'absolute inset-x-0 -top-12 border rounded-full flex items-center justify-center  p-2 space-x-1 bg-white h-12 w-12  z-30 m-auto',
           active === 'tables' ? 'bg-dashb-buttonSelected text-dashb-text font-bold' : '',
         )}
       >
@@ -279,7 +279,7 @@ function UserDropdown({ employee }: { employee: any }) {
           <DropdownMenu.Item asChild>
             <Link
               prefetch="intent"
-              to={`/users/${employee.id}`}
+              to={`me`}
               className="py-5 outline-none rounded-t-3xl px-7 hover:bg-day-300 radix-highlighted:bg-night-500"
             >
               👤 Profile

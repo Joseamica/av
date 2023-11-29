@@ -9,6 +9,7 @@ import clsx from 'clsx'
 import invariant from 'tiny-invariant'
 import { prisma } from '~/db.server'
 import { validateRedirect } from '~/redirect.server'
+import { getSession } from '~/session.server'
 import { useLiveLoader } from '~/use-live-loader'
 
 import { getBranchId, getPaymentMethods, getTipsPercentages } from '~/models/branch.server'
@@ -31,6 +32,7 @@ type LoaderData = {
   paymentMethods: string[]
   currency: string
   amountLeft: number
+  isPendingPayment: boolean
 }
 
 const getItemsAndTotalFromFormData = (formData: FormData) => {
@@ -73,7 +75,8 @@ export default function PerDish() {
           amountToPayState: amountToPay,
           currency: data.currency,
           paymentMethods: data.paymentMethods,
-          tipsPercentages: data.tipsPercentages,
+          tipsPercentages: data.tipsPercentages as any,
+          isPendingPayment: data.isPendingPayment,
         }}
       >
         <Form method="POST" preventScrollReset>
@@ -81,7 +84,7 @@ export default function PerDish() {
             Selecciona los platillos que deseas pagar
           </H5>
           <div className="p-2 space-y-2">
-            {data.cartItems?.map((item: CartItem, index: number) => {
+            {data.cartItems?.map((item: any, index: number) => {
               return (
                 <ItemContainer
                   key={index}
@@ -209,7 +212,16 @@ export async function loader({ request, params }: LoaderArgs) {
   const paidCartItems = cartItems.filter(item => item.paid === true) || []
   const unpaidCartItems = cartItems.filter(item => item.paid === false) || []
   const currency = await getCurrency(tableId)
-
+  const session = await getSession(request)
+  const userId = session.get('userId')
+  const payment = await prisma.payments.findFirst({
+    where: {
+      status: 'pending',
+      method: 'cash' || 'card',
+      userId: userId,
+    },
+  })
+  const isPendingPayment = payment ? true : false
   const amountLeft = (await getAmountLeftToPay(tableId)) || 0
 
   return json({
@@ -220,5 +232,6 @@ export async function loader({ request, params }: LoaderArgs) {
     paymentMethods,
     currency,
     amountLeft,
+    isPendingPayment,
   })
 }

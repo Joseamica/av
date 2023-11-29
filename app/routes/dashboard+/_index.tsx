@@ -1,5 +1,5 @@
 import { Link, useLoaderData } from '@remix-run/react'
-import { IoCashOutline, IoPerson } from 'react-icons/io5'
+import { IoCashOutline, IoList, IoPerson } from 'react-icons/io5'
 
 import { type ActionArgs, type LoaderArgs, json } from '@remix-run/node'
 
@@ -14,17 +14,23 @@ export async function loader({ request, params }: LoaderArgs) {
     where: {
       branchId: branchId,
       status: 'accepted',
-      employees: {
-        some: {
-          id: employeeId,
-        },
-      },
+      // employees: {
+      //   some: {
+      //     id: employeeId,
+      //   },
+      // },
       // createdAt: {
       //   gte: new Date()
       // }
     },
     include: {
       employees: true,
+    },
+  })
+
+  const orders = await prisma.order.findMany({
+    where: {
+      branchId: branchId,
     },
   })
 
@@ -43,7 +49,7 @@ export async function loader({ request, params }: LoaderArgs) {
       order: true,
     },
   })
-  return json({ tables, tips })
+  return json({ tables, tips, orders, payments })
 }
 export async function action({ request, params }: ActionArgs) {
   const formData = await request.formData()
@@ -62,14 +68,24 @@ export default function Name() {
         value={activeTables.length}
         desc={activeTables.length === 1 ? 'mesa' : 'mesas'}
         to="/dashboard/tables"
+        bg="bg-purple-400"
       />
       <Container
-        title="Propinas acumuladas"
+        title="Propinas"
         icon={<IoCashOutline />}
         value={`$${data.tips}`}
-        desc={'en propinas acumuladas'}
+        desc={'propinas acumuladas'}
+        to="tips"
+        bg="bg-green-400"
+      />
+      <Container title="Ordenes atendidas" icon={<IoList />} value={`${data.orders.length}`} desc={'ordenes'} to="" bg="bg-blue-400" />
+      <Container
+        title="Total de pagos"
+        icon={<IoCashOutline />}
+        value={data.payments.length}
+        desc={'pagos realizados'}
         to=""
-        bg="bg-green-100"
+        bg="bg-violet-400"
       />
       {/*    <Container title="Propinas" icon={<FaMoneyBill />} value={`MX$${data.tips}`} desc={'en propinas'} bg={'bg-green-100'} />
       <Container title="Total de ordenes" bg={'bg-orange-300'} icon={<OrderIcon />} value={'45'} desc={'ordenes atendidas'} /> */}

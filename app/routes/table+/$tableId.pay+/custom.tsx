@@ -5,6 +5,7 @@ import { type ActionArgs, type LoaderArgs, json, redirect } from '@remix-run/nod
 
 import clsx from 'clsx'
 import invariant from 'tiny-invariant'
+import { prisma } from '~/db.server'
 import { validateRedirect } from '~/redirect.server'
 import { getSession, sessionStorage } from '~/session.server'
 
@@ -25,12 +26,22 @@ import Payment from '~/components/payment/paymentV3'
 export async function loader({ request, params }: LoaderArgs) {
   const { tableId } = params
   invariant(tableId, 'No se encontró mesa')
+  const session = await getSession(request)
+  const userId = session.get('userId')
+  const payment = await prisma.payments.findFirst({
+    where: {
+      status: 'pending',
+      method: 'cash' || 'card',
+      userId: userId,
+    },
+  })
+  const isPendingPayment = payment ? true : false
   const tipsPercentages = await getTipsPercentages(tableId)
   const paymentMethods = await getPaymentMethods(tableId)
   const currency = await getCurrency(tableId)
   const amountLeft = await getAmountLeftToPay(tableId)
 
-  return json({ paymentMethods, tipsPercentages, currency, amountLeft })
+  return json({ paymentMethods, tipsPercentages, currency, amountLeft, isPendingPayment })
 }
 
 //ANCHOR action
@@ -120,6 +131,7 @@ export default function CustomPay() {
           currency: data.currency,
           paymentMethods: data.paymentMethods,
           tipsPercentages: data.tipsPercentages,
+          isPendingPayment: data.isPendingPayment,
         }}
       >
         <Form method="POST" preventScrollReset>

@@ -23,6 +23,7 @@ function Payment({
     currency: string
     paymentMethods: string[]
     tipsPercentages: string[]
+    isPendingPayment?: boolean
   }
 }) {
   const [showModal, setShowModal] = React.useState({

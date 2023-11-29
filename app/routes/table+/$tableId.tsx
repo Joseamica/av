@@ -181,6 +181,7 @@ export async function loader({ request, params }: LoaderArgs) {
   const pendingPayment = await prisma.payments.findFirst({
     where: {
       status: 'pending',
+      method: 'cash' || 'card',
       userId: user.userId,
     },
   })

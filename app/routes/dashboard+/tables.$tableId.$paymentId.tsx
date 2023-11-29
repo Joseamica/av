@@ -96,6 +96,10 @@ export default function TablePaymentId() {
         <div className="w-full justify-center  p-[10px] flex flex-col divide-y-2 bg-white rounded-lg">
           {/* Usuario {data.payment?.user?.name} quiere pagar {formatCurrency(data.currency, data.payment?.total)} */}
           <FlexRow justify="between" className="py-2">
+            <H3>Fecha</H3>
+            <H3>{data.payment?.createdAt}</H3>
+          </FlexRow>
+          <FlexRow justify="between" className="py-2">
             <H3>Usuario</H3>
             <H3>{data.payment?.user?.name}</H3>
           </FlexRow>

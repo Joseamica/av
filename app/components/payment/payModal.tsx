@@ -7,12 +7,13 @@ import { CashIcon } from '../icons'
 import { SubModal } from '../modal'
 import { Button } from '../ui/buttons/button'
 import { FlexRow } from '../util/flexrow'
+import { H5 } from '../util/typography'
 import { usePayment } from './paymentV3'
 
 import { Translate } from '~/utils'
 
 export function PayModal() {
-  const { setShowModal, paymentMethods, paymentRadio, handleMethodChange } = usePayment()
+  const { setShowModal, paymentMethods, paymentRadio, handleMethodChange, isPendingPayment } = usePayment()
 
   return (
     <SubModal onClose={() => setShowModal(currentState => ({ ...currentState, payment: false }))} title="Asignar método de pago">
@@ -32,7 +33,12 @@ export function PayModal() {
                   },
                 )}
               >
-                <span> {translate}</span>
+                <div>
+                  {translate}{' '}
+                  {isPendingPayment && translate !== 'Tarjeta' ? (
+                    <span className="text-xs border rounded-full px-2">Pago restringido</span>
+                  ) : null}
+                </div>
                 <div className="w-28 flex justify-end">
                   {translate.includes('Tarjeta') ? (
                     <>
@@ -50,6 +56,7 @@ export function PayModal() {
                 </div>
 
                 <input
+                  disabled={(isPendingPayment && paymentMethod === 'cash') || paymentMethod === 'terminal'}
                   type="radio"
                   name="paymentMethod"
                   // defaultChecked={paymentMethod === 'cash'}
@@ -61,7 +68,13 @@ export function PayModal() {
             </div>
           )
         })}
-
+        {isPendingPayment && (
+          <div className="w-full flex justify-center text-center">
+            <H5 variant="secondary">
+              Pago en efectivo y terminal esta restringido, llama a tu mesero para que te cobre lo que solicitaste.
+            </H5>
+          </div>
+        )}
         <Button fullWith={true} onClick={() => setShowModal(currentState => ({ ...currentState, payment: false }))}>
           Asignar
         </Button>

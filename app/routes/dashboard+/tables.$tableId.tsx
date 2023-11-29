@@ -10,6 +10,8 @@ import { prisma } from '~/db.server'
 import { getSession } from '~/session.server'
 import { useLiveLoader } from '~/use-live-loader'
 
+import { getBranchId } from '~/models/branch.server'
+
 import { EVENTS } from '~/events'
 
 import { formatCurrency, getCurrency } from '~/utils'
@@ -92,13 +94,19 @@ export async function action({ request, params }: ActionArgs) {
     EVENTS.ISSUE_CHANGED(params.tableId)
     return json({ success: true })
   }
+  const branchId = await getBranchId(params.tableId)
 
   if (amount || tip) {
-    const payment = await prisma.payments.create({
+    await prisma.payments.create({
       data: {
         total: Number(amount) + Number(tip),
         method: method as any,
         tip: Number(tip),
+        branch: {
+          connect: {
+            id: branchId,
+          },
+        },
         status: 'accepted',
         amount: Number(amount),
         order: {
@@ -108,19 +116,7 @@ export async function action({ request, params }: ActionArgs) {
         },
       },
     })
-    const order = await prisma.order.findUnique({
-      where: {
-        tableId: params.tableId,
-      },
-    })
-    await prisma.order.update({
-      where: {
-        tableId: params.tableId,
-      },
-      data: {
-        total: Number(order.total) - Number(amount),
-      },
-    })
+
     EVENTS.ISSUE_CHANGED(params.tableId)
     return json({ success: true })
   }
@@ -140,6 +136,7 @@ export async function action({ request, params }: ActionArgs) {
       id: cartItem?.orderId,
     },
   })
+
   await prisma.order.update({
     where: {
       id: cartItem?.orderId,
@@ -183,7 +180,7 @@ export default function TableId() {
     )
     setTotalPaymentsQuantity(filteredPayments.length)
   }, [search, data.payments])
-  console.log('filter', filter)
+
   return (
     <Modal fullScreen={true} title={`Mesa ${data.table.number}`} onClose={() => navigate(`/dashboard/tables`)}>
       <div className={`flex flex-col justify-between h-full  bg-dashb-bg ${showConfirmationModal ? 'overflow-hidden' : ''}`}>
@@ -249,16 +246,20 @@ export default function TableId() {
           {activeNavMenu === 'Pagos' ? (
             <div>
               <SearchBar placeholder={'Buscar por id, propina o total'} setSearch={setSearch} />
-              {totalPaymentsQuantity > 0 && (
+              {/* {totalPaymentsQuantity > 0 && (
                 <button className="p-2">
                   <FaFilter onClick={() => setFilter({ date: 'today' })} />
                 </button>
-              )}
+              )} */}
               <Spacer spaceY="2" />
               <p className="text-[18px] font-semibold px-4">
                 {totalPaymentsQuantity} {totalPaymentsQuantity > 1 ? 'Pagos' : 'Pago'}
               </p>
-
+              <div className="mx-4 ">
+                <H6 variant="secondary" className="underline underline-offset-4">
+                  Haz click en los pagos para aceptar o ver información
+                </H6>
+              </div>
               <Spacer spaceY="2" />
 
               <div className="px-[10px] space-y-1">
@@ -521,7 +522,6 @@ function OrderDetails({ currency, totalProductQuantity, orderTotal, cartItems, i
           {cartItems.length > 0 &&
             cartItems?.map(cartItem => {
               const modifiersTotal = cartItem?.productModifiers.reduce((acc, item) => acc + item.quantity * item.extraPrice, 0)
-              // const productTotal = cartItem?.quantity * cartItem?.price
 
               return (
                 <div key={cartItem?.id} className="py-3 ">

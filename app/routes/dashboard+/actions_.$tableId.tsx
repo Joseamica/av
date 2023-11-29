@@ -316,7 +316,7 @@ export default function ActionsTableId() {
                 <div key={cartItem.id} className="py-1">
                   <FlexRow className="justify-between px-2 py-1 bg-white border rounded-lg">
                     <FlexRow>
-                      <div className="flex flex-row w-10 text-xs text-zinc-400">
+                      <div className="flex flex-row w-10 text-xs text-zinc-400 shrink">
                         {cartItem.user?.length > 0 ? cartItem.user.map(u => u.name) : 'Mesero'}
                       </div>
                       <span>{cartItem.quantity}</span>
