@@ -89,53 +89,42 @@ export default function MenuId() {
   let isSubmitting = fetcher.state === 'submitting' || fetcher.state === 'loading'
 
   useEffect(() => {
-    let intersectingIds = []
-
-    // Existing vertical scrolling logic
+    // Intersection Observer logic
     const observer = new IntersectionObserver(
       entries => {
         entries.forEach(entry => {
-          const id = entry.target.getAttribute('id')
-          if (entry.isIntersecting) {
-            intersectingIds.push(id)
-          } else {
-            intersectingIds = intersectingIds.filter(intersectingId => intersectingId !== id)
+          if (entry.isIntersecting && entry.intersectionRatio >= 0.5) {
+            setActiveCategoryId(entry.target.getAttribute('id'))
           }
         })
-
-        if (intersectingIds.length) {
-          setActiveCategoryId(intersectingIds[intersectingIds.length - 1])
-        }
       },
       {
-        root: document.querySelector('.categoryBar'),
-        rootMargin: '0px 0px -90% 0px',
-        threshold: 0.1,
+        root: null,
+        threshold: 0.5,
+        rootMargin: '0px 0px -50% 0px',
       },
     )
 
     Object.values(productCategoryRefs.current).forEach(div => {
-      if (div) {
-        observer.observe(div)
-      }
+      if (div) observer.observe(div)
     })
-
-    // Added horizontal scrolling logic
-    const activeCategoryElement = categoryRefs.current[activeCategoryId]
-    if (activeCategoryElement) {
-      const categoryBarElement = categoryBarRef.current
-      if (categoryBarElement) {
-        categoryBarElement.scrollLeft =
-          activeCategoryElement.offsetLeft - categoryBarElement.clientWidth / 2 + activeCategoryElement.clientWidth / 2
-      }
-    }
 
     return () => {
       Object.values(productCategoryRefs.current).forEach(div => {
-        if (div) {
-          observer.unobserve(div)
-        }
+        if (div) observer.unobserve(div)
       })
+    }
+  }, [])
+
+  useEffect(() => {
+    // Horizontal scrolling logic
+    const activeCategoryElement = categoryRefs.current[activeCategoryId]
+    const categoryBarElement = categoryBarRef.current
+
+    if (activeCategoryElement && categoryBarElement) {
+      const scrollLeftPosition =
+        activeCategoryElement.offsetLeft - categoryBarElement.clientWidth / 2 + activeCategoryElement.clientWidth / 2
+      categoryBarElement.scrollLeft = scrollLeftPosition
     }
   }, [activeCategoryId])
 
